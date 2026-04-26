@@ -19,6 +19,30 @@ The interface should support:
 
 This README is an initial product, design, architecture, and implementation brief. It does not describe a completed application yet.
 
+## Current Frontend Prototype
+
+This repository now includes the initial frontend implementation for the CureRays CWS dashboard.
+
+Implemented frontend scope:
+
+- Next.js App Router project at the repository root
+- React and TypeScript components
+- Custom Tailwind CSS theme aligned with CureRays branding
+- Dashboard, Master Records, Upcoming, On Treatment, Post, Reports, and Audit Logs pages
+- Typed anonymized mock data for patient workflows
+- Phase-driven filtered views over a single patient dataset
+- HIPAA-aware UI cues for role visibility, audit posture, and sensitive-data minimization
+
+Run commands:
+
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+The backend, database, real authentication, Prisma schema, and production audit logging are not implemented in this frontend phase.
+
 ## Current-State Problem
 
 The current workflow is based on Google Sheets with multiple tabs and manual movement of patient rows between workflow views.
