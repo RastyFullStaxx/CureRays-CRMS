@@ -13,7 +13,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto flex max-w-[1900px] flex-col gap-4">
         <Sidebar pathname={pathname} />
         <Topbar />
-        <main className="min-w-0">{children}</main>
+        <main key={pathname} className="page-transition min-w-0">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -48,6 +48,51 @@ input {
   backdrop-filter: blur(26px);
 }
 
+.page-transition {
+  animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top center;
+}
+
+.nav-item {
+  position: relative;
+  isolation: isolate;
+  transition:
+    color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.nav-item:hover {
+  transform: translateY(-1px);
+}
+
+.nav-item-active {
+  animation: nav-select 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nav-item-active::after {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  left: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--orange), var(--amber));
+  content: "";
+  opacity: 0.95;
+}
+
+.nav-icon {
+  transition:
+    color 220ms ease,
+    transform 220ms ease;
+}
+
+.nav-item-active .nav-icon {
+  transform: scale(1.08);
+}
+
 .soft-border {
   border: 1px solid rgba(46, 26, 71, 0.08);
 }
@@ -69,4 +114,44 @@ input {
 .scrollbar-soft::-webkit-scrollbar-thumb {
   background: rgba(114, 87, 132, 0.28);
   border-radius: 999px;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.996);
+    filter: blur(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes nav-select {
+  from {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+
+  .page-transition,
+  .nav-item-active {
+    animation: none;
+  }
 }

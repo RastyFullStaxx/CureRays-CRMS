@@ -75,14 +75,14 @@ export function Sidebar({ pathname }: { pathname: string }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition sm:text-sm",
+                  "nav-item flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold sm:text-sm",
                   active
-                    ? "bg-curerays-dark-plum text-white shadow-soft"
+                    ? "nav-item-active bg-curerays-dark-plum text-white shadow-soft"
                     : "text-curerays-dark-plum/70 hover:bg-white/72 hover:text-curerays-dark-plum"
                 )}
               >
                 <Icon
-                  className={cn("h-4 w-4 shrink-0", active ? "text-curerays-yellow" : "text-curerays-plum")}
+                  className={cn("nav-icon h-4 w-4 shrink-0", active ? "text-curerays-yellow" : "text-curerays-plum")}
                   aria-hidden="true"
                 />
                 {item.label}
