@@ -1,32 +1,49 @@
 import { BarChart3, ClipboardCheck, FileCheck2, ShieldAlert } from "lucide-react";
-import type { Patient } from "@/lib/types";
-import { averageChecklistPercent, countFlaggedPatients, phaseCounts } from "@/lib/workflow";
+import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient } from "@/lib/types";
+import {
+  auditReadinessScore,
+  carepathProgress,
+  countFlaggedPatients,
+  documentStatusCounts,
+  phaseCounts
+} from "@/lib/workflow";
 
-export function ReportsOverview({ patients }: { patients: Patient[] }) {
+export function ReportsOverview({
+  patients,
+  tasks = [],
+  documents = [],
+  fractions = []
+}: {
+  patients: Patient[];
+  tasks?: CarepathTask[];
+  documents?: GeneratedDocument[];
+  fractions?: FractionLogEntry[];
+}) {
   const phases = phaseCounts(patients);
+  const docCounts = documentStatusCounts(documents);
   const reports = [
     {
       label: "Phase Flow",
-      value: `${phases["On Treatment"]} active`,
-      detail: "Tracks how many patients are in each workflow state.",
+      value: `${phases.ON_TREATMENT} active`,
+      detail: "Tracks chart-rounds phase without moving patient records.",
       icon: BarChart3
     },
     {
-      label: "Checklist Readiness",
-      value: `${averageChecklistPercent(patients)}%`,
-      detail: "Aggregates TX summary, follow-up, and billing completion.",
+      label: "Carepath Readiness",
+      value: `${carepathProgress(tasks).percent}%`,
+      detail: "Aggregates task completion and not-applicable workflow steps.",
       icon: ClipboardCheck
     },
     {
-      label: "Flag Burden",
-      value: `${countFlaggedPatients(patients)} records`,
-      detail: "Shows records with open operational issues.",
+      label: "Document Risk",
+      value: `${docCounts.PENDING_NEEDED + docCounts.NEEDS_REVIEW} items`,
+      detail: "Shows documents that still need completion, review, or signature.",
       icon: ShieldAlert
     },
     {
-      label: "Post Closure",
-      value: `${phases.Post} patients`,
-      detail: "Keeps post-treatment closure visible after treatment ends.",
+      label: "Audit Readiness",
+      value: `${auditReadinessScore(tasks, documents, fractions)}%`,
+      detail: `${countFlaggedPatients(patients)} patient records currently carry operational flags.`,
       icon: FileCheck2
     }
   ];
@@ -55,7 +72,7 @@ export function ReportsOverview({ patients }: { patients: Patient[] }) {
       <article className="glass-panel rounded-glass p-5 md:col-span-2">
         <h3 className="text-lg font-semibold text-curerays-dark-plum">Report roadmap</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {["Daily census", "Checklist exceptions", "Audit export"].map((item) => (
+          {["Daily census", "Carepath exceptions", "Audit export"].map((item) => (
             <div key={item} className="rounded-lg border border-white/70 bg-white/52 p-4">
               <p className="text-sm font-semibold text-curerays-dark-plum">{item}</p>
               <p className="mt-2 text-xs leading-5 text-curerays-indigo">

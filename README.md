@@ -29,8 +29,10 @@ Implemented frontend scope:
 - React and TypeScript components
 - Custom Tailwind CSS theme aligned with CureRays branding
 - Dashboard, Master Records, Upcoming, On Treatment, Post, Reports, and Audit Logs pages
-- Typed anonymized mock data for patient workflows
+- Patient profile, Carepath, Documents, Tasks, Workflow Templates, and role settings pages
+- Typed anonymized mock data for patient workflows, treatment courses, documents, fraction logs, billing references, and audit events
 - Phase-driven filtered views over a single patient dataset
+- Separate chart-rounds phase and internal Carepath workflow phase concepts
 - HIPAA-aware UI cues for role visibility, audit posture, and sensitive-data minimization
 
 Run commands:

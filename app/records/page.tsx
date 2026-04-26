@@ -2,7 +2,7 @@ import { Database } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PatientTable } from "@/components/patient-table";
 import { RecordsSummary } from "@/components/records-summary";
-import { patients } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/mock-data";
 
 export default function RecordsPage() {
   return (
@@ -17,8 +17,12 @@ export default function RecordsPage() {
       <RecordsSummary patients={patients} />
       <PatientTable
         patients={patients}
+        courses={treatmentCourses}
+        tasks={carepathTasks}
+        documents={generatedDocuments}
+        fractions={fractionLogEntries}
         title="Central patient records"
-        description="Operationally useful fields are visible here while sensitive clinical detail stays restricted."
+        description="Master records now include active course, diagnosis workflow, document progress, and audit readiness signals."
       />
     </div>
   );

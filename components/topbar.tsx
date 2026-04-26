@@ -7,7 +7,7 @@ export function Topbar() {
         <div>
           <p className="text-sm font-semibold text-curerays-orange">Good afternoon, Clinical Admin</p>
           <h1 className="mt-1 text-2xl font-semibold text-curerays-dark-plum">
-            CureRays clinical operations
+            CureRays workflow command center
           </h1>
         </div>
 
@@ -58,7 +58,7 @@ export function Topbar() {
           Operational view minimizes sensitive chart details
         </span>
         <span className="inline-flex items-center gap-2 rounded-full bg-white/58 px-3 py-2">
-          Phase changes are audit-visible
+          Carepath, documents, and phase changes are audit-visible
         </span>
       </div>
     </header>

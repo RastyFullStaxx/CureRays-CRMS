@@ -1,16 +1,40 @@
 import { ClipboardCheck, Layers3, ShieldCheck, TrendingUp } from "lucide-react";
-import type { Patient } from "@/lib/types";
-import { averageChecklistPercent, phaseCounts, statusCounts } from "@/lib/workflow";
+import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient } from "@/lib/types";
+import {
+  auditReadinessScore,
+  averageChecklistPercent,
+  chartRoundsPhaseLabels,
+  documentStatusCounts,
+  phaseCounts,
+  responsiblePartyQueue,
+  statusCounts
+} from "@/lib/workflow";
 
-export function OperationalSnapshot({ patients }: { patients: Patient[] }) {
+export function OperationalSnapshot({
+  patients,
+  tasks = [],
+  documents = [],
+  fractions = []
+}: {
+  patients: Patient[];
+  tasks?: CarepathTask[];
+  documents?: GeneratedDocument[];
+  fractions?: FractionLogEntry[];
+}) {
   const phases = phaseCounts(patients);
   const statuses = statusCounts(patients);
   const checklist = averageChecklistPercent(patients);
+  const audit = auditReadinessScore(tasks, documents, fractions);
+  const docCounts = documentStatusCounts(documents);
+  const queueLoad = responsiblePartyQueue(tasks, documents).reduce(
+    (sum, queue) => sum + queue.assignedTasks + queue.pendingDocuments + queue.reviewItems,
+    0
+  );
 
   const phaseBars = [
-    { label: "Upcoming", value: phases.Upcoming, color: "bg-curerays-blue" },
-    { label: "On Treatment", value: phases["On Treatment"], color: "bg-curerays-orange" },
-    { label: "Post", value: phases.Post, color: "bg-curerays-plum" }
+    { label: chartRoundsPhaseLabels.UPCOMING, value: phases.UPCOMING, color: "bg-curerays-blue" },
+    { label: chartRoundsPhaseLabels.ON_TREATMENT, value: phases.ON_TREATMENT, color: "bg-curerays-orange" },
+    { label: chartRoundsPhaseLabels.POST, value: phases.POST, color: "bg-curerays-plum" }
   ];
 
   return (
@@ -18,40 +42,39 @@ export function OperationalSnapshot({ patients }: { patients: Patient[] }) {
       <div className="glass-panel rounded-glass p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-curerays-dark-plum">Checklist Progress Overview</h3>
+            <h3 className="text-lg font-semibold text-curerays-dark-plum">Workflow Completion Overview</h3>
             <p className="mt-1 text-sm text-curerays-indigo">
-              Completion is tracked by patient state, not by spreadsheet position.
+              Carepath, documents, checklist, and audit readiness are tracked as one workflow.
             </p>
           </div>
           <ClipboardCheck className="h-5 w-5 text-curerays-blue" aria-hidden="true" />
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
-            { label: "TX Summary", value: patients.filter((p) => p.checklist.txSummaryComplete).length },
-            { label: "Follow-Up", value: patients.filter((p) => p.checklist.followUpScheduled).length },
-            { label: "Billing", value: patients.filter((p) => p.checklist.billingComplete).length }
-          ].map((item) => {
-            const percent = Math.round((item.value / patients.length) * 100);
-
-            return (
-              <div key={item.label} className="rounded-lg border border-white/70 bg-white/50 p-4">
-                <p className="text-sm font-semibold text-curerays-indigo">{item.label}</p>
-                <div className="mt-3 flex items-end justify-between gap-3">
-                  <span className="text-3xl font-semibold text-curerays-dark-plum">{percent}%</span>
-                  <span className="text-xs font-bold text-curerays-indigo">
-                    {item.value}/{patients.length}
-                  </span>
-                </div>
-                <div className="mt-4 h-2 rounded-full bg-curerays-light-indigo/18">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-curerays-orange to-curerays-blue"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
+            { label: "Audit Ready", value: audit, detail: "score" },
+            { label: "Checklist", value: checklist, detail: "average" },
+            { label: "Pending Docs", value: docCounts.PENDING_NEEDED + docCounts.NEEDS_REVIEW, detail: "need work" },
+            { label: "Role Queue", value: queueLoad, detail: "open items" }
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-white/70 bg-white/50 p-4">
+              <p className="text-sm font-semibold text-curerays-indigo">{item.label}</p>
+              <div className="mt-3 flex items-end justify-between gap-3">
+                <span className="text-3xl font-semibold text-curerays-dark-plum">
+                  {item.label.includes("Docs") || item.label.includes("Queue") ? item.value : `${item.value}%`}
+                </span>
+                <span className="text-xs font-bold text-curerays-indigo">{item.detail}</span>
               </div>
-            );
-          })}
+              <div className="mt-4 h-2 rounded-full bg-curerays-light-indigo/18">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-curerays-orange to-curerays-blue"
+                  style={{
+                    width: `${item.label.includes("Docs") || item.label.includes("Queue") ? Math.min(100, item.value * 12) : item.value}%`
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -68,11 +91,11 @@ export function OperationalSnapshot({ patients }: { patients: Patient[] }) {
           <div className="rounded-lg border border-white/70 bg-white/50 p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-curerays-dark-plum">
               <Layers3 className="h-4 w-4 text-curerays-blue" aria-hidden="true" />
-              Phase distribution
+              Chart-rounds distribution
             </div>
             <div className="mt-4 space-y-3">
               {phaseBars.map((bar) => {
-                const percent = Math.round((bar.value / patients.length) * 100);
+                const percent = patients.length ? Math.round((bar.value / patients.length) * 100) : 0;
 
                 return (
                   <div key={bar.label}>
@@ -94,7 +117,7 @@ export function OperationalSnapshot({ patients }: { patients: Patient[] }) {
               <div key={label} className="rounded-lg bg-white/54 p-3 text-center">
                 <p className="text-xl font-semibold text-curerays-dark-plum">{value}</p>
                 <p className="mt-1 text-[11px] font-bold uppercase text-curerays-indigo">
-                  {label}
+                  {label.replaceAll("_", " ")}
                 </p>
               </div>
             ))}
@@ -103,8 +126,8 @@ export function OperationalSnapshot({ patients }: { patients: Patient[] }) {
           <div className="flex items-start gap-3 rounded-lg border border-curerays-blue/10 bg-curerays-blue/5 p-4">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-curerays-blue" aria-hidden="true" />
             <p className="text-sm leading-5 text-curerays-dark-plum/76">
-              Average checklist readiness is <span className="font-semibold">{checklist}%</span>. Role-aware
-              access cues stay visible before deeper patient details.
+              Dashboard detail is intentionally operational. Backend RBAC will decide deeper document and
+              patient-note visibility.
             </p>
           </div>
         </div>

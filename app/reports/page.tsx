@@ -2,7 +2,7 @@ import { BarChart3 } from "lucide-react";
 import { OperationalSnapshot } from "@/components/operational-snapshot";
 import { PageHeader } from "@/components/page-header";
 import { ReportsOverview } from "@/components/reports-overview";
-import { patients } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients } from "@/lib/mock-data";
 
 export default function ReportsPage() {
   return (
@@ -14,8 +14,18 @@ export default function ReportsPage() {
         icon={BarChart3}
         stat="Preview"
       />
-      <ReportsOverview patients={patients} />
-      <OperationalSnapshot patients={patients} />
+      <ReportsOverview
+        patients={patients}
+        tasks={carepathTasks}
+        documents={generatedDocuments}
+        fractions={fractionLogEntries}
+      />
+      <OperationalSnapshot
+        patients={patients}
+        tasks={carepathTasks}
+        documents={generatedDocuments}
+        fractions={fractionLogEntries}
+      />
     </div>
   );
 }

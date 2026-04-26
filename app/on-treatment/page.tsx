@@ -1,6 +1,15 @@
 import { PhaseView } from "@/components/phase-view";
-import { patients } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/mock-data";
 
 export default function OnTreatmentPage() {
-  return <PhaseView phase="On Treatment" patients={patients} />;
+  return (
+    <PhaseView
+      phase="ON_TREATMENT"
+      patients={patients}
+      courses={treatmentCourses}
+      tasks={carepathTasks}
+      documents={generatedDocuments}
+      fractions={fractionLogEntries}
+    />
+  );
 }

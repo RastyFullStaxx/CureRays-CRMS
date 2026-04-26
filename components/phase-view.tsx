@@ -1,31 +1,45 @@
 import { ClipboardList } from "lucide-react";
-import type { Patient, Phase } from "@/lib/types";
-import { countFlaggedPatients, patientsByPhase } from "@/lib/workflow";
+import type { CarepathTask, ChartRoundsPhase, FractionLogEntry, GeneratedDocument, Patient, TreatmentCourse } from "@/lib/types";
+import { chartRoundsPhaseLabels, countFlaggedPatients, patientsByPhase } from "@/lib/workflow";
 import { PageHeader } from "@/components/page-header";
 import { PatientTable } from "@/components/patient-table";
 
-const phaseCopy: Record<Phase, { title: string; description: string; eyebrow: string }> = {
-  Upcoming: {
+const phaseCopy: Record<ChartRoundsPhase, { title: string; description: string; eyebrow: string }> = {
+  UPCOMING: {
     eyebrow: "Filtered workflow",
     title: "Upcoming patients",
     description:
-      "Patients appear here because their Phase is Upcoming. This view replaces manual worksheet tab movement with state-driven visibility."
+      "Patients appear here because their chart-rounds phase is Upcoming. Carepath and document readiness still remain visible."
   },
-  "On Treatment": {
+  ON_TREATMENT: {
     eyebrow: "Active coordination",
     title: "On Treatment",
     description:
-      "Patients currently in treatment are shown from the centralized record set, keeping next actions, flags, and checklist progress together."
+      "Patients currently in treatment are shown from the centralized record set with fraction readiness and active document blockers."
   },
-  Post: {
+  POST: {
     eyebrow: "Post-treatment continuity",
     title: "Post-treatment workflow",
     description:
-      "Post-treatment patients remain visible for follow-up, billing closure, and summary completion without duplicating records."
+      "Post-treatment patients remain visible for follow-up, billing closure, treatment summaries, and audit readiness."
   }
 };
 
-export function PhaseView({ phase, patients }: { phase: Phase; patients: Patient[] }) {
+export function PhaseView({
+  phase,
+  patients,
+  courses,
+  tasks,
+  documents,
+  fractions
+}: {
+  phase: ChartRoundsPhase;
+  patients: Patient[];
+  courses: TreatmentCourse[];
+  tasks: CarepathTask[];
+  documents: GeneratedDocument[];
+  fractions: FractionLogEntry[];
+}) {
   const filteredPatients = patientsByPhase(patients, phase);
   const copy = phaseCopy[phase];
 
@@ -53,14 +67,18 @@ export function PhaseView({ phase, patients }: { phase: Phase; patients: Patient
         <div className="glass-panel rounded-glass p-5">
           <p className="text-sm font-semibold text-curerays-indigo">Workflow rule</p>
           <p className="mt-2 text-sm font-semibold leading-5 text-curerays-dark-plum">
-            Phase field controls this page. No row copies.
+            {chartRoundsPhaseLabels[phase]} is a field-driven view. No row copies.
           </p>
         </div>
       </div>
 
       <PatientTable
         patients={filteredPatients}
-        title={`${phase} workflow queue`}
+        courses={courses}
+        tasks={tasks}
+        documents={documents}
+        fractions={fractions}
+        title={`${chartRoundsPhaseLabels[phase]} workflow queue`}
         description="Filtered from the same patient source used by every page."
       />
     </div>

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import {
-  Activity,
   ClipboardList,
   FileText,
   Gauge,
-  History,
   LayoutDashboard,
-  Radiation,
+  ListChecks,
+  Settings,
+  ShieldCheck,
   TableProperties
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -22,15 +22,20 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Master Records", href: "/records", icon: TableProperties },
-  { label: "Upcoming", href: "/upcoming", icon: ClipboardList },
-  { label: "On Treatment", href: "/on-treatment", icon: Radiation },
-  { label: "Post", href: "/post", icon: Activity },
+  { label: "Patients", href: "/patients", icon: TableProperties },
+  { label: "Carepath", href: "/workflow", icon: ClipboardList },
+  { label: "Documents", href: "/documents", icon: FileText },
+  { label: "Tasks", href: "/tasks", icon: ListChecks },
+  { label: "Audit", href: "/audit", icon: ShieldCheck },
   { label: "Reports", href: "/reports", icon: FileText },
-  { label: "Audit Logs", href: "/audit-logs", icon: History }
+  { label: "Settings", href: "/settings/users", icon: Settings }
 ];
 
 function isActive(pathname: string, href: string) {
+  if (href === "/" && pathname === "/dashboard") {
+    return true;
+  }
+
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
@@ -88,7 +93,7 @@ export function Sidebar({ pathname }: { pathname: string }) {
         <div className="rounded-lg border border-curerays-blue/10 bg-curerays-blue/5 p-4">
           <p className="text-sm font-semibold text-curerays-dark-plum">Phase-driven model</p>
           <p className="mt-2 text-xs leading-5 text-curerays-indigo">
-            Views are filtered from patient state. No duplicate rows, no manual sheet movement.
+            Patients, documents, tasks, and audit readiness derive from centralized workflow state.
           </p>
         </div>
       </aside>
