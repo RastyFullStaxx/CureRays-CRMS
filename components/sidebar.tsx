@@ -41,30 +41,31 @@ function isActive(pathname: string, href: string) {
 
 export function Sidebar({ pathname }: { pathname: string }) {
   return (
-    <>
-      <aside className="glass-panel hidden h-[calc(100vh-2.5rem)] w-72 shrink-0 flex-col rounded-glass p-4 lg:sticky lg:top-5 lg:flex">
-        <Link href="/" className="flex items-center gap-3 rounded-lg px-2 py-2">
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-curerays-blue text-white shadow-soft">
-            <Gauge className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold text-curerays-dark-plum">
-              CureRays
+    <header className="glass-panel sticky top-3 z-30 rounded-glass p-3 sm:p-4 lg:top-5">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link href="/" className="flex min-w-fit items-center gap-3 rounded-lg px-1 py-1">
+            <span className="grid h-11 w-11 place-items-center rounded-lg bg-curerays-blue text-white shadow-soft">
+              <Gauge className="h-5 w-5" aria-hidden="true" />
             </span>
-            <span className="block text-xs font-medium text-curerays-indigo">Clinical Workflow</span>
-          </span>
-        </Link>
+            <span>
+              <span className="block text-sm font-semibold text-curerays-dark-plum">CureRays</span>
+              <span className="block text-xs font-medium text-curerays-indigo">Workflow Command</span>
+            </span>
+          </Link>
 
-        <div className="mt-6 rounded-lg border border-white/70 bg-white/46 p-3">
-          <p className="text-xs font-semibold uppercase text-curerays-plum">
-            Secure workspace
-          </p>
-          <p className="mt-2 text-sm leading-5 text-curerays-dark-plum/76">
-            Role-aware preview for operations and clinical coordination.
-          </p>
+          <div className="hidden min-w-0 rounded-lg border border-white/70 bg-white/46 px-3 py-2 lg:block">
+            <p className="truncate text-xs font-semibold uppercase text-curerays-plum">Secure workspace</p>
+            <p className="truncate text-xs text-curerays-indigo">
+              Centralized patient, document, task, and audit state
+            </p>
+          </div>
         </div>
 
-        <nav className="mt-6 flex flex-1 flex-col gap-1" aria-label="Primary navigation">
+        <nav
+          className="scrollbar-soft flex min-w-0 gap-2 overflow-x-auto rounded-lg bg-white/36 p-1.5"
+          aria-label="Primary navigation"
+        >
           {navItems.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
@@ -74,14 +75,14 @@ export function Sidebar({ pathname }: { pathname: string }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition",
+                  "flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition sm:text-sm",
                   active
                     ? "bg-curerays-dark-plum text-white shadow-soft"
-                    : "text-curerays-dark-plum/68 hover:bg-white/72 hover:text-curerays-dark-plum"
+                    : "text-curerays-dark-plum/70 hover:bg-white/72 hover:text-curerays-dark-plum"
                 )}
               >
                 <Icon
-                  className={cn("h-4 w-4", active ? "text-curerays-yellow" : "text-curerays-plum")}
+                  className={cn("h-4 w-4 shrink-0", active ? "text-curerays-yellow" : "text-curerays-plum")}
                   aria-hidden="true"
                 />
                 {item.label}
@@ -90,39 +91,11 @@ export function Sidebar({ pathname }: { pathname: string }) {
           })}
         </nav>
 
-        <div className="rounded-lg border border-curerays-blue/10 bg-curerays-blue/5 p-4">
-          <p className="text-sm font-semibold text-curerays-dark-plum">Phase-driven model</p>
-          <p className="mt-2 text-xs leading-5 text-curerays-indigo">
-            Patients, documents, tasks, and audit readiness derive from centralized workflow state.
-          </p>
+        <div className="hidden min-w-fit rounded-lg border border-curerays-blue/10 bg-curerays-blue/5 px-3 py-2 text-right 2xl:block">
+          <p className="text-xs font-semibold text-curerays-dark-plum">Phase-driven model</p>
+          <p className="text-xs text-curerays-indigo">Views derive from workflow state</p>
         </div>
-      </aside>
-
-      <nav
-        className="glass-panel scrollbar-soft flex gap-2 overflow-x-auto rounded-glass p-2 lg:hidden"
-        aria-label="Mobile primary navigation"
-      >
-        {navItems.map((item) => {
-          const active = isActive(pathname, item.href);
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex min-w-fit items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition",
-                active
-                  ? "bg-curerays-dark-plum text-white"
-                  : "bg-white/55 text-curerays-dark-plum/70"
-              )}
-            >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </>
+      </div>
+    </header>
   );
 }

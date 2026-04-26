@@ -2,11 +2,11 @@ import { Bell, LockKeyhole, Plus, Search, ShieldCheck, UserRound } from "lucide-
 
 export function Topbar() {
   return (
-    <header className="glass-panel rounded-glass px-4 py-4 sm:px-5">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <header className="glass-panel rounded-glass px-4 py-3 sm:px-5">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <p className="text-sm font-semibold text-curerays-orange">Good afternoon, Clinical Admin</p>
-          <h1 className="mt-1 text-2xl font-semibold text-curerays-dark-plum">
+          <h1 className="mt-0.5 text-2xl font-semibold text-curerays-dark-plum">
             CureRays workflow command center
           </h1>
         </div>
@@ -52,7 +52,7 @@ export function Topbar() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-curerays-indigo">
+      <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-curerays-indigo">
         <span className="inline-flex items-center gap-2 rounded-full bg-white/58 px-3 py-2">
           <LockKeyhole className="h-3.5 w-3.5 text-curerays-plum" aria-hidden="true" />
           Operational view minimizes sensitive chart details
