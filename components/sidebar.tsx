@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Patients", href: "/patients", icon: TableProperties },
   { label: "Carepath", href: "/workflow", icon: ClipboardList },
-  { label: "IGSRT Tools", href: "/workflow/igstrt", icon: Radiation },
+  { label: "IGSRT Tools", href: "/workflow/igsrt", icon: Radiation },
   { label: "Documents", href: "/documents", icon: FileText },
   { label: "Tasks", href: "/tasks", icon: ListChecks },
   { label: "Audit", href: "/audit", icon: ShieldCheck },

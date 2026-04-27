@@ -17,7 +17,6 @@ import type {
   AuditEvent,
   BillingCode,
   CarepathTask,
-  ChartRoundsPhase,
   DocumentTemplate,
   FractionLogEntry,
   GeneratedDocument,
@@ -32,7 +31,7 @@ import type {
   TreatmentCourse,
   WorkflowSnapshot
 } from "@/lib/types";
-import { courseDocuments, courseFractions, patientActiveCourse, patientName } from "@/lib/workflow";
+import { courseDocuments, courseFractions, patientName } from "@/lib/workflow";
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -411,10 +410,14 @@ function applyGeneratedDocumentState(
     return;
   }
 
+  const changed =
+    document.status !== status || document.requiredAction !== requiredAction || document.auditReady !== auditReady;
   document.status = status;
   document.requiredAction = requiredAction;
   document.auditReady = auditReady;
-  document.lastUpdatedAt = nowIso();
+  if (changed) {
+    document.lastUpdatedAt = nowIso();
+  }
   document.signReviewState =
     status === "SIGNED" || status === "EXPORTED"
       ? "SIGNED"
@@ -435,10 +438,13 @@ function applyTaskState(documentName: string, status: CarepathTask["status"], au
   carepathTasks
     .filter((task) => task.documentName === documentName)
     .forEach((task) => {
+      const changed = task.status !== status || task.auditReady !== auditReady || task.noteAction !== noteAction;
       task.status = status;
       task.auditReady = auditReady;
       task.noteAction = noteAction;
-      task.lastUpdatedAt = nowIso();
+      if (changed) {
+        task.lastUpdatedAt = nowIso();
+      }
       if (status === "COMPLETED" && !task.completedAt) {
         task.completedAt = nowIso();
       }
@@ -457,7 +463,13 @@ function recalculateWorkflowState() {
   if (sim) {
     if (sim.signedAt) {
       sim.status = "SIGNED";
-      applyGeneratedDocumentState("DOC-2401-SIM", "SIGNED", "Simulation order signed", true);
+      const simDocument = generatedDocuments.find((document) => document.id === "DOC-2401-SIM");
+      applyGeneratedDocumentState(
+        "DOC-2401-SIM",
+        simDocument?.exportedAt ? "EXPORTED" : "SIGNED",
+        simDocument?.exportedAt ? "Simulation order exported" : "Simulation order signed",
+        true
+      );
       applyTaskState("CTP / SIM IGSRT Order", "COMPLETED", true, "Simulation order complete and signed");
     } else if (isSimulationComplete(sim)) {
       sim.status = "READY_FOR_REVIEW";
@@ -474,7 +486,13 @@ function recalculateWorkflowState() {
   if (rx) {
     if (rx.signedAt) {
       rx.status = "SIGNED";
-      applyGeneratedDocumentState("DOC-2401-RX", "SIGNED", "Prescription signed", true);
+      const rxDocument = generatedDocuments.find((document) => document.id === "DOC-2401-RX");
+      applyGeneratedDocumentState(
+        "DOC-2401-RX",
+        rxDocument?.exportedAt ? "EXPORTED" : "SIGNED",
+        rxDocument?.exportedAt ? "Prescription exported" : "Prescription signed",
+        true
+      );
       applyTaskState("IGSRT Prescription", "COMPLETED", true, "Prescription signed and audit-ready");
     } else if (isPrescriptionComplete(rx)) {
       rx.status = "READY_FOR_REVIEW";
@@ -489,7 +507,16 @@ function recalculateWorkflowState() {
 
   const course2401Fractions = courseFractions("COURSE-2401", fractionLogEntries);
   const missingApprovals = course2401Fractions.filter((entry) => !entry.mdApproval || !entry.dotApproval).length;
-  if (missingApprovals > 0) {
+  const fractionLogDocument = generatedDocuments.find((document) => document.id === "DOC-2401-FXLOG");
+  if (fractionLogDocument?.signedAt) {
+    applyGeneratedDocumentState(
+      "DOC-2401-FXLOG",
+      fractionLogDocument.exportedAt ? "EXPORTED" : "SIGNED",
+      fractionLogDocument.exportedAt ? "Fraction log exported" : "Fraction log signed",
+      true
+    );
+    applyTaskState("IGSRT Fraction Log", "COMPLETED", true, "Fraction log signed and audit-ready");
+  } else if (missingApprovals > 0) {
     applyGeneratedDocumentState("DOC-2401-FXLOG", "NEEDS_REVIEW", `${missingApprovals} fraction approval(s) missing`, false);
     applyTaskState("IGSRT Fraction Log", "NEEDS_REVIEW", false, "Resolve missing MD/DOT approvals and update cumulative dose");
   } else if (course2401Fractions.length > 0) {
@@ -810,6 +837,18 @@ export function signGeneratedDocument(documentId: string) {
   }
 
   const previousValue = document.status;
+  if (document.templateId === "TPL-IGSRT-SIM") {
+    const order = getSimulationOrder(document.courseId);
+    if (order) {
+      order.signedAt = nowIso();
+    }
+  }
+  if (document.templateId === "TPL-IGSRT-RX") {
+    const prescription = getPrescription(document.courseId);
+    if (prescription) {
+      prescription.signedAt = nowIso();
+    }
+  }
   document.status = "SIGNED";
   document.signedAt = nowIso();
   document.signReviewState = "SIGNED";

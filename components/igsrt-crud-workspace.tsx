@@ -86,7 +86,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
 
   function saveSimulationOrder(formData: FormData) {
     runAction("simulation", async () =>
-      requestJson("/api/igstrt", {
+      requestJson("/api/igsrt", {
         method: "PATCH",
         body: JSON.stringify({
           resource: "simulationOrder",
@@ -133,7 +133,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
     };
 
     runAction("prescription", async () =>
-      requestJson("/api/igstrt", {
+      requestJson("/api/igsrt", {
         method: "PATCH",
         body: JSON.stringify({
           resource: "prescription",
@@ -155,7 +155,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
 
   function addFraction(formData: FormData) {
     runAction("fraction", async () =>
-      requestJson("/api/igstrt", {
+      requestJson("/api/igsrt", {
         method: "POST",
         body: JSON.stringify({
           action: "addFraction",
@@ -181,7 +181,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
 
   function renderDocument(documentId: string) {
     runAction(`render-${documentId}`, async () =>
-      requestJson("/api/igstrt", {
+      requestJson("/api/igsrt", {
         method: "POST",
         body: JSON.stringify({
           action: "renderDocument",
@@ -194,7 +194,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
 
   function signDocument(documentId: string) {
     runAction(`sign-${documentId}`, async () =>
-      requestJson("/api/igstrt", {
+      requestJson("/api/igsrt", {
         method: "POST",
         body: JSON.stringify({
           action: "signDocument",
