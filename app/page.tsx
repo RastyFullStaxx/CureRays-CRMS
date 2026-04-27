@@ -25,7 +25,7 @@ import {
   patients,
   priorityFlags,
   treatmentCourses
-} from "@/lib/mock-data";
+} from "@/lib/clinical-store";
 import {
   auditReadinessScore,
   countFlaggedPatients,

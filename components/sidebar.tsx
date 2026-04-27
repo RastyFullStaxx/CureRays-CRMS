@@ -8,6 +8,7 @@ import {
   LineChart,
   LayoutDashboard,
   ListChecks,
+  Radiation,
   Settings,
   ShieldCheck,
   TableProperties
@@ -25,6 +26,7 @@ const navItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Patients", href: "/patients", icon: TableProperties },
   { label: "Carepath", href: "/workflow", icon: ClipboardList },
+  { label: "IGSRT Tools", href: "/workflow/igstrt", icon: Radiation },
   { label: "Documents", href: "/documents", icon: FileText },
   { label: "Tasks", href: "/tasks", icon: ListChecks },
   { label: "Audit", href: "/audit", icon: ShieldCheck },
@@ -36,6 +38,10 @@ const navItems: NavItem[] = [
 function isActive(pathname: string, href: string) {
   if (href === "/" && pathname === "/dashboard") {
     return true;
+  }
+
+  if (href === "/workflow") {
+    return pathname === "/workflow" || pathname.startsWith("/workflow/templates");
   }
 
   return href === "/" ? pathname === "/" : pathname.startsWith(href);

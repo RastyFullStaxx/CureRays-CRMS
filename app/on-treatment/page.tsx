@@ -1,5 +1,5 @@
 import { PhaseView } from "@/components/phase-view";
-import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/clinical-store";
 
 export default function OnTreatmentPage() {
   return (

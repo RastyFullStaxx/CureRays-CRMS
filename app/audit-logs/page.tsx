@@ -1,7 +1,7 @@
 import { History, ShieldCheck } from "lucide-react";
 import { AuditTimeline } from "@/components/audit-timeline";
 import { PageHeader } from "@/components/page-header";
-import { auditEvents } from "@/lib/mock-data";
+import { auditEvents } from "@/lib/clinical-store";
 
 export default function AuditLogsPage() {
   return (
@@ -20,9 +20,9 @@ export default function AuditLogsPage() {
           <div>
             <h3 className="text-lg font-semibold text-curerays-dark-plum">Audit posture</h3>
             <p className="mt-2 text-sm leading-6 text-curerays-indigo">
-              This preview highlights the expected audit shape: who changed what, previous value,
-              new value, affected entity, timestamp, and operational reason. Backend enforcement and
-              immutable logging are planned for the API phase.
+              This view highlights the audit shape: who changed what, previous value, new value,
+              affected entity, timestamp, and operational reason. The current API layer records
+              workflow mutations and is ready to move to immutable PostgreSQL-backed logging.
             </p>
           </div>
         </div>

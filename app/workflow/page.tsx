@@ -1,7 +1,7 @@
 import { ClipboardList } from "lucide-react";
 import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PageHeader } from "@/components/page-header";
-import { carepathTasks } from "@/lib/mock-data";
+import { carepathTasks } from "@/lib/clinical-store";
 import { carepathPhaseLabels } from "@/lib/workflow";
 import type { CarepathWorkflowPhase } from "@/lib/types";
 
@@ -27,7 +27,7 @@ export default function WorkflowPage() {
               tasks.map((task) => <CarepathTaskCard key={task.id} task={task} />)
             ) : (
               <div className="glass-panel rounded-glass p-5 text-sm font-semibold text-curerays-indigo">
-                No active mock tasks in this phase.
+                No active tasks in this phase.
               </div>
             )}
           </section>

@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ChartRoundsPhase {
+  UPCOMING
+  ON_TREATMENT
+  POST
+}
+
+enum PatientStatus {
+  ACTIVE
+  ON_HOLD
+  PAUSED
+}
+
+enum DiagnosisCategory {
+  SKIN_CANCER
+  ARTHRITIS
+  DUPUYTRENS
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_NEEDED
+  MISSING_FIELDS
+  READY_FOR_REVIEW
+  SIGNED
+  EXPORTED
+  NOT_APPLICABLE
+  NEEDS_REVIEW
+  COMPLETED
+}
+
+model Patient {
+  id               String             @id
+  firstName        String
+  lastName         String
+  mrn              String             @unique
+  diagnosis        String
+  diagnosisCategory DiagnosisCategory
+  location         String
+  physician        String
+  chartRoundsPhase ChartRoundsPhase
+  status           PatientStatus
+  assignedStaff    String
+  nextAction       String
+  notes            String
+  checklist        Json
+  lastUpdatedAt    DateTime
+  courses          TreatmentCourse[]
+  auditEvents      AuditEvent[]
+}
+
+model TreatmentCourse {
+  id                  String              @id
+  patientId           String
+  patient             Patient             @relation(fields: [patientId], references: [id])
+  diagnosis           String
+  diagnosisCategory   DiagnosisCategory
+  protocolName        String
+  totalFractions      Int
+  currentFraction     Int
+  startDate           DateTime
+  endDate             DateTime?
+  chartRoundsPhase    ChartRoundsPhase
+  status              String
+  treatmentModality   String
+  treatmentType       String
+  phaseOne            String?
+  phaseTwo            String?
+  energy              String?
+  applicator          String?
+  dose                String?
+  targetDepth         String?
+  fieldDesign         String?
+  notes               String
+  simulationOrders    SimulationOrder[]
+  prescriptions       Prescription[]
+  mappingRecords      MappingRecord[]
+  fractionLogEntries  FractionLogEntry[]
+  generatedDocuments  GeneratedDocument[]
+  carepathTasks       CarepathTask[]
+}
+
+model SimulationOrder {
+  id                      String          @id
+  patientId               String
+  courseId                String
+  course                  TreatmentCourse @relation(fields: [courseId], references: [id])
+  lesionLocation          String
+  laterality              String
+  lesionBorderInked       Boolean
+  allMarginsInked         Boolean
+  phaseIMarginInstruction String
+  phaseIIMarginInstruction String
+  chairSetup              String
+  position                String
+  setupPhotoChecklist     String[]
+  ultrasoundFrequencies   String[]
+  specialPhysicsRequired  Boolean
+  specialPhysicsReason    String
+  weeklyPhysicsRequired   Boolean
+  weeklyPhysicsReason     String
+  inVivoDosimetryRequired Boolean
+  radiationOncologist     String
+  dateCompleted           DateTime?
+  signedAt                DateTime?
+  status                  String
+  lastUpdatedAt           DateTime
+}
+
+model Prescription {
+  id                     String              @id
+  patientId              String
+  courseId               String
+  course                 TreatmentCourse     @relation(fields: [courseId], references: [id])
+  site                   String
+  laterality             String
+  verifiedInSensus       Boolean
+  imagingGuidance        String[]
+  priorRadiationTherapy  Boolean
+  preAuthorized          Boolean
+  signedAt               DateTime?
+  dateOrdered            DateTime?
+  status                 String
+  lastUpdatedAt          DateTime
+  phases                 PrescriptionPhase[]
+}
+
+model PrescriptionPhase {
+  id                 String       @id
+  prescriptionId     String
+  prescription       Prescription @relation(fields: [prescriptionId], references: [id])
+  phaseName          String
+  energyKv           Int
+  phaseTotalDoseGy   Decimal
+  dosePerFractionGy  Decimal
+  totalFractions     Int
+  timeMinutes        Decimal
+  ssdCm              Decimal
+  applicatorSize     String
+  marginMm           Int
+  technique          String
+  shieldingDesign    String
+  depthOfTargetMm    Decimal
+}
+
+model MappingRecord {
+  id                  String            @id
+  patientId           String
+  courseId            String
+  course              TreatmentCourse   @relation(fields: [courseId], references: [id])
+  diagnosis           DiagnosisCategory
+  bodySite            String
+  laterality          String
+  impressions         String
+  fieldDesignDecision String
+  status              String
+  lastUpdatedAt       DateTime
+}
+
+model FractionLogEntry {
+  id                    String          @id
+  courseId              String
+  course                TreatmentCourse @relation(fields: [courseId], references: [id])
+  fractionNumber        Int
+  date                  DateTime
+  phase                 String
+  energy                String
+  ssd                   String
+  dosePerFraction       Int
+  cumulativeDose        Int
+  technicianInitials    String
+  mdApproval            Boolean
+  dotApproval           Boolean
+  depthOfTarget         String
+  isodosePercent        Int
+  doseToDepth           Int
+  cumulativeDoseToDepth Int
+  notes                 String
+}
+
+model GeneratedDocument {
+  id              String          @id
+  templateId      String
+  patientId       String
+  courseId        String
+  course          TreatmentCourse @relation(fields: [courseId], references: [id])
+  name            String
+  clinicalPhase   String
+  responsibleParty String
+  status          DocumentStatus
+  requiredAction  String
+  cptCode         String?
+  assignedTo      String
+  lastUpdatedAt   DateTime
+  signedAt        DateTime?
+  exportedAt      DateTime?
+  signReviewState String
+  auditReady      Boolean
+  outputs         GeneratedDocumentOutput[]
+}
+
+model GeneratedDocumentOutput {
+  id             String            @id
+  documentId     String
+  document       GeneratedDocument @relation(fields: [documentId], references: [id])
+  patientId      String
+  courseId       String
+  format         String
+  version        Int
+  status         String
+  driveFileUrl   String?
+  contentPreview String
+  renderedAt     DateTime
+}
+
+model CarepathTask {
+  id              String          @id
+  courseId        String
+  course          TreatmentCourse @relation(fields: [courseId], references: [id])
+  taskNumber      String
+  title           String
+  workflowPhase   String
+  documentName    String
+  status          String
+  responsibleParty String
+  timing          String
+  noteAction      String
+  cptCodes        String[]
+  auditSteps      String[]
+  auditReady      Boolean
+  dueDate         DateTime?
+  completedAt     DateTime?
+  signedAt        DateTime?
+  lastUpdatedAt   DateTime
+  assignedUser    String
+}
+
+model AuditEvent {
+  id            String   @id
+  patientId     String?
+  patient       Patient? @relation(fields: [patientId], references: [id])
+  userId        String
+  userName      String
+  action        String
+  entityType    String
+  entityId      String
+  previousValue String
+  newValue      String
+  timestamp     DateTime
+  reason        String?
+}

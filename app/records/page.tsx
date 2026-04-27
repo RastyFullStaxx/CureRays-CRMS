@@ -2,7 +2,7 @@ import { Database } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PatientTable } from "@/components/patient-table";
 import { RecordsSummary } from "@/components/records-summary";
-import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/clinical-store";
 
 export default function RecordsPage() {
   return (

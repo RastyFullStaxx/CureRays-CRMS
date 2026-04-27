@@ -12,7 +12,7 @@ import {
   generatedDocuments,
   patients,
   treatmentCourses
-} from "@/lib/mock-data";
+} from "@/lib/clinical-store";
 import {
   auditBlockers,
   auditReadinessScore,
@@ -61,14 +61,14 @@ export default function AnalyticsPage() {
         />
         <AnalyticsMetricCard
           label="Document Risk"
-          value={documentCounts.PENDING_NEEDED + documentCounts.NEEDS_REVIEW}
-          detail="Pending or review-needed generated documents."
+          value={documentCounts.PENDING_NEEDED + documentCounts.MISSING_FIELDS + documentCounts.NEEDS_REVIEW}
+          detail="Pending, incomplete, or review-needed generated documents."
           icon={FileWarning}
         />
         <AnalyticsMetricCard
           label="Overdue Tasks"
           value={overdueTaskCount(carepathTasks)}
-          detail="Responsible-party tasks past due in the mock workflow."
+          detail="Responsible-party tasks past due in the workflow."
           icon={Route}
         />
         <AnalyticsMetricCard
@@ -104,8 +104,8 @@ export default function AnalyticsPage() {
       <section className="glass-panel rounded-glass p-5">
         <h3 className="text-lg font-semibold text-curerays-dark-plum">Analytics stance</h3>
         <p className="mt-2 text-sm leading-6 text-curerays-indigo">
-          These insights are operational and strategic, not clinical decision support. The prototype
-          uses anonymized mock data and is prepared for later API-backed analytics.
+          These insights are operational and strategic, not clinical decision support. The workspace
+          now reads from the API-oriented clinical store and is ready for persistent backend analytics.
         </p>
         {bottlenecks[0] ? (
           <p className="mt-4 text-sm font-semibold text-curerays-dark-plum">

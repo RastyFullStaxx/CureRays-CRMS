@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PatientProfileShell } from "@/components/patient-profile-shell";
-import { carepathTasks, patients, treatmentCourses } from "@/lib/mock-data";
+import { carepathTasks, patients, treatmentCourses } from "@/lib/clinical-store";
 import { carepathPhaseLabels, courseTasks, patientActiveCourse } from "@/lib/workflow";
 import type { CarepathWorkflowPhase } from "@/lib/types";
 

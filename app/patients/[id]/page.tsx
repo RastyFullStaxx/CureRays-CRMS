@@ -10,7 +10,7 @@ import {
   generatedDocuments,
   patients,
   treatmentCourses
-} from "@/lib/mock-data";
+} from "@/lib/clinical-store";
 import {
   courseDocuments,
   courseFractions,

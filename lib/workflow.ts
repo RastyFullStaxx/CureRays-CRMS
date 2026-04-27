@@ -387,7 +387,7 @@ export function generateAnalyticsInsights({
       category: "DIAGNOSIS_PATTERN",
       severity: topDiagnosis.count >= 3 ? "MEDIUM" : "LOW",
       summary: "The diagnosis mix can guide which workflow templates should be refined first.",
-      evidence: `${topDiagnosis.count} of ${patients.length} mock patient records use this diagnosis category.`,
+      evidence: `${topDiagnosis.count} of ${patients.length} patient records use this diagnosis category.`,
       recommendation: "Prioritize template quality and exception handling for the largest segment.",
       solutionOpportunity: "Diagnosis workflow template builder"
     });
@@ -413,7 +413,7 @@ export function generateAnalyticsInsights({
       category: "AUTOMATION_OPPORTUNITY",
       severity: "LOW",
       summary: "Not-applicable documents are expected, but manual N/A decisions can become inconsistent.",
-      evidence: `${naDocuments} generated documents are marked not applicable in the mock workflow.`,
+      evidence: `${naDocuments} generated documents are marked not applicable in the workflow.`,
       recommendation: "Model applicability by diagnosis, protocol, modality, and course state.",
       solutionOpportunity: "Smart document applicability engine"
     });

@@ -2,7 +2,7 @@ import { FileText } from "lucide-react";
 import { BillingCodePanel } from "@/components/billing-code-panel";
 import { DocumentLifecycleTable } from "@/components/document-lifecycle-table";
 import { PageHeader } from "@/components/page-header";
-import { billingCodes, generatedDocuments } from "@/lib/mock-data";
+import { billingCodes, generatedDocuments } from "@/lib/clinical-store";
 
 export default function DocumentsPage() {
   return (

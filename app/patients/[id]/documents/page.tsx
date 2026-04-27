@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { BillingCodePanel } from "@/components/billing-code-panel";
 import { DocumentLifecycleTable } from "@/components/document-lifecycle-table";
 import { PatientProfileShell } from "@/components/patient-profile-shell";
-import { billingCodes, generatedDocuments, patients, treatmentCourses } from "@/lib/mock-data";
+import { billingCodes, generatedDocuments, patients, treatmentCourses } from "@/lib/clinical-store";
 import { courseDocuments, patientActiveCourse } from "@/lib/workflow";
 
 export default function PatientDocumentsPage({ params }: { params: { id: string } }) {

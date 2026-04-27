@@ -2,7 +2,7 @@ import { ListChecks } from "lucide-react";
 import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PageHeader } from "@/components/page-header";
 import { ResponsiblePartyWorkQueue } from "@/components/responsible-party-work-queue";
-import { carepathTasks, generatedDocuments } from "@/lib/mock-data";
+import { carepathTasks, generatedDocuments } from "@/lib/clinical-store";
 import { responsiblePartyQueue } from "@/lib/workflow";
 
 export default function TasksPage() {

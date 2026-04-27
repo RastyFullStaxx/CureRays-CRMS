@@ -3,7 +3,7 @@ import Link from "next/link";
 import { OperationalSnapshot } from "@/components/operational-snapshot";
 import { PageHeader } from "@/components/page-header";
 import { ReportsOverview } from "@/components/reports-overview";
-import { carepathTasks, fractionLogEntries, generatedDocuments, patients } from "@/lib/mock-data";
+import { carepathTasks, fractionLogEntries, generatedDocuments, patients } from "@/lib/clinical-store";
 
 export default function ReportsPage() {
   return (
