@@ -27,8 +27,12 @@ const statusStyles: Record<PatientStatus, string> = {
 };
 
 const documentStyles: Record<DocumentStatus, string> = {
+  DRAFT: "bg-white/70 text-curerays-indigo ring-curerays-indigo/12",
   PENDING_NEEDED: "bg-curerays-orange/10 text-curerays-orange ring-curerays-orange/15",
+  MISSING_FIELDS: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
+  READY_FOR_REVIEW: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
   SIGNED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
+  EXPORTED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
   NOT_APPLICABLE: "bg-curerays-plum/10 text-curerays-plum ring-curerays-plum/15",
   NEEDS_REVIEW: "bg-curerays-amber/30 text-curerays-dark-plum ring-curerays-amber/30",
   COMPLETED: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15"

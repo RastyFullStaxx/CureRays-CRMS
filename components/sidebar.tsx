@@ -5,6 +5,7 @@ import {
   ClipboardList,
   FileText,
   Gauge,
+  LineChart,
   LayoutDashboard,
   ListChecks,
   Settings,
@@ -28,6 +29,7 @@ const navItems: NavItem[] = [
   { label: "Tasks", href: "/tasks", icon: ListChecks },
   { label: "Audit", href: "/audit", icon: ShieldCheck },
   { label: "Reports", href: "/reports", icon: FileText },
+  { label: "Analytics", href: "/analytics", icon: LineChart },
   { label: "Settings", href: "/settings/users", icon: Settings }
 ];
 

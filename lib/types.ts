@@ -22,8 +22,12 @@ export type CarepathTaskStatus =
   | "NOT_APPLICABLE";
 
 export type DocumentStatus =
+  | "DRAFT"
   | "PENDING_NEEDED"
+  | "MISSING_FIELDS"
+  | "READY_FOR_REVIEW"
   | "SIGNED"
+  | "EXPORTED"
   | "NOT_APPLICABLE"
   | "NEEDS_REVIEW"
   | "COMPLETED";
@@ -160,6 +164,120 @@ export type GeneratedDocument = {
   auditReady: boolean;
 };
 
+export type FormFieldKind = "text" | "number" | "date" | "select" | "checkbox" | "textarea";
+
+export type FormTemplateField = {
+  id: string;
+  label: string;
+  kind: FormFieldKind;
+  required: boolean;
+  placeholder?: string;
+  options?: string[];
+};
+
+export type FormTemplateSection = {
+  id: string;
+  title: string;
+  fields: FormTemplateField[];
+};
+
+export type InternalFormTemplate = {
+  id: string;
+  name: string;
+  diagnosis: DiagnosisCategory | "ALL";
+  protocol: string;
+  sourceDriveFileId: string;
+  sourceDriveUrl: string;
+  sourceFileName: string;
+  outputFormats: Array<"DOCX" | "PDF" | "XLSX">;
+  sections: FormTemplateSection[];
+};
+
+export type SimulationOrder = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  lesionLocation: string;
+  laterality: string;
+  lesionBorderInked: boolean;
+  allMarginsInked: boolean;
+  phaseIMarginInstruction: string;
+  phaseIIMarginInstruction: string;
+  chairSetup: string;
+  position: string;
+  setupPhotoChecklist: string[];
+  ultrasoundFrequencies: string[];
+  specialPhysicsRequired: boolean;
+  specialPhysicsReason: string;
+  weeklyPhysicsRequired: boolean;
+  weeklyPhysicsReason: string;
+  inVivoDosimetryRequired: boolean;
+  radiationOncologist: string;
+  dateCompleted: string | null;
+  signedAt?: string;
+  status: "DRAFT" | "MISSING_FIELDS" | "READY_FOR_REVIEW" | "SIGNED";
+  lastUpdatedAt: string;
+};
+
+export type PrescriptionPhase = {
+  id: string;
+  phaseName: "Phase I" | "Phase II" | "Phase III" | "Phase IV";
+  energyKv: number;
+  phaseTotalDoseGy: number;
+  dosePerFractionGy: number;
+  totalFractions: number;
+  timeMinutes: number;
+  ssdCm: number;
+  applicatorSize: string;
+  marginMm: number;
+  technique: string;
+  shieldingDesign: string;
+  depthOfTargetMm: number;
+};
+
+export type Prescription = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  site: string;
+  laterality: string;
+  verifiedInSensus: boolean;
+  phases: PrescriptionPhase[];
+  imagingGuidance: string[];
+  priorRadiationTherapy: boolean;
+  preAuthorized: boolean;
+  signedAt?: string;
+  dateOrdered: string | null;
+  status: "DRAFT" | "MISSING_FIELDS" | "READY_FOR_REVIEW" | "SIGNED";
+  lastUpdatedAt: string;
+};
+
+export type MappingRecord = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  diagnosis: DiagnosisCategory;
+  bodySite: string;
+  laterality: string;
+  impressions: string;
+  fieldDesignDecision: string;
+  status: "DRAFT" | "READY_FOR_REVIEW" | "SIGNED";
+  lastUpdatedAt: string;
+};
+
+export type GeneratedDocumentOutput = {
+  id: string;
+  documentId: string;
+  patientId: string;
+  courseId: string;
+  format: "DOCX" | "PDF" | "XLSX";
+  version: number;
+  status: "DRAFT" | "READY" | "EXPORTED";
+  driveFileUrl?: string;
+  contentPreview: string;
+  renderedAt: string;
+};
+
 export type FractionLogEntry = {
   id: string;
   courseId: string;
@@ -214,7 +332,17 @@ export type AuditEvent = {
   userId: string;
   userName: string;
   action: string;
-  entityType: "PATIENT" | "COURSE" | "CAREPATH_TASK" | "DOCUMENT" | "FRACTION_LOG" | "BILLING" | "SYSTEM";
+  entityType:
+    | "PATIENT"
+    | "COURSE"
+    | "CAREPATH_TASK"
+    | "DOCUMENT"
+    | "FRACTION_LOG"
+    | "BILLING"
+    | "SIMULATION_ORDER"
+    | "PRESCRIPTION"
+    | "MAPPING_RECORD"
+    | "SYSTEM";
   entityId: string;
   previousValue: string;
   newValue: string;
@@ -229,4 +357,50 @@ export type RoleQueueItem = {
   reviewItems: number;
   overdueActions: number;
   completedActions: number;
+};
+
+export type AnalyticsInsightCategory =
+  | "WORKFLOW_BOTTLENECK"
+  | "DOCUMENT_LIFECYCLE"
+  | "AUDIT_RISK"
+  | "ROLE_CAPACITY"
+  | "DIAGNOSIS_PATTERN"
+  | "AUTOMATION_OPPORTUNITY";
+
+export type AnalyticsInsightSeverity = "LOW" | "MEDIUM" | "HIGH";
+
+export type AnalyticsInsight = {
+  id: string;
+  title: string;
+  category: AnalyticsInsightCategory;
+  severity: AnalyticsInsightSeverity;
+  summary: string;
+  evidence: string;
+  recommendation: string;
+  solutionOpportunity: string;
+};
+
+export type WorkflowSnapshot = {
+  patients: Patient[];
+  treatmentCourses: TreatmentCourse[];
+  carepathTasks: CarepathTask[];
+  generatedDocuments: GeneratedDocument[];
+  fractionLogEntries: FractionLogEntry[];
+  billingCodes: BillingCode[];
+  documentTemplates: DocumentTemplate[];
+  internalFormTemplates: InternalFormTemplate[];
+  simulationOrders: SimulationOrder[];
+  prescriptions: Prescription[];
+  mappingRecords: MappingRecord[];
+  generatedDocumentOutputs: GeneratedDocumentOutput[];
+  auditEvents: AuditEvent[];
+};
+
+export type IgsrtWorkspace = WorkflowSnapshot & {
+  patient: Patient;
+  course: TreatmentCourse;
+  simulationOrder: SimulationOrder;
+  prescription: Prescription;
+  courseDocuments: GeneratedDocument[];
+  courseFractions: FractionLogEntry[];
 };
