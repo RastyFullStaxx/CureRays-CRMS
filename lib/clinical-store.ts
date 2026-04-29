@@ -4,7 +4,6 @@ import {
   auditEvents as mockAuditEvents,
   billingCodes as mockBillingCodes,
   carepathTasks as mockCarepathTasks,
-  documentTemplates as mockDocumentTemplates,
   fractionLogEntries as mockFractionLogEntries,
   generatedDocuments as mockGeneratedDocuments,
   patients as mockPatients,
@@ -17,12 +16,10 @@ import type {
   AuditEvent,
   BillingCode,
   CarepathTask,
-  DocumentTemplate,
   FractionLogEntry,
   GeneratedDocument,
   GeneratedDocumentOutput,
   IgsrtWorkspace,
-  InternalFormTemplate,
   MappingRecord,
   Patient,
   Prescription,
@@ -32,6 +29,24 @@ import type {
   WorkflowSnapshot
 } from "@/lib/types";
 import { courseDocuments, courseFractions, patientName } from "@/lib/workflow";
+import {
+  deriveWorkflowDocumentStates,
+  documentRequirements,
+  documentTemplates,
+  ensureRequirementDocuments,
+  ensureRequirementTasks,
+  internalFormTemplates,
+  templateSources,
+  workflowDefinitions
+} from "@/lib/template-registry";
+
+export {
+  documentRequirements,
+  documentTemplates,
+  internalFormTemplates,
+  templateSources,
+  workflowDefinitions
+} from "@/lib/template-registry";
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -163,127 +178,10 @@ export const generatedDocuments: GeneratedDocument[] = [
 ];
 export const fractionLogEntries: FractionLogEntry[] = clone(mockFractionLogEntries);
 export const billingCodes: BillingCode[] = clone(mockBillingCodes);
-export const documentTemplates: DocumentTemplate[] = [
-  ...clone(mockDocumentTemplates),
-  {
-    id: "TPL-IGSRT-SIM",
-    name: "CTP / SIM IGSRT Order",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    category: "PLANNING",
-    version: "v2026.02",
-    requiredFields: ["lesion location", "margin instruction", "setup photos", "physics requirements"],
-    status: "ACTIVE"
-  },
-  {
-    id: "TPL-IGSRT-RX",
-    name: "IGSRT Prescription",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    category: "PLANNING",
-    version: "v2026.02",
-    requiredFields: ["site", "laterality", "phase dose", "energy", "SSD", "DOT"],
-    status: "ACTIVE"
-  },
-  {
-    id: "TPL-IGSRT-FXLOG",
-    name: "IGSRT Fraction Log",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    category: "ON_TREATMENT",
-    version: "v2026.04",
-    requiredFields: ["fraction", "date", "dose", "DOT", "isodose", "MD approval", "DOT approval"],
-    status: "ACTIVE"
-  }
-];
 export const auditEvents: AuditEvent[] = clone(mockAuditEvents);
 export const appointments: Appointment[] = clone(mockAppointments);
 export const activities: Activity[] = clone(mockActivities);
 export const priorityFlags: PriorityFlag[] = clone(mockPriorityFlags);
-
-export const internalFormTemplates: InternalFormTemplate[] = [
-  {
-    id: "FORM-IGSRT-SIM",
-    name: "Skin Cancer IGSRT Simulation Order",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    sourceDriveFileId: "1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX",
-    sourceDriveUrl: "https://docs.google.com/document/d/1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX/edit",
-    sourceFileName: "2. CTP_SIM_IGSRTorder.LOCATION.laterality.SKIN.DDMMYY.LastName.FirstName.docx",
-    outputFormats: ["DOCX", "PDF"],
-    sections: [
-      {
-        id: "lesion",
-        title: "Lesion and setup",
-        fields: [
-          { id: "lesionLocation", label: "Lesion location", kind: "text", required: true },
-          { id: "laterality", label: "Laterality", kind: "select", required: true, options: ["Left", "Right", "Midline", "Bilateral"] },
-          { id: "phaseIMarginInstruction", label: "Phase I margin instruction", kind: "textarea", required: true },
-          { id: "chairSetup", label: "Chair setup", kind: "select", required: true, options: ["Face the wall", "Facing the cabinet", "Standard room setup"] },
-          { id: "position", label: "Position", kind: "select", required: true, options: ["Upright", "Sitting reclined", "Supine", "Prone"] }
-        ]
-      },
-      {
-        id: "physics",
-        title: "Physics and imaging",
-        fields: [
-          { id: "ultrasoundFrequencies", label: "Ultrasound frequencies", kind: "text", required: true },
-          { id: "weeklyPhysicsReason", label: "Weekly physics reason", kind: "textarea", required: true },
-          { id: "dateCompleted", label: "Date completed", kind: "date", required: true }
-        ]
-      }
-    ]
-  },
-  {
-    id: "FORM-IGSRT-RX",
-    name: "Skin Cancer IGSRT Prescription",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    sourceDriveFileId: "1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi",
-    sourceDriveUrl: "https://docs.google.com/document/d/1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi/edit",
-    sourceFileName: "7. Prescription.LOCATION.laterality.SCC_BCC.DDMMYY.LastName.FirstName.docx",
-    outputFormats: ["DOCX", "PDF"],
-    sections: [
-      {
-        id: "phase",
-        title: "Phase prescription",
-        fields: [
-          { id: "energyKv", label: "Energy kV", kind: "number", required: true },
-          { id: "phaseTotalDoseGy", label: "Phase total dose Gy", kind: "number", required: true },
-          { id: "dosePerFractionGy", label: "Dose per fraction Gy", kind: "number", required: true },
-          { id: "totalFractions", label: "Total fractions", kind: "number", required: true },
-          { id: "ssdCm", label: "SSD cm", kind: "number", required: true },
-          { id: "depthOfTargetMm", label: "Depth of target mm", kind: "number", required: true }
-        ]
-      }
-    ]
-  },
-  {
-    id: "FORM-IGSRT-FXLOG",
-    name: "Skin Cancer IGSRT Fraction Log",
-    diagnosis: "SKIN_CANCER",
-    protocol: "IGSRT",
-    sourceDriveFileId: "1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ",
-    sourceDriveUrl: "https://docs.google.com/spreadsheets/d/1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ/edit",
-    sourceFileName: "12. FX Log.SITE.laterality.SKIN.DDMMYY.LastName.First Name.xlsx",
-    outputFormats: ["XLSX", "PDF"],
-    sections: [
-      {
-        id: "daily",
-        title: "Daily fraction",
-        fields: [
-          { id: "fractionNumber", label: "Fraction", kind: "number", required: true },
-          { id: "date", label: "Date", kind: "date", required: true },
-          { id: "dosePerFraction", label: "Dose per fraction cGy", kind: "number", required: true },
-          { id: "depthOfTarget", label: "Depth of target", kind: "text", required: true },
-          { id: "isodosePercent", label: "Isodose %", kind: "number", required: true },
-          { id: "mdApproval", label: "MD approval", kind: "checkbox", required: true },
-          { id: "dotApproval", label: "DOT approval", kind: "checkbox", required: true }
-        ]
-      }
-    ]
-  }
-];
 
 export const simulationOrders: SimulationOrder[] = [
   {
@@ -350,6 +248,9 @@ export const prescriptions: Prescription[] = [
 export const mappingRecords: MappingRecord[] = [];
 export const generatedDocumentOutputs: GeneratedDocumentOutput[] = [];
 
+ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
+ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
+
 function addAuditEvent(event: Omit<AuditEvent, "id" | "timestamp">) {
   const auditEvent: AuditEvent = {
     id: `AUD-${900 + auditEvents.length + 1}`,
@@ -399,13 +300,20 @@ function isPrescriptionComplete(prescription: Prescription) {
   );
 }
 
-function applyGeneratedDocumentState(
-  documentId: string,
+function findGeneratedDocument(courseId: string, templateIds: string[], names: string[]) {
+  return generatedDocuments.find(
+    (document) =>
+      document.courseId === courseId &&
+      (templateIds.includes(document.templateId) || names.includes(document.name))
+  );
+}
+
+function applyGeneratedDocumentRecord(
+  document: GeneratedDocument | undefined,
   status: GeneratedDocument["status"],
   requiredAction: string,
   auditReady: boolean
 ) {
-  const document = generatedDocuments.find((item) => item.id === documentId);
   if (!document) {
     return;
   }
@@ -434,9 +342,15 @@ function applyGeneratedDocumentState(
   }
 }
 
-function applyTaskState(documentName: string, status: CarepathTask["status"], auditReady: boolean, noteAction: string) {
+function applyTaskState(
+  documentName: string,
+  status: CarepathTask["status"],
+  auditReady: boolean,
+  noteAction: string,
+  courseId?: string
+) {
   carepathTasks
-    .filter((task) => task.documentName === documentName)
+    .filter((task) => task.documentName === documentName && (!courseId || task.courseId === courseId))
     .forEach((task) => {
       const changed = task.status !== status || task.auditReady !== auditReady || task.noteAction !== noteAction;
       task.status = status;
@@ -452,6 +366,9 @@ function applyTaskState(documentName: string, status: CarepathTask["status"], au
 }
 
 function recalculateWorkflowState() {
+  ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
+  ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
+
   treatmentCourses.forEach((course) => {
     const courseEntries = courseFractions(course.id, fractionLogEntries);
     if (courseEntries.length > 0) {
@@ -459,70 +376,100 @@ function recalculateWorkflowState() {
     }
   });
 
-  const sim = getSimulationOrder("COURSE-2401");
-  if (sim) {
+  simulationOrders.forEach((sim) => {
+    const simDocument = findGeneratedDocument(
+      sim.courseId,
+      ["REQ-SKIN-IGSRT-SIM", "TPL-IGSRT-SIM"],
+      ["CTP / SIM IGSRT Order", "Simulation Order"]
+    );
+
     if (sim.signedAt) {
       sim.status = "SIGNED";
-      const simDocument = generatedDocuments.find((document) => document.id === "DOC-2401-SIM");
-      applyGeneratedDocumentState(
-        "DOC-2401-SIM",
+      applyGeneratedDocumentRecord(
+        simDocument,
         simDocument?.exportedAt ? "EXPORTED" : "SIGNED",
         simDocument?.exportedAt ? "Simulation order exported" : "Simulation order signed",
         true
       );
-      applyTaskState("CTP / SIM IGSRT Order", "COMPLETED", true, "Simulation order complete and signed");
+      applyTaskState("CTP / SIM IGSRT Order", "COMPLETED", true, "Simulation order complete and signed", sim.courseId);
     } else if (isSimulationComplete(sim)) {
       sim.status = "READY_FOR_REVIEW";
-      applyGeneratedDocumentState("DOC-2401-SIM", "READY_FOR_REVIEW", "Rad Onc signature needed", false);
-      applyTaskState("CTP / SIM IGSRT Order", "NEEDS_REVIEW", false, "Review simulation order and sign");
+      applyGeneratedDocumentRecord(simDocument, "READY_FOR_REVIEW", "Rad Onc signature needed", false);
+      applyTaskState("CTP / SIM IGSRT Order", "NEEDS_REVIEW", false, "Review simulation order and sign", sim.courseId);
     } else {
       sim.status = "MISSING_FIELDS";
-      applyGeneratedDocumentState("DOC-2401-SIM", "MISSING_FIELDS", "Complete required simulation fields", false);
-      applyTaskState("CTP / SIM IGSRT Order", "BLOCKED", false, "Complete required simulation order fields");
+      applyGeneratedDocumentRecord(simDocument, "MISSING_FIELDS", "Complete required simulation fields", false);
+      applyTaskState("CTP / SIM IGSRT Order", "BLOCKED", false, "Complete required simulation order fields", sim.courseId);
     }
-  }
+  });
 
-  const rx = getPrescription("COURSE-2401");
-  if (rx) {
+  prescriptions.forEach((rx) => {
+    const rxDocument = findGeneratedDocument(
+      rx.courseId,
+      ["REQ-SKIN-IGSRT-RX", "TPL-IGSRT-RX"],
+      ["IGSRT Prescription"]
+    );
+
     if (rx.signedAt) {
       rx.status = "SIGNED";
-      const rxDocument = generatedDocuments.find((document) => document.id === "DOC-2401-RX");
-      applyGeneratedDocumentState(
-        "DOC-2401-RX",
+      applyGeneratedDocumentRecord(
+        rxDocument,
         rxDocument?.exportedAt ? "EXPORTED" : "SIGNED",
         rxDocument?.exportedAt ? "Prescription exported" : "Prescription signed",
         true
       );
-      applyTaskState("IGSRT Prescription", "COMPLETED", true, "Prescription signed and audit-ready");
+      applyTaskState("IGSRT Prescription", "COMPLETED", true, "Prescription signed and audit-ready", rx.courseId);
     } else if (isPrescriptionComplete(rx)) {
       rx.status = "READY_FOR_REVIEW";
-      applyGeneratedDocumentState("DOC-2401-RX", "READY_FOR_REVIEW", "Rad Onc review and signature needed", false);
-      applyTaskState("IGSRT Prescription", "NEEDS_REVIEW", false, "Verify phase prescription and sign");
+      applyGeneratedDocumentRecord(rxDocument, "READY_FOR_REVIEW", "Rad Onc review and signature needed", false);
+      applyTaskState("IGSRT Prescription", "NEEDS_REVIEW", false, "Verify phase prescription and sign", rx.courseId);
     } else {
       rx.status = "MISSING_FIELDS";
-      applyGeneratedDocumentState("DOC-2401-RX", "MISSING_FIELDS", "Complete prescription parameters", false);
-      applyTaskState("IGSRT Prescription", "BLOCKED", false, "Complete required prescription fields");
+      applyGeneratedDocumentRecord(rxDocument, "MISSING_FIELDS", "Complete prescription parameters", false);
+      applyTaskState("IGSRT Prescription", "BLOCKED", false, "Complete required prescription fields", rx.courseId);
     }
-  }
+  });
 
-  const course2401Fractions = courseFractions("COURSE-2401", fractionLogEntries);
-  const missingApprovals = course2401Fractions.filter((entry) => !entry.mdApproval || !entry.dotApproval).length;
-  const fractionLogDocument = generatedDocuments.find((document) => document.id === "DOC-2401-FXLOG");
-  if (fractionLogDocument?.signedAt) {
-    applyGeneratedDocumentState(
-      "DOC-2401-FXLOG",
-      fractionLogDocument.exportedAt ? "EXPORTED" : "SIGNED",
-      fractionLogDocument.exportedAt ? "Fraction log exported" : "Fraction log signed",
-      true
+  treatmentCourses.forEach((course) => {
+    const courseEntries = courseFractions(course.id, fractionLogEntries);
+    const fractionLogDocument = findGeneratedDocument(
+      course.id,
+      ["REQ-SKIN-IGSRT-FXLOG", "TPL-IGSRT-FXLOG"],
+      ["IGSRT Fraction Log"]
     );
-    applyTaskState("IGSRT Fraction Log", "COMPLETED", true, "Fraction log signed and audit-ready");
-  } else if (missingApprovals > 0) {
-    applyGeneratedDocumentState("DOC-2401-FXLOG", "NEEDS_REVIEW", `${missingApprovals} fraction approval(s) missing`, false);
-    applyTaskState("IGSRT Fraction Log", "NEEDS_REVIEW", false, "Resolve missing MD/DOT approvals and update cumulative dose");
-  } else if (course2401Fractions.length > 0) {
-    applyGeneratedDocumentState("DOC-2401-FXLOG", "READY_FOR_REVIEW", "Fraction log ready for review", false);
-    applyTaskState("IGSRT Fraction Log", "IN_PROGRESS", false, "Review generated fraction log");
-  }
+
+    if (!fractionLogDocument) {
+      return;
+    }
+
+    const missingApprovals = courseEntries.filter((entry) => !entry.mdApproval || !entry.dotApproval).length;
+    if (fractionLogDocument.signedAt) {
+      applyGeneratedDocumentRecord(
+        fractionLogDocument,
+        fractionLogDocument.exportedAt ? "EXPORTED" : "SIGNED",
+        fractionLogDocument.exportedAt ? "Fraction log exported" : "Fraction log signed",
+        true
+      );
+      applyTaskState("IGSRT Fraction Log", "COMPLETED", true, "Fraction log signed and audit-ready", course.id);
+    } else if (missingApprovals > 0) {
+      applyGeneratedDocumentRecord(
+        fractionLogDocument,
+        "NEEDS_REVIEW",
+        `${missingApprovals} fraction approval(s) missing`,
+        false
+      );
+      applyTaskState(
+        "IGSRT Fraction Log",
+        "NEEDS_REVIEW",
+        false,
+        "Resolve missing MD/DOT approvals and update cumulative dose",
+        course.id
+      );
+    } else if (courseEntries.length > 0) {
+      applyGeneratedDocumentRecord(fractionLogDocument, "READY_FOR_REVIEW", "Fraction log ready for review", false);
+      applyTaskState("IGSRT Fraction Log", "IN_PROGRESS", false, "Review generated fraction log", course.id);
+    }
+  });
 }
 
 export function getWorkflowSnapshot(): WorkflowSnapshot {
@@ -536,6 +483,10 @@ export function getWorkflowSnapshot(): WorkflowSnapshot {
     billingCodes,
     documentTemplates,
     internalFormTemplates,
+    templateSources,
+    documentRequirements,
+    workflowDefinitions,
+    workflowDocumentStates: deriveWorkflowDocumentStates(patients, treatmentCourses, generatedDocuments),
     simulationOrders,
     prescriptions,
     mappingRecords,
@@ -744,7 +695,7 @@ function renderContent(document: GeneratedDocument) {
     return "Document could not be rendered because the linked patient or course is missing.";
   }
 
-  if (document.templateId === "TPL-IGSRT-SIM" && order) {
+  if (["TPL-IGSRT-SIM", "REQ-SKIN-IGSRT-SIM"].includes(document.templateId) && order) {
     return [
       `CTP / SIM IGSRT Order`,
       `Patient: ${patientName(patient)} (${patient.id})`,
@@ -758,7 +709,7 @@ function renderContent(document: GeneratedDocument) {
     ].join("\n");
   }
 
-  if (document.templateId === "TPL-IGSRT-RX" && prescription) {
+  if (["TPL-IGSRT-RX", "REQ-SKIN-IGSRT-RX"].includes(document.templateId) && prescription) {
     const phaseLines = prescription.phases.map(
       (phase) =>
         `${phase.phaseName}: ${phase.energyKv} kV, ${phase.phaseTotalDoseGy} Gy total, ${phase.dosePerFractionGy} Gy x ${phase.totalFractions}, SSD ${phase.ssdCm} cm, DOT ${phase.depthOfTargetMm} mm`
@@ -775,7 +726,7 @@ function renderContent(document: GeneratedDocument) {
     ].join("\n");
   }
 
-  if (document.templateId === "TPL-IGSRT-FXLOG") {
+  if (["TPL-IGSRT-FXLOG", "REQ-SKIN-IGSRT-FXLOG"].includes(document.templateId)) {
     const lastFraction = fractions.at(-1);
     return [
       `IGSRT Fraction Log`,
@@ -837,13 +788,13 @@ export function signGeneratedDocument(documentId: string) {
   }
 
   const previousValue = document.status;
-  if (document.templateId === "TPL-IGSRT-SIM") {
+  if (["TPL-IGSRT-SIM", "REQ-SKIN-IGSRT-SIM"].includes(document.templateId)) {
     const order = getSimulationOrder(document.courseId);
     if (order) {
       order.signedAt = nowIso();
     }
   }
-  if (document.templateId === "TPL-IGSRT-RX") {
+  if (["TPL-IGSRT-RX", "REQ-SKIN-IGSRT-RX"].includes(document.templateId)) {
     const prescription = getPrescription(document.courseId);
     if (prescription) {
       prescription.signedAt = nowIso();

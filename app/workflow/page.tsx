@@ -2,10 +2,7 @@ import { ClipboardList } from "lucide-react";
 import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PageHeader } from "@/components/page-header";
 import { carepathTasks } from "@/lib/clinical-store";
-import { carepathPhaseLabels } from "@/lib/workflow";
-import type { CarepathWorkflowPhase } from "@/lib/types";
-
-const phases: CarepathWorkflowPhase[] = ["CONSULTATION", "CHART_PREP", "PLANNING", "ON_TREATMENT", "POST_TX"];
+import { carepathPhaseLabels, orderedCarepathPhases } from "@/lib/workflow";
 
 export default function WorkflowPage() {
   return (
@@ -17,7 +14,7 @@ export default function WorkflowPage() {
         icon={ClipboardList}
         stat="Preview"
       />
-      {phases.map((phase) => {
+      {orderedCarepathPhases.map((phase) => {
         const tasks = carepathTasks.filter((task) => task.workflowPhase === phase);
 
         return (
