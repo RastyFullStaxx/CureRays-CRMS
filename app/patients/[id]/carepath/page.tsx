@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PatientProfileShell } from "@/components/patient-profile-shell";
-import { carepathTasks, patients, treatmentCourses } from "@/lib/clinical-store";
+import { carepathTasks, treatmentCourses } from "@/lib/clinical-store";
+import { findPatientPhi, systemPhiAccess } from "@/lib/server/phi-store";
 import { carepathPhaseLabels, courseTasks, orderedCarepathPhases, patientActiveCourse } from "@/lib/workflow";
 
 export default function PatientCarepathPage({ params }: { params: { id: string } }) {
-  const patient = patients.find((item) => item.id === params.id);
+  const patient = findPatientPhi(params.id, systemPhiAccess("Render patient carepath page"));
 
   if (!patient) {
     notFound();

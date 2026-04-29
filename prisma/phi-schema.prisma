@@ -1,0 +1,209 @@
+generator phiClient {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/phi-client"
+}
+
+datasource phiDb {
+  provider = "postgresql"
+  url      = env("PHI_DATABASE_URL")
+}
+
+enum ChartRoundsPhase {
+  UPCOMING
+  ON_TREATMENT
+  POST
+}
+
+enum PatientStatus {
+  ACTIVE
+  ON_HOLD
+  PAUSED
+}
+
+enum DiagnosisCategory {
+  SKIN_CANCER
+  ARTHRITIS
+  DUPUYTRENS
+}
+
+model PatientPhi {
+  id               String             @id
+  patientRef       String             @unique
+  phiRecordId      String             @unique
+  firstName        String
+  lastName         String
+  mrn              String             @unique
+  diagnosis        String
+  diagnosisCategory DiagnosisCategory
+  location         String
+  physician        String
+  chartRoundsPhase ChartRoundsPhase
+  status           PatientStatus
+  assignedStaff    String
+  activeCourseId   String
+  nextAction       String
+  flags            Json
+  notes            String
+  checklist        Json
+  lastUpdatedAt    DateTime
+  courses          TreatmentCoursePhi[]
+  auditEvents      PhiAuditEvent[]
+}
+
+model TreatmentCoursePhi {
+  id                  String              @id
+  courseRef           String              @unique
+  patientId           String
+  patient             PatientPhi          @relation(fields: [patientId], references: [id])
+  diagnosis           String
+  diagnosisCategory   DiagnosisCategory
+  protocolName        String
+  totalFractions      Int
+  currentFraction     Int
+  startDate           DateTime
+  endDate             DateTime?
+  chartRoundsPhase    ChartRoundsPhase
+  status              String
+  treatmentModality   String
+  treatmentType       String
+  phaseOne            String?
+  phaseTwo            String?
+  energy              String?
+  applicator          String?
+  dose                String?
+  targetDepth         String?
+  fieldDesign         String?
+  notes               String
+  simulationOrders    SimulationOrderPhi[]
+  prescriptions       PrescriptionPhi[]
+  mappingRecords      MappingRecordPhi[]
+  fractionLogEntries  FractionLogEntryPhi[]
+  generatedOutputs    GeneratedDocumentOutputPhi[]
+}
+
+model SimulationOrderPhi {
+  id                       String             @id
+  patientId                String
+  courseId                 String
+  course                   TreatmentCoursePhi @relation(fields: [courseId], references: [id])
+  lesionLocation           String
+  laterality               String
+  lesionBorderInked        Boolean
+  allMarginsInked          Boolean
+  phaseIMarginInstruction  String
+  phaseIIMarginInstruction String
+  chairSetup               String
+  position                 String
+  setupPhotoChecklist      String[]
+  ultrasoundFrequencies    String[]
+  specialPhysicsRequired   Boolean
+  specialPhysicsReason     String
+  weeklyPhysicsRequired    Boolean
+  weeklyPhysicsReason      String
+  inVivoDosimetryRequired  Boolean
+  radiationOncologist      String
+  dateCompleted            DateTime?
+  signedAt                 DateTime?
+  status                   String
+  lastUpdatedAt            DateTime
+}
+
+model PrescriptionPhi {
+  id                    String                  @id
+  patientId             String
+  courseId              String
+  course                TreatmentCoursePhi      @relation(fields: [courseId], references: [id])
+  site                  String
+  laterality            String
+  verifiedInSensus      Boolean
+  imagingGuidance       String[]
+  priorRadiationTherapy Boolean
+  preAuthorized         Boolean
+  signedAt              DateTime?
+  dateOrdered           DateTime?
+  status                String
+  lastUpdatedAt         DateTime
+  phases                PrescriptionPhasePhi[]
+}
+
+model PrescriptionPhasePhi {
+  id                 String          @id
+  prescriptionId     String
+  prescription       PrescriptionPhi @relation(fields: [prescriptionId], references: [id])
+  phaseName          String
+  energyKv           Int
+  phaseTotalDoseGy   Decimal
+  dosePerFractionGy  Decimal
+  totalFractions     Int
+  timeMinutes        Decimal
+  ssdCm              Decimal
+  applicatorSize     String
+  marginMm           Int
+  technique          String
+  shieldingDesign    String
+  depthOfTargetMm    Decimal
+}
+
+model MappingRecordPhi {
+  id                  String             @id
+  patientId           String
+  courseId            String
+  course              TreatmentCoursePhi @relation(fields: [courseId], references: [id])
+  diagnosis           DiagnosisCategory
+  bodySite            String
+  laterality          String
+  impressions         String
+  fieldDesignDecision String
+  status              String
+  lastUpdatedAt       DateTime
+}
+
+model FractionLogEntryPhi {
+  id                    String             @id
+  courseId              String
+  course                TreatmentCoursePhi @relation(fields: [courseId], references: [id])
+  fractionNumber        Int
+  date                  DateTime
+  phase                 String
+  energy                String
+  ssd                   String
+  dosePerFraction       Int
+  cumulativeDose        Int
+  technicianInitials    String
+  mdApproval            Boolean
+  dotApproval           Boolean
+  depthOfTarget         String
+  isodosePercent        Int
+  doseToDepth           Int
+  cumulativeDoseToDepth Int
+  notes                 String
+}
+
+model GeneratedDocumentOutputPhi {
+  id             String             @id
+  documentId     String
+  patientId      String
+  courseId       String
+  course         TreatmentCoursePhi @relation(fields: [courseId], references: [id])
+  format         String
+  version        Int
+  status         String
+  driveFileUrl   String?
+  contentPreview String
+  renderedAt     DateTime
+}
+
+model PhiAuditEvent {
+  id            String      @id
+  patientId     String?
+  patient       PatientPhi? @relation(fields: [patientId], references: [id])
+  userId        String
+  userName      String
+  action        String
+  entityType    String
+  entityId      String
+  previousValue String
+  newValue      String
+  timestamp     DateTime
+  reason        String?
+}

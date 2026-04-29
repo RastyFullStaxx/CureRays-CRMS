@@ -51,6 +51,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
       ...init,
       headers: {
         "Content-Type": "application/json",
+        "x-curerays-role": "RAD_ONC",
         ...(init.headers ?? {})
       }
     });

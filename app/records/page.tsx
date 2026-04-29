@@ -2,9 +2,18 @@ import { Database } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PatientTable } from "@/components/patient-table";
 import { RecordsSummary } from "@/components/records-summary";
-import { carepathTasks, fractionLogEntries, generatedDocuments, patients, treatmentCourses } from "@/lib/clinical-store";
+import {
+  carepathTasks,
+  fractionLogEntries,
+  generatedDocuments,
+  operationalPatients,
+  operationalTreatmentCourses
+} from "@/lib/clinical-store";
 
 export default function RecordsPage() {
+  const patients = operationalPatients();
+  const treatmentCourses = operationalTreatmentCourses();
+
   return (
     <div className="space-y-4">
       <PageHeader

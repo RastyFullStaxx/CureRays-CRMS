@@ -8,11 +8,16 @@ import type {
   DocumentStatus,
   FractionLogEntry,
   GeneratedDocument,
+  OperationalPatient,
+  OperationalTreatmentCourse,
   Patient,
   PatientStatus,
   ResponsibleParty,
   TreatmentCourse
 } from "@/lib/types";
+
+type WorkflowPatient = Patient | OperationalPatient;
+type WorkflowCourse = TreatmentCourse | OperationalTreatmentCourse;
 
 export const chartRoundsPhaseLabels: Record<ChartRoundsPhase, string> = {
   UPCOMING: "Upcoming",
@@ -106,6 +111,22 @@ export function patientName(patient: Patient) {
   return `${patient.firstName} ${patient.lastName}`;
 }
 
+export function patientDisplayLabel(patient: WorkflowPatient) {
+  return "displayLabel" in patient ? patient.displayLabel : patientName(patient);
+}
+
+export function patientActionSummary(patient: WorkflowPatient) {
+  return "nextActionCategory" in patient ? patient.nextActionCategory : patient.nextAction;
+}
+
+export function courseDisplayLabel(course: WorkflowCourse | undefined) {
+  if (!course) {
+    return "No active course";
+  }
+
+  return "protocolFamily" in course ? course.protocolFamily : course.protocolName;
+}
+
 export function checklistScore(checklist: Checklist) {
   const completed = [
     checklist.txSummaryComplete,
@@ -120,11 +141,11 @@ export function checklistScore(checklist: Checklist) {
   };
 }
 
-export function patientsByPhase(patients: Patient[], phase: ChartRoundsPhase) {
+export function patientsByPhase<T extends WorkflowPatient>(patients: T[], phase: ChartRoundsPhase) {
   return patients.filter((patient) => patient.chartRoundsPhase === phase);
 }
 
-export function phaseCounts(patients: Patient[]) {
+export function phaseCounts(patients: WorkflowPatient[]) {
   return patients.reduce<Record<ChartRoundsPhase, number>>(
     (counts, patient) => {
       counts[patient.chartRoundsPhase] += 1;
@@ -138,11 +159,11 @@ export function phaseCounts(patients: Patient[]) {
   );
 }
 
-export function countFlaggedPatients(patients: Patient[]) {
+export function countFlaggedPatients(patients: WorkflowPatient[]) {
   return patients.filter((patient) => patient.flags.length > 0).length;
 }
 
-export function averageChecklistPercent(patients: Patient[]) {
+export function averageChecklistPercent(patients: WorkflowPatient[]) {
   if (patients.length === 0) {
     return 0;
   }
@@ -151,7 +172,7 @@ export function averageChecklistPercent(patients: Patient[]) {
   return Math.round(total / patients.length);
 }
 
-export function statusCounts(patients: Patient[]) {
+export function statusCounts(patients: WorkflowPatient[]) {
   return patients.reduce<Record<PatientStatus, number>>(
     (counts, patient) => {
       counts[patient.status] += 1;
@@ -292,9 +313,9 @@ export function documentRiskHotspots(documents: GeneratedDocument[]) {
     .sort((a, b) => b.count - a.count);
 }
 
-export function diagnosisWorkflowMix(patients: Patient[]) {
+export function diagnosisWorkflowMix(patients: WorkflowPatient[]) {
   return patients
-    .reduce<Array<{ diagnosis: Patient["diagnosisCategory"]; count: number }>>((mix, patient) => {
+    .reduce<Array<{ diagnosis: WorkflowPatient["diagnosisCategory"]; count: number }>>((mix, patient) => {
       const existing = mix.find((item) => item.diagnosis === patient.diagnosisCategory);
 
       if (existing) {
@@ -321,7 +342,7 @@ export function auditBlockers(tasks: CarepathTask[], documents: GeneratedDocumen
   };
 }
 
-export function courseAttentionSignals(courses: TreatmentCourse[]) {
+export function courseAttentionSignals(courses: WorkflowCourse[]) {
   return courses.filter((course) => ["ON_HOLD", "NOT_STARTED"].includes(course.status));
 }
 
@@ -352,8 +373,8 @@ export function generateAnalyticsInsights({
   documents,
   fractions
 }: {
-  patients: Patient[];
-  courses: TreatmentCourse[];
+  patients: WorkflowPatient[];
+  courses: WorkflowCourse[];
   tasks: CarepathTask[];
   documents: GeneratedDocument[];
   fractions: FractionLogEntry[];
@@ -465,11 +486,11 @@ export function generateAnalyticsInsights({
   return insights;
 }
 
-export function patientCourses(patientId: string, courses: TreatmentCourse[]) {
-  return courses.filter((course) => course.patientId === patientId);
+export function patientCourses(patientId: string, courses: WorkflowCourse[]) {
+  return courses.filter((course) => ("patientRef" in course ? course.patientRef === patientId : course.patientId === patientId));
 }
 
-export function patientActiveCourse(patient: Patient, courses: TreatmentCourse[]) {
+export function patientActiveCourse<T extends WorkflowCourse>(patient: WorkflowPatient, courses: T[]): T | undefined {
   return courses.find((course) => course.id === patient.activeCourseId);
 }
 

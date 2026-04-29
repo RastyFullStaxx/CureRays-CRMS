@@ -1,4 +1,4 @@
-import type { Patient } from "@/lib/types";
+import type { OperationalPatient, Patient } from "@/lib/types";
 import { diagnosisWorkflowMix } from "@/lib/workflow";
 import { ProgressBar } from "@/components/progress-bar";
 
@@ -8,7 +8,7 @@ const labels: Record<ReturnType<typeof diagnosisWorkflowMix>[number]["diagnosis"
   DUPUYTRENS: "Dupuytren's"
 };
 
-export function DiagnosisMixPanel({ patients }: { patients: Patient[] }) {
+export function DiagnosisMixPanel({ patients }: { patients: Array<Patient | OperationalPatient> }) {
   const mix = diagnosisWorkflowMix(patients);
 
   return (

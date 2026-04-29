@@ -8,9 +8,9 @@ import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
-  patients,
   treatmentCourses
 } from "@/lib/clinical-store";
+import { findPatientPhi, systemPhiAccess } from "@/lib/server/phi-store";
 import {
   courseDocuments,
   courseFractions,
@@ -19,7 +19,7 @@ import {
 } from "@/lib/workflow";
 
 export default function PatientProfilePage({ params }: { params: { id: string } }) {
-  const patient = patients.find((item) => item.id === params.id);
+  const patient = findPatientPhi(params.id, systemPhiAccess("Render patient profile page"));
 
   if (!patient) {
     notFound();

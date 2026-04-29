@@ -1,7 +1,7 @@
 import { Fingerprint, History, LockKeyhole } from "lucide-react";
-import type { AuditEvent } from "@/lib/types";
+import type { AuditEvent, OperationalAuditEvent } from "@/lib/types";
 
-export function AuditTimeline({ events }: { events: AuditEvent[] }) {
+export function AuditTimeline({ events }: { events: Array<AuditEvent | OperationalAuditEvent> }) {
   return (
     <section className="glass-panel rounded-glass p-5">
       <div className="flex items-center justify-between gap-4">
@@ -48,7 +48,7 @@ export function AuditTimeline({ events }: { events: AuditEvent[] }) {
             <div className="flex items-start justify-start lg:justify-end">
               <span className="inline-flex items-center gap-2 rounded-full bg-curerays-plum/10 px-3 py-1 text-xs font-bold text-curerays-plum">
                 <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                Audit logged
+                {"redacted" in event && event.redacted ? "PHI redacted" : "Audit logged"}
               </span>
             </div>
           </article>

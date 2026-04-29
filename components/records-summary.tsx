@@ -1,8 +1,8 @@
 import { Database, LockKeyhole, ShieldCheck, TableProperties } from "lucide-react";
-import type { Patient } from "@/lib/types";
+import type { OperationalPatient, Patient } from "@/lib/types";
 import { countFlaggedPatients } from "@/lib/workflow";
 
-export function RecordsSummary({ patients }: { patients: Patient[] }) {
+export function RecordsSummary({ patients }: { patients: Array<Patient | OperationalPatient> }) {
   const cards = [
     {
       label: "Single source",

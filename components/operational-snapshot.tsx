@@ -1,5 +1,5 @@
 import { ClipboardCheck, Layers3, ShieldCheck, TrendingUp } from "lucide-react";
-import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient } from "@/lib/types";
+import type { CarepathTask, FractionLogEntry, GeneratedDocument, OperationalPatient, Patient } from "@/lib/types";
 import {
   auditReadinessScore,
   averageChecklistPercent,
@@ -16,7 +16,7 @@ export function OperationalSnapshot({
   documents = [],
   fractions = []
 }: {
-  patients: Patient[];
+  patients: Array<Patient | OperationalPatient>;
   tasks?: CarepathTask[];
   documents?: GeneratedDocument[];
   fractions?: FractionLogEntry[];

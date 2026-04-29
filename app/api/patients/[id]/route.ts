@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { patients, updatePatient } from "@/lib/clinical-store";
+import { updatePatient } from "@/lib/clinical-store";
+import { findPatientPhi, phiAccessFromRequest } from "@/lib/server/phi-store";
 
 export const dynamic = "force-dynamic";
 
-export function GET(_request: NextRequest, { params }: { params: { id: string } }) {
-  const patient = patients.find((item) => item.id === params.id);
+export function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const access = phiAccessFromRequest(request, "Resolve patient profile PHI");
 
+  if (!access) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
+  const patient = findPatientPhi(params.id, access);
   if (!patient) {
     return NextResponse.json({ message: "Patient not found" }, { status: 404 });
   }
@@ -14,6 +20,10 @@ export function GET(_request: NextRequest, { params }: { params: { id: string } 
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  if (!phiAccessFromRequest(request, "Update patient PHI record")) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
   const body = await request.json();
   const result = updatePatient(params.id, body);
 

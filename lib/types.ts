@@ -89,6 +89,36 @@ export type Patient = {
   lastUpdatedAt: string;
 };
 
+export type OperationalPatient = {
+  id: string;
+  patientRef: string;
+  phiRecordId: string;
+  displayLabel: string;
+  diagnosisCategory: DiagnosisCategory;
+  chartRoundsPhase: ChartRoundsPhase;
+  status: PatientStatus;
+  assignedStaff: string;
+  activeCourseId: string;
+  activeCourseRef: string;
+  nextActionCategory: string;
+  flags: PatientFlag[];
+  checklist: Checklist;
+  lastUpdatedAt: string;
+  restricted: true;
+};
+
+export type OperationalTreatmentCourse = {
+  id: string;
+  courseRef: string;
+  patientRef: string;
+  diagnosisCategory: DiagnosisCategory;
+  protocolFamily: string;
+  totalFractions: number;
+  currentFraction: number;
+  chartRoundsPhase: ChartRoundsPhase;
+  status: TreatmentCourseStatus;
+};
+
 export type TreatmentCourse = {
   id: string;
   patientId: string;
@@ -386,6 +416,11 @@ export type Appointment = {
   chartRoundsPhase: ChartRoundsPhase;
 };
 
+export type OperationalAppointment = Omit<Appointment, "patientId" | "patientName"> & {
+  patientRef: string;
+  displayLabel: string;
+};
+
 export type PriorityFlag = {
   id: string;
   patientId: string;
@@ -394,6 +429,11 @@ export type PriorityFlag = {
   summary: string;
   owner: ResponsibleParty;
   dueAt: string;
+};
+
+export type OperationalPriorityFlag = Omit<PriorityFlag, "patientId" | "patientName"> & {
+  patientRef: string;
+  displayLabel: string;
 };
 
 export type Activity = {
@@ -406,6 +446,7 @@ export type Activity = {
 
 export type AuditEvent = {
   id: string;
+  patientId?: string;
   userId: string;
   userName: string;
   action: string;
@@ -425,6 +466,13 @@ export type AuditEvent = {
   newValue: string;
   timestamp: string;
   reason?: string;
+};
+
+export type OperationalAuditEvent = Omit<AuditEvent, "previousValue" | "newValue"> & {
+  patientRef?: string;
+  previousValue: "PHI_REDACTED" | "NONE" | string;
+  newValue: "PHI_REDACTED" | "NONE" | string;
+  redacted: boolean;
 };
 
 export type RoleQueueItem = {
@@ -475,6 +523,15 @@ export type WorkflowSnapshot = {
   mappingRecords: MappingRecord[];
   generatedDocumentOutputs: GeneratedDocumentOutput[];
   auditEvents: AuditEvent[];
+};
+
+export type OperationalWorkflowSnapshot = Omit<
+  WorkflowSnapshot,
+  "patients" | "treatmentCourses" | "appointments" | "priorityFlags" | "auditEvents"
+> & {
+  patients: OperationalPatient[];
+  treatmentCourses: OperationalTreatmentCourse[];
+  auditEvents: OperationalAuditEvent[];
 };
 
 export type IgsrtWorkspace = WorkflowSnapshot & {

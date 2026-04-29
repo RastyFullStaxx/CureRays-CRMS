@@ -1,0 +1,211 @@
+generator opsClient {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/ops-client"
+}
+
+datasource opsDb {
+  provider = "postgresql"
+  url      = env("OPS_DATABASE_URL")
+}
+
+enum ChartRoundsPhase {
+  UPCOMING
+  ON_TREATMENT
+  POST
+}
+
+enum PatientStatus {
+  ACTIVE
+  ON_HOLD
+  PAUSED
+}
+
+enum DiagnosisCategory {
+  SKIN_CANCER
+  ARTHRITIS
+  DUPUYTRENS
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_NEEDED
+  MISSING_FIELDS
+  READY_FOR_REVIEW
+  SIGNED
+  EXPORTED
+  NOT_APPLICABLE
+  NEEDS_REVIEW
+  COMPLETED
+}
+
+enum TemplateSourceStatus {
+  ACTIVE
+  DRAFT
+  RETIRED
+  MISSING
+  MAPPING_IN_PROGRESS
+}
+
+enum TemplateSourceMimeType {
+  DOCX
+  XLSX
+  PPTX
+  FOLDER
+  UNKNOWN
+}
+
+enum WorkflowDefinitionStatus {
+  ACTIVE
+  DRAFT
+  MAPPING_IN_PROGRESS
+}
+
+model OperationalPatient {
+  patientRef       String           @id
+  phiRecordId      String           @unique
+  displayLabel     String
+  diagnosisCategory DiagnosisCategory
+  chartRoundsPhase ChartRoundsPhase
+  status           PatientStatus
+  assignedStaff    String
+  activeCourseRef  String?
+  nextActionCategory String
+  checklist        Json
+  lastUpdatedAt    DateTime
+  courses          OperationalCourse[]
+}
+
+model OperationalCourse {
+  courseRef        String           @id
+  patientRef       String
+  patient          OperationalPatient @relation(fields: [patientRef], references: [patientRef])
+  diagnosisCategory DiagnosisCategory
+  protocolFamily   String
+  totalFractions   Int
+  currentFraction  Int
+  chartRoundsPhase ChartRoundsPhase
+  status           String
+}
+
+model CarepathTask {
+  id               String   @id
+  courseRef        String
+  taskNumber       String
+  title            String
+  workflowPhase    String
+  documentName     String
+  status           String
+  responsibleParty String
+  timing           String
+  noteAction       String
+  cptCodes         String[]
+  auditSteps       String[]
+  auditReady       Boolean
+  dueDate          DateTime?
+  completedAt      DateTime?
+  signedAt         DateTime?
+  lastUpdatedAt    DateTime
+  assignedUser     String
+}
+
+model GeneratedDocument {
+  id               String         @id
+  templateId       String
+  patientRef       String
+  courseRef        String
+  name             String
+  clinicalPhase    String
+  responsibleParty String
+  status           DocumentStatus
+  requiredAction   String
+  cptCode          String?
+  assignedTo       String
+  lastUpdatedAt    DateTime
+  signedAt         DateTime?
+  exportedAt       DateTime?
+  signReviewState  String
+  auditReady       Boolean
+}
+
+model TemplateSource {
+  id                   String                 @id
+  name                 String
+  sourceFileName       String
+  driveFileId          String?
+  driveUrl             String?
+  mimeType             TemplateSourceMimeType
+  status               TemplateSourceStatus
+  notes                String?
+  modifiedAt           DateTime?
+  documentRequirements DocumentRequirement[]
+}
+
+model DocumentRequirement {
+  id                String          @id
+  name              String
+  workflowPhase     String
+  responsibleParty  String
+  diagnosis         String
+  protocol          String?
+  bodyRegion        String?
+  treatmentModality String?
+  universal         Boolean         @default(false)
+  requiredWhen      String?
+  templateSourceId  String?
+  templateSource    TemplateSource? @relation(fields: [templateSourceId], references: [id])
+  defaultStatus     DocumentStatus
+  requiredAction    String
+  requiredFields    String[]
+  outputFormats     String[]
+  cptCode           String?
+  createsTask       Boolean         @default(false)
+  autoCreate        Boolean         @default(true)
+  taskTitle         String?
+  taskNumber        String?
+  timing            String?
+  auditSteps        String[]
+}
+
+model WorkflowDefinition {
+  id                     String                   @id
+  name                   String
+  diagnosis              String
+  protocol               String
+  description            String
+  phases                 String[]
+  documentRequirementIds String[]
+  status                 WorkflowDefinitionStatus
+}
+
+model WorkflowDocumentState {
+  id                   String                @id
+  requirementId        String
+  documentId           String?
+  patientRef           String
+  courseRef            String
+  name                 String
+  workflowPhase        String
+  responsibleParty     String
+  status               DocumentStatus
+  requiredAction       String
+  auditReady           Boolean
+  templateSourceStatus TemplateSourceStatus?
+  sourceDriveUrl       String?
+  mapped               Boolean
+  lastUpdatedAt        DateTime
+}
+
+model OperationalAuditEvent {
+  id            String   @id
+  patientRef    String?
+  userId        String
+  userName      String
+  action        String
+  entityType    String
+  entityId      String
+  previousValue String
+  newValue      String
+  redacted      Boolean  @default(true)
+  timestamp     DateTime
+  reason        String?
+}

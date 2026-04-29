@@ -56,7 +56,7 @@ Current known limits:
 
 - Data is still mock/in-memory and resets with the app process.
 - Real authentication and role enforcement are not implemented yet.
-- Prisma schema exists, but the UI is not backed by PostgreSQL yet.
+- Prisma split schemas now model separate OPS and PHI databases, but the UI is still backed by mock/in-memory data until migrations and Cloud SQL deployment are run.
 - Drive templates are modeled as registry metadata first; most files are not parsed into full field mappings yet.
 - Intake and AVS are treated as first universal workflow documents, while diagnosis-specific template mappings continue to evolve.
 - Billing pre-auth and additional mappings are intentionally represented as evolving registry items rather than hardcoded final workflow rules.
@@ -106,6 +106,8 @@ The goal is not to replace clinical judgment. The goal is to make operational st
 ## Architecture Principles
 
 - Keep patient data centralized.
+- Keep patient-identifying and clinical PHI in the PHI data boundary only.
+- Keep operational lists tokenized with `patientRef`, `courseRef`, and redacted audit values.
 - Derive views from workflow state instead of duplicating records.
 - Keep workflow definitions and template metadata separate from sample patient data.
 - Keep document requirements flexible by diagnosis, protocol, body region, modality, and future template availability.
@@ -119,7 +121,17 @@ The goal is not to replace clinical judgment. The goal is to make operational st
 - React
 - TypeScript
 - Tailwind CSS
-- Prisma schema planned for PostgreSQL persistence
+- Prisma schemas planned for PostgreSQL persistence:
+  - `prisma/ops-schema.prisma` uses `OPS_DATABASE_URL` for tokenized workflow state.
+  - `prisma/phi-schema.prisma` uses `PHI_DATABASE_URL` for Google Cloud SQL PHI records.
+
+## HIPAA-Aware PHI Boundary
+
+Operational dashboards, queues, reports, and workflow API responses use PHI-minimized DTOs. They should not include names, MRNs, free-text clinical notes, raw audit before/after values, or generated document previews.
+
+Patient profile, IGSRT, and document-generation workflows resolve PHI through server-only code in `lib/server/phi-store.ts`. API requests that expose or mutate PHI must include an authorized `x-curerays-role` value while real authentication is pending.
+
+Before storing real ePHI in Google Cloud SQL, CureRays must confirm the Google Cloud BAA, use only BAA-covered services, deploy the app/API inside the Google Cloud environment, and keep PHI database credentials in Secret Manager or equivalent runtime secret storage.
 
 Run commands:
 
@@ -127,6 +139,7 @@ Run commands:
 npm install
 npm run dev
 npm run typecheck
+npm run test:hipaa
 npm run build
 ```
 

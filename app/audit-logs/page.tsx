@@ -1,9 +1,11 @@
 import { History, ShieldCheck } from "lucide-react";
 import { AuditTimeline } from "@/components/audit-timeline";
 import { PageHeader } from "@/components/page-header";
-import { auditEvents } from "@/lib/clinical-store";
+import { operationalAuditEvents } from "@/lib/clinical-store";
 
 export default function AuditLogsPage() {
+  const auditEvents = operationalAuditEvents();
+
   return (
     <div className="space-y-4">
       <PageHeader

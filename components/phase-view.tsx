@@ -1,5 +1,14 @@
 import { ClipboardList } from "lucide-react";
-import type { CarepathTask, ChartRoundsPhase, FractionLogEntry, GeneratedDocument, Patient, TreatmentCourse } from "@/lib/types";
+import type {
+  CarepathTask,
+  ChartRoundsPhase,
+  FractionLogEntry,
+  GeneratedDocument,
+  OperationalPatient,
+  OperationalTreatmentCourse,
+  Patient,
+  TreatmentCourse
+} from "@/lib/types";
 import { chartRoundsPhaseLabels, countFlaggedPatients, patientsByPhase } from "@/lib/workflow";
 import { PageHeader } from "@/components/page-header";
 import { PatientTable } from "@/components/patient-table";
@@ -34,8 +43,8 @@ export function PhaseView({
   fractions
 }: {
   phase: ChartRoundsPhase;
-  patients: Patient[];
-  courses: TreatmentCourse[];
+  patients: Array<Patient | OperationalPatient>;
+  courses: Array<TreatmentCourse | OperationalTreatmentCourse>;
   tasks: CarepathTask[];
   documents: GeneratedDocument[];
   fractions: FractionLogEntry[];

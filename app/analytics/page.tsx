@@ -10,8 +10,8 @@ import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
-  patients,
-  treatmentCourses
+  operationalPatients,
+  operationalTreatmentCourses
 } from "@/lib/clinical-store";
 import {
   auditBlockers,
@@ -24,6 +24,8 @@ import {
 } from "@/lib/workflow";
 
 export default function AnalyticsPage() {
+  const patients = operationalPatients();
+  const treatmentCourses = operationalTreatmentCourses();
   const blockers = auditBlockers(carepathTasks, generatedDocuments, fractionLogEntries);
   const documentCounts = documentStatusCounts(generatedDocuments);
   const bottlenecks = workflowBottlenecksByParty(carepathTasks, generatedDocuments);

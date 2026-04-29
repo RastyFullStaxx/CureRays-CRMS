@@ -28,6 +28,15 @@ import type {
   TreatmentCourse,
   WorkflowSnapshot
 } from "@/lib/types";
+import {
+  PHI_REDACTED,
+  redactAuditEvent,
+  toOperationalActivity,
+  toOperationalAppointment,
+  toOperationalCourse,
+  toOperationalPatient,
+  toOperationalPriorityFlag
+} from "@/lib/hipaa";
 import { courseDocuments, courseFractions, patientName } from "@/lib/workflow";
 import {
   deriveWorkflowDocumentStates,
@@ -182,6 +191,30 @@ export const auditEvents: AuditEvent[] = clone(mockAuditEvents);
 export const appointments: Appointment[] = clone(mockAppointments);
 export const activities: Activity[] = clone(mockActivities);
 export const priorityFlags: PriorityFlag[] = clone(mockPriorityFlags);
+
+export function operationalPatients() {
+  return patients.map(toOperationalPatient);
+}
+
+export function operationalTreatmentCourses() {
+  return treatmentCourses.map(toOperationalCourse);
+}
+
+export function operationalAppointments() {
+  return appointments.map(toOperationalAppointment);
+}
+
+export function operationalActivities() {
+  return activities.map(toOperationalActivity);
+}
+
+export function operationalPriorityFlags() {
+  return priorityFlags.map(toOperationalPriorityFlag);
+}
+
+export function operationalAuditEvents() {
+  return auditEvents.map(redactAuditEvent);
+}
 
 export const simulationOrders: SimulationOrder[] = [
   {
@@ -495,6 +528,26 @@ export function getWorkflowSnapshot(): WorkflowSnapshot {
   };
 }
 
+export function getOperationalWorkflowSnapshot() {
+  const snapshot = getWorkflowSnapshot();
+
+  return {
+    ...snapshot,
+    patients: operationalPatients(),
+    treatmentCourses: operationalTreatmentCourses(),
+    appointments: operationalAppointments(),
+    activities: operationalActivities(),
+    priorityFlags: operationalPriorityFlags(),
+    auditEvents: operationalAuditEvents(),
+    phiBoundary: {
+      phiDatabaseEnv: "PHI_DATABASE_URL",
+      opsDatabaseEnv: "OPS_DATABASE_URL",
+      patientIdentifiers: "Stored in PHI_DB only",
+      operationalRecords: "Tokenized patientRef/courseRef records only"
+    }
+  };
+}
+
 export function getIgsrtWorkspace(courseId = "COURSE-2401"): IgsrtWorkspace {
   const snapshot = getWorkflowSnapshot();
   const course = snapshot.treatmentCourses.find((item) => item.id === courseId);
@@ -558,7 +611,7 @@ export function createPatient(input: Partial<Patient>) {
     entityType: "PATIENT",
     entityId: patient.id,
     previousValue: "None",
-    newValue: patientName(patient),
+    newValue: PHI_REDACTED,
     reason: "Structured CRUD record created inside CureRays CWS."
   });
   return { data: patient, auditEvent };
@@ -570,7 +623,7 @@ export function updatePatient(id: string, input: Partial<Patient>) {
     return null;
   }
 
-  const previousValue = JSON.stringify(patient);
+  const previousValue = PHI_REDACTED;
   Object.assign(patient, input, { id, lastUpdatedAt: nowIso() });
   const auditEvent = addAuditEvent({
     userId: "SYSTEM",
@@ -579,7 +632,7 @@ export function updatePatient(id: string, input: Partial<Patient>) {
     entityType: "PATIENT",
     entityId: id,
     previousValue,
-    newValue: JSON.stringify(patient),
+    newValue: PHI_REDACTED,
     reason: "Patient workflow state updated through the API."
   });
   return { data: patient, auditEvent };
@@ -591,7 +644,7 @@ export function updateSimulationOrder(courseId: string, input: Partial<Simulatio
     return null;
   }
 
-  const previousValue = JSON.stringify(order);
+  const previousValue = PHI_REDACTED;
   Object.assign(order, input, {
     lesionBorderInked: input.lesionBorderInked === undefined ? order.lesionBorderInked : compactBoolean(input.lesionBorderInked),
     allMarginsInked: input.allMarginsInked === undefined ? order.allMarginsInked : compactBoolean(input.allMarginsInked),
@@ -611,7 +664,7 @@ export function updateSimulationOrder(courseId: string, input: Partial<Simulatio
     entityType: "SIMULATION_ORDER",
     entityId: order.id,
     previousValue,
-    newValue: JSON.stringify(order),
+    newValue: PHI_REDACTED,
     reason: "IGSRT simulation form fields changed in the system of record."
   });
   return { data: getIgsrtWorkspace(courseId), auditEvent };
@@ -623,7 +676,7 @@ export function updatePrescription(courseId: string, input: Partial<Prescription
     return null;
   }
 
-  const previousValue = JSON.stringify(prescription);
+  const previousValue = PHI_REDACTED;
   Object.assign(prescription, input, {
     verifiedInSensus:
       input.verifiedInSensus === undefined ? prescription.verifiedInSensus : compactBoolean(input.verifiedInSensus),
@@ -642,7 +695,7 @@ export function updatePrescription(courseId: string, input: Partial<Prescription
     entityType: "PRESCRIPTION",
     entityId: prescription.id,
     previousValue,
-    newValue: JSON.stringify(prescription),
+    newValue: PHI_REDACTED,
     reason: "IGSRT prescription parameters changed in the system of record."
   });
   return { data: getIgsrtWorkspace(courseId), auditEvent };
@@ -686,7 +739,7 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
     entityType: "FRACTION_LOG",
     entityId: entry.id,
     previousValue: "None",
-    newValue: JSON.stringify(entry),
+    newValue: PHI_REDACTED,
     reason: "Daily IGSRT treatment entry saved and dose totals recalculated."
   });
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };

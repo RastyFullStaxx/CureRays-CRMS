@@ -1,5 +1,5 @@
 import { CalendarClock, CircleAlert, Clock3, History } from "lucide-react";
-import type { Activity, Appointment, PriorityFlag } from "@/lib/types";
+import type { Activity, Appointment, OperationalAppointment, OperationalPriorityFlag, PriorityFlag } from "@/lib/types";
 import { PhaseBadge, ResponsiblePartyBadge } from "@/components/badges";
 
 const severityStyles: Record<PriorityFlag["severity"], string> = {
@@ -9,8 +9,8 @@ const severityStyles: Record<PriorityFlag["severity"], string> = {
 };
 
 type RightRailProps = {
-  appointments: Appointment[];
-  flags: PriorityFlag[];
+  appointments: Array<Appointment | OperationalAppointment>;
+  flags: Array<PriorityFlag | OperationalPriorityFlag>;
   activities: Activity[];
 };
 
@@ -33,7 +33,7 @@ export function RightRail({ appointments, flags, activities }: RightRailProps) {
                 {appointment.title}
               </p>
               <p className="mt-1 text-xs text-curerays-indigo">
-                {appointment.patientName} - {appointment.location}
+                {"displayLabel" in appointment ? appointment.displayLabel : appointment.patientName} - {appointment.location}
               </p>
             </div>
           ))}

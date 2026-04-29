@@ -7,10 +7,15 @@ import {
   updatePrescription,
   updateSimulationOrder
 } from "@/lib/clinical-store";
+import { phiAccessFromRequest } from "@/lib/server/phi-store";
 
 export const dynamic = "force-dynamic";
 
 export function GET(request: NextRequest) {
+  if (!phiAccessFromRequest(request, "Open IGSRT PHI workspace")) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
   const courseId = request.nextUrl.searchParams.get("courseId") ?? "COURSE-2401";
 
   try {
@@ -21,6 +26,10 @@ export function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  if (!phiAccessFromRequest(request, "Update IGSRT PHI workspace")) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
   const body = await request.json();
   const courseId = body.courseId ?? "COURSE-2401";
 
@@ -42,6 +51,10 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!phiAccessFromRequest(request, "Mutate IGSRT PHI workspace")) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
   const body = await request.json();
 
   if (body.action === "addFraction") {

@@ -1,5 +1,5 @@
 import { BarChart3, ClipboardCheck, FileCheck2, ShieldAlert } from "lucide-react";
-import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient } from "@/lib/types";
+import type { CarepathTask, FractionLogEntry, GeneratedDocument, OperationalPatient, Patient } from "@/lib/types";
 import {
   auditReadinessScore,
   carepathProgress,
@@ -14,7 +14,7 @@ export function ReportsOverview({
   documents = [],
   fractions = []
 }: {
-  patients: Patient[];
+  patients: Array<Patient | OperationalPatient>;
   tasks?: CarepathTask[];
   documents?: GeneratedDocument[];
   fractions?: FractionLogEntry[];

@@ -17,14 +17,14 @@ import { PatientTable } from "@/components/patient-table";
 import { ResponsiblePartyWorkQueue } from "@/components/responsible-party-work-queue";
 import { RightRail } from "@/components/right-rail";
 import {
-  activities,
-  appointments,
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
-  patients,
-  priorityFlags,
-  treatmentCourses
+  operationalActivities,
+  operationalAppointments,
+  operationalPatients,
+  operationalPriorityFlags,
+  operationalTreatmentCourses
 } from "@/lib/clinical-store";
 import {
   auditReadinessScore,
@@ -37,12 +37,17 @@ import {
 } from "@/lib/workflow";
 
 export default function DashboardPage() {
+  const patients = operationalPatients();
+  const safeTreatmentCourses = operationalTreatmentCourses();
+  const appointments = operationalAppointments();
+  const priorityFlags = operationalPriorityFlags();
+  const activities = operationalActivities();
   const counts = phaseCounts(patients);
   const flagged = countFlaggedPatients(patients);
   const documents = documentStatusCounts(generatedDocuments);
   const auditScore = auditReadinessScore(carepathTasks, generatedDocuments, fractionLogEntries);
   const openTasks = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status)).length;
-  const coursesNeedingAttention = treatmentCourses.filter((course) =>
+  const coursesNeedingAttention = safeTreatmentCourses.filter((course) =>
     ["ON_HOLD", "NOT_STARTED"].includes(course.status)
   ).length;
 
@@ -127,7 +132,7 @@ export default function DashboardPage() {
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <PatientTable
           patients={patients}
-          courses={treatmentCourses}
+          courses={safeTreatmentCourses}
           tasks={carepathTasks}
           documents={generatedDocuments}
           fractions={fractionLogEntries}

@@ -1,24 +1,34 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, LockKeyhole } from "lucide-react";
-import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient, TreatmentCourse } from "@/lib/types";
+import type {
+  CarepathTask,
+  FractionLogEntry,
+  GeneratedDocument,
+  OperationalPatient,
+  OperationalTreatmentCourse,
+  Patient,
+  TreatmentCourse
+} from "@/lib/types";
 import {
   auditReadinessScore,
   carepathProgress,
   completedTaskStatuses,
+  courseDisplayLabel,
   courseDocuments,
   courseFractions,
   courseTasks,
   documentProgress,
   formatLastUpdated,
+  patientActionSummary,
   patientActiveCourse,
-  patientName
+  patientDisplayLabel
 } from "@/lib/workflow";
 import { PhaseBadge, ResponsiblePartyBadge, StatusBadge } from "@/components/badges";
 import { ProgressBar } from "@/components/progress-bar";
 
 type PatientTableProps = {
-  patients: Patient[];
-  courses?: TreatmentCourse[];
+  patients: Array<Patient | OperationalPatient>;
+  courses?: Array<TreatmentCourse | OperationalTreatmentCourse>;
   tasks?: CarepathTask[];
   documents?: GeneratedDocument[];
   fractions?: FractionLogEntry[];
@@ -79,18 +89,22 @@ export function PatientTable({
                 <tr key={patient.id} className="bg-white/28 transition hover:bg-white/58">
                   <td className="px-5 py-4 align-top">
                     <Link href={`/patients/${patient.id}`} className="font-semibold text-curerays-dark-plum hover:text-curerays-blue">
-                      {patientName(patient)}
+                      {patientDisplayLabel(patient)}
                     </Link>
                     <p className="mt-1 text-xs font-semibold text-curerays-indigo">
-                      {patient.id} - {patient.location}
+                      {"patientRef" in patient ? patient.patientRef : patient.id}
                     </p>
-                    <p className="mt-1 text-xs text-curerays-indigo/70">{patient.mrn}</p>
+                    <p className="mt-1 text-xs text-curerays-indigo/70">
+                      {"restricted" in patient ? "PHI in Google Cloud SQL" : patient.mrn}
+                    </p>
                   </td>
                   <td className="px-5 py-4 align-top">
                     <p className="max-w-52 text-sm font-semibold leading-5 text-curerays-dark-plum">
-                      {course?.protocolName ?? "No active course"}
+                      {courseDisplayLabel(course)}
                     </p>
-                    <p className="mt-1 text-xs text-curerays-indigo">{patient.diagnosis}</p>
+                    <p className="mt-1 text-xs text-curerays-indigo">
+                      {patient.diagnosisCategory.replaceAll("_", " ")}
+                    </p>
                   </td>
                   <td className="px-5 py-4 align-top">
                     <PhaseBadge phase={patient.chartRoundsPhase} />
@@ -121,7 +135,7 @@ export function PatientTable({
                   <td className="px-5 py-4 align-top">
                     <div className="flex max-w-60 items-start gap-2 text-sm font-medium leading-5 text-curerays-dark-plum/82">
                       <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-curerays-orange" aria-hidden="true" />
-                      <span>{patient.nextAction}</span>
+                      <span>{patientActionSummary(patient)}</span>
                     </div>
                     {nextTask ? (
                       <div className="mt-2">
