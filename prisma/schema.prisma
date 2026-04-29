@@ -37,6 +37,28 @@ enum DocumentStatus {
   COMPLETED
 }
 
+enum TemplateSourceStatus {
+  ACTIVE
+  DRAFT
+  RETIRED
+  MISSING
+  MAPPING_IN_PROGRESS
+}
+
+enum TemplateSourceMimeType {
+  DOCX
+  XLSX
+  PPTX
+  FOLDER
+  UNKNOWN
+}
+
+enum WorkflowDefinitionStatus {
+  ACTIVE
+  DRAFT
+  MAPPING_IN_PROGRESS
+}
+
 model Patient {
   id               String             @id
   firstName        String
@@ -219,6 +241,74 @@ model GeneratedDocumentOutput {
   driveFileUrl   String?
   contentPreview String
   renderedAt     DateTime
+}
+
+model TemplateSource {
+  id                   String                 @id
+  name                 String
+  sourceFileName       String
+  driveFileId          String?
+  driveUrl             String?
+  mimeType             TemplateSourceMimeType
+  status               TemplateSourceStatus
+  notes                String?
+  modifiedAt           DateTime?
+  documentRequirements DocumentRequirement[]
+}
+
+model DocumentRequirement {
+  id                String             @id
+  name              String
+  workflowPhase     String
+  responsibleParty  String
+  diagnosis         String
+  protocol          String?
+  bodyRegion        String?
+  treatmentModality String?
+  universal         Boolean            @default(false)
+  requiredWhen      String?
+  templateSourceId  String?
+  templateSource    TemplateSource?    @relation(fields: [templateSourceId], references: [id])
+  defaultStatus     DocumentStatus
+  requiredAction    String
+  requiredFields    String[]
+  outputFormats     String[]
+  cptCode           String?
+  createsTask       Boolean            @default(false)
+  autoCreate        Boolean            @default(true)
+  taskTitle         String?
+  taskNumber        String?
+  timing            String?
+  auditSteps        String[]
+}
+
+model WorkflowDefinition {
+  id                     String                   @id
+  name                   String
+  diagnosis              String
+  protocol               String
+  description            String
+  phases                 String[]
+  documentRequirementIds String[]
+  status                 WorkflowDefinitionStatus
+}
+
+model WorkflowDocumentState {
+  id                   String                @id
+  requirementId        String
+  documentId           String?
+  patientId            String
+  courseId             String
+  name                 String
+  workflowPhase        String
+  responsibleParty     String
+  status               DocumentStatus
+  requiredAction       String
+  auditReady           Boolean
+  templateSourceStatus TemplateSourceStatus?
+  sourceDriveUrl       String?
+  mapped               Boolean
+  lastUpdatedAt        DateTime
 }
 
 model CarepathTask {

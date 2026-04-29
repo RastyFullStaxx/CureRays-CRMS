@@ -10,7 +10,7 @@ import type {
   WorkflowDefinition,
   WorkflowDocumentState
 } from "@/lib/types";
-import { completedDocumentStatuses, completedTaskStatuses, orderedCarepathPhases } from "@/lib/workflow";
+import { completedDocumentStatuses, orderedCarepathPhases } from "@/lib/workflow";
 
 export const templateSources: TemplateSource[] = [
   {
@@ -320,7 +320,8 @@ export const documentRequirements: DocumentRequirement[] = [
     requiredAction: "Template mapping missing; confirm billing pre-auth workflow before automation",
     requiredFields: ["payer", "authorization status", "billing rule mapping"],
     outputFormats: ["DOCX", "PDF"],
-    createsTask: false
+    createsTask: false,
+    autoCreate: false
   }
 ];
 
@@ -507,6 +508,10 @@ export function applicableDocumentRequirements(patient: Patient, course: Treatme
   return documentRequirements.filter((requirement) => documentRequirementAppliesToCourse(requirement, patient, course));
 }
 
+export function patientTrackingDocumentRequirements(patient: Patient, course: TreatmentCourse) {
+  return applicableDocumentRequirements(patient, course).filter((requirement) => requirement.autoCreate !== false);
+}
+
 export function deriveDocumentStateFromRequirement(
   requirement: DocumentRequirement,
   patient: Patient,
@@ -549,7 +554,7 @@ export function deriveWorkflowDocumentStates(
       return [];
     }
 
-    return applicableDocumentRequirements(patient, course).map((requirement) =>
+    return patientTrackingDocumentRequirements(patient, course).map((requirement) =>
       deriveDocumentStateFromRequirement(requirement, patient, course, documents)
     );
   });
@@ -558,8 +563,7 @@ export function deriveWorkflowDocumentStates(
 export function createGeneratedDocumentFromRequirement(
   requirement: DocumentRequirement,
   patient: Patient,
-  course: TreatmentCourse,
-  index: number
+  course: TreatmentCourse
 ): GeneratedDocument {
   return {
     id: `DOC-${patient.id.replace("CR-", "")}-${requirement.id.replace("REQ-", "")}`,
@@ -580,7 +584,7 @@ export function createGeneratedDocumentFromRequirement(
         : requirement.defaultStatus === "NEEDS_REVIEW" || requirement.defaultStatus === "MISSING_FIELDS"
           ? "REVIEW_REQUIRED"
           : "NOT_STARTED",
-    auditReady: completedDocumentStatuses.includes(requirement.defaultStatus) || index < 0
+    auditReady: completedDocumentStatuses.includes(requirement.defaultStatus)
   };
 }
 
@@ -595,7 +599,7 @@ export function ensureRequirementDocuments(
       return;
     }
 
-    applicableDocumentRequirements(patient, course).forEach((requirement, index) => {
+    patientTrackingDocumentRequirements(patient, course).forEach((requirement) => {
       const exists = documents.some(
         (document) =>
           document.courseId === course.id &&
@@ -603,7 +607,7 @@ export function ensureRequirementDocuments(
       );
 
       if (!exists) {
-        documents.push(createGeneratedDocumentFromRequirement(requirement, patient, course, index));
+        documents.push(createGeneratedDocumentFromRequirement(requirement, patient, course));
       }
     });
   });
@@ -649,7 +653,7 @@ export function ensureRequirementTasks(
       return;
     }
 
-    applicableDocumentRequirements(patient, course).forEach((requirement) => {
+    patientTrackingDocumentRequirements(patient, course).forEach((requirement) => {
       const task = createTaskFromRequirement(requirement, patient, course);
       const exists =
         !task ||

@@ -4,6 +4,7 @@ import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient, Treatm
 import {
   auditReadinessScore,
   carepathProgress,
+  completedTaskStatuses,
   courseDocuments,
   courseFractions,
   courseTasks,
@@ -72,7 +73,7 @@ export function PatientTable({
               const carepath = carepathProgress(patientTasks);
               const document = documentProgress(patientDocuments);
               const audit = auditReadinessScore(patientTasks, patientDocuments, patientFractions);
-              const nextTask = patientTasks.find((task) => !["COMPLETED", "NOT_APPLICABLE"].includes(task.status));
+              const nextTask = patientTasks.find((task) => !completedTaskStatuses.includes(task.status));
 
               return (
                 <tr key={patient.id} className="bg-white/28 transition hover:bg-white/58">

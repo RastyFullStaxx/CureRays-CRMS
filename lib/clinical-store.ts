@@ -517,6 +517,14 @@ export function getIgsrtWorkspace(courseId = "COURSE-2401"): IgsrtWorkspace {
   };
 }
 
+function getWorkflowResponseForCourse(courseId: string) {
+  try {
+    return getIgsrtWorkspace(courseId);
+  } catch {
+    return getWorkflowSnapshot();
+  }
+}
+
 export function createPatient(input: Partial<Patient>) {
   const timestamp = nowIso();
   const patient: Patient = {
@@ -778,7 +786,7 @@ export function renderGeneratedDocument(documentId: string, format: GeneratedDoc
     newValue: `${format} v${output.version}`,
     reason: "System generated a document output from structured source-of-truth data."
   });
-  return { data: output, workspace: getIgsrtWorkspace(document.courseId), auditEvent };
+  return { data: output, workspace: getWorkflowResponseForCourse(document.courseId), auditEvent };
 }
 
 export function signGeneratedDocument(documentId: string) {
@@ -816,5 +824,5 @@ export function signGeneratedDocument(documentId: string) {
     newValue: "SIGNED",
     reason: "Document signature state updated inside the workflow system."
   });
-  return { data: getIgsrtWorkspace(document.courseId), auditEvent };
+  return { data: getWorkflowResponseForCourse(document.courseId), auditEvent };
 }

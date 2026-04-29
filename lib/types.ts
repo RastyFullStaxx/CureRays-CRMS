@@ -188,6 +188,7 @@ export type DocumentRequirement = {
   outputFormats: Array<"DOCX" | "PDF" | "XLSX" | "PPTX">;
   cptCode?: string;
   createsTask: boolean;
+  autoCreate?: boolean;
   taskTitle?: string;
   taskNumber?: string;
   timing?: string;

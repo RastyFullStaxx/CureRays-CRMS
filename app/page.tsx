@@ -28,6 +28,7 @@ import {
 } from "@/lib/clinical-store";
 import {
   auditReadinessScore,
+  completedTaskStatuses,
   countFlaggedPatients,
   documentStatusCounts,
   overdueTaskCount,
@@ -40,7 +41,7 @@ export default function DashboardPage() {
   const flagged = countFlaggedPatients(patients);
   const documents = documentStatusCounts(generatedDocuments);
   const auditScore = auditReadinessScore(carepathTasks, generatedDocuments, fractionLogEntries);
-  const openTasks = carepathTasks.filter((task) => !["COMPLETED", "NOT_APPLICABLE"].includes(task.status)).length;
+  const openTasks = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status)).length;
   const coursesNeedingAttention = treatmentCourses.filter((course) =>
     ["ON_HOLD", "NOT_STARTED"].includes(course.status)
   ).length;
