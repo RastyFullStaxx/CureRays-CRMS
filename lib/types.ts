@@ -34,6 +34,15 @@ export type DocumentStatus =
 
 export type BillingReadinessStatus = "READY" | "NEEDS_REVIEW" | "BLOCKED" | "NOT_APPLICABLE";
 
+export type TemplateSourceStatus =
+  | "ACTIVE"
+  | "DRAFT"
+  | "RETIRED"
+  | "MISSING"
+  | "MAPPING_IN_PROGRESS";
+
+export type TemplateSourceMimeType = "DOCX" | "XLSX" | "PPTX" | "FOLDER" | "UNKNOWN";
+
 export type ResponsibleParty =
   | "VA"
   | "MA"
@@ -143,6 +152,73 @@ export type DocumentTemplate = {
   version: string;
   requiredFields: string[];
   status: "ACTIVE" | "DRAFT" | "RETIRED";
+};
+
+export type TemplateSource = {
+  id: string;
+  name: string;
+  sourceFileName: string;
+  driveFileId?: string;
+  driveUrl?: string;
+  mimeType: TemplateSourceMimeType;
+  status: TemplateSourceStatus;
+  notes?: string;
+  modifiedAt?: string;
+};
+
+export type DocumentApplicability = {
+  diagnosis: DiagnosisCategory | "ALL";
+  protocol?: string;
+  bodyRegion?: string;
+  treatmentModality?: string;
+  universal?: boolean;
+  requiredWhen?: string;
+};
+
+export type DocumentRequirement = {
+  id: string;
+  name: string;
+  workflowPhase: CarepathWorkflowPhase;
+  responsibleParty: ResponsibleParty;
+  applicability: DocumentApplicability;
+  templateSourceId?: string;
+  defaultStatus: DocumentStatus;
+  requiredAction: string;
+  requiredFields: string[];
+  outputFormats: Array<"DOCX" | "PDF" | "XLSX" | "PPTX">;
+  cptCode?: string;
+  createsTask: boolean;
+  taskTitle?: string;
+  taskNumber?: string;
+  timing?: string;
+  auditSteps?: string[];
+};
+
+export type WorkflowDefinition = {
+  id: string;
+  name: string;
+  diagnosis: DiagnosisCategory | "ALL";
+  protocol: string;
+  description: string;
+  phases: CarepathWorkflowPhase[];
+  documentRequirementIds: string[];
+  status: "ACTIVE" | "DRAFT" | "MAPPING_IN_PROGRESS";
+};
+
+export type WorkflowDocumentState = {
+  requirementId: string;
+  documentId?: string;
+  patientId: string;
+  courseId: string;
+  name: string;
+  workflowPhase: CarepathWorkflowPhase;
+  responsibleParty: ResponsibleParty;
+  status: DocumentStatus;
+  requiredAction: string;
+  auditReady: boolean;
+  templateSourceStatus?: TemplateSourceStatus;
+  sourceDriveUrl?: string;
+  mapped: boolean;
 };
 
 export type GeneratedDocument = {
@@ -389,6 +465,10 @@ export type WorkflowSnapshot = {
   billingCodes: BillingCode[];
   documentTemplates: DocumentTemplate[];
   internalFormTemplates: InternalFormTemplate[];
+  templateSources: TemplateSource[];
+  documentRequirements: DocumentRequirement[];
+  workflowDefinitions: WorkflowDefinition[];
+  workflowDocumentStates: WorkflowDocumentState[];
   simulationOrders: SimulationOrder[];
   prescriptions: Prescription[];
   mappingRecords: MappingRecord[];

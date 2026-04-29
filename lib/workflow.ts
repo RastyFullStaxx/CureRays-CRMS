@@ -66,6 +66,42 @@ export const responsiblePartyLabels: Record<ResponsibleParty, string> = {
   ADMIN: "Admin"
 };
 
+export const orderedChartRoundsPhases: ChartRoundsPhase[] = ["UPCOMING", "ON_TREATMENT", "POST"];
+
+export const orderedCarepathPhases: CarepathWorkflowPhase[] = [
+  "CONSULTATION",
+  "CHART_PREP",
+  "PLANNING",
+  "ON_TREATMENT",
+  "POST_TX"
+];
+
+export const orderedResponsibleParties: ResponsibleParty[] = [
+  "VA",
+  "MA",
+  "RTT",
+  "NP_PA",
+  "PCP",
+  "RAD_ONC",
+  "PHYSICIST",
+  "ADMIN"
+];
+
+export const completedTaskStatuses: CarepathTaskStatus[] = ["COMPLETED", "NOT_APPLICABLE"];
+
+export const completedDocumentStatuses: DocumentStatus[] = [
+  "SIGNED",
+  "EXPORTED",
+  "COMPLETED",
+  "NOT_APPLICABLE"
+];
+
+export const openDocumentRiskStatuses: DocumentStatus[] = [
+  "PENDING_NEEDED",
+  "MISSING_FIELDS",
+  "NEEDS_REVIEW"
+];
+
 export function patientName(patient: Patient) {
   return `${patient.firstName} ${patient.lastName}`;
 }
@@ -134,9 +170,7 @@ export function carepathProgress(tasks: CarepathTask[]) {
     return { completed: 0, total: 0, percent: 0 };
   }
 
-  const completed = tasks.filter((task) =>
-    ["COMPLETED", "NOT_APPLICABLE"].includes(task.status)
-  ).length;
+  const completed = tasks.filter((task) => completedTaskStatuses.includes(task.status)).length;
 
   return {
     completed,
@@ -170,9 +204,7 @@ export function documentProgress(documents: GeneratedDocument[]) {
     return { completed: 0, total: 0, percent: 0 };
   }
 
-  const completed = documents.filter((document) =>
-    ["SIGNED", "EXPORTED", "COMPLETED", "NOT_APPLICABLE"].includes(document.status)
-  ).length;
+  const completed = documents.filter((document) => completedDocumentStatuses.includes(document.status)).length;
 
   return {
     completed,
@@ -199,23 +231,21 @@ export function isOverdue(date?: string) {
     return false;
   }
 
-  return new Date(`${date}T23:59:59`) < new Date("2026-04-26T23:59:59+08:00");
+  return new Date(`${date}T23:59:59`) < new Date();
 }
 
 export function overdueTaskCount(tasks: CarepathTask[]) {
-  return tasks.filter((task) => !["COMPLETED", "NOT_APPLICABLE"].includes(task.status) && isOverdue(task.dueDate)).length;
+  return tasks.filter((task) => !completedTaskStatuses.includes(task.status) && isOverdue(task.dueDate)).length;
 }
 
 export function responsiblePartyQueue(tasks: CarepathTask[], documents: GeneratedDocument[]) {
-  const parties: ResponsibleParty[] = ["VA", "MA", "RTT", "NP_PA", "PCP", "RAD_ONC", "PHYSICIST", "ADMIN"];
-
-  return parties.map((party) => {
+  return orderedResponsibleParties.map((party) => {
     const partyTasks = tasks.filter((task) => task.responsibleParty === party);
     const partyDocuments = documents.filter((document) => document.responsibleParty === party);
 
     return {
       responsibleParty: party,
-      assignedTasks: partyTasks.filter((task) => !["COMPLETED", "NOT_APPLICABLE"].includes(task.status)).length,
+      assignedTasks: partyTasks.filter((task) => !completedTaskStatuses.includes(task.status)).length,
       pendingDocuments: partyDocuments.filter((document) => document.status === "PENDING_NEEDED").length,
       reviewItems:
         partyTasks.filter((task) => task.status === "NEEDS_REVIEW" || task.status === "BLOCKED").length +
@@ -240,7 +270,7 @@ export function workflowBottlenecksByParty(tasks: CarepathTask[], documents: Gen
 
 export function documentRiskHotspots(documents: GeneratedDocument[]) {
   return documents
-    .filter((document) => ["PENDING_NEEDED", "NEEDS_REVIEW"].includes(document.status) || !document.auditReady)
+    .filter((document) => openDocumentRiskStatuses.includes(document.status) || !document.auditReady)
     .reduce<Array<{ name: string; count: number; reviewCount: number; pendingCount: number }>>((hotspots, document) => {
       const existing = hotspots.find((item) => item.name === document.name);
 
@@ -279,8 +309,8 @@ export function diagnosisWorkflowMix(patients: Patient[]) {
 }
 
 export function auditBlockers(tasks: CarepathTask[], documents: GeneratedDocument[], fractions: FractionLogEntry[]) {
-  const taskBlockers = tasks.filter((task) => !task.auditReady && !["COMPLETED", "NOT_APPLICABLE"].includes(task.status));
-  const documentBlockers = documents.filter((document) => !document.auditReady || ["PENDING_NEEDED", "NEEDS_REVIEW"].includes(document.status));
+  const taskBlockers = tasks.filter((task) => !task.auditReady && !completedTaskStatuses.includes(task.status));
+  const documentBlockers = documents.filter((document) => !document.auditReady || openDocumentRiskStatuses.includes(document.status));
   const fractionBlockers = fractions.filter((entry) => !entry.mdApproval || !entry.dotApproval);
 
   return {
