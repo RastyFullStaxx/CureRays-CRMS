@@ -4,6 +4,21 @@ CureRays Clinical Workflow System (CWS) is a centralized workflow and document t
 
 The purpose of the system is to replace fragmented Google Drive files, worksheets, and manual reminders with one operational workspace that shows staff what is happening, what is done, what is missing, who owns the next action, and what needs review before a patient workflow can move forward.
 
+## Persistent Product Documentation
+
+The CureRays workflow context is stored in repo docs so future development sessions do not need the domain brief repeated:
+
+- [Product Context](docs/curerays-product-context.md)
+- [Workflow Model](docs/curerays-workflow-model.md)
+- [Page Plan](docs/curerays-page-plan.md)
+- [Data Model](docs/curerays-data-model.md)
+- [File Storage And Documents](docs/curerays-file-storage-and-documents.md)
+- [Automation Rules](docs/curerays-automation-rules.md)
+
+The current architecture is patient-course centered:
+
+**Patients -> Courses -> Workflow Steps -> Tasks -> Forms/Documents -> Signatures -> Treatment Delivery -> Summary -> Audit -> Closeout.**
+
 ## What Problem It Solves
 
 CureRays currently relies on multiple Drive templates, worksheets, and manual status tracking. That creates avoidable operational risk:
