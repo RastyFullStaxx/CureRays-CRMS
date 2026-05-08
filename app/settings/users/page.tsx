@@ -9,6 +9,7 @@ const roles = [
   "Doctor PCP",
   "Rad Onc",
   "Physicist",
+  "Billing Staff",
   "Admin"
 ];
 

@@ -28,9 +28,12 @@ export const chartRoundsPhaseLabels: Record<ChartRoundsPhase, string> = {
 export const carepathPhaseLabels: Record<CarepathWorkflowPhase, string> = {
   CONSULTATION: "Consultation",
   CHART_PREP: "Chart Prep",
+  SIMULATION: "Simulation",
   PLANNING: "Planning",
   ON_TREATMENT: "On Treatment",
-  POST_TX: "Post-TX"
+  POST_TX: "Post-TX",
+  AUDIT: "Audit",
+  CLOSED: "Closed"
 };
 
 export const patientStatusLabels: Record<PatientStatus, string> = {
@@ -41,22 +44,35 @@ export const patientStatusLabels: Record<PatientStatus, string> = {
 
 export const documentStatusLabels: Record<DocumentStatus, string> = {
   DRAFT: "Draft",
+  NOT_STARTED: "Not Started",
   PENDING_NEEDED: "Pending / Needed",
+  PENDING: "Pending",
+  IN_PROGRESS: "In Progress",
   MISSING_FIELDS: "Missing Fields",
   READY_FOR_REVIEW: "Ready for Review",
   SIGNED: "Signed",
+  UPLOADED: "Uploaded",
   EXPORTED: "Exported",
   NOT_APPLICABLE: "N/A",
   NEEDS_REVIEW: "Needs Review",
-  COMPLETED: "Completed"
+  COMPLETED: "Completed",
+  BLOCKED: "Blocked",
+  OVERDUE: "Overdue",
+  CLOSED: "Closed"
 };
 
 export const carepathTaskStatusLabels: Record<CarepathTaskStatus, string> = {
+  NOT_STARTED: "Not Started",
   PENDING: "Pending",
   IN_PROGRESS: "In Progress",
   NEEDS_REVIEW: "Needs Review",
+  READY_FOR_REVIEW: "Ready for Review",
+  SIGNED: "Signed",
+  UPLOADED: "Uploaded",
   COMPLETED: "Completed",
   BLOCKED: "Blocked",
+  OVERDUE: "Overdue",
+  CLOSED: "Closed",
   NOT_APPLICABLE: "N/A"
 };
 
@@ -68,6 +84,7 @@ export const responsiblePartyLabels: Record<ResponsibleParty, string> = {
   PCP: "Doctor PCP",
   RAD_ONC: "Rad Onc",
   PHYSICIST: "Physicist",
+  BILLING: "Billing Staff",
   ADMIN: "Admin"
 };
 
@@ -76,9 +93,12 @@ export const orderedChartRoundsPhases: ChartRoundsPhase[] = ["UPCOMING", "ON_TRE
 export const orderedCarepathPhases: CarepathWorkflowPhase[] = [
   "CONSULTATION",
   "CHART_PREP",
+  "SIMULATION",
   "PLANNING",
   "ON_TREATMENT",
-  "POST_TX"
+  "POST_TX",
+  "AUDIT",
+  "CLOSED"
 ];
 
 export const orderedResponsibleParties: ResponsibleParty[] = [
@@ -89,21 +109,33 @@ export const orderedResponsibleParties: ResponsibleParty[] = [
   "PCP",
   "RAD_ONC",
   "PHYSICIST",
+  "BILLING",
   "ADMIN"
 ];
 
-export const completedTaskStatuses: CarepathTaskStatus[] = ["COMPLETED", "NOT_APPLICABLE"];
+export const completedTaskStatuses: CarepathTaskStatus[] = [
+  "COMPLETED",
+  "SIGNED",
+  "UPLOADED",
+  "CLOSED",
+  "NOT_APPLICABLE"
+];
 
 export const completedDocumentStatuses: DocumentStatus[] = [
   "SIGNED",
+  "UPLOADED",
   "EXPORTED",
   "COMPLETED",
+  "CLOSED",
   "NOT_APPLICABLE"
 ];
 
 export const openDocumentRiskStatuses: DocumentStatus[] = [
   "PENDING_NEEDED",
+  "PENDING",
   "MISSING_FIELDS",
+  "BLOCKED",
+  "OVERDUE",
   "NEEDS_REVIEW"
 ];
 
@@ -208,14 +240,21 @@ export function documentStatusCounts(documents: GeneratedDocument[]) {
     },
     {
       DRAFT: 0,
+      NOT_STARTED: 0,
       PENDING_NEEDED: 0,
+      PENDING: 0,
+      IN_PROGRESS: 0,
       MISSING_FIELDS: 0,
       READY_FOR_REVIEW: 0,
       SIGNED: 0,
+      UPLOADED: 0,
       EXPORTED: 0,
       NOT_APPLICABLE: 0,
       NEEDS_REVIEW: 0,
-      COMPLETED: 0
+      COMPLETED: 0,
+      BLOCKED: 0,
+      OVERDUE: 0,
+      CLOSED: 0
     }
   );
 }

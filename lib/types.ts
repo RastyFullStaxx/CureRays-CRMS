@@ -3,9 +3,12 @@ export type ChartRoundsPhase = "UPCOMING" | "ON_TREATMENT" | "POST";
 export type CarepathWorkflowPhase =
   | "CONSULTATION"
   | "CHART_PREP"
+  | "SIMULATION"
   | "PLANNING"
   | "ON_TREATMENT"
-  | "POST_TX";
+  | "POST_TX"
+  | "AUDIT"
+  | "CLOSED";
 
 export type PatientStatus = "ACTIVE" | "ON_HOLD" | "PAUSED";
 
@@ -14,23 +17,36 @@ export type DiagnosisCategory = "SKIN_CANCER" | "ARTHRITIS" | "DUPUYTRENS";
 export type TreatmentCourseStatus = "NOT_STARTED" | "ACTIVE" | "ON_HOLD" | "COMPLETED";
 
 export type CarepathTaskStatus =
+  | "NOT_STARTED"
   | "PENDING"
   | "IN_PROGRESS"
   | "NEEDS_REVIEW"
+  | "READY_FOR_REVIEW"
+  | "SIGNED"
+  | "UPLOADED"
   | "COMPLETED"
   | "BLOCKED"
+  | "OVERDUE"
+  | "CLOSED"
   | "NOT_APPLICABLE";
 
 export type DocumentStatus =
   | "DRAFT"
+  | "NOT_STARTED"
   | "PENDING_NEEDED"
+  | "PENDING"
+  | "IN_PROGRESS"
   | "MISSING_FIELDS"
   | "READY_FOR_REVIEW"
   | "SIGNED"
+  | "UPLOADED"
   | "EXPORTED"
   | "NOT_APPLICABLE"
   | "NEEDS_REVIEW"
-  | "COMPLETED";
+  | "COMPLETED"
+  | "BLOCKED"
+  | "OVERDUE"
+  | "CLOSED";
 
 export type BillingReadinessStatus = "READY" | "NEEDS_REVIEW" | "BLOCKED" | "NOT_APPLICABLE";
 
@@ -51,7 +67,23 @@ export type ResponsibleParty =
   | "PCP"
   | "RAD_ONC"
   | "PHYSICIST"
+  | "BILLING"
   | "ADMIN";
+
+export type UserRole = ResponsibleParty;
+
+export type WorkflowItemStatus =
+  | "NOT_STARTED"
+  | "PENDING"
+  | "IN_PROGRESS"
+  | "READY_FOR_REVIEW"
+  | "SIGNED"
+  | "UPLOADED"
+  | "COMPLETED"
+  | "NOT_APPLICABLE"
+  | "BLOCKED"
+  | "OVERDUE"
+  | "CLOSED";
 
 export type FlagSeverity = "LOW" | "MEDIUM" | "HIGH";
 
@@ -71,10 +103,14 @@ export type PatientFlag = {
 
 export type Patient = {
   id: string;
+  patientId?: string;
   firstName: string;
   lastName: string;
+  dob?: string;
+  sex?: string;
   mrn: string;
   diagnosis: string;
+  diagnosisSummary?: string;
   diagnosisCategory: DiagnosisCategory;
   location: string;
   physician: string;
@@ -87,6 +123,84 @@ export type Patient = {
   notes: string;
   checklist: Checklist;
   lastUpdatedAt: string;
+};
+
+export type Course = {
+  id: string;
+  patientId: string;
+  courseNumber: string;
+  diagnosisType: "Skin" | "Arthritis" | "Dupuytren's" | "Other";
+  lesionNumber?: string;
+  treatmentSite: string;
+  laterality?: string;
+  location: string;
+  physicianId?: string;
+  radOncId?: string;
+  currentPhase: CarepathWorkflowPhase;
+  simpleDashboardPhase: ChartRoundsPhase;
+  status: WorkflowItemStatus;
+  startDate?: string;
+  endDate?: string;
+  assignedStaff: string[];
+  nextAction: string;
+  flagsIssues: string[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type WorkflowStep = {
+  id: string;
+  courseId: string;
+  stepNumber: number;
+  stepName: string;
+  phase: CarepathWorkflowPhase;
+  status: WorkflowItemStatus;
+  responsibleRole: ResponsibleParty;
+  assignedUserId?: string;
+  triggerEvent: string;
+  dueDate?: string;
+  requiresSignature: boolean;
+  signedByUserId?: string;
+  signedAt?: string;
+  linkedDocumentId?: string;
+  naReason?: string;
+  blockers: string[];
+  auditChecklist: string[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Task = {
+  id: string;
+  courseId: string;
+  patientId: string;
+  workflowStepId?: string;
+  title: string;
+  description: string;
+  type:
+    | "LAUNCH_DOCUMENT"
+    | "FILL_CLINICAL_FORM"
+    | "UPLOAD_IMAGE"
+    | "REVIEW_PLAN"
+    | "SIGN_DOCUMENT"
+    | "COMPLETE_TREATMENT_FRACTION"
+    | "WEEKLY_PHYSICS_CHECK"
+    | "SCHEDULE_FOLLOW_UP"
+    | "FINISH_AUDIT";
+  status: WorkflowItemStatus;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  assignedRole: ResponsibleParty;
+  assignedUserId?: string;
+  dueDate?: string;
+  completedAt?: string;
+  linkedDocumentId?: string;
+  linkedFormId?: string;
+  linkedAppointmentId?: string;
+  comments?: string[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type OperationalPatient = {
@@ -182,6 +296,108 @@ export type DocumentTemplate = {
   version: string;
   requiredFields: string[];
   status: "ACTIVE" | "DRAFT" | "RETIRED";
+  diagnosisType?: Course["diagnosisType"];
+  fileType?: "DOCX" | "PDF" | "PPTX" | "XLSX" | "GOOGLE_DOC" | "GOOGLE_SHEET" | "GOOGLE_SLIDE";
+  templateStorageProvider?: "GOOGLE_DRIVE" | "APP_LIBRARY" | "LOCAL";
+  templateFileIdOrPath?: string;
+  active?: boolean;
+};
+
+export type DocumentInstance = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  workflowStepId?: string;
+  templateId?: string;
+  title: string;
+  category: string;
+  status: WorkflowItemStatus;
+  storageProvider: "GOOGLE_DRIVE" | "APP_STORAGE" | "EXTERNAL";
+  fileIdOrPath?: string;
+  previewUrl?: string;
+  version: number;
+  generatedAt?: string;
+  generatedByUserId?: string;
+  signedAt?: string;
+  signedByUserId?: string;
+  uploadedToEcwAt?: string;
+  lockedAt?: string;
+  naReason?: string;
+};
+
+export type ClinicalFormTemplate = {
+  id: string;
+  name: string;
+  diagnosisType: Course["diagnosisType"] | "All";
+  schema: FormTemplateSection[];
+  active: boolean;
+};
+
+export type ClinicalFormResponse = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  templateId: string;
+  status: WorkflowItemStatus;
+  responseData: Record<string, string | number | boolean | null>;
+  generatedDocumentId?: string;
+  signedByUserId?: string;
+  signedAt?: string;
+};
+
+export type TreatmentPlan = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  diagnosisType: Course["diagnosisType"];
+  site: string;
+  laterality?: string;
+  energy?: string;
+  applicatorSize?: string;
+  depthOfInvasion?: string;
+  totalDose?: string;
+  dosePerFraction?: string;
+  totalFractions?: number;
+  phaseIParams?: string;
+  phaseIIParams?: string;
+  percentDepthDose?: number;
+  doseToDepth?: string;
+  coverage?: string;
+  physicistReviewStatus: WorkflowItemStatus;
+  radOncSignatureStatus: WorkflowItemStatus;
+  lockedAt?: string;
+};
+
+export type TreatmentFraction = {
+  id: string;
+  courseId: string;
+  fractionNumber: number;
+  phase: string;
+  treatmentDate: string;
+  plannedDose: number;
+  deliveredDose?: number;
+  cumulativeDose: number;
+  energy?: string;
+  applicator?: string;
+  imageGuidanceCompleted: boolean;
+  status: WorkflowItemStatus;
+  therapistId?: string;
+  physicianReviewedAt?: string;
+  notes?: string;
+};
+
+export type ImagingAsset = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  category: string;
+  phase: CarepathWorkflowPhase;
+  fractionId?: string;
+  fileIdOrPath?: string;
+  previewUrl?: string;
+  uploadedByUserId?: string;
+  uploadedAt?: string;
+  notes?: string;
 };
 
 export type TemplateSource = {
@@ -414,6 +630,70 @@ export type Appointment = {
   location: string;
   staff: string;
   chartRoundsPhase: ChartRoundsPhase;
+  courseId?: string;
+  appointmentType?:
+    | "CONSULT"
+    | "MAPPING"
+    | "SIMULATION"
+    | "VERIFICATION_SIMULATION"
+    | "TREATMENT_FRACTION"
+    | "OTV"
+    | "PHYSICS_CHECK"
+    | "FOLLOW_UP";
+  dateTime?: string;
+  status?: "SCHEDULED" | "COMPLETED" | "MISSED" | "RESCHEDULED" | "CANCELLED";
+  assignedProviderId?: string;
+  linkedWorkflowStepId?: string;
+  notes?: string;
+};
+
+export type BillingItem = {
+  id: string;
+  courseId: string;
+  code: string;
+  description: string;
+  plannedQuantity: number;
+  completedQuantity: number;
+  billedQuantity: number;
+  status: WorkflowItemStatus;
+  linkedDocumentId?: string;
+  notes?: string;
+};
+
+export type AuditCheck = {
+  id: string;
+  courseId: string;
+  category: string;
+  label: string;
+  status: WorkflowItemStatus;
+  required: boolean;
+  evidenceDocumentId?: string;
+  notes?: string;
+  completedByUserId?: string;
+  completedAt?: string;
+  naReason?: string;
+};
+
+export type ActivityLog = {
+  id: string;
+  actorUserId: string;
+  patientId?: string;
+  courseId?: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  oldValue?: string;
+  newValue?: string;
+  timestamp: string;
+  ipAddress?: string;
+};
+
+export type User = {
+  id: string;
+  name: string;
+  email?: string;
+  roles: UserRole[];
+  active: boolean;
 };
 
 export type OperationalAppointment = Omit<Appointment, "patientId" | "patientName"> & {

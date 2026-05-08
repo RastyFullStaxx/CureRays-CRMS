@@ -1,35 +1,33 @@
 import { ClipboardList } from "lucide-react";
-import { CarepathTaskCard } from "@/components/carepath-task-card";
 import { PageHeader } from "@/components/page-header";
-import { carepathTasks } from "@/lib/clinical-store";
-import { carepathPhaseLabels, orderedCarepathPhases } from "@/lib/workflow";
+import { SectionCard } from "@/components/section-card";
+import { WorkflowStepTable } from "@/components/workflow-step-table";
+import { canonicalWorkflowSteps, getWorkflowSteps } from "@/lib/module-data";
 
 export default function WorkflowPage() {
+  const steps = getWorkflowSteps();
+
   return (
     <div className="space-y-4">
       <PageHeader
-        eyebrow="Diagnosis workflow engine"
-        title="Carepath Workflow"
-        description="Carepath tasks are modeled as diagnosis-aware workflow steps, not spreadsheet rows."
+        eyebrow="Carepath engine"
+        title="Course Workflow"
+        description="Carepath rows 0-14 are modeled as structured workflow steps with status, role ownership, triggers, signatures, linked documents, blockers, and audit checklist state."
         icon={ClipboardList}
-        stat="Preview"
+        stat="15 steps"
       />
-      {orderedCarepathPhases.map((phase) => {
-        const tasks = carepathTasks.filter((task) => task.workflowPhase === phase);
-
-        return (
-          <section key={phase} className="space-y-3">
-            <h2 className="text-sm font-bold uppercase text-curerays-indigo">{carepathPhaseLabels[phase]}</h2>
-            {tasks.length ? (
-              tasks.map((task) => <CarepathTaskCard key={task.id} task={task} />)
-            ) : (
-              <div className="glass-panel rounded-glass p-5 text-sm font-semibold text-curerays-indigo">
-                No active tasks in this phase.
-              </div>
-            )}
-          </section>
-        );
-      })}
+      <SectionCard
+        title="Canonical Carepath Template"
+        description="This template is selected on course creation based on diagnosis/protocol and then copied into course-specific steps."
+      >
+        <WorkflowStepTable steps={canonicalWorkflowSteps} />
+      </SectionCard>
+      <SectionCard
+        title="Active Course Workflow"
+        description="Course-specific preview using current mock state. N/A rows require a reason before save."
+      >
+        <WorkflowStepTable steps={steps} />
+      </SectionCard>
     </div>
   );
 }

@@ -28,22 +28,35 @@ const statusStyles: Record<PatientStatus, string> = {
 
 const documentStyles: Record<DocumentStatus, string> = {
   DRAFT: "bg-white/70 text-curerays-indigo ring-curerays-indigo/12",
+  NOT_STARTED: "bg-white/70 text-curerays-indigo ring-curerays-indigo/12",
   PENDING_NEEDED: "bg-curerays-orange/10 text-curerays-orange ring-curerays-orange/15",
+  PENDING: "bg-curerays-orange/10 text-curerays-orange ring-curerays-orange/15",
+  IN_PROGRESS: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
   MISSING_FIELDS: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
   READY_FOR_REVIEW: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
   SIGNED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
+  UPLOADED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
   EXPORTED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
   NOT_APPLICABLE: "bg-curerays-plum/10 text-curerays-plum ring-curerays-plum/15",
   NEEDS_REVIEW: "bg-curerays-amber/30 text-curerays-dark-plum ring-curerays-amber/30",
-  COMPLETED: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15"
+  COMPLETED: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
+  BLOCKED: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
+  OVERDUE: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
+  CLOSED: "bg-curerays-dark-plum text-white ring-curerays-dark-plum/20"
 };
 
 const carepathTaskStyles: Record<CarepathTaskStatus, string> = {
+  NOT_STARTED: "bg-white/70 text-curerays-indigo ring-curerays-indigo/12",
   PENDING: "bg-curerays-orange/10 text-curerays-orange ring-curerays-orange/15",
   IN_PROGRESS: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
   NEEDS_REVIEW: "bg-curerays-amber/30 text-curerays-dark-plum ring-curerays-amber/30",
+  READY_FOR_REVIEW: "bg-curerays-blue/10 text-curerays-blue ring-curerays-blue/15",
+  SIGNED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
+  UPLOADED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
   COMPLETED: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
   BLOCKED: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
+  OVERDUE: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
+  CLOSED: "bg-curerays-dark-plum text-white ring-curerays-dark-plum/20",
   NOT_APPLICABLE: "bg-curerays-plum/10 text-curerays-plum ring-curerays-plum/15"
 };
 
@@ -55,6 +68,7 @@ const partyStyles: Record<ResponsibleParty, string> = {
   PCP: "bg-curerays-amber/30 text-curerays-dark-plum ring-curerays-amber/30",
   RAD_ONC: "bg-curerays-dark-plum text-white ring-curerays-dark-plum/20",
   PHYSICIST: "bg-curerays-indigo/12 text-curerays-indigo ring-curerays-indigo/15",
+  BILLING: "bg-curerays-amber/30 text-curerays-dark-plum ring-curerays-amber/30",
   ADMIN: "bg-black/8 text-curerays-dark-plum ring-black/10"
 };
 

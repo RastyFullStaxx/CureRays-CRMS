@@ -10,8 +10,8 @@ export default function AuditLogsPage() {
     <div className="space-y-4">
       <PageHeader
         eyebrow="HIPAA-aligned visibility"
-        title="Audit Logs"
-        description="A focused view for sensitive workflow changes, role-aware actions, and phase updates that previously disappeared inside manual spreadsheet work."
+        title="Security Logs"
+        description="A focused view for sensitive patient/course changes, document generation, signatures, phase/status changes, file activity, and audit closeout events."
         icon={History}
         stat={`${auditEvents.length} events`}
       />

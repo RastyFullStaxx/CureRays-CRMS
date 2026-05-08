@@ -5,11 +5,15 @@ import { cn, patientName } from "@/lib/workflow";
 
 const tabs = [
   { label: "Overview", href: "" },
-  { label: "Carepath", href: "/carepath" },
+  { label: "Course Workflow", href: "/carepath" },
+  { label: "Tasks", href: "#tasks" },
+  { label: "Clinical Forms", href: "#clinical-forms" },
+  { label: "Treatment Planning", href: "#treatment-planning" },
+  { label: "Imaging", href: "#imaging" },
   { label: "Documents", href: "/documents" },
-  { label: "Fraction Log", href: "/fraction-log" },
-  { label: "Notes", href: "#notes" },
-  { label: "Audit Trail", href: "#audit" }
+  { label: "Treatment Delivery", href: "/fraction-log" },
+  { label: "Billing / Audit", href: "#billing-audit" },
+  { label: "Activity Timeline", href: "#audit" }
 ];
 
 export function PatientProfileShell({
