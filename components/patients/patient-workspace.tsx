@@ -28,6 +28,18 @@ import { FieldList } from "@/components/layout/page-layout";
 import { SectionCard } from "@/components/section-card";
 import { TaskList } from "@/components/task-list";
 import { WorkflowStepTable } from "@/components/workflow-step-table";
+import {
+  AuditWorkspaceTab,
+  BillingWorkspaceTab,
+  CarepathWorkspaceTab,
+  ClinicalWorkspaceTab,
+  DocumentsWorkspaceTab,
+  ImagingWorkspaceTab,
+  NotesWorkspaceTab,
+  TasksWorkspaceTab,
+  TreatmentWorkspaceTab,
+  WorkspaceTabRail
+} from "@/components/patients/workspace-tabs/patient-workspace-tabs";
 import type {
   AuditCheck,
   AuditEvent,
@@ -142,23 +154,23 @@ export function PatientWorkspace({
   const activeContent = useMemo(() => {
     switch (activeTab) {
       case "carepath":
-        return <CarepathTab steps={workflowSteps} blockedSteps={blockedSteps.length} />;
+        return <CarepathWorkspaceTab steps={workflowSteps} />;
       case "clinical":
-        return <ClinicalTab templates={clinicalFormTemplates} />;
+        return <ClinicalWorkspaceTab patient={patient} />;
       case "treatment":
-        return <TreatmentTab course={course} plan={currentPlan} fractions={treatmentFractions} />;
+        return <TreatmentWorkspaceTab course={course} plan={currentPlan} fractions={treatmentFractions} />;
       case "imaging":
-        return <ImagingTab images={images} />;
+        return <ImagingWorkspaceTab />;
       case "documents":
-        return <DocumentsTab documents={documents} signed={signedDocuments} pending={pendingDocuments} />;
+        return <DocumentsWorkspaceTab documents={documents} />;
       case "tasks":
-        return <TasksTab tasks={tasks} />;
+        return <TasksWorkspaceTab tasks={tasks} />;
       case "billing":
-        return <BillingTab courseId={course.id} auditChecks={auditChecks} documents={documents} />;
+        return <BillingWorkspaceTab />;
       case "notes":
-        return <NotesTab patient={patient} auditEvents={auditEvents} />;
+        return <NotesWorkspaceTab />;
       case "audit":
-        return <AuditTab checks={auditChecks} events={auditEvents} readiness={readiness} />;
+        return <AuditWorkspaceTab checks={auditChecks} events={auditEvents} readiness={readiness} />;
       case "overview":
       default:
         return (
@@ -176,22 +188,17 @@ export function PatientWorkspace({
     activeTab,
     auditChecks,
     auditEvents,
-    blockedSteps.length,
     course,
     currentPlan,
     documents,
     domainCourse,
     fractionPercent,
-    images,
     patient,
     readiness,
-    signedDocuments,
-    pendingDocuments,
     tasks,
     treatmentFractions,
     urgentTasks,
-    workflowSteps,
-    clinicalFormTemplates
+    workflowSteps
   ]);
 
   return (
@@ -222,18 +229,30 @@ export function PatientWorkspace({
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0">{activeContent}</div>
         <aside className="min-w-0 space-y-4">
-          <ContextRail
-            activeTab={activeTab}
-            patient={patient}
-            course={course}
-            urgentTasks={urgentTasks}
-            readiness={readiness}
-            carepathPercent={carepath.percent}
-            documentPercent={docs.percent}
-            blockedSteps={blockedSteps.length}
-            pendingDocuments={pendingDocuments}
-            plan={currentPlan}
-          />
+          {activeTab === "overview" ? (
+            <ContextRail
+              activeTab={activeTab}
+              patient={patient}
+              course={course}
+              urgentTasks={urgentTasks}
+              readiness={readiness}
+              carepathPercent={carepath.percent}
+              documentPercent={docs.percent}
+              blockedSteps={blockedSteps.length}
+              pendingDocuments={pendingDocuments}
+              plan={currentPlan}
+            />
+          ) : (
+            <WorkspaceTabRail
+              activeTab={activeTab}
+              course={course}
+              patient={patient}
+              tasks={tasks}
+              documents={documents}
+              checks={auditChecks}
+              readiness={readiness}
+            />
+          )}
         </aside>
       </section>
     </div>
