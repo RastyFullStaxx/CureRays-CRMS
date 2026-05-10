@@ -12,10 +12,12 @@ export function DashboardCard({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border border-[#DDE6F5] bg-white shadow-[0_16px_40px_rgba(43,47,95,0.08)] ${className}`}>
+    <section
+      className={`min-h-0 overflow-hidden rounded-xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.08)] ${className}`}
+    >
       {title ? (
-        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-5 py-4">
-          <h2 className="text-base font-bold text-[#061A55]">{title}</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-4 py-3">
+          <h2 className="truncate text-[15px] font-bold text-[#061A55]">{title}</h2>
           {action}
         </div>
       ) : null}

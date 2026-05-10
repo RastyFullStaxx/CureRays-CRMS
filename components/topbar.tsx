@@ -4,10 +4,10 @@ export function Topbar({ pathname }: { pathname?: string }) {
   const isDashboard = pathname === "/" || pathname === "/dashboard";
 
   return (
-    <header className="border-b border-[#DDE6F5] bg-white px-4 py-4 sm:px-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <header className="border-b border-[#DDE6F5] bg-white px-4 py-3 sm:px-6">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#061A55]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#061A55]">
             {isDashboard ? "Dashboard" : "CureRays"}
           </h1>
           <p className="mt-1 text-sm font-semibold text-[#3D5A80]">
@@ -22,7 +22,7 @@ export function Topbar({ pathname }: { pathname?: string }) {
               aria-hidden="true"
             />
             <input
-              className="h-14 w-full rounded-lg border border-[#DDE6F5] bg-white pl-12 pr-16 text-sm font-semibold text-[#061A55] outline-none transition placeholder:text-[#3D5A80]/68 focus:border-[#0033A0]/40 focus:ring-4 focus:ring-[#0033A0]/10"
+              className="h-12 w-full rounded-lg border border-[#DDE6F5] bg-white pl-12 pr-16 text-sm font-semibold text-[#061A55] outline-none transition placeholder:text-[#3D5A80]/68 focus:border-[#0033A0]/40 focus:ring-4 focus:ring-[#0033A0]/10"
               placeholder="Search patients, MRN, tasks, forms..."
               type="search"
             />
@@ -33,7 +33,7 @@ export function Topbar({ pathname }: { pathname?: string }) {
 
           <div className="flex items-center gap-3">
             <button
-              className="relative grid h-14 w-14 place-items-center rounded-full border border-[#DDE6F5] bg-white text-[#0033A0] transition hover:bg-[#F5F7FB]"
+              className="relative grid h-12 w-12 place-items-center rounded-full border border-[#DDE6F5] bg-white text-[#0033A0] transition hover:bg-[#F5F7FB]"
               type="button"
               aria-label="View notifications"
               title="Notifications"
@@ -43,8 +43,8 @@ export function Topbar({ pathname }: { pathname?: string }) {
                 3
               </span>
             </button>
-            <span className="flex h-14 items-center gap-3 rounded-lg border border-[#DDE6F5] bg-white px-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#EAF1FF] text-[#0033A0]">
+            <span className="flex h-12 items-center gap-3 rounded-lg border border-[#DDE6F5] bg-white px-3">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-[#EAF1FF] text-[#0033A0]">
                 <UserRound className="h-5 w-5" aria-hidden="true" />
               </span>
               <span className="hidden sm:block">

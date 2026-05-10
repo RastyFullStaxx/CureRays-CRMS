@@ -11,26 +11,21 @@ import { dashboardKpis } from "@/lib/dashboard-data";
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-5">
-      <section className="grid gap-5 md:grid-cols-2 2xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-12">
+      <section className="grid gap-4 md:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
         {dashboardKpis.map((kpi) => (
           <DashboardKpiCard key={kpi.label} kpi={kpi} />
         ))}
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)_minmax(340px,1.1fr)]">
-        <PatientPipelineCard />
-        <UrgentAttentionCard />
-        <TodayScheduleCard />
-        <ActivityTrendCard />
-        <PhaseDistributionCard />
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)_minmax(420px,1.4fr)]">
-        <RecentActivityCard />
-        <TaskSummaryCard />
-        <TreatmentProgressCard />
-      </section>
+      <PatientPipelineCard />
+      <UrgentAttentionCard />
+      <ActivityTrendCard />
+      <PhaseDistributionCard />
+      <TodayScheduleCard />
+      <RecentActivityCard />
+      <TreatmentProgressCard />
+      <TaskSummaryCard />
     </div>
   );
 }
