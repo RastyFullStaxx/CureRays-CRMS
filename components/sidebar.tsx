@@ -89,7 +89,7 @@ export function Sidebar({ pathname }: { pathname: string }) {
         <div className="rounded-lg bg-white px-4 py-5">
           <Link href="/" className="block">
             <NextImage
-              src="/Main_LOGO.png"
+              src="/System_Logo.svg"
               alt="CureRays"
               width={220}
               height={52}

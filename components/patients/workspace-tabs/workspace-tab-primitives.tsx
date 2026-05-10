@@ -176,11 +176,19 @@ export function DonutSummary({
   value,
   label,
   segments,
-  center
+  center,
+  centerLabel,
+  centerSubtitle,
+  centerLabelClassName,
+  centerSubtitleClassName
 }: {
   value: number;
   label: string;
   center?: string;
+  centerLabel?: ReactNode;
+  centerSubtitle?: ReactNode;
+  centerLabelClassName?: string;
+  centerSubtitleClassName?: string;
   segments: Array<{ label: string; value: number; tone: Tone }>;
 }) {
   const colorForTone: Record<Tone, string> = {
@@ -212,8 +220,19 @@ export function DonutSummary({
         >
           <div className="absolute inset-0 grid place-items-center">
             <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white text-center shadow-inner">
-              <span className="block text-3xl font-bold leading-none text-[#061A55]">{center ?? `${value}%`}</span>
-              <span className="mt-1 block max-w-16 text-[11px] font-bold leading-tight text-[#3D5A80]">{center ? "total items" : "complete"}</span>
+              <span
+                className={cn("block font-bold leading-none text-[#061A55]", centerLabelClassName ?? "text-3xl")}
+              >
+                {centerLabel ?? center ?? `${value}%`}
+              </span>
+              <span
+                className={cn(
+                  "mt-1 block max-w-20 text-[11px] font-bold leading-tight text-[#3D5A80]",
+                  centerSubtitleClassName
+                )}
+              >
+                {centerSubtitle ?? (center ? "total items" : "complete")}
+              </span>
             </div>
           </div>
         </div>

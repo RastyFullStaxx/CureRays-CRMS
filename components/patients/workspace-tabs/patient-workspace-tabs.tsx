@@ -4,11 +4,13 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Clock3,
+  ChevronRight,
   FileCheck2,
   FileText,
   Image as ImageIcon,
   Plus,
   Route,
+  Printer,
   ShieldCheck,
   Upload,
   WalletCards
@@ -60,6 +62,8 @@ import {
 } from "./workspace-tab-data";
 
 const carepathRowsPerPage = 8;
+const clinicalRowsPerPage = 6;
+const treatmentRowsPerPage = 6;
 
 const carepathShortNames: Record<number, string> = {
   0: "Carepath Preauth",
@@ -90,6 +94,44 @@ const shortRoleLabels: Record<string, string> = {
   BILLING: "Billing",
   ADMIN: "Admin"
 };
+
+const clinicalShortNames: Record<string, string> = {
+  "CLIN-ARTH-MAP": "Hand Arthritis Mapping",
+  "CLIN-TX-PARAM": "IGSRT Parameters",
+  "CLIN-MARGINS": "Lesion Margins",
+  "CLIN-ISO": "Isodose Worksheet",
+  "CLIN-PHYS": "Physics Consult",
+  "CLIN-RX": "Orthovoltage Prescription",
+  "CLIN-INTAKE": "Intake Form",
+  "CLIN-FOLLOW": "Follow-Up Assessment"
+};
+
+const clinicalSubtitles: Record<string, string> = {
+  "CLIN-ARTH-MAP": "Joint grading",
+  "CLIN-TX-PARAM": "Energy and dose",
+  "CLIN-MARGINS": "Margins",
+  "CLIN-ISO": "Depth coverage",
+  "CLIN-PHYS": "Physics review",
+  "CLIN-RX": "Prescription",
+  "CLIN-INTAKE": "Intake",
+  "CLIN-FOLLOW": "Post-treatment"
+};
+
+function clinicalStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    DRAFT: "Draft",
+    READY_FOR_REVIEW: "Review",
+    SIGNED: "Signed",
+    MISSING_FIELDS: "Missing",
+    NOT_STARTED: "Not Started",
+    COMPLETED: "Signed"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function clinicalDiagnosisLabel(diagnosis: string) {
+  return diagnosis === "Skin Cancer" ? "Skin" : diagnosis;
+}
 
 function carepathStatusLabel(status: string) {
   const labels: Record<string, string> = {
@@ -137,13 +179,59 @@ function carepathAction(step: WorkflowStep) {
   return "Template generated";
 }
 
-function ProgressBar({ value, tone = "blue" }: { value: number; tone?: "blue" | "green" | "orange" | "red" }) {
+function ProgressBar({ value, tone = "blue", width = "w-28" }: { value: number; tone?: "blue" | "green" | "orange" | "red"; width?: string }) {
   const color = tone === "green" ? "bg-emerald-500" : tone === "orange" ? "bg-[#F59E0B]" : tone === "red" ? "bg-rose-500" : "bg-[#0033A0]";
   return (
-    <div className="h-2 w-28 overflow-hidden rounded-full bg-[#E7EEF8]">
+    <div className={cn("h-2 overflow-hidden rounded-full bg-[#E7EEF8]", width)}>
       <div className={cn("h-full rounded-full", color)} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />
     </div>
   );
+}
+
+function formatShortDate(date: string) {
+  const parsed = new Date(`${date}T00:00:00`);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(parsed);
+}
+
+function addDays(date: string, days: number) {
+  const parsed = new Date(`${date}T00:00:00`);
+  parsed.setDate(parsed.getDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+function treatmentStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    COMPLETED: "Completed",
+    READY_FOR_REVIEW: "Review",
+    IN_PROGRESS: "In Progress",
+    PENDING: "Scheduled",
+    NOT_STARTED: "Scheduled",
+    BLOCKED: "Held",
+    OVERDUE: "Missed"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function treatmentReviewLabel(reviewed: boolean) {
+  return reviewed ? "Reviewed" : "Pending";
+}
+
+function treatmentSetupLabel(completed: boolean) {
+  return completed ? "Verified" : "Scheduled";
+}
+
+function treatmentImagingLabel(completed: boolean) {
+  return completed ? "Complete" : "Pending";
+}
+
+function treatmentPhaseLabel(phase: string, fractionNumber: number) {
+  if (phase) {
+    const value = phase.trim();
+    if (value.toLowerCase().includes("phase")) {
+      return value.replaceAll("  ", " ");
+    }
+  }
+  return fractionNumber <= 12 ? "Phase I" : "Phase II";
 }
 
 export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
@@ -227,9 +315,15 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
 }
 
 export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
+  const [page, setPage] = useState(1);
   const signed = clinicalForms.filter((form) => form.status === "SIGNED").length;
   const ready = clinicalForms.filter((form) => form.status === "READY_FOR_REVIEW").length;
   const drafts = clinicalForms.filter((form) => form.status === "DRAFT").length;
+  const totalPages = Math.max(1, Math.ceil(clinicalForms.length / clinicalRowsPerPage));
+  const visibleForms = useMemo(
+    () => clinicalForms.slice((page - 1) * clinicalRowsPerPage, page * clinicalRowsPerPage),
+    [page]
+  );
 
   return (
     <div className="space-y-4">
@@ -237,141 +331,315 @@ export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h2 className="text-xl font-bold text-[#061A55]">Clinical Forms & Mapping</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Clinical assessments, mapping forms, and structured form responses.</p>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Assessments, mapping forms, and structured responses.</p>
           </div>
-          <WorkspaceButton variant="primary"><Plus className="h-4 w-4" /> New Clinical Form</WorkspaceButton>
+          <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> New Clinical Form</WorkspaceButton>
         </div>
         <MetricGrid>
-          <MetricCard label="Draft Forms" value={drafts} detail="8%" tone="purple" icon={<FileText className="h-5 w-5" />} />
-          <MetricCard label="Ready for Review" value={ready} detail="17%" tone="orange" icon={<Clock3 className="h-5 w-5" />} />
-          <MetricCard label="Signed / Complete" value={signed} detail="67%" tone="green" icon={<CheckCircle2 className="h-5 w-5" />} />
-          <MetricCard label="Missing Fields" value={1} detail="8%" tone="red" icon={<AlertTriangle className="h-5 w-5" />} />
-          <MetricCard label="Archived" value={0} detail="0%" tone="slate" icon={<FileCheck2 className="h-5 w-5" />} />
+          <MetricCard size="compact" label="Draft" value={drafts} detail="8%" tone="purple" icon={<FileText className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Review" value={ready} detail="17%" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Signed" value={signed} detail="67%" tone="green" icon={<CheckCircle2 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Missing" value={1} detail="8%" tone="red" icon={<AlertTriangle className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Archived" value={0} detail="0%" tone="slate" icon={<FileCheck2 className="h-4 w-4" />} />
         </MetricGrid>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)] xl:col-span-2">
+      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
           <h3 className="text-lg font-bold text-[#061A55]">Clinical Summary</h3>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {[
               ["Diagnosis", patient.diagnosis],
-              ["ICD Code", "C44.301"],
-              ["Diagnosis Type", "Skin"],
-              ["Site / Laterality", `${patient.location} / Midline`],
-              ["Treatment Indication", "Definitive orthovoltage radiation course"],
+              ["ICD-10", "C44.301"],
+              ["Type", "Skin"],
+              ["Site", patient.location],
+              ["Laterality", "Midline"],
+              ["Indication", "Definitive orthovoltage course"],
               ["Treating MD", patient.physician],
-              ["PCP", "Doctor PCP placeholder"],
-              ["Current Assessment", "Stable for continued treatment workflow"]
+              ["PCP", "Doctor PCP"],
+              ["Assessment", "Stable for treatment workflow"]
             ].map(([label, value]) => (
-              <div key={label} className="rounded-xl bg-[#F8FBFF] p-3">
-                <p className="text-xs font-bold uppercase text-[#3D5A80]">{label}</p>
-                <p className="mt-1 text-sm font-bold text-[#061A55]">{value}</p>
+              <div key={label} className="min-w-0 rounded-xl border border-[#E7EEF8] bg-[#F8FBFF] px-3 py-2">
+                <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>{label}</p>
+                <TruncateText className="mt-0.5 text-[13px] font-bold leading-5 text-[#061A55]" title={value}>{value}</TruncateText>
               </div>
             ))}
           </div>
-        </div>
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Clinical Readiness</h3>
-          <div className="mt-4 space-y-3">
-            <CheckLine>Required mapping forms completed</CheckLine>
-            <CheckLine>Prescription documented</CheckLine>
-            <CheckLine state="warning">Weekly physics chart check pending</CheckLine>
-            <CheckLine state="warning">Follow-up assessment not started</CheckLine>
-          </div>
-        </div>
       </section>
 
-      <FilterBar searchPlaceholder="Search clinical forms, diagnosis, or notes..." filters={["All Diagnoses", "All Form Types", "All Status", "All Phases"]} />
-      <CompactTable
-        minWidth="1160px"
-        columns={[{ header: "Form / Template" }, { header: "Diagnosis" }, { header: "Phase" }, { header: "Status" }, { header: "Completion" }, { header: "Last Updated" }, { header: "Actions" }]}
-        rows={clinicalForms.map((form) => ({
+      <FilterBar searchPlaceholder="Search forms, diagnosis, or notes..." filters={["Diagnosis", "Form Type", "Status", "Phase"]} />
+      <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+      <CompactFixedTable
+        columns={[
+          { header: "Form", width: "31%" },
+          { header: "Diagnosis", width: "12%" },
+          { header: "Phase", width: "12%" },
+          { header: "Status", width: "13%" },
+          { header: "Progress", width: "14%" },
+          { header: "Updated", width: "11%" },
+          { header: "Actions", width: "7%" }
+        ]}
+        rows={visibleForms.map((form) => ({
           id: form.id,
           cells: [
-            <div key="form"><p className="font-bold">{form.name}</p><p className="mt-1 text-xs font-semibold text-[#3D5A80]">{form.description}</p></div>,
-            <Pill key="diag" tone="blue">{form.diagnosis}</Pill>,
-            typeof form.phase === "string" && form.phase !== "N/A" ? <PhasePill key="phase" phase={form.phase} /> : "N/A",
-            <WorkflowStatusPill key="status" status={form.status} />,
-            <div key="completion" className="flex items-center gap-2"><span className="w-9 text-xs font-bold">{form.completion}%</span><ProgressBar value={form.completion} tone={form.completion === 100 ? "green" : "orange"} /></div>,
-            <div key="updated"><p>{form.lastUpdated}</p><p className="text-xs font-semibold text-[#3D5A80]">{form.owner}</p></div>,
+            <div key="form" className="flex min-w-0 items-center gap-2">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <TruncateText className="font-bold" title={form.name}>{clinicalShortNames[form.id] ?? form.name}</TruncateText>
+                <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={form.description}>{clinicalSubtitles[form.id] ?? form.description}</TruncateText>
+              </div>
+            </div>,
+            <Pill key="diag" tone="blue" size="compact">{clinicalDiagnosisLabel(form.diagnosis)}</Pill>,
+            typeof form.phase === "string" && form.phase !== "N/A" ? <PhasePill key="phase" phase={form.phase} size="compact" /> : <Pill key="phase" tone="slate" size="compact">N/A</Pill>,
+            <WorkflowStatusPill key="status" status={form.status} size="compact" label={clinicalStatusLabel(form.status)} />,
+            <div key="completion" className="flex min-w-0 items-center gap-2"><span className="w-8 shrink-0 text-[11px] font-bold">{form.completion}%</span><ProgressBar value={form.completion} width="w-16" tone={form.completion === 100 ? "green" : form.completion === 0 ? "red" : "orange"} /></div>,
+            <div key="updated" className="min-w-0"><TruncateText>{form.lastUpdated}</TruncateText><TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={form.owner}>{form.owner}</TruncateText></div>,
             <ActionCell key="action" />
           ]
         }))}
       />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+        />
+      </div>
     </div>
   );
 }
 
 export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: TreatmentCourse; plan?: TreatmentPlan; fractions: TreatmentFraction[] }) {
+  const [page, setPage] = useState(1);
   const percent = Math.round((course.currentFraction / course.totalFractions) * 100);
-  const recent = fractions.slice(0, 6);
+  const dosePerFractionGy = Number.parseFloat(plan?.dosePerFraction ?? "2.5") || 2.5;
+  const totalDoseGy = Number.parseFloat(plan?.totalDose ?? "50") || Math.round(dosePerFractionGy * course.totalFractions);
+  const prescriptionLabel = `${Math.round(dosePerFractionGy * 100)} cGy × ${course.totalFractions}`;
+  const deliveredGy = Math.round(dosePerFractionGy * course.currentFraction);
+  const nextFractionDate = "Apr 28, 2026";
+  const treatmentLogRows = useMemo(() => {
+    const actualByNumber = new Map(fractions.map((fraction) => [fraction.fractionNumber, fraction]));
+    const startNumber = Math.max(1, course.currentFraction - 1);
+    const endNumber = Math.min(course.totalFractions, startNumber + treatmentRowsPerPage * 2 - 1);
+    const referenceDate =
+      fractions.find((fraction) => fraction.fractionNumber === course.currentFraction)?.treatmentDate ??
+      fractions[fractions.length - 1]?.treatmentDate ??
+      course.startDate;
+
+    return Array.from({ length: endNumber - startNumber + 1 }, (_, index) => {
+      const fractionNumber = startNumber + index;
+      const actual = actualByNumber.get(fractionNumber);
+      const isHistorical = actual ? actual.fractionNumber <= course.currentFraction : fractionNumber <= course.currentFraction;
+      const generatedDate = actual?.treatmentDate ?? addDays(referenceDate, fractionNumber - course.currentFraction);
+      const phase = treatmentPhaseLabel(actual?.phase ?? "", fractionNumber);
+      const status = actual?.status ?? (isHistorical ? "COMPLETED" : "PENDING");
+      const reviewed = actual?.physicianReviewedAt ? true : isHistorical;
+      const imagingCompleted = actual ? actual.imageGuidanceCompleted : isHistorical;
+      const setupVerified = actual ? Boolean(actual.applicator || actual.energy) : isHistorical;
+
+      return {
+        id: actual?.id ?? `FX-${course.id}-${String(fractionNumber).padStart(2, "0")}`,
+        fractionNumber,
+        date: formatShortDate(generatedDate),
+        phase,
+        dose: `${Math.round(actual?.plannedDose ?? dosePerFractionGy * 100)} cGy`,
+        imaging: treatmentImagingLabel(imagingCompleted),
+        setup: treatmentSetupLabel(setupVerified),
+        review: treatmentReviewLabel(reviewed),
+        status,
+        isHistorical
+      };
+    });
+  }, [course.currentFraction, course.id, course.startDate, course.totalFractions, dosePerFractionGy, fractions]);
+
+  const totalPages = Math.max(1, Math.ceil(treatmentLogRows.length / treatmentRowsPerPage));
+  const visibleRows = useMemo(
+    () => treatmentLogRows.slice((page - 1) * treatmentRowsPerPage, page * treatmentRowsPerPage),
+    [page, treatmentLogRows]
+  );
 
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-[#061A55]">Treatment Planning & Delivery</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Treatment plan parameters, fractionation progress, and daily treatment delivery.</p>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Treatment Planning</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Prescription, fractions, QA, and delivery.</p>
           </div>
-          <WorkspaceButton>Open Full Treatment Plan</WorkspaceButton>
+          <WorkspaceButton variant="primary" size="compact">
+            <FileText className="h-4 w-4" />
+            Open Full Plan
+          </WorkspaceButton>
         </div>
-        <section className="grid gap-3 xl:grid-cols-4">
-          <MetricCard label="Prescription" value={course.dose ?? "50 Gy / 20 fx"} detail={course.treatmentModality} tone="blue" icon={<FileText className="h-5 w-5" />} />
-          <MetricCard label="Total Dose" value={plan?.totalDose ?? "50 Gy"} detail={`${plan?.dosePerFraction ?? "2.5 Gy"} per fraction`} tone="green" icon={<ShieldCheck className="h-5 w-5" />} />
-          <MetricCard label="Fractions Completed" value={`${course.currentFraction}/${course.totalFractions}`} detail={`${percent}% delivered`} tone="orange" icon={<ClipboardCheck className="h-5 w-5" />} />
-          <MetricCard label="Next Fraction" value="#13" detail="Apr 28, 2026" tone="purple" icon={<CalendarDays className="h-5 w-5" />} />
-        </section>
+        <MetricGrid columns="xl:grid-cols-4">
+          <MetricCard
+            size="compact"
+            label="Prescription"
+            value={prescriptionLabel}
+            detail="IG-SRT"
+            tone="blue"
+            icon={<FileText className="h-4 w-4" />}
+          />
+          <MetricCard
+            size="compact"
+            label="Total Dose"
+            value={`${Math.round(totalDoseGy)} Gy`}
+            detail={`${dosePerFractionGy.toFixed(1)} Gy per fraction`}
+            tone="green"
+            icon={<ShieldCheck className="h-4 w-4" />}
+          />
+          <MetricCard
+            size="compact"
+            label="Fractions"
+            value={`${course.currentFraction}/${course.totalFractions}`}
+            detail={`${percent}% complete`}
+            tone="orange"
+            icon={<ClipboardCheck className="h-4 w-4" />}
+          />
+          <MetricCard
+            size="compact"
+            label="Next Fraction"
+            value="#13"
+            detail={nextFractionDate}
+            tone="purple"
+            icon={<CalendarDays className="h-4 w-4" />}
+          />
+        </MetricGrid>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1fr_220px_1fr]">
+      <section className="grid gap-4 xl:grid-cols-4">
         <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Treatment Course</h3>
-          <div className="mt-4 grid gap-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-lg font-bold text-[#061A55]">Treatment Course</h3>
+            <Pill tone="green" size="compact">Active</Pill>
+          </div>
+          <div className="space-y-2.5 text-[13px] font-bold text-[#061A55]">
             {[
               ["Technique", "Orthovoltage IG-SRT"],
               ["Energy", plan?.energy ?? course.energy ?? "50 kV"],
-              ["Applicator", plan?.applicatorSize ?? course.applicator ?? "2.5 cm cone"],
-              ["DOI at Sim", plan?.depthOfInvasion ?? course.targetDepth ?? "4 mm"],
-              ["Sessions / Week", "Mon - Fri"],
-              ["Phase I", "12 / 20 fx (60%)"],
-              ["Phase II", "Pending protocol decision"]
+              ["Applicator", plan?.applicatorSize ?? course.applicator ?? "3 cm cone"],
+              ["DOI", plan?.depthOfInvasion ?? course.targetDepth ?? "4 mm"],
+              ["Schedule", "Mon-Fri"],
+              ["Phase I", `${course.currentFraction}/20 fx`],
+              ["Phase II", "Pending"]
             ].map(([label, value]) => (
-              <div key={label} className="flex justify-between gap-4 text-sm"><span className="font-semibold text-[#3D5A80]">{label}</span><span className="text-right font-bold text-[#061A55]">{value}</span></div>
+              <div key={label} className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>
+                  {label}
+                </span>
+                <TruncateText className="max-w-[58%] text-right text-[13px] font-bold text-[#061A55]" title={String(value)}>
+                  {value}
+                </TruncateText>
+              </div>
             ))}
           </div>
         </div>
-        <DonutSummary label="Fraction Progress" value={percent} center={`${course.currentFraction}`} segments={[{ label: "Completed", value: course.currentFraction, tone: "blue" }, { label: "Remaining", value: course.totalFractions - course.currentFraction, tone: "slate" }]} />
+
         <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Verification / QA</h3>
-          <div className="mt-4 space-y-3">
-            <CheckLine>Plan QA passed Apr 9, 2026</CheckLine>
-            <CheckLine>Rad Onc signature signed</CheckLine>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-lg font-bold text-[#061A55]">Dose Coverage</h3>
+            <Pill tone="blue" size="compact">Planning</Pill>
+          </div>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[#061A55]">
+                <span>Target depth</span>
+                <span>4.0 mm</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[#061A55]">
+                <span>Coverage</span>
+                <span>80%</span>
+              </div>
+              <ProgressBar value={80} tone="green" width="w-full" />
+            </div>
+            <div className="space-y-2 text-[13px] font-bold text-[#061A55]">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Surface</span>
+                <span>100%</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Energy</span>
+                <span>{plan?.energy ?? course.energy ?? "50 kV"}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Applicator</span>
+                <span>{String(plan?.applicatorSize ?? course.applicator ?? "3 cm").replace(/ cone$/i, "")}</span>
+              </div>
+            </div>
+            <p className="text-[11px] font-semibold leading-5 text-[#3D5A80]">250 cGy × 80% = 200 cGy depth dose</p>
+          </div>
+        </div>
+
+        <DonutSummary
+          label="Fraction Progress"
+          value={percent}
+          centerLabel={`${course.currentFraction}/${course.totalFractions}`}
+          centerSubtitle={`${percent}% complete`}
+          centerLabelClassName="text-[26px]"
+          centerSubtitleClassName="max-w-24 text-[10px]"
+          segments={[
+            { label: "Completed", value: course.currentFraction, tone: "blue" },
+            { label: "Remaining", value: course.totalFractions - course.currentFraction, tone: "slate" }
+          ]}
+        />
+
+        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-lg font-bold text-[#061A55]">QA Status</h3>
+            <Pill tone="green" size="compact">Ready</Pill>
+          </div>
+          <div className="space-y-2.5">
+            <CheckLine>Plan QA passed</CheckLine>
+            <CheckLine>Rad Onc signed</CheckLine>
             <CheckLine>Simulation images verified</CheckLine>
-            <CheckLine state="warning">Weekly physics chart check due</CheckLine>
+            <CheckLine state="warning">Physics check due</CheckLine>
           </div>
         </div>
       </section>
 
-      <CompactTable
-        minWidth="1120px"
-        columns={[{ header: "Fraction" }, { header: "Date" }, { header: "Phase" }, { header: "Dose Delivered" }, { header: "Imaging" }, { header: "Setup" }, { header: "Provider Review" }, { header: "Status" }, { header: "Actions" }]}
-        rows={recent.map((fraction) => ({
-          id: fraction.id,
-          cells: [
-            fraction.fractionNumber,
-            fraction.treatmentDate,
-            fraction.phase,
-            `${fraction.deliveredDose ?? 0} Gy`,
-            fraction.imageGuidanceCompleted ? "Completed" : "Pending",
-            fraction.applicator ?? "Verified",
-            fraction.physicianReviewedAt ? "Reviewed" : "Pending",
-            <WorkflowStatusPill key="status" status={fraction.status} />,
-            <ActionCell key="action" />
-          ]
-        }))}
-      />
+      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-4 py-3">
+          <div>
+            <h3 className="text-lg font-bold text-[#061A55]">Fraction Log</h3>
+            <p className="text-xs font-semibold text-[#3D5A80]">Daily delivery, image guidance, setup, and review status.</p>
+          </div>
+          <Pill tone="blue" size="compact">{`${course.currentFraction}/${course.totalFractions}`}</Pill>
+        </div>
+        <CompactFixedTable
+          columns={[
+            { header: "Fx", width: "6%" },
+            { header: "Date", width: "13%" },
+            { header: "Phase", width: "12%" },
+            { header: "Dose", width: "12%" },
+            { header: "Imaging", width: "12%" },
+            { header: "Setup", width: "12%" },
+            { header: "Review", width: "12%" },
+            { header: "Status", width: "13%" },
+            { header: "Actions", width: "8%" }
+          ]}
+          rows={visibleRows.map((fraction) => ({
+            id: fraction.id,
+            cells: [
+              <span key="fx" className="font-bold text-[#061A55]">#{fraction.fractionNumber}</span>,
+              <TruncateText key="date" title={fraction.date}>{fraction.date}</TruncateText>,
+              <PhasePill key="phase" phase={fraction.phase === "Phase II" ? "POST_TX" : "ON_TREATMENT"} label={fraction.phase} size="compact" />,
+              <TruncateText key="dose" title={fraction.dose}>{fraction.dose}</TruncateText>,
+              <Pill key="img" tone={fraction.imaging === "Complete" ? "green" : "slate"} size="compact">{fraction.imaging}</Pill>,
+              <Pill key="setup" tone={fraction.setup === "Verified" ? "green" : "slate"} size="compact">{fraction.setup}</Pill>,
+              <Pill key="review" tone={fraction.review === "Reviewed" ? "green" : "orange"} size="compact">{fraction.review}</Pill>,
+              <WorkflowStatusPill key="status" status={fraction.status} size="compact" label={treatmentStatusLabel(fraction.status)} />,
+              <ActionCell key="action" />
+            ]
+          }))}
+        />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+        />
+      </section>
     </div>
   );
 }
@@ -730,9 +998,55 @@ export function WorkspaceTabRail({
   if (activeTab === "clinical") {
     return (
       <>
-        <DonutSummary label="Clinical Summary" value={67} segments={[{ label: "Signed / Complete", value: 8, tone: "green" }, { label: "Ready for Review", value: 2, tone: "orange" }, { label: "Draft", value: 1, tone: "purple" }, { label: "Missing Fields", value: 1, tone: "red" }]} />
-        <RailPanel title="Quick Actions"><RailList items={[{ title: "New Clinical Form", meta: "Use a template or start blank" }, { title: "Upload Existing Form", meta: "Import completed document" }, { title: "Generate Clinical Note", meta: "From selected form data" }, { title: "Send for Signature", meta: "Route form for physician signature" }]} /></RailPanel>
-        <RailPanel title="Clinical Notes"><RailList items={clinicalNotes.slice(0, 2).map((note) => ({ title: note.title, meta: note.timestamp }))} /></RailPanel>
+        <DonutSummary
+          label="Clinical Summary"
+          value={67}
+          segments={[
+            { label: "Signed", value: 8, tone: "green" },
+            { label: "Review", value: 2, tone: "orange" },
+            { label: "Draft", value: 1, tone: "purple" },
+            { label: "Missing", value: 1, tone: "red" }
+          ]}
+        />
+        <RightRailCard title="Clinical Readiness" icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            <CheckLine>Mapping forms complete</CheckLine>
+            <CheckLine>Prescription documented</CheckLine>
+            <CheckLine state="warning">Physics check pending</CheckLine>
+            <CheckLine state="warning">Follow-up not started</CheckLine>
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<Plus className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "New Form", meta: "Template or blank", icon: <Plus className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Upload Form", meta: "Import document", icon: <Upload className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Generate Note", meta: "From selected data", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Send for Signature", meta: "Route to physician", icon: <Route className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <button
+                key={action.title}
+                type="button"
+                className="flex h-14 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">{action.icon}</span>
+                <span className="min-w-0">
+                  <TruncateText className="text-sm font-bold text-[#061A55]" title={action.title}>{action.title}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={action.meta}>{action.meta}</TruncateText>
+                </span>
+              </button>
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Clinical Notes" icon={<FileText className="h-4 w-4" aria-hidden="true" />}>
+          <RailList
+            items={[
+              { title: "Weekly physics check", meta: "Apr 26, 2026 · 08:00 AM", badge: <Pill tone="blue" size="compact">Clinical</Pill> },
+              { title: "On-treatment evaluation", meta: "Apr 25, 2026 · 10:15 AM", badge: <Pill tone="purple" size="compact">Assessment</Pill> },
+              { title: "Mapping update", meta: "Apr 24, 2026 · 02:30 PM", badge: <Pill tone="green" size="compact">Procedure</Pill> }
+            ]}
+          />
+        </RightRailCard>
       </>
     );
   }
@@ -740,21 +1054,79 @@ export function WorkspaceTabRail({
   if (activeTab === "treatment") {
     return (
       <>
-        <RailPanel title="Treatment Summary">
-          <div className="space-y-3 text-sm font-bold text-[#061A55]">
+        <RightRailCard title="Treatment Summary" icon={<ShieldCheck className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2.5 text-[13px] font-bold text-[#061A55]">
             {[
               ["Course", "Course 2401"],
-              ["Phase", "On Treatment (Phase I)"],
+              ["Phase", "On Treatment"],
               ["Energy", course.energy ?? "50 kV"],
-              ["Prescription", course.dose ?? "50 Gy in 20 fx"],
-              ["Dose Delivered", "30 Gy (60%)"],
-              ["Next Fraction", "#13 on Apr 28, 2026"],
-              ["Treating MD", patient.physician]
-            ].map(([label, value]) => <div key={label} className="flex justify-between gap-3"><span className="text-[#3D5A80]">{label}</span><span className="text-right">{value}</span></div>)}
+              ["Prescription", "250 cGy × 20"],
+              ["Delivered", "20 Gy"],
+              ["Next Fx", "#13 Apr 28"],
+              ["MD", patient.physician]
+            ].map(([label, value]) => (
+              <div key={label} className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>
+                  {label}
+                </span>
+                <TruncateText className="max-w-[60%] text-right text-[13px] font-bold text-[#061A55]" title={String(value)}>
+                  {value}
+                </TruncateText>
+              </div>
+            ))}
           </div>
-        </RailPanel>
-        <RailPanel title="Quick Actions"><RailList items={["Record Fraction", "New OTV Note", "Send to Physics", "Generate Prescription", "Print Plan Summary"].map((title) => ({ title }))} /></RailPanel>
-        <RailPanel title="Alerts & Reminders"><RailList items={[{ title: "Physics weekly chart check due", meta: "Due by Apr 29, 2026", tone: "orange" }, { title: "Phase I completion approaching", meta: "Est. completion: May 7, 2026", tone: "blue" }]} /></RailPanel>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<ClipboardCheck className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Record Fraction", icon: <ClipboardCheck className="h-4 w-4" aria-hidden="true" /> },
+              { title: "New OTV Note", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Send to Physics", icon: <Route className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Generate Prescription", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Print Summary", icon: <Printer className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <button
+                key={action.title}
+                type="button"
+                className="flex h-11 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+              >
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+                  {action.icon}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#061A55]">{action.title}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Alerts" icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2.5">
+            {[
+              { title: "Physics check due", meta: "Due Apr 29", badge: <Pill tone="orange" size="compact">Due</Pill>, icon: <AlertTriangle className="h-4 w-4 text-[#FF6620]" aria-hidden="true" /> },
+              { title: "Phase I nearing completion", meta: "Est. May 7", badge: <Pill tone="blue" size="compact">Info</Pill>, icon: <Clock3 className="h-4 w-4 text-[#0033A0]" aria-hidden="true" /> },
+              { title: "Signature pending", meta: "Prescription review", badge: <Pill tone="orange" size="compact">Pending</Pill>, icon: <FileCheck2 className="h-4 w-4 text-[#FF6620]" aria-hidden="true" /> }
+            ].map((item) => (
+              <div key={item.title} className="rounded-xl border border-[#E7EEF8] bg-white p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#F8FBFF] ring-1 ring-[#D8E4F5]">
+                      {item.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <TruncateText className="text-sm font-bold text-[#061A55]" title={item.title}>
+                        {item.title}
+                      </TruncateText>
+                      <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={item.meta}>
+                        {item.meta}
+                      </TruncateText>
+                    </div>
+                  </div>
+                  {item.badge}
+                </div>
+              </div>
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }
