@@ -340,12 +340,13 @@ export function TruncateText({ children, className, title }: { children: ReactNo
   );
 }
 
-export function RightRailCard({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
+export function RightRailCard({ title, icon, action, children }: { title: string; icon?: ReactNode; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
       <div className="mb-3 flex items-center gap-2">
         {icon ? <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">{icon}</span> : null}
         <h3 className="min-w-0 truncate text-lg font-bold text-[#061A55]">{title}</h3>
+        {action ? <div className="ml-auto shrink-0">{action}</div> : null}
       </div>
       {children}
     </section>

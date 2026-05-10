@@ -234,6 +234,81 @@ function treatmentPhaseLabel(phase: string, fractionNumber: number) {
   return fractionNumber <= 12 ? "Phase I" : "Phase II";
 }
 
+function imagingTitle(title: string) {
+  const replacements: Record<string, string> = {
+    "Hand Arthritis X-ray Mapping": "Hand Arthritis Mapping",
+    "US at Simulation (50 MHz)": "US at Simulation",
+    "Lesion Inked - Phase I Margin": "Phase I Margin",
+    "US Daily Image - Fx #12": "Daily US Fx #12",
+    "Annotate / Markup": "Annotate"
+  };
+  return replacements[title] ?? title;
+}
+
+function imagingSubtitle(description: string) {
+  const replacements: Record<string, string> = {
+    "Joint space evaluation and KL grading": "Joint grading",
+    "Dose of invasion baseline": "DOI baseline",
+    "Phase I treatment field margin": "Treatment field",
+    "Nozzle configuration - frontal": "Nozzle setup",
+    "Treatment day ultrasound guidance": "Daily guidance"
+  };
+  return replacements[description] ?? description;
+}
+
+function imagingModalityTone(modality: string): "blue" | "green" | "orange" | "purple" | "slate" {
+  if (modality === "Ultrasound") {
+    return "orange";
+  }
+  if (modality === "X-ray") {
+    return "purple";
+  }
+  if (modality === "Photo" || modality === "Clinical Photo") {
+    return "green";
+  }
+  return "blue";
+}
+
+function imagingPhaseTone(phase: string): "blue" | "green" | "orange" | "purple" | "slate" {
+  if (phase === "Mapping") {
+    return "purple";
+  }
+  if (phase === "Simulation") {
+    return "blue";
+  }
+  if (phase === "Planning") {
+    return "orange";
+  }
+  if (phase === "On Treatment") {
+    return "green";
+  }
+  return "slate";
+}
+
+function imagingStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    COMPLETED: "Completed",
+    SIGNED: "Signed",
+    READY_FOR_REVIEW: "Review",
+    PENDING: "Pending",
+    BLOCKED: "Missing"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function imagingStatusTone(status: string) {
+  if (status === "COMPLETED" || status === "SIGNED") return "green";
+  if (status === "READY_FOR_REVIEW") return "orange";
+  if (status === "BLOCKED") return "red";
+  return "blue";
+}
+
+function imagingRecentUploadIcon(modality: string) {
+  if (modality === "Ultrasound") return <ImageIcon className="h-4 w-4" aria-hidden="true" />;
+  if (modality === "X-ray") return <ImageIcon className="h-4 w-4" aria-hidden="true" />;
+  return <FileText className="h-4 w-4" aria-hidden="true" />;
+}
+
 export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
   const [page, setPage] = useState(1);
   const completed = steps.filter((step) => ["COMPLETED", "SIGNED", "UPLOADED"].includes(step.status)).length;
@@ -645,57 +720,242 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
 }
 
 export function ImagingWorkspaceTab() {
+  const [page, setPage] = useState(1);
+  const imagingRowsPerPage = 5;
+  const imagingStudyRows = useMemo(
+    () => [
+      ...imagingRows.map((row) => ({
+        ...row,
+        title: imagingTitle(row.title),
+        description: imagingSubtitle(row.description),
+        source: row.source.replace("Mapping / Planning", "Mapping"),
+        phase:
+          row.phase === "PLANNING"
+            ? "Planning"
+            : row.phase === "SIMULATION"
+              ? "Simulation"
+              : row.phase === "ON_TREATMENT"
+                ? "On Treatment"
+                : "Mapping"
+      })),
+      {
+        id: "IMG-LESION-NO-INK",
+        title: "Lesion without ink",
+        description: "Pre-ink image",
+        modality: "Photo",
+        phase: "Planning",
+        uploaded: "Apr 20, 2026 07:55 AM",
+        uploadedBy: "Mika Alvarez",
+        source: "Clinical Photo",
+        status: "COMPLETED"
+      },
+      {
+        id: "IMG-DERM-BORDER",
+        title: "Dermoscopy Border",
+        description: "Border image",
+        modality: "Photo",
+        phase: "Planning",
+        uploaded: "Apr 19, 2026 11:10 AM",
+        uploadedBy: "Iris Lim",
+        source: "Clinical Photo",
+        status: "READY_FOR_REVIEW"
+      },
+      {
+        id: "IMG-SIDE-NOZZLE",
+        title: "Side Nozzle View",
+        description: "Nozzle setup",
+        modality: "Photo",
+        phase: "Planning",
+        uploaded: "Apr 18, 2026 03:05 PM",
+        uploadedBy: "Noah Tan",
+        source: "Device Photo",
+        status: "SIGNED"
+      },
+      {
+        id: "IMG-ALL-MARGINS",
+        title: "All Margins",
+        description: "Combined margin view",
+        modality: "Photo",
+        phase: "Planning",
+        uploaded: "Apr 17, 2026 09:20 AM",
+        uploadedBy: "Mika Alvarez",
+        source: "Clinical Photo",
+        status: "COMPLETED"
+      },
+      {
+        id: "IMG-US-SIM-2",
+        title: "US Image at Sim",
+        description: "DOI baseline",
+        modality: "Ultrasound",
+        phase: "Simulation",
+        uploaded: "Apr 16, 2026 02:45 PM",
+        uploadedBy: "Iris Lim",
+        source: "Simulation",
+        status: "READY_FOR_REVIEW"
+      }
+    ],
+    []
+  );
+  const totalPages = Math.max(1, Math.ceil(imagingStudyRows.length / imagingRowsPerPage));
+  const visibleStudies = useMemo(
+    () => imagingStudyRows.slice((page - 1) * imagingRowsPerPage, page * imagingRowsPerPage),
+    [imagingStudyRows, page]
+  );
+  const requiredAssets = [
+    ["Inked Target", "complete"],
+    ["Side Nozzle View", "complete"],
+    ["Lesion without ink", "complete"],
+    ["Dermoscopy Border", "complete"],
+    ["Shielded Nozzle View", "complete"],
+    ["US Image at Sim", "complete"],
+    ["Lesion Border", "warning"],
+    ["Phase I Margin", "warning"],
+    ["Phase II Margin", "warning"],
+    ["All Margins", "warning"]
+  ] as const;
+
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-[#061A55]">Imaging & Visual Documentation</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">All imaging studies, photos, and annotated visuals for treatment planning and daily guidance.</p>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Imaging</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Studies, photos, and guidance assets.</p>
           </div>
-          <WorkspaceButton variant="primary"><Upload className="h-4 w-4" /> Upload Imaging</WorkspaceButton>
+          <WorkspaceButton variant="primary" size="compact">
+            <Upload className="h-4 w-4" />
+            Upload Imaging
+          </WorkspaceButton>
         </div>
-        <MetricGrid>
-          <MetricCard label="Total Studies" value={14} detail="All time" tone="purple" icon={<ImageIcon className="h-5 w-5" />} />
-          <MetricCard label="US Images" value={28} detail="This course" tone="orange" icon={<ImageIcon className="h-5 w-5" />} />
-          <MetricCard label="X-ray Images" value={12} detail="This course" tone="green" icon={<ImageIcon className="h-5 w-5" />} />
-          <MetricCard label="Clinical Photos" value={18} detail="This course" tone="blue" icon={<ImageIcon className="h-5 w-5" />} />
-          <MetricCard label="Documents" value={6} detail="This course" tone="slate" icon={<FileText className="h-5 w-5" />} />
+        <MetricGrid columns="xl:grid-cols-5">
+          <MetricCard size="compact" label="Total Studies" value={14} detail="All time" tone="purple" icon={<ImageIcon className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Ultrasound" value={28} detail="This course" tone="orange" icon={<ImageIcon className="h-4 w-4" />} />
+          <MetricCard size="compact" label="X-ray" value={12} detail="This course" tone="green" icon={<ImageIcon className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Clinical Photos" value={18} detail="This course" tone="blue" icon={<ImageIcon className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Documents" value={6} detail="This course" tone="slate" icon={<FileText className="h-4 w-4" />} />
         </MetricGrid>
       </section>
-      <FilterBar searchPlaceholder="Search imaging studies..." filters={["All Modality", "All Phase", "All Date Range", "All Uploader"]} />
-      <CompactTable
-        minWidth="1180px"
-        columns={[{ header: "Preview" }, { header: "Study / Description" }, { header: "Modality" }, { header: "Phase" }, { header: "Uploaded" }, { header: "Uploaded By" }, { header: "Status" }, { header: "Actions" }]}
-        rows={imagingRows.map((row, index) => ({
-          id: row.id,
-          cells: [
-            <Thumbnail key="thumb" label={row.modality} tone={index % 3 === 0 ? "purple" : index % 3 === 1 ? "orange" : "green"} />,
-            <div key="desc"><p className="font-bold">{row.title}</p><p className="mt-1 text-xs font-semibold text-[#3D5A80]">{row.description}</p><Pill tone="blue">{row.source}</Pill></div>,
-            <Pill key="modality" tone={row.modality === "Ultrasound" ? "orange" : row.modality === "X-ray" ? "purple" : "green"}>{row.modality}</Pill>,
-            typeof row.phase === "string" && row.phase !== "Mapping" ? <PhasePill key="phase" phase={row.phase} /> : <Pill key="phase" tone="blue">Mapping</Pill>,
-            row.uploaded,
-            row.uploadedBy,
-            <WorkflowStatusPill key="status" status={row.status} />,
-            <ActionCell key="action" />
-          ]
-        }))}
-      />
-      <section className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Required Visual Assets</h3>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {requiredImageAssets.map((asset, index) => <CheckLine key={asset} state={index > 7 ? "warning" : "complete"}>{asset}</CheckLine>)}
+
+      <FilterBar searchPlaceholder="Search imaging..." filters={["Modality", "Phase", "Date", "Uploader"]} />
+
+      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-4 py-3">
+          <div>
+            <h3 className="text-lg font-bold text-[#061A55]">Imaging Studies</h3>
+            <p className="text-xs font-semibold text-[#3D5A80]">Mapped studies, photo sets, and guidance records.</p>
           </div>
+          <Pill tone="blue" size="compact">{`Page ${page} of ${totalPages}`}</Pill>
         </div>
-        <CompactTable
-          minWidth="760px"
-          columns={[{ header: "Date" }, { header: "Modality" }, { header: "Energy" }, { header: "Applicator" }, { header: "DOI" }, { header: "Coverage" }, { header: "Reviewer" }, { header: "Status" }]}
-          rows={imagingGuidanceRows.map((row) => ({
+        <CompactFixedTable
+          columns={[
+            { header: "Preview", width: "10%" },
+            { header: "Study", width: "28%" },
+            { header: "Modality", width: "11%" },
+            { header: "Phase", width: "11%" },
+            { header: "Uploaded", width: "15%" },
+            { header: "Owner", width: "13%" },
+            { header: "Status", width: "7%" },
+            { header: "Actions", width: "5%" }
+          ]}
+          rows={visibleStudies.map((row) => ({
             id: row.id,
-            cells: [row.date, row.modality, row.energy, row.applicator, row.doi, row.coverage, row.reviewer, <WorkflowStatusPill key="status" status={row.status} />]
+            cells: [
+              <div key="preview" className="flex h-16 w-20 flex-col items-center justify-center rounded-lg border border-[#D8E4F5] bg-[#F8FBFF] text-center ring-1 ring-[#0033A0]/10">
+                <ImageIcon className="h-4 w-4 text-[#0033A0]" aria-hidden="true" />
+                <span className="mt-1 text-[10px] font-bold text-[#3D5A80]">{row.modality}</span>
+              </div>,
+              <div key="study" className="min-w-0">
+                <TruncateText className="font-bold text-[#061A55]" title={row.title}>
+                  {row.title}
+                </TruncateText>
+                <TruncateText className="text-[11px] font-semibold leading-5 text-[#3D5A80]" title={row.description}>
+                  {row.description}
+                </TruncateText>
+                <div className="mt-1">
+                  <Pill tone="blue" size="compact">
+                    {row.source}
+                  </Pill>
+                </div>
+              </div>,
+              <Pill key="modality" tone={imagingModalityTone(row.modality)} size="compact">
+                {row.modality}
+              </Pill>,
+              <Pill key="phase" tone={imagingPhaseTone(row.phase)} size="compact">
+                {row.phase}
+              </Pill>,
+              <TruncateText key="uploaded" title={row.uploaded}>
+                {row.uploaded}
+              </TruncateText>,
+              <TruncateText key="owner" title={row.uploadedBy}>
+                {row.uploadedBy}
+              </TruncateText>,
+              <WorkflowStatusPill key="status" status={row.status} size="compact" label={imagingStatusLabel(row.status)} />,
+              <ActionCell key="action" />
+            ]
           }))}
         />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+        />
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+          <h3 className="text-lg font-bold text-[#061A55]">Required Assets</h3>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {requiredAssets.map(([asset, state]) => (
+              <CheckLine key={asset} state={state === "warning" ? "warning" : "complete"}>
+                {asset}
+              </CheckLine>
+            ))}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+          <div className="border-b border-[#E7EEF8] px-4 py-3">
+            <h3 className="text-lg font-bold text-[#061A55]">Guidance Log</h3>
+          </div>
+          <CompactFixedTable
+            columns={[
+              { header: "Date", width: "16%" },
+              { header: "Modality", width: "16%" },
+              { header: "Energy", width: "12%" },
+              { header: "App.", width: "12%" },
+              { header: "DOI", width: "12%" },
+              { header: "Coverage", width: "14%" },
+              { header: "Review", width: "18%" }
+            ]}
+            rows={imagingGuidanceRows.map((row) => ({
+              id: row.id,
+              cells: [
+                <TruncateText key="date" title={row.date}>
+                  {row.date}
+                </TruncateText>,
+                <TruncateText key="modality" title={row.modality === "Photo + US" ? "Combined" : row.modality}>
+                  {row.modality === "Photo + US" ? "Combined" : row.modality}
+                </TruncateText>,
+                <TruncateText key="energy" title={row.energy}>
+                  {row.energy}
+                </TruncateText>,
+                <TruncateText key="applicator" title={row.applicator}>
+                  {row.applicator}
+                </TruncateText>,
+                <TruncateText key="doi" title={row.doi}>
+                  {row.doi}
+                </TruncateText>,
+                <TruncateText key="coverage" title={row.coverage}>
+                  {row.coverage}
+                </TruncateText>,
+                <TruncateText key="review" title={row.reviewer}>
+                  {row.reviewer}
+                </TruncateText>
+              ]
+            }))}
+          />
+        </div>
       </section>
     </div>
   );
@@ -1134,9 +1394,78 @@ export function WorkspaceTabRail({
   if (activeTab === "imaging") {
     return (
       <>
-        <DonutSummary label="Imaging Summary" value={60} center="60" segments={[{ label: "Ultrasound", value: 28, tone: "orange" }, { label: "X-ray", value: 12, tone: "purple" }, { label: "Clinical Photos", value: 18, tone: "green" }, { label: "Documents", value: 6, tone: "blue" }]} />
-        <RailPanel title="Recent Uploads"><RailList items={imagingRows.slice(0, 3).map((row) => ({ title: row.title, meta: row.uploaded }))} /></RailPanel>
-        <RailPanel title="Quick Actions"><RailList items={["Upload Imaging", "Add Clinical Photo", "Capture from Device", "Annotate / Markup", "Create Imaging Note"].map((title) => ({ title }))} /></RailPanel>
+        <DonutSummary
+          label="Imaging Summary"
+          value={64}
+          centerLabel="64%"
+          centerSubtitle="complete"
+          centerLabelClassName="text-[26px]"
+          centerSubtitleClassName="max-w-16 text-[10px]"
+          segments={[
+            { label: "Ultrasound", value: 28, tone: "orange" },
+            { label: "X-ray", value: 12, tone: "purple" },
+            { label: "Photos", value: 18, tone: "green" },
+            { label: "Documents", value: 6, tone: "blue" }
+          ]}
+        />
+        <RightRailCard
+          title="Recent Uploads"
+          icon={<Upload className="h-4 w-4" aria-hidden="true" />}
+          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+        >
+          <div className="space-y-2.5">
+            {imagingRows.slice(0, 3).map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                className="flex w-full items-start gap-3 rounded-xl border border-[#E7EEF8] bg-white p-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+              >
+                <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1", imagingModalityTone(row.modality) === "orange" ? "bg-[#FFF0E8] text-[#FF6620] ring-[#FF6620]/15" : imagingModalityTone(row.modality) === "purple" ? "bg-violet-500/10 text-violet-700 ring-violet-500/15" : imagingModalityTone(row.modality) === "green" ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15" : "bg-[#EAF1FF] text-[#0033A0] ring-[#0033A0]/15")}>
+                  {imagingRecentUploadIcon(row.modality)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <TruncateText className="text-sm font-bold text-[#061A55]" title={imagingTitle(row.title)}>
+                    {imagingTitle(row.title)}
+                  </TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={row.uploaded}>
+                    {row.uploaded}
+                  </TruncateText>
+                </span>
+                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<ImageIcon className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Upload Imaging", meta: "Import file", icon: <Upload className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Add Photo", meta: "Clinical photo", icon: <ImageIcon className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Capture Device", meta: "From device", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Annotate", meta: "Markup image", icon: <ClipboardCheck className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Create Imaging Note", meta: "From study", icon: <FileText className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <button
+                key={action.title}
+                type="button"
+                className="flex h-12 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+                  {action.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <TruncateText className="text-[13px] font-semibold text-[#061A55]" title={action.title}>
+                    {action.title}
+                  </TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={action.meta}>
+                    {action.meta}
+                  </TruncateText>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }
