@@ -298,12 +298,12 @@ function WorkspaceHeader({ patient, course, domainCourse }: { patient: Patient; 
           </button>
         </div>
       </div>
-      <div className="grid gap-3 rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)] md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-2 rounded-2xl border border-[#D8E4F5] bg-white p-3 shadow-[0_8px_24px_rgba(0,51,160,0.08)] md:grid-cols-3 xl:grid-cols-6">
         <Meta label="Diagnosis" value={patient.diagnosis} sub="ICD-10: C44.301" />
-        <Meta label="Site / Location" value={patient.location} />
-        <Meta label="Primary Physician" value={patient.physician} />
-        <Meta label="Active Course" value={domainCourse?.courseNumber ?? course.id} />
-        <Meta label="Current Phase" value={course.chartRoundsPhase.replaceAll("_", " ")} />
+        <Meta label="Site" value={patient.location} />
+        <Meta label="Physician" value={patient.physician} />
+        <Meta label="Course" value={domainCourse?.courseNumber ?? course.id} />
+        <Meta label="Phase" value={course.chartRoundsPhase.replaceAll("_", " ")} />
         <Meta label="Protocol" value={course.protocolName} />
       </div>
     </section>
@@ -699,10 +699,10 @@ function AlertRow({ text }: { text: string }) {
 
 function Meta({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="min-w-0">
-      <p className="text-xs font-bold uppercase tracking-wide text-[#3D5A80]">{label}</p>
-      <p className="mt-1 truncate text-sm font-bold text-[#061A55]" title={value}>{value}</p>
-      {sub ? <p className="mt-1 text-xs font-semibold text-[#3D5A80]">{sub}</p> : null}
+    <div className="min-w-0 rounded-xl px-2 py-1">
+      <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>{label}</p>
+      <p className="mt-0.5 truncate text-[13px] font-bold leading-5 text-[#061A55]" title={value}>{value}</p>
+      {sub ? <p className="mt-0.5 truncate text-[11px] font-semibold leading-4 text-[#3D5A80]" title={sub}>{sub}</p> : null}
     </div>
   );
 }

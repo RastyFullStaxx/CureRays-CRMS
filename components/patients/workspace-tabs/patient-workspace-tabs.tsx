@@ -14,6 +14,7 @@ import {
   WalletCards
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 import type {
   AuditCheck,
   AuditEvent,
@@ -30,16 +31,20 @@ import { cn } from "@/lib/workflow";
 import {
   ActionCell,
   CheckLine,
+  CompactFixedTable,
   CompactTable,
   DonutSummary,
   FilterBar,
   MetricCard,
   MetricGrid,
+  Pagination,
   PhasePill,
   Pill,
   RailList,
+  RightRailCard,
   RolePill,
   Thumbnail,
+  TruncateText,
   WorkflowStatusPill,
   WorkspaceButton
 } from "./workspace-tab-primitives";
@@ -54,7 +59,83 @@ import {
   requiredImageAssets
 } from "./workspace-tab-data";
 
-const phaseOrder: CarepathWorkflowPhase[] = ["CONSULTATION", "CHART_PREP", "SIMULATION", "PLANNING", "ON_TREATMENT", "POST_TX", "AUDIT"];
+const carepathRowsPerPage = 8;
+
+const carepathShortNames: Record<number, string> = {
+  0: "Carepath Preauth",
+  1: "Image Guidance Order",
+  2: "Simulation Order",
+  3: "Simulation Note",
+  4: "Treatment Device Note",
+  5: "Clinical Treatment Planning Note",
+  6: "Special Physics Consult",
+  7: "Orthovoltage Prescription",
+  8: "Fractionation Log",
+  9: "Special Treatment Procedure",
+  10: "Treatment Management Notes",
+  11: "Weekly Physics Check",
+  12: "In-Vivo Dosimetry",
+  13: "Treatment Summary",
+  14: "Carepath Audit Sign"
+};
+
+const shortRoleLabels: Record<string, string> = {
+  VA: "Virtual Assistant",
+  MA: "Medical Assistant",
+  RTT: "Therapist",
+  NP_PA: "NP/PA",
+  PCP: "PCP",
+  RAD_ONC: "Rad Onc",
+  PHYSICIST: "Physicist",
+  BILLING: "Billing",
+  ADMIN: "Admin"
+};
+
+function carepathStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    COMPLETED: "Completed",
+    PENDING: "Pending",
+    IN_PROGRESS: "In Progress",
+    READY_FOR_REVIEW: "Ready for Review",
+    SIGNED: "Completed",
+    UPLOADED: "Completed",
+    BLOCKED: "Blocked",
+    NOT_APPLICABLE: "N/A"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function carepathTrigger(step: WorkflowStep) {
+  if (step.stepNumber < 8) {
+    return step.stepNumber === 0 ? "Before tx start" : "Before treatment";
+  }
+  if (step.stepNumber <= 12) {
+    return "During treatment";
+  }
+  if (step.stepNumber === 13) {
+    return "Final fraction";
+  }
+  return "Course closeout";
+}
+
+function carepathAction(step: WorkflowStep) {
+  if (step.status === "BLOCKED") {
+    return "Route to Rad Onc";
+  }
+  if (step.status === "READY_FOR_REVIEW") {
+    return "Review required";
+  }
+  if (step.requiresSignature && !step.signedAt) {
+    return "Awaiting signature";
+  }
+  if (step.stepNumber >= 13) {
+    return "Ready for audit";
+  }
+  if (step.status === "PENDING") {
+    return "Upload pending";
+  }
+  return "Template generated";
+}
 
 function ProgressBar({ value, tone = "blue" }: { value: number; tone?: "blue" | "green" | "orange" | "red" }) {
   const color = tone === "green" ? "bg-emerald-500" : tone === "orange" ? "bg-[#F59E0B]" : tone === "red" ? "bg-rose-500" : "bg-[#0033A0]";
@@ -66,10 +147,16 @@ function ProgressBar({ value, tone = "blue" }: { value: number; tone?: "blue" | 
 }
 
 export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
+  const [page, setPage] = useState(1);
   const completed = steps.filter((step) => ["COMPLETED", "SIGNED", "UPLOADED"].includes(step.status)).length;
   const ready = steps.filter((step) => step.status === "READY_FOR_REVIEW").length;
   const blocked = steps.filter((step) => step.status === "BLOCKED" || step.blockers.length).length;
   const signatures = steps.filter((step) => step.requiresSignature && !step.signedAt).length;
+  const totalPages = Math.max(1, Math.ceil(steps.length / carepathRowsPerPage));
+  const visibleSteps = useMemo(
+    () => steps.slice((page - 1) * carepathRowsPerPage, page * carepathRowsPerPage),
+    [page, steps]
+  );
 
   return (
     <div className="space-y-4">
@@ -77,7 +164,7 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h2 className="text-xl font-bold text-[#061A55]">Carepath Workflow</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Course workflow steps, document requirements, and signature/audit completion.</p>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Course workflow, signatures, and audit readiness.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <WorkspaceButton><FileText className="h-4 w-4" /> View Carepath Document</WorkspaceButton>
@@ -85,58 +172,56 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
           </div>
         </div>
         <MetricGrid>
-          <MetricCard label="Completed Steps" value={`${completed}/${steps.length}`} detail="40%" tone="green" icon={<CheckCircle2 className="h-5 w-5" />} />
-          <MetricCard label="Pending Steps" value={steps.length - completed} detail="40%" tone="blue" icon={<FileText className="h-5 w-5" />} />
-          <MetricCard label="Ready for Review" value={ready} detail="13%" tone="orange" icon={<Clock3 className="h-5 w-5" />} />
-          <MetricCard label="Blocked" value={blocked} detail="7%" tone="red" icon={<AlertTriangle className="h-5 w-5" />} />
-          <MetricCard label="Signatures Needed" value={signatures} detail="13%" tone="purple" icon={<FileCheck2 className="h-5 w-5" />} />
+          <MetricCard size="compact" label="Completed Steps" value={`${completed}/${steps.length}`} detail="40%" tone="green" icon={<CheckCircle2 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Pending Steps" value={steps.length - completed} detail="40%" tone="blue" icon={<FileText className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Ready for Review" value={ready} detail="13%" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Blocked" value={blocked} detail="7%" tone="red" icon={<AlertTriangle className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Signatures Needed" value={signatures} detail="13%" tone="purple" icon={<FileCheck2 className="h-4 w-4" />} />
         </MetricGrid>
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-5">
-        {phaseOrder.slice(0, 5).map((phase) => {
-          const phaseSteps = steps.filter((step) => step.phase === phase);
-          const done = phaseSteps.filter((step) => ["COMPLETED", "SIGNED", "UPLOADED"].includes(step.status)).length;
-          return (
-            <div key={phase} className="rounded-2xl border border-[#D8E4F5] bg-white p-3 shadow-[0_8px_24px_rgba(0,51,160,0.04)]">
-              <PhasePill phase={phase} />
-              <p className="mt-3 text-xl font-bold text-[#061A55]">{done}/{phaseSteps.length || 1}</p>
-              <p className="text-xs font-semibold text-[#3D5A80]">steps ready</p>
-            </div>
-          );
-        })}
-      </section>
-
-      <CompactTable
-        minWidth="1540px"
+      <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+      <CompactFixedTable
         columns={[
-          { header: "Step" },
-          { header: "Phase" },
-          { header: "Document / Action" },
-          { header: "Status" },
-          { header: "Responsible Role" },
-          { header: "Due / Trigger" },
-          { header: "Note Action" },
-          { header: "CPT / Code" },
-          { header: "Audit" },
-          { header: "Actions" }
+          { header: "Step", width: "6%" },
+          { header: "Phase", width: "13%" },
+          { header: "Document", width: "25%" },
+          { header: "Status", width: "14%" },
+          { header: "Owner", width: "15%" },
+          { header: "Trigger", width: "13%" },
+          { header: "Action", width: "14%" }
         ]}
-        rows={steps.map((step) => ({
+        rows={visibleSteps.map((step) => ({
           id: step.id,
           cells: [
             <span key="step" className="font-bold">{step.stepNumber}</span>,
-            <PhasePill key="phase" phase={step.phase} />,
-            <div key="doc"><p className="font-bold">{step.stepName}</p><p className="mt-1 text-xs font-semibold text-[#3D5A80]">{step.linkedDocumentId ?? "DOC pending"}</p></div>,
-            <WorkflowStatusPill key="status" status={step.status} />,
-            <RolePill key="role" role={step.responsibleRole} />,
-            <div key="due"><p className="font-bold">{step.dueDate ?? "During course"}</p><p className="mt-1 max-w-56 text-xs font-semibold text-[#3D5A80]">{step.triggerEvent}</p></div>,
-            <span key="note" className="text-sm font-semibold text-[#3D5A80]">{step.notes ?? "Open note action"}</span>,
-            <span key="cpt" className="font-bold text-[#0033A0]">{step.stepNumber === 7 ? "77300" : step.stepNumber >= 8 ? "77439" : "N/A"}</span>,
-            <span key="audit" className="text-sm font-semibold text-[#3D5A80]">{step.auditChecklist.length ? "Evidence tracked" : "Pending"}</span>,
-            <div key="actions" className="flex gap-2"><WorkspaceButton className="h-8 px-2 py-1 text-xs">Open</WorkspaceButton><WorkspaceButton className="h-8 px-2 py-1 text-xs">Route</WorkspaceButton></div>
+            <PhasePill key="phase" phase={step.phase} size="compact" />,
+            <div key="doc" className="flex min-w-0 items-center gap-2">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <TruncateText className="font-bold" title={step.stepName}>{carepathShortNames[step.stepNumber] ?? step.stepName}</TruncateText>
+                <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={step.linkedDocumentId ?? undefined}>{step.linkedDocumentId ?? "Document pending"}</TruncateText>
+              </div>
+            </div>,
+            <WorkflowStatusPill key="status" status={step.status} size="compact" label={carepathStatusLabel(step.status)} />,
+            <RolePill key="role" role={step.responsibleRole} size="compact" label={shortRoleLabels[step.responsibleRole]} />,
+            <TruncateText key="trigger" title={step.triggerEvent}>{carepathTrigger(step)}</TruncateText>,
+            <div key="action" className="flex min-w-0 items-center justify-between gap-2">
+              <TruncateText className="text-[#3D5A80]" title={step.notes ?? step.triggerEvent}>{carepathAction(step)}</TruncateText>
+              <WorkspaceButton size="compact" className="shrink-0">Open</WorkspaceButton>
+            </div>
           ]
         }))}
       />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+        />
+      </div>
     </div>
   );
 }
@@ -605,9 +690,39 @@ export function WorkspaceTabRail({
   if (activeTab === "carepath") {
     return (
       <>
-        <DonutSummary label="Carepath Summary" value={40} segments={[{ label: "Completed", value: 6, tone: "green" }, { label: "Ready for Review", value: 2, tone: "orange" }, { label: "Pending", value: 6, tone: "blue" }, { label: "Blocked", value: 1, tone: "red" }]} />
-        <RailPanel title="Current Blockers"><div className="rounded-xl border border-rose-200 bg-rose-50 p-4"><p className="font-bold text-[#061A55]">Step 7: Orthovoltage Prescription</p><p className="mt-2 text-sm font-semibold text-[#3D5A80]">Prescription document not generated. Required before treatment can proceed.</p><WorkspaceButton className="mt-3">Resolve</WorkspaceButton></div></RailPanel>
-        <RailPanel title="Signature Queue"><RailList items={[{ title: "Clinical Treatment Planning Note", meta: "Step 5 · Rad Onc", badge: <Pill tone="orange">High</Pill> }, { title: "Treatment Summary", meta: "Step 13 · Rad Onc", badge: <Pill tone="orange">High</Pill> }]} /></RailPanel>
+        <DonutSummary
+          label="Carepath Summary"
+          value={40}
+          segments={[
+            { label: "Completed", value: 6, tone: "green" },
+            { label: "Ready for Review", value: 2, tone: "orange" },
+            { label: "Pending", value: 6, tone: "blue" },
+            { label: "Blocked", value: 1, tone: "red" },
+            { label: "Signatures Needed", value: 2, tone: "purple" }
+          ]}
+        />
+        <RightRailCard title="Current Blockers" icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}>
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden="true" />
+              <div className="min-w-0">
+                <TruncateText className="text-sm font-bold text-[#061A55]" title="Step 7: Orthovoltage Prescription">Step 7: Orthovoltage Prescription</TruncateText>
+                <p className="mt-1 text-xs font-semibold leading-5 text-[#3D5A80]">Prescription not generated.</p>
+                <p className="text-xs font-semibold leading-5 text-[#3D5A80]">Assigned to Rad Onc.</p>
+              </div>
+            </div>
+            <WorkspaceButton size="compact" className="mt-3 w-full">Resolve</WorkspaceButton>
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Signature Queue" icon={<FileCheck2 className="h-4 w-4" aria-hidden="true" />}>
+          <RailList
+            items={[
+              { title: "Clinical Treatment Planning Note", meta: "Step 5 · Rad Onc", badge: <Pill tone="orange" size="compact">High</Pill> },
+              { title: "Treatment Summary", meta: "Step 13 · Rad Onc", badge: <Pill tone="orange" size="compact">High</Pill> }
+            ]}
+          />
+          <WorkspaceButton size="compact" className="mt-3 w-full">Go to Tasks</WorkspaceButton>
+        </RightRailCard>
       </>
     );
   }

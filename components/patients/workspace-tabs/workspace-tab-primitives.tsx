@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Clock3,
   Eye,
@@ -59,18 +60,21 @@ const phaseTone: Record<CarepathWorkflowPhase, Tone> = {
 export function WorkspaceButton({
   children,
   variant = "secondary",
+  size = "default",
   className,
   ...props
 }: {
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost";
+  size?: "default" | "compact";
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold outline-none transition focus:ring-4 focus:ring-[#0033A0]/12",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-bold outline-none transition focus:ring-4 focus:ring-[#0033A0]/12",
+        size === "compact" ? "px-2.5 py-1.5 text-xs" : "px-3 py-2 text-sm",
         variant === "primary"
           ? "bg-[#0033A0] text-white shadow-[0_8px_20px_rgba(0,51,160,0.18)] hover:bg-[#002A86]"
           : variant === "ghost"
@@ -90,23 +94,25 @@ export function MetricCard({
   value,
   detail,
   tone = "blue",
-  icon
+  icon,
+  size = "default"
 }: {
   label: string;
   value: ReactNode;
   detail?: ReactNode;
   tone?: Tone;
   icon?: ReactNode;
+  size?: "default" | "compact";
 }) {
   return (
-    <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+    <div className={cn("rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]", size === "compact" ? "p-3" : "p-4")}>
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold text-[#3D5A80]">{label}</p>
-          <p className="mt-2 text-2xl font-bold leading-none text-[#061A55]">{value}</p>
-          {detail ? <p className="mt-2 text-xs font-semibold text-[#3D5A80]">{detail}</p> : null}
+        <div className="min-w-0">
+          <p className={cn("truncate font-bold text-[#3D5A80]", size === "compact" ? "text-[11px]" : "text-xs")} title={label}>{label}</p>
+          <p className={cn("mt-2 truncate font-bold leading-none text-[#061A55]", size === "compact" ? "text-xl" : "text-2xl")} title={typeof value === "string" ? value : undefined}>{value}</p>
+          {detail ? <p className="mt-2 truncate text-[11px] font-semibold text-[#3D5A80]" title={typeof detail === "string" ? detail : undefined}>{detail}</p> : null}
         </div>
-        {icon ? <span className={cn("grid h-10 w-10 place-items-center rounded-xl ring-1", toneClasses[tone])}>{icon}</span> : null}
+        {icon ? <span className={cn("grid shrink-0 place-items-center rounded-xl ring-1", size === "compact" ? "h-8 w-8" : "h-10 w-10", toneClasses[tone])}>{icon}</span> : null}
       </div>
     </div>
   );
@@ -116,21 +122,21 @@ export function MetricGrid({ children, columns = "xl:grid-cols-5" }: { children:
   return <section className={cn("grid gap-3 sm:grid-cols-2", columns)}>{children}</section>;
 }
 
-export function Pill({ children, tone = "blue" }: { children: ReactNode; tone?: Tone }) {
-  return <span className={cn("inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold ring-1", toneClasses[tone])}>{children}</span>;
+export function Pill({ children, tone = "blue", size = "default" }: { children: ReactNode; tone?: Tone; size?: "default" | "compact" }) {
+  return <span className={cn("inline-flex max-w-full whitespace-nowrap rounded-full font-bold ring-1", size === "compact" ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs", toneClasses[tone])}>{children}</span>;
 }
 
-export function WorkflowStatusPill({ status }: { status: WorkflowItemStatus | string }) {
-  return <Pill tone={statusTone[status] ?? "blue"}>{status.replaceAll("_", " ")}</Pill>;
+export function WorkflowStatusPill({ status, size = "default", label }: { status: WorkflowItemStatus | string; size?: "default" | "compact"; label?: string }) {
+  return <Pill tone={statusTone[status] ?? "blue"} size={size}>{label ?? status.replaceAll("_", " ")}</Pill>;
 }
 
-export function PhasePill({ phase }: { phase: CarepathWorkflowPhase }) {
-  return <Pill tone={phaseTone[phase]}>{carepathPhaseLabels[phase]}</Pill>;
+export function PhasePill({ phase, size = "default", label }: { phase: CarepathWorkflowPhase; size?: "default" | "compact"; label?: string }) {
+  return <Pill tone={phaseTone[phase]} size={size}>{label ?? carepathPhaseLabels[phase]}</Pill>;
 }
 
-export function RolePill({ role }: { role: ResponsibleParty }) {
+export function RolePill({ role, size = "default", label }: { role: ResponsibleParty; size?: "default" | "compact"; label?: string }) {
   const tone: Tone = role === "RAD_ONC" ? "purple" : role === "PHYSICIST" ? "slate" : role === "RTT" ? "green" : role === "BILLING" ? "orange" : "blue";
-  return <Pill tone={tone}>{responsiblePartyLabels[role]}</Pill>;
+  return <Pill tone={tone} size={size}>{label ?? responsiblePartyLabels[role]}</Pill>;
 }
 
 export function FilterBar({
@@ -200,13 +206,15 @@ export function DonutSummary({
     <SectionCard title={label}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div
-          className="relative grid h-36 w-36 shrink-0 place-items-center rounded-full"
+          className="relative h-36 w-36 shrink-0 rounded-full"
           style={{ background: `conic-gradient(${gradient})` }}
           aria-label={`${label}: ${value}%`}
         >
-          <div className="grid h-24 w-24 place-items-center rounded-full bg-white text-center shadow-inner">
-            <span className="block text-3xl font-bold leading-none text-[#061A55]">{center ?? `${value}%`}</span>
-            <span className="mt-1 block text-[11px] font-bold leading-tight text-[#3D5A80]">{center ? "total items" : "complete"}</span>
+          <div className="absolute inset-0 grid place-items-center">
+            <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white text-center shadow-inner">
+              <span className="block text-3xl font-bold leading-none text-[#061A55]">{center ?? `${value}%`}</span>
+              <span className="mt-1 block max-w-16 text-[11px] font-bold leading-tight text-[#3D5A80]">{center ? "total items" : "complete"}</span>
+            </div>
           </div>
         </div>
         <div className="grid flex-1 gap-2">
@@ -227,6 +235,102 @@ export function DonutSummary({
 
 export function CompactTable({ columns, rows, minWidth = "1000px" }: { columns: DataTableColumn[]; rows: DataTableRow[]; minWidth?: string }) {
   return <DataTable compact columns={columns} rows={rows} minWidth={minWidth} />;
+}
+
+export type FixedTableColumn = {
+  header: string;
+  className?: string;
+  width?: string;
+};
+
+export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn[]; rows: DataTableRow[] }) {
+  return (
+    <div className="overflow-hidden bg-white">
+      <table className="w-full table-fixed border-collapse">
+        <colgroup>
+          {columns.map((column) => (
+            <col key={column.header} style={column.width ? { width: column.width } : undefined} />
+          ))}
+        </colgroup>
+        <thead>
+          <tr className="bg-[#F8FBFF] text-left text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]">
+            {columns.map((column) => (
+              <th key={column.header} scope="col" className={cn("px-2.5 py-2", column.className)}>
+                {column.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#E7EEF8]">
+          {rows.map((row) => (
+            <tr key={row.id} className="bg-white transition hover:bg-[#F8FBFF]">
+              {row.cells.map((cell, index) => (
+                <td key={`${row.id}-${index}`} className="min-w-0 px-2.5 py-2 align-middle text-[12px] font-semibold leading-5 text-[#061A55]">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export function Pagination({
+  page,
+  totalPages,
+  onPrevious,
+  onNext
+}: {
+  page: number;
+  totalPages: number;
+  onPrevious: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-3 border-t border-[#E7EEF8] bg-white px-3 py-2.5 text-xs font-bold text-[#3D5A80]">
+      <button
+        type="button"
+        onClick={onPrevious}
+        disabled={page <= 1}
+        className="inline-flex items-center gap-1 rounded-lg border border-[#D8E4F5] px-2.5 py-1.5 text-[#0033A0] transition hover:bg-[#F8FBFF] disabled:cursor-not-allowed disabled:opacity-45"
+      >
+        <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+        Previous
+      </button>
+      <span className="min-w-20 text-center">Page {page} of {totalPages}</span>
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={page >= totalPages}
+        className="inline-flex items-center gap-1 rounded-lg border border-[#D8E4F5] px-2.5 py-1.5 text-[#0033A0] transition hover:bg-[#F8FBFF] disabled:cursor-not-allowed disabled:opacity-45"
+      >
+        Next
+        <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+export function TruncateText({ children, className, title }: { children: ReactNode; className?: string; title?: string }) {
+  return (
+    <span className={cn("block min-w-0 truncate", className)} title={title}>
+      {children}
+    </span>
+  );
+}
+
+export function RightRailCard({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <div className="mb-3 flex items-center gap-2">
+        {icon ? <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">{icon}</span> : null}
+        <h3 className="min-w-0 truncate text-lg font-bold text-[#061A55]">{title}</h3>
+      </div>
+      {children}
+    </section>
+  );
 }
 
 export function ActionCell() {
