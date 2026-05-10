@@ -1,10 +1,21 @@
-import { AlertTriangle, BarChart3, FileWarning, Route, ShieldCheck } from "lucide-react";
-import { AnalyticsMetricCard } from "@/components/analytics-metric-card";
+import { BarChart3 } from "lucide-react";
 import { DiagnosisMixPanel } from "@/components/diagnosis-mix-panel";
 import { InsightCard } from "@/components/insight-card";
 import { InsightPriorityMatrix } from "@/components/insight-priority-matrix";
+import {
+  ActionToolbar,
+  AppPageShell,
+  DetailPanel,
+  FieldList,
+  PageHero,
+  SecondaryAction,
+  SummaryCardGrid,
+  SummaryMetricCard,
+  ViewTabs,
+  WorkspaceGrid
+} from "@/components/layout/page-layout";
 import { OpportunityBacklog } from "@/components/opportunity-backlog";
-import { PageHeader } from "@/components/page-header";
+import { SectionCard } from "@/components/section-card";
 import { WorkflowBottleneckPanel } from "@/components/workflow-bottleneck-panel";
 import {
   carepathTasks,
@@ -22,6 +33,7 @@ import {
   overdueTaskCount,
   workflowBottlenecksByParty
 } from "@/lib/workflow";
+import { pageMetrics, viewTabs } from "@/lib/page-layout-data";
 
 export default function AnalyticsPage() {
   const patients = operationalPatients();
@@ -39,82 +51,74 @@ export default function AnalyticsPage() {
   const coursesNeedingAttention = courseAttentionSignals(treatmentCourses);
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <AppPageShell>
+      <PageHero
         eyebrow="Strategic analytics"
         title="Analytics"
         description="Insight layer for bottlenecks, audit blockers, role load, diagnosis patterns, and future solution opportunities."
         icon={BarChart3}
         stat={`${insights.length} insights`}
+        actions={<SecondaryAction>Export Report</SecondaryAction>}
       />
-
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <AnalyticsMetricCard
-          label="Audit Readiness"
-          value={`${auditReadinessScore(carepathTasks, generatedDocuments, fractionLogEntries)}%`}
-          detail="Composite task, document, and fraction readiness."
-          icon={ShieldCheck}
-        />
-        <AnalyticsMetricCard
-          label="Open Blockers"
-          value={blockers.total}
-          detail="Tasks, documents, and fraction entries reducing readiness."
-          icon={AlertTriangle}
-        />
-        <AnalyticsMetricCard
-          label="Document Risk"
-          value={documentCounts.PENDING_NEEDED + documentCounts.MISSING_FIELDS + documentCounts.NEEDS_REVIEW}
-          detail="Pending, incomplete, or review-needed generated documents."
-          icon={FileWarning}
-        />
-        <AnalyticsMetricCard
-          label="Overdue Tasks"
-          value={overdueTaskCount(carepathTasks)}
-          detail="Responsible-party tasks past due in the workflow."
-          icon={Route}
-        />
-        <AnalyticsMetricCard
-          label="Courses To Watch"
-          value={coursesNeedingAttention.length}
-          detail="Courses not started or currently on hold."
-          icon={BarChart3}
-        />
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-        <WorkflowBottleneckPanel tasks={carepathTasks} documents={generatedDocuments} />
-        <DiagnosisMixPanel patients={patients} />
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-        <InsightPriorityMatrix insights={insights} />
-        <div className="space-y-4">
-          {insights.slice(0, 3).map((insight) => (
-            <InsightCard key={insight.id} insight={insight} />
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        {insights.slice(3).map((insight) => (
-          <InsightCard key={insight.id} insight={insight} />
+      <SummaryCardGrid columns={5}>
+        {pageMetrics.analytics.map((metric) => (
+          <SummaryMetricCard key={metric.label} {...metric} />
         ))}
-      </section>
-
-      <OpportunityBacklog insights={insights} />
-
-      <section className="glass-panel rounded-glass p-5">
-        <h3 className="text-lg font-semibold text-curerays-dark-plum">Analytics stance</h3>
-        <p className="mt-2 text-sm leading-6 text-curerays-indigo">
-          These insights are operational and strategic, not clinical decision support. The workspace
-          now reads from the API-oriented clinical store and is ready for persistent backend analytics.
-        </p>
-        {bottlenecks[0] ? (
-          <p className="mt-4 text-sm font-semibold text-curerays-dark-plum">
-            Highest current pressure: {bottlenecks[0].unresolved} unresolved items in one role queue.
-          </p>
-        ) : null}
-      </section>
-    </div>
+      </SummaryCardGrid>
+      <ViewTabs tabs={viewTabs.analytics} />
+      <ActionToolbar
+        searchPlaceholder="Filter reports by date, location, physician, diagnosis, or phase"
+        filters={["Date Range", "Location", "Physician", "Diagnosis", "Phase"]}
+      />
+      <WorkspaceGrid
+        main={
+          <>
+            <section className="grid gap-4 xl:grid-cols-2">
+              <WorkflowBottleneckPanel tasks={carepathTasks} documents={generatedDocuments} />
+              <DiagnosisMixPanel patients={patients} />
+            </section>
+            <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+              <InsightPriorityMatrix insights={insights} />
+              <div className="space-y-4">
+                {insights.slice(0, 3).map((insight) => (
+                  <InsightCard key={insight.id} insight={insight} />
+                ))}
+              </div>
+            </section>
+            <OpportunityBacklog insights={insights} />
+          </>
+        }
+        rail={
+          <>
+            <DetailPanel title="Report Drilldown" subtitle="Operational readiness metrics" actionLabel="Open report detail">
+              <FieldList
+                items={[
+                  { label: "Audit Readiness", value: `${auditReadinessScore(carepathTasks, generatedDocuments, fractionLogEntries)}%` },
+                  { label: "Open Blockers", value: blockers.total, tone: blockers.total ? "warning" : "default" },
+                  { label: "Document Risk", value: documentCounts.PENDING_NEEDED + documentCounts.MISSING_FIELDS + documentCounts.NEEDS_REVIEW },
+                  { label: "Overdue Tasks", value: overdueTaskCount(carepathTasks), tone: overdueTaskCount(carepathTasks) ? "warning" : "default" },
+                  { label: "Courses To Watch", value: coursesNeedingAttention.length }
+                ]}
+              />
+            </DetailPanel>
+            <SectionCard title="Analytics Stance" description="Operational reporting, not clinical decision support.">
+              <p className="text-sm font-semibold leading-6 text-[#3D5A80]">
+                The workspace reads from the API-oriented clinical store and is ready for persistent backend analytics.
+              </p>
+              {bottlenecks[0] ? (
+                <p className="mt-4 text-sm font-bold text-[#061A55]">
+                  Highest pressure: {bottlenecks[0].unresolved} unresolved items in one role queue.
+                </p>
+              ) : null}
+            </SectionCard>
+            <section className="space-y-4">
+              {insights.slice(3, 5).map((insight) => (
+                <InsightCard key={insight.id} insight={insight} />
+              ))}
+            </section>
+          </>
+        }
+      />
+    </AppPageShell>
   );
 }
