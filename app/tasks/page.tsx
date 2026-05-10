@@ -6,6 +6,7 @@ import { getTasks } from "@/lib/module-data";
 import { responsiblePartyQueue } from "@/lib/workflow";
 import { ResponsiblePartyWorkQueue } from "@/components/responsible-party-work-queue";
 import {
+  ActionToolbar,
   AppPageShell,
   DetailPanel,
   FieldList,
@@ -33,12 +34,6 @@ export default function TasksPage() {
         description="Work queues for role-based execution: document launches, forms, images, plan review, signatures, daily treatment, physics checks, follow-up, and audit."
         icon={ListChecks}
         stat={`${tasks.length} tasks`}
-        actions={
-          <>
-            <SecondaryAction><Download className="mr-2 inline h-4 w-4" />Export</SecondaryAction>
-            <PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Task</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.tasks.map((metric) => (
@@ -46,6 +41,16 @@ export default function TasksPage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.tasks} />
+      <ActionToolbar
+        searchPlaceholder="Search task, patient, MRN, assignee, workflow step, or due date"
+        filters={["Priority", "Status", "Role", "Assignee", "Due Date", "Linked Record"]}
+        actions={
+          <>
+            <SecondaryAction><Download className="mr-2 inline h-4 w-4" />Export</SecondaryAction>
+            <PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Task</PrimaryAction>
+          </>
+        }
+      />
       <WorkspaceGrid
         main={
           <>

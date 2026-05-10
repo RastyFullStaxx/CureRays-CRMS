@@ -1,17 +1,51 @@
 import { Bell, ChevronDown, Search, UserRound } from "lucide-react";
 
+const routeTitles: Array<{ match: (pathname: string) => boolean; title: string; subtitle: string }> = [
+  { match: (pathname) => pathname === "/" || pathname === "/dashboard", title: "Dashboard", subtitle: "Clinical workflow at a glance" },
+  { match: (pathname) => pathname.startsWith("/patients/"), title: "Patient Workspace", subtitle: "Course-centered care" },
+  { match: (pathname) => pathname === "/patients", title: "Patients", subtitle: "Master patient registry" },
+  { match: (pathname) => pathname === "/courses", title: "Courses", subtitle: "Treatment course registry" },
+  { match: (pathname) => pathname === "/workflow", title: "Workflow", subtitle: "Carepath workflow engine" },
+  { match: (pathname) => pathname.startsWith("/workflow/igsrt"), title: "Treatment Planning", subtitle: "IGSRT workspace" },
+  { match: (pathname) => pathname.startsWith("/workflow/templates"), title: "Templates", subtitle: "Workflow templates" },
+  { match: (pathname) => pathname === "/tasks", title: "Tasks", subtitle: "Clinical work queue" },
+  { match: (pathname) => pathname === "/schedule", title: "Schedule", subtitle: "Appointments and timing" },
+  { match: (pathname) => pathname === "/clinical-forms", title: "Clinical Forms", subtitle: "Structured clinical forms" },
+  { match: (pathname) => pathname === "/treatment-planning", title: "Treatment Planning", subtitle: "Plans and prescriptions" },
+  { match: (pathname) => pathname === "/imaging", title: "Imaging", subtitle: "Images and attachments" },
+  { match: (pathname) => pathname === "/documents", title: "Documents", subtitle: "Generated clinical documents" },
+  { match: (pathname) => pathname === "/billing", title: "Billing", subtitle: "Coding readiness" },
+  { match: (pathname) => pathname === "/audit", title: "Audit & QA", subtitle: "Course closeout readiness" },
+  { match: (pathname) => pathname === "/analytics" || pathname === "/reports", title: "Analytics", subtitle: "Operational insights" },
+  { match: (pathname) => pathname === "/settings/users", title: "Users & Roles", subtitle: "Access configuration" },
+  { match: (pathname) => pathname === "/settings/templates", title: "Templates", subtitle: "Template configuration" },
+  { match: (pathname) => pathname === "/settings", title: "Settings", subtitle: "System configuration" },
+  { match: (pathname) => pathname === "/security-logs" || pathname === "/audit-logs", title: "Security Logs", subtitle: "Audit trail" },
+  { match: (pathname) => pathname === "/upcoming", title: "Upcoming", subtitle: "Patients before treatment" },
+  { match: (pathname) => pathname === "/on-treatment", title: "On Treatment", subtitle: "Active treatment courses" },
+  { match: (pathname) => pathname === "/post", title: "Post Treatment", subtitle: "Closeout workflows" },
+  { match: (pathname) => pathname === "/records", title: "Master Records", subtitle: "Controlled patient index" }
+];
+
+function titleForPath(pathname = "") {
+  return routeTitles.find((route) => route.match(pathname)) ?? {
+    title: "CureRays",
+    subtitle: "Clinical workflow command center"
+  };
+}
+
 export function Topbar({ pathname }: { pathname?: string }) {
-  const isDashboard = pathname === "/" || pathname === "/dashboard";
+  const { title, subtitle } = titleForPath(pathname);
 
   return (
     <header className="border-b border-[#DDE6F5] bg-white px-4 py-3 sm:px-6">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#061A55]">
-            {isDashboard ? "Dashboard" : "CureRays"}
+            {title}
           </h1>
           <p className="mt-1 text-sm font-semibold text-[#3D5A80]">
-            {isDashboard ? "Clinical workflow at a glance" : "Clinical workflow command center"}
+            {subtitle}
           </p>
         </div>
 

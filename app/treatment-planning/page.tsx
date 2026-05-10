@@ -4,6 +4,7 @@ import { FilePreviewCard } from "@/components/file-preview-card";
 import { SectionCard } from "@/components/section-card";
 import { getTreatmentPlans } from "@/lib/module-data";
 import {
+  ActionToolbar,
   AppPageShell,
   DetailPanel,
   FieldList,
@@ -27,7 +28,6 @@ export default function TreatmentPlanningPage() {
         description="IGSRT / skin cancer planning scaffold for parameters, depth-dose placeholders, coverage summaries, physics review, Rad Onc signature, and isodose output."
         icon={Radiation}
         stat={`${plans.length} plan`}
-        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Plan</PrimaryAction>}
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.planning.map((metric) => (
@@ -35,6 +35,11 @@ export default function TreatmentPlanningPage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.planning} />
+      <ActionToolbar
+        searchPlaceholder="Search plan, patient, MRN, site, energy, applicator, or review status"
+        filters={["Diagnosis", "Site", "Energy", "Physics Review", "Rad Onc", "Blocked"]}
+        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Plan</PrimaryAction>}
+      />
       <WorkspaceGrid
         main={
           <>

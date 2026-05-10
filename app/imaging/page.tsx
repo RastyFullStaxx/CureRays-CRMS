@@ -26,7 +26,6 @@ export default function ImagingPage() {
         description="Image and file asset management tied to patient, course, workflow phase, and treatment fraction."
         icon={Image}
         stat={`${imagingAssets.length} assets`}
-        actions={<PrimaryAction>Upload Images</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.imaging.map((metric) => (
@@ -37,6 +36,7 @@ export default function ImagingPage() {
       <ActionToolbar
         searchPlaceholder="Search image category, phase, course, or note"
         filters={["Category", "Phase", "Fraction", "Required Only", "Uploaded By"]}
+        actions={<PrimaryAction>Upload Images</PrimaryAction>}
       />
       <WorkspaceGrid
         main={

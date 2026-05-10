@@ -28,7 +28,6 @@ export default function AuditLogsPage() {
         description="A focused view for sensitive patient/course changes, document generation, signatures, phase/status changes, file activity, and audit closeout events."
         icon={History}
         stat={`${auditEvents.length} events`}
-        actions={<SecondaryAction>Export Logs</SecondaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.security.map((metric) => (
@@ -39,6 +38,7 @@ export default function AuditLogsPage() {
       <ActionToolbar
         searchPlaceholder="Search user, patient ID, course, action, entity, or timestamp"
         filters={["User", "Patient", "Course", "Action Type", "Date Range", "Entity Type"]}
+        actions={<SecondaryAction>Export Logs</SecondaryAction>}
       />
       <WorkspaceGrid
         main={

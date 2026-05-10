@@ -35,14 +35,17 @@ export default function UsersSettingsPage() {
         description="Frontend placeholder for role-based access, secure session cues, and permission-aware workflow actions."
         icon={Settings}
         stat="RBAC"
-        actions={<PrimaryAction>Invite User</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.settings.map((metric) => (
           <SummaryMetricCard key={metric.label} {...metric} />
         ))}
       </SummaryCardGrid>
-      <ActionToolbar searchPlaceholder="Search user, role, email, or permission" filters={["Role", "Status", "Last Login", "Signature Rights"]} />
+      <ActionToolbar
+        searchPlaceholder="Search user, role, email, or permission"
+        filters={["Role", "Status", "Last Login", "Signature Rights"]}
+        actions={<PrimaryAction>Invite User</PrimaryAction>}
+      />
       <WorkspaceGrid
         main={
           <>

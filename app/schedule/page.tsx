@@ -25,7 +25,6 @@ export default function SchedulePage() {
         description="Calendar, daily schedule, treatment schedule, provider/location filtering, and workflow-linked appointment placeholders."
         icon={CalendarDays}
         stat={`${appointments.length} appts`}
-        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Appointment</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.schedule.map((metric) => (
@@ -33,7 +32,11 @@ export default function SchedulePage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.schedule} />
-      <ActionToolbar searchPlaceholder="Search appointment, patient, staff, or location" filters={["Date", "Location", "Provider", "Type", "Status"]} />
+      <ActionToolbar
+        searchPlaceholder="Search appointment, patient, staff, or location"
+        filters={["Date", "Location", "Provider", "Type", "Status"]}
+        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />New Appointment</PrimaryAction>}
+      />
       <WorkspaceGrid
         main={
           <SectionCard title="Day View Timeline" description="Appointments are grouped by time and linked to workflow triggers.">

@@ -30,12 +30,6 @@ export default function DocumentsPage() {
         description="Template library, generated patient/course documents, version history, preview/open actions, signature status, export, and eCW upload placeholders."
         icon={FileText}
         stat={`${documents.length} docs`}
-        actions={
-          <>
-            <SecondaryAction>Upload External</SecondaryAction>
-            <PrimaryAction>Generate Document</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.documents.map((metric) => (
@@ -46,6 +40,12 @@ export default function DocumentsPage() {
       <ActionToolbar
         searchPlaceholder="Search document, patient ID, MRN, course, category, or signer"
         filters={["Category", "Status", "Signature", "eCW Upload", "Generated Date"]}
+        actions={
+          <>
+            <SecondaryAction>Upload External</SecondaryAction>
+            <PrimaryAction>Generate Document</PrimaryAction>
+          </>
+        }
       />
       <WorkspaceGrid
         main={

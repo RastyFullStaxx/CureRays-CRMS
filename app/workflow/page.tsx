@@ -3,6 +3,7 @@ import { SectionCard } from "@/components/section-card";
 import { WorkflowStepTable } from "@/components/workflow-step-table";
 import { canonicalWorkflowSteps, getWorkflowSteps } from "@/lib/module-data";
 import {
+  ActionToolbar,
   AppPageShell,
   DetailPanel,
   FieldList,
@@ -28,12 +29,6 @@ export default function WorkflowPage() {
         description="Carepath rows 0-14 are modeled as structured workflow steps with status, role ownership, triggers, signatures, linked documents, blockers, and audit checklist state."
         icon={ClipboardList}
         stat="15 steps"
-        actions={
-          <>
-            <SecondaryAction><Settings className="mr-2 inline h-4 w-4" />Configure Template</SecondaryAction>
-            <PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Create Workflow</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.workflow.map((metric) => (
@@ -41,6 +36,16 @@ export default function WorkflowPage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.workflow} />
+      <ActionToolbar
+        searchPlaceholder="Search patient, MRN, course, workflow step, owner, or blocker"
+        filters={["Phase", "Status", "Responsible Role", "Due Date", "Signature", "Blockers"]}
+        actions={
+          <>
+            <SecondaryAction><Settings className="mr-2 inline h-4 w-4" />Configure Template</SecondaryAction>
+            <PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Create Workflow</PrimaryAction>
+          </>
+        }
+      />
       <WorkspaceGrid
         main={
           <>

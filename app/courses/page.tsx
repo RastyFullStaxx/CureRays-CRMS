@@ -28,7 +28,6 @@ export default function CoursesPage() {
         description="Each patient can have multiple treatment courses. Course state drives workflow steps, tasks, documents, treatment delivery, billing, and audit closeout."
         icon={ContactRound}
         stat={`${courses.length} courses`}
-        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Create Course</PrimaryAction>}
       />
       <SummaryCardGrid columns={3}>
         {pageMetrics.patients.slice(0, 6).map((metric) => (
@@ -38,6 +37,7 @@ export default function CoursesPage() {
       <ActionToolbar
         searchPlaceholder="Search course, diagnosis, treatment site, phase, or next action"
         filters={["Diagnosis", "Detailed Phase", "Simple Phase", "Status", "Location", "Physician", "Flags"]}
+        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Create Course</PrimaryAction>}
       />
       <ViewTabs tabs={viewTabs.courses} />
       <WorkspaceGrid

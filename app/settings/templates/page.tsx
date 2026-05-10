@@ -25,7 +25,6 @@ export default function TemplatesSettingsPage() {
         description="Workflow, document, and clinical form template configuration by diagnosis, protocol, required fields, due dates, and responsible roles."
         icon={Files}
         stat={`${templateSources.length} sources`}
-        actions={<PrimaryAction>Replace Template</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.settings.map((metric) => (
@@ -33,7 +32,11 @@ export default function TemplatesSettingsPage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.settings} active={5} />
-      <ActionToolbar searchPlaceholder="Search template, diagnosis, protocol, role, or source file" filters={["Diagnosis", "Category", "File Type", "Active", "Signature Required"]} />
+      <ActionToolbar
+        searchPlaceholder="Search template, diagnosis, protocol, role, or source file"
+        filters={["Diagnosis", "Category", "File Type", "Active", "Signature Required"]}
+        actions={<PrimaryAction>Replace Template</PrimaryAction>}
+      />
       <WorkspaceGrid
         main={
           <>

@@ -147,31 +147,6 @@ export function PatientsRegistry({ patients, courses, tasks }: PatientsRegistryP
 
   return (
     <div className="space-y-4 bg-white">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white px-5 py-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-[#FF6620]">CHART ROUNDS REGISTRY</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#061A55]">Patients</h1>
-            <p className="mt-1 max-w-3xl text-sm font-semibold leading-5 text-[#3D5A80]">
-              Master patient and course registry replacing manual movement between spreadsheet tabs.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-sm font-bold text-[#061A55]">
-              Live View: {patients.length} patients
-            </span>
-            <button type="button" className="rounded-xl border border-[#D8E4F5] bg-white px-3 py-2 text-sm font-bold text-[#0033A0]">
-              <Upload className="mr-2 inline h-4 w-4" aria-hidden="true" />
-              Import / Sync
-            </button>
-            <button type="button" className="rounded-xl bg-[#0033A0] px-3 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(0,51,160,0.18)]">
-              <Plus className="mr-2 inline h-4 w-4" aria-hidden="true" />
-              Add Patient
-            </button>
-          </div>
-        </div>
-      </section>
-
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
         {metricCards.map((metric) => (
           <article key={metric.label} className="min-h-[78px] rounded-2xl border border-[#D8E4F5] bg-white p-3 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
@@ -212,6 +187,19 @@ export function PatientsRegistry({ patients, courses, tasks }: PatientsRegistryP
                 <ChevronDown className="h-3.5 w-3.5 text-[#0033A0]" aria-hidden="true" />
               </button>
             ))}
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <span className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-xs font-bold text-[#061A55]">
+              Live View: {patients.length}
+            </span>
+            <button type="button" className="rounded-xl border border-[#D8E4F5] bg-white px-3 py-2 text-xs font-bold text-[#0033A0]">
+              <Upload className="mr-2 inline h-4 w-4" aria-hidden="true" />
+              Import / Sync
+            </button>
+            <button type="button" className="rounded-xl bg-[#0033A0] px-3 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(0,51,160,0.18)]">
+              <Plus className="mr-2 inline h-4 w-4" aria-hidden="true" />
+              Add Patient
+            </button>
           </div>
         </div>
         <div className="scrollbar-soft mt-3 flex gap-2 overflow-x-auto border-t border-[#E7EEF8] pt-3">

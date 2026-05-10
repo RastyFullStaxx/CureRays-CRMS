@@ -30,12 +30,6 @@ export default function AuditPage() {
         description="Final readiness validation for required documents, signatures, N/A reasons, images, treatment logs, summary, follow-up, billing, and final Carepath audit signature."
         icon={ShieldCheck}
         stat={blockers.length ? `${blockers.length} blockers` : "Ready"}
-        actions={
-          <>
-            <SecondaryAction>Export Audit Report</SecondaryAction>
-            <PrimaryAction>Run Audit Check</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.audit.map((metric) => (
@@ -46,6 +40,12 @@ export default function AuditPage() {
       <ActionToolbar
         searchPlaceholder="Search patient ID, course, blocker, document, or audit check"
         filters={["Readiness", "Documents", "Signatures", "Images", "Billing", "Follow-Up"]}
+        actions={
+          <>
+            <SecondaryAction>Export Audit Report</SecondaryAction>
+            <PrimaryAction>Run Audit Check</PrimaryAction>
+          </>
+        }
       />
       <WorkspaceGrid
         main={

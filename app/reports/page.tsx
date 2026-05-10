@@ -24,7 +24,6 @@ export default function ReportsPage() {
         description="Early reporting modules translate workflow state into clinical operations signals without exposing unnecessary patient detail."
         icon={BarChart3}
         stat="Preview"
-        actions={<SecondaryAction>Export Report</SecondaryAction>}
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.analytics.map((metric) => (
@@ -34,6 +33,7 @@ export default function ReportsPage() {
       <ActionToolbar
         searchPlaceholder="Search report, diagnosis, phase, staff workload, or audit signal"
         filters={["Date Range", "Location", "Physician", "Diagnosis", "Phase"]}
+        actions={<SecondaryAction>Export Report</SecondaryAction>}
       />
       <ReportsOverview
         patients={patients}

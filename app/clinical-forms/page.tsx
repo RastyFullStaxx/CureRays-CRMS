@@ -4,6 +4,7 @@ import { FilePreviewCard } from "@/components/file-preview-card";
 import { SectionCard } from "@/components/section-card";
 import { clinicalFormTemplates } from "@/lib/module-data";
 import {
+  ActionToolbar,
   AppPageShell,
   DetailPanel,
   FieldList,
@@ -27,7 +28,6 @@ export default function ClinicalFormsPage() {
         description="Template-backed form engine for clinical mapping records. Initial scaffold: Hand Arthritis X-ray Mapping."
         icon={NotebookTabs}
         stat={`${clinicalFormTemplates.length} form`}
-        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Start Form</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.forms.map((metric) => (
@@ -35,6 +35,11 @@ export default function ClinicalFormsPage() {
         ))}
       </SummaryCardGrid>
       <ViewTabs tabs={viewTabs.forms} />
+      <ActionToolbar
+        searchPlaceholder="Search form, patient, diagnosis, status, or reviewer"
+        filters={["Template", "Diagnosis", "Status", "Reviewer", "Signed"]}
+        actions={<PrimaryAction><Plus className="mr-2 inline h-4 w-4" />Start Form</PrimaryAction>}
+      />
       <WorkspaceGrid
         main={
           <>

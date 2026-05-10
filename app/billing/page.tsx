@@ -26,12 +26,6 @@ export default function BillingPage() {
         description="Track planned codes, quantities, related documentation, pre-auth status, billing completion, and audit readiness signals."
         icon={WalletCards}
         stat={`${billingItems.length} items`}
-        actions={
-          <>
-            <SecondaryAction>Export Billing Report</SecondaryAction>
-            <PrimaryAction>Add Billing Item</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.billing.map((metric) => (
@@ -42,6 +36,12 @@ export default function BillingPage() {
       <ActionToolbar
         searchPlaceholder="Search code, patient ID, course, document, or billing note"
         filters={["Code", "Documentation", "Preauth", "Billing Status", "Audit Issues"]}
+        actions={
+          <>
+            <SecondaryAction>Export Billing Report</SecondaryAction>
+            <PrimaryAction>Add Billing Item</PrimaryAction>
+          </>
+        }
       />
       <WorkspaceGrid
         main={

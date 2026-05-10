@@ -8,12 +8,12 @@ export function AppPageShell({ children, className = "" }: { children: ReactNode
 }
 
 export function PageHero({
-  eyebrow,
-  title,
-  description,
-  icon: Icon,
-  stat,
-  actions
+  eyebrow: _eyebrow,
+  title: _title,
+  description: _description,
+  icon: _icon,
+  stat: _stat,
+  actions: _actions
 }: {
   eyebrow: string;
   title: string;
@@ -22,31 +22,7 @@ export function PageHero({
   stat?: string;
   actions?: ReactNode;
 }) {
-  return (
-    <section className="rounded-2xl border border-[#D8E4F5] bg-white p-5 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-[#FF6620]">{eyebrow}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#061A55]">{title}</h1>
-          <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-[#3D5A80]">{description}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
-          {stat ? (
-            <div className="flex items-center gap-3 rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#0033A0] text-white">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <span>
-                <span className="block text-xs font-bold text-[#3D5A80]">Live view</span>
-                <span className="block text-xl font-bold text-[#061A55]">{stat}</span>
-              </span>
-            </div>
-          ) : null}
-          {actions}
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 export function SummaryCardGrid({ children, columns = 4 }: { children: ReactNode; columns?: 3 | 4 | 5 }) {

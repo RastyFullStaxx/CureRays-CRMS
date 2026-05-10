@@ -29,12 +29,6 @@ export default function TreatmentDeliveryPage() {
         description="Active treatment queue and fractionation tracking. Final fraction triggers Post-Tx summary, follow-up, billing, and audit readiness checks."
         icon={Activity}
         stat={`${fractions.length} fractions`}
-        actions={
-          <>
-            <SecondaryAction>Start Today&apos;s Queue</SecondaryAction>
-            <PrimaryAction>Record Fraction</PrimaryAction>
-          </>
-        }
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.delivery.map((metric) => (
@@ -45,6 +39,12 @@ export default function TreatmentDeliveryPage() {
       <ActionToolbar
         searchPlaceholder="Search patient ID, MRN, course, therapist, or fraction"
         filters={["Date", "Status", "Therapist", "Image Guidance", "Review Needed"]}
+        actions={
+          <>
+            <SecondaryAction>Start Today&apos;s Queue</SecondaryAction>
+            <PrimaryAction>Record Fraction</PrimaryAction>
+          </>
+        }
       />
       <WorkspaceGrid
         main={

@@ -24,7 +24,6 @@ export default function SettingsPage() {
         description="Configuration placeholders for workflows, templates, dropdowns, storage, notifications, security, diagnosis protocols, and billing code mappings."
         icon={Settings}
         stat={`${settingsAreas.length} areas`}
-        actions={<PrimaryAction>Save Configuration</PrimaryAction>}
       />
       <SummaryCardGrid>
         {pageMetrics.settings.map((metric) => (
@@ -35,6 +34,7 @@ export default function SettingsPage() {
       <ActionToolbar
         searchPlaceholder="Search settings, templates, roles, dropdowns, storage, or notifications"
         filters={["Users", "Templates", "Storage", "Security", "Billing Codes"]}
+        actions={<PrimaryAction>Save Configuration</PrimaryAction>}
       />
       <WorkspaceGrid
         main={

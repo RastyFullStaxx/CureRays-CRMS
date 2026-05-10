@@ -58,7 +58,6 @@ export default function AnalyticsPage() {
         description="Insight layer for bottlenecks, audit blockers, role load, diagnosis patterns, and future solution opportunities."
         icon={BarChart3}
         stat={`${insights.length} insights`}
-        actions={<SecondaryAction>Export Report</SecondaryAction>}
       />
       <SummaryCardGrid columns={5}>
         {pageMetrics.analytics.map((metric) => (
@@ -69,6 +68,7 @@ export default function AnalyticsPage() {
       <ActionToolbar
         searchPlaceholder="Filter reports by date, location, physician, diagnosis, or phase"
         filters={["Date Range", "Location", "Physician", "Diagnosis", "Phase"]}
+        actions={<SecondaryAction>Export Report</SecondaryAction>}
       />
       <WorkspaceGrid
         main={
