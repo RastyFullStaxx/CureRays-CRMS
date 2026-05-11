@@ -15,6 +15,7 @@ import {
   Settings,
   ShieldCheck,
   TableProperties,
+  UserCog,
   WalletCards
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -37,29 +38,48 @@ const navGroups: NavGroup[] = [
     items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }]
   },
   {
-    label: "Patient Care",
+    label: "Patient Management",
     items: [
       { label: "Patients", href: "/patients", icon: TableProperties },
-      { label: "Workflow", href: "/workflow", icon: ClipboardList },
-      { label: "Tasks", href: "/tasks", icon: ListChecks },
-      { label: "Schedule", href: "/schedule", icon: CalendarDays },
-      { label: "Clinical Forms", href: "/clinical-forms", icon: NotebookTabs },
-      { label: "Treatment Planning", href: "/treatment-planning", icon: Radiation },
-      { label: "Imaging", href: "/imaging", icon: Image },
-      { label: "Documents", href: "/documents", icon: FileText }
+      { label: "Courses", href: "/courses", icon: NotebookTabs }
     ]
   },
   {
-    label: "Operations",
+    label: "Clinical Operations",
     items: [
+      { label: "Workflow", href: "/workflow", icon: ClipboardList },
+      { label: "Tasks", href: "/tasks", icon: ListChecks },
+      { label: "Schedule", href: "/schedule", icon: CalendarDays },
+      { label: "Treatment Delivery", href: "/treatment-delivery", icon: Radiation }
+    ]
+  },
+  {
+    label: "Clinical Tools",
+    items: [
+      { label: "Clinical Forms", href: "/clinical-forms", icon: NotebookTabs },
+      { label: "Treatment Planning", href: "/treatment-planning", icon: Radiation },
+      { label: "Imaging", href: "/imaging", icon: Image }
+    ]
+  },
+  {
+    label: "Documentation",
+    items: [
+      { label: "Documents", href: "/documents", icon: FileText },
       { label: "Billing", href: "/billing", icon: WalletCards },
-      { label: "Audit", href: "/audit", icon: ShieldCheck },
-      { label: "Analytics", href: "/analytics", icon: LineChart }
+      { label: "Audit & QA", href: "/audit", icon: ShieldCheck }
+    ]
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { label: "Analytics & Reports", href: "/analytics", icon: LineChart }
     ]
   },
   {
     label: "Administration",
     items: [
+      { label: "Users & Roles", href: "/users-roles", icon: UserCog },
+      { label: "Templates", href: "/templates", icon: FileText },
       { label: "Settings", href: "/settings", icon: Settings },
       { label: "Security Logs", href: "/security-logs", icon: ShieldCheck }
     ]
@@ -77,6 +97,14 @@ function isActive(pathname: string, href: string) {
 
   if (href === "/settings") {
     return pathname === "/settings";
+  }
+
+  if (href === "/users-roles") {
+    return pathname === "/users-roles" || pathname === "/settings/users";
+  }
+
+  if (href === "/templates") {
+    return pathname === "/templates" || pathname === "/settings/templates" || pathname === "/workflow/templates";
   }
 
   return href === "/" ? pathname === "/" : pathname.startsWith(href);

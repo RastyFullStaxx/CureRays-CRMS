@@ -10,11 +10,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="grid min-h-screen xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid min-h-screen xl:grid-cols-[292px_minmax(0,1fr)]">
         <Sidebar pathname={pathname} />
         <div className="min-w-0">
           <Topbar pathname={pathname} />
-          <main key={pathname} className="page-transition min-w-0 bg-white p-4 sm:p-5 xl:p-5">
+          <main key={pathname} className="page-transition min-w-0 bg-white p-4 sm:p-5 xl:p-6">
             {children}
           </main>
         </div>
