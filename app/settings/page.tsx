@@ -1,93 +1,54 @@
-import { Settings } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import {
-  ActionToolbar,
-  AppPageShell,
-  DetailPanel,
-  FieldList,
-  PageHero,
-  PrimaryAction,
-  SummaryCardGrid,
-  SummaryMetricCard,
-  ViewTabs,
-  WorkspaceGrid
-} from "@/components/layout/page-layout";
-import { SectionCard } from "@/components/section-card";
-import { pageMetrics, settingsAreas, viewTabs } from "@/lib/page-layout-data";
+import { Bell, Building2, ChevronRight, FileText, LockKeyhole, Plug, Settings, ShieldCheck, UserCog, Workflow } from "lucide-react";
+import { ListItem, ModulePage, RightRailCard, WorkGrid } from "@/components/module-ui";
+import { settingsCategories } from "@/lib/global-page-data";
+
+const icons = [Building2, UserCog, Workflow, ShieldCheck, FileText, Bell, LockKeyhole, Plug];
 
 export default function SettingsPage() {
   return (
-    <AppPageShell>
-      <PageHero
-        eyebrow="Administration"
-        title="Settings"
-        description="Configuration placeholders for workflows, templates, dropdowns, storage, notifications, security, diagnosis protocols, and billing code mappings."
-        icon={Settings}
-        stat={`${settingsAreas.length} areas`}
-      />
-      <SummaryCardGrid>
-        {pageMetrics.settings.map((metric) => (
-          <SummaryMetricCard key={metric.label} {...metric} />
-        ))}
-      </SummaryCardGrid>
-      <ViewTabs tabs={viewTabs.settings} />
-      <ActionToolbar
-        searchPlaceholder="Search settings, templates, roles, dropdowns, storage, or notifications"
-        filters={["Users", "Templates", "Storage", "Security", "Billing Codes"]}
-        actions={<PrimaryAction>Save Configuration</PrimaryAction>}
-      />
-      <WorkspaceGrid
+    <ModulePage>
+      <WorkGrid
         main={
-          <>
-            <SectionCard title="Configuration Areas" description="Admin controls edit metadata, not hardcoded page logic.">
-              <DataTable
-                compact
-                columns={[{ header: "Area" }, { header: "Purpose" }, { header: "Status" }]}
-                rows={settingsAreas.map((setting) => ({
-                  id: setting,
-                  cells: [
-                    <span key="setting" className="font-semibold">{setting}</span>,
-                    "Configurable system metadata",
-                    "Placeholder"
-                  ]
-                }))}
-              />
-            </SectionCard>
-            <SectionCard title="Role Permissions Matrix" description="Future RBAC settings align with clinical workflow roles.">
-              <DataTable
-                compact
-                minWidth="820px"
-                columns={[{ header: "Permission" }, { header: "Clinical Staff" }, { header: "Physician" }, { header: "Admin" }]}
-                rows={["View patients", "Edit patients", "Generate documents", "Sign documents", "Run audit", "Manage templates"].map((permission) => ({
-                  id: permission,
-                  cells: [permission, "Role-based", "Role-based", "Allowed"]
-                }))}
-              />
-            </SectionCard>
-          </>
+          <section className="overflow-hidden rounded-lg border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.055)]">
+            {settingsCategories.map((category, index) => {
+              const Icon = icons[index] ?? Settings;
+              return (
+                <button key={category.title} type="button" className="flex w-full items-center gap-5 border-b border-[#E7EEF8] p-5 text-left transition last:border-0 hover:bg-[#F8FBFF]">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]"><Icon className="h-6 w-6" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-base font-bold text-[#061A55]">{category.title}</span>
+                    <span className="mt-1 block text-sm font-semibold leading-5 text-[#3D5A80]">{category.description}</span>
+                  </span>
+                  <span className="hidden w-72 text-sm font-semibold text-[#2B2F5F] lg:block">{category.summary}</span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-[#0033A0]" />
+                </button>
+              );
+            })}
+          </section>
         }
         rail={
           <>
-            <DetailPanel title="Settings Help" subtitle="Configuration detail placeholder" actionLabel="Open selected area">
-              <FieldList
-                items={[
-                  { label: "Selected", value: "Workflow Templates" },
-                  { label: "Diagnosis", value: "Skin / Arthritis / Dupuytren's" },
-                  { label: "Storage", value: "Drive stub", tone: "warning" },
-                  { label: "Security", value: "Audit logging on" }
-                ]}
-              />
-            </DetailPanel>
-            <SectionCard title="File Storage Settings" description="Integration boundary for templates, generated files, and Drive sync.">
-              <div className="space-y-3 text-sm font-semibold text-[#3D5A80]">
-                <p>Template library location: configurable.</p>
-                <p>Patient file root: configurable.</p>
-                <p>Generated document location: pending Drive integration.</p>
+            <RightRailCard title="System Information">
+              <div className="space-y-3 text-sm font-semibold text-[#2B2F5F]">
+                <p className="text-xl font-bold text-[#0033A0]">CureRays</p>
+                <p>Organization: CureRays Radiation Medicine</p>
+                <p>Address: 300 Sierra College Drive, Suite 150</p>
+                <p>Phone: (530) 802-6400</p>
+                <p>Time Zone: America/Los_Angeles</p>
+                <p>Date Format: MM/DD/YYYY</p>
               </div>
-            </SectionCard>
+            </RightRailCard>
+            <RightRailCard title="Recent Changes">
+              <div className="space-y-2">
+                <ListItem title="Workflow rule modified" meta="by Dr. Sarah Johnson - May 6, 2026" />
+                <ListItem title="Password policy updated" meta="by System - May 6, 2026" />
+                <ListItem title="Email notifications updated" meta="by Iris Lim - May 5, 2026" />
+                <ListItem title="MFA enforcement enabled" meta="by Dr. Sarah Johnson - May 4, 2026" />
+              </div>
+            </RightRailCard>
           </>
         }
       />
-    </AppPageShell>
+    </ModulePage>
   );
 }

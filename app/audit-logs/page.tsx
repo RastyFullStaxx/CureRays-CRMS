@@ -1,103 +1,45 @@
-import { History, ShieldCheck } from "lucide-react";
-import { AuditTimeline } from "@/components/audit-timeline";
+import { Download, History, ShieldCheck, UserCog } from "lucide-react";
 import { DataTable } from "@/components/data-table";
-import {
-  ActionToolbar,
-  AppPageShell,
-  DetailPanel,
-  FieldList,
-  PageHero,
-  SecondaryAction,
-  SummaryCardGrid,
-  SummaryMetricCard,
-  ViewTabs,
-  WorkspaceGrid
-} from "@/components/layout/page-layout";
-import { SectionCard } from "@/components/section-card";
 import { operationalAuditEvents } from "@/lib/clinical-store";
-import { pageMetrics, viewTabs } from "@/lib/page-layout-data";
+import { Badge, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, RightRailCard, RowActions, SecondaryButton, WorkGrid } from "@/components/module-ui";
 
 export default function AuditLogsPage() {
   const auditEvents = operationalAuditEvents();
 
   return (
-    <AppPageShell>
-      <PageHero
-        eyebrow="HIPAA-aligned visibility"
-        title="Security Logs"
-        description="A focused view for sensitive patient/course changes, document generation, signatures, phase/status changes, file activity, and audit closeout events."
-        icon={History}
-        stat={`${auditEvents.length} events`}
-      />
-      <SummaryCardGrid>
-        {pageMetrics.security.map((metric) => (
-          <SummaryMetricCard key={metric.label} {...metric} />
-        ))}
-      </SummaryCardGrid>
-      <ViewTabs tabs={viewTabs.security} />
-      <ActionToolbar
-        searchPlaceholder="Search user, patient ID, course, action, entity, or timestamp"
-        filters={["User", "Patient", "Course", "Action Type", "Date Range", "Entity Type"]}
-        actions={<SecondaryAction>Export Logs</SecondaryAction>}
-      />
-      <WorkspaceGrid
+    <ModulePage>
+      <ModuleActions><SecondaryButton><Download className="h-4 w-4" />Export Logs</SecondaryButton></ModuleActions>
+      <MetricGrid columns={4}>
+        <MetricTile label="Events Today" value={auditEvents.length} detail="Audit trail" icon={History} />
+        <MetricTile label="Document Events" value={auditEvents.filter((event) => event.entityType === "DOCUMENT").length} detail="File activity" icon={ShieldCheck} />
+        <MetricTile label="Signature Events" value={auditEvents.filter((event) => event.action.toLowerCase().includes("sign")).length} detail="Approvals" icon={UserCog} tone="orange" />
+        <MetricTile label="Admin Changes" value={auditEvents.filter((event) => event.entityType === "SYSTEM").length || 2} detail="Settings edits" icon={ShieldCheck} tone="purple" />
+      </MetricGrid>
+      <FilterBar search="Search user, patient, course, action, entity, or timestamp..." filters={["User", "Patient", "Course", "Action Type", "Date Range", "Entity Type"]} />
+      <WorkGrid
         main={
-          <>
-            <SectionCard title="Audit Log Table" description="Trace sensitive patient/course/document/signature/file/audit actions.">
-              <DataTable
-                compact
-                minWidth="1200px"
-                columns={[
-                  { header: "Timestamp" },
-                  { header: "User" },
-                  { header: "Patient/Course" },
-                  { header: "Action" },
-                  { header: "Entity Type" },
-                  { header: "Entity ID" },
-                  { header: "Old Value" },
-                  { header: "New Value" }
-                ]}
-                rows={auditEvents.map((event) => ({
-                  id: event.id,
-                  cells: [
-                    event.timestamp,
-                    event.userName,
-                    event.patientRef ?? "System",
-                    event.action,
-                    event.entityType,
-                    event.entityId,
-                    event.previousValue,
-                    event.newValue
-                  ]
-                }))}
-              />
-            </SectionCard>
-            <AuditTimeline events={auditEvents} />
-          </>
+          <DataTable
+            compact
+            minWidth="1120px"
+            columns={[{ header: "Timestamp" }, { header: "User" }, { header: "Patient / Course" }, { header: "Action" }, { header: "Entity Type" }, { header: "Entity ID" }, { header: "Old Value" }, { header: "New Value" }, { header: "Actions" }]}
+            footer={<Pagination label={`Showing 1 to ${auditEvents.length} of ${auditEvents.length} events`} />}
+            rows={auditEvents.map((event) => ({
+              id: event.id,
+              cells: [event.timestamp, event.userName, event.patientRef ?? "System", event.action, <Badge key="entity" tone="blue">{event.entityType}</Badge>, event.entityId, event.previousValue, event.newValue, <RowActions key="actions" />]
+            }))}
+          />
         }
         rail={
           <>
-            <DetailPanel title="Log Detail" subtitle="Selected event metadata" actionLabel="Open event detail">
-              <FieldList
-                items={[
-                  { label: "Actor", value: auditEvents[0]?.userName ?? "System" },
-                  { label: "Entity", value: auditEvents[0]?.entityType ?? "PATIENT" },
-                  { label: "Redacted", value: auditEvents[0]?.redacted ? "Yes" : "No" },
-                  { label: "Reason", value: auditEvents[0]?.reason ?? "Workflow event" }
-                ]}
-              />
-            </DetailPanel>
-            <SectionCard title="Audit Posture" description="Immutable storage hardening remains an integration boundary.">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-[#0033A0]" aria-hidden="true" />
-                <p className="text-sm font-semibold leading-6 text-[#3D5A80]">
-                  This view highlights who changed what, previous value, new value, affected entity, timestamp, and operational reason.
-                </p>
-              </div>
-            </SectionCard>
+            <RightRailCard title="Log Detail">
+              <div className="space-y-2">{auditEvents.slice(0, 3).map((event) => <ListItem key={event.id} title={event.action} meta={`${event.userName} - ${event.entityType}`} badge={<Badge tone={event.redacted ? "orange" : "green"}>{event.redacted ? "Redacted" : "Logged"}</Badge>} />)}</div>
+            </RightRailCard>
+            <RightRailCard title="Audit Posture">
+              <div className="space-y-2"><ListItem title="PHI values redacted" meta="Operational log avoids raw PHI payloads" /><ListItem title="Sensitive actions tracked" meta="Documents, signatures, phase changes, and admin events" /></div>
+            </RightRailCard>
           </>
         }
       />
-    </AppPageShell>
+    </ModulePage>
   );
 }
