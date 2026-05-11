@@ -1,18 +1,28 @@
 import {
   AlertTriangle,
+  Bell,
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   Clock3,
   ChevronRight,
   FileCheck2,
+  FilePlus2,
   FileText,
+  FolderOpen,
+  History,
   Image as ImageIcon,
+  ListChecks,
+  MessageSquareText,
+  MoreVertical,
+  NotebookPen,
+  PenLine,
   Plus,
   Route,
   Printer,
   ShieldCheck,
   Upload,
+  UserRound,
   WalletCards
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -37,6 +47,7 @@ import {
   CompactTable,
   DonutSummary,
   FilterBar,
+  IconActionRow,
   MetricCard,
   MetricGrid,
   Pagination,
@@ -45,7 +56,6 @@ import {
   RailList,
   RightRailCard,
   RolePill,
-  Thumbnail,
   TruncateText,
   WorkflowStatusPill,
   WorkspaceButton
@@ -57,8 +67,7 @@ import {
   clinicalNotes,
   documentActivities,
   imagingGuidanceRows,
-  imagingRows,
-  requiredImageAssets
+  imagingRows
 } from "./workspace-tab-data";
 
 const carepathRowsPerPage = 8;
@@ -308,6 +317,128 @@ function imagingRecentUploadIcon(modality: string) {
   if (modality === "X-ray") return <ImageIcon className="h-4 w-4" aria-hidden="true" />;
   return <FileText className="h-4 w-4" aria-hidden="true" />;
 }
+
+const documentsRowsPerPage = 6;
+const notesRowsPerPage = 6;
+const auditRowsPerPage = 6;
+
+function displayDate(value?: string) {
+  if (!value) {
+    return "Pending";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value.replace("T", " ").replace("+08:00", "");
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(parsed);
+}
+
+function compactDocumentTitle(title: string) {
+  return title
+    .replace("Arthritis X-ray Mapping Note", "Arthritis Mapping Note")
+    .replace("AVS PCP Template", "PCP Communication")
+    .replace("OTV / Treatment Management Note", "Treatment Management Note")
+    .replace("IGSRT Isodose Curve Support", "Isodose Curve Support")
+    .replace("Final Audit Sign-Off", "Audit Sign-Off");
+}
+
+function compactCategoryLabel(category: string) {
+  const labels: Record<string, string> = {
+    CLINICAL_PHOTO: "Images",
+    CAREPATH: "Carepath",
+    PLANNING: "Planning",
+    PHYSICS: "Physics",
+    ON_TREATMENT: "Treatment",
+    AUDIT: "Audit"
+  };
+  return labels[category] ?? category.replaceAll("_", " ");
+}
+
+function compactDocStatusLabel(status: string, locked: boolean) {
+  if (locked) return "Locked";
+  const labels: Record<string, string> = {
+    READY_FOR_REVIEW: "Review",
+    PENDING_NEEDED: "Pending",
+    PENDING: "Pending",
+    SIGNED: "Signed",
+    UPLOADED: "Uploaded",
+    COMPLETED: "Signed"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function priorityTone(priority: Task["priority"]): "blue" | "green" | "orange" | "red" {
+  if (priority === "URGENT" || priority === "HIGH") return "red";
+  if (priority === "MEDIUM") return "orange";
+  if (priority === "LOW") return "blue";
+  return "green";
+}
+
+function priorityLabel(priority: Task["priority"]) {
+  return priority.charAt(0) + priority.slice(1).toLowerCase();
+}
+
+function taskStatusMeta(status: string) {
+  const labels: Record<string, string> = {
+    PENDING: "To Do",
+    IN_PROGRESS: "In Progress",
+    READY_FOR_REVIEW: "Review",
+    COMPLETED: "Completed"
+  };
+  return labels[status] ?? status.replaceAll("_", " ");
+}
+
+function compactTaskTitle(title: string) {
+  const replacements: Record<string, string> = {
+    "AVS / PCP communication": "PCP communication",
+    "Follow-up / assessment": "Follow-up assessment",
+    "OTV / treatment management note": "Treatment management note",
+    "Clinical photo - All margins": "Clinical photo margins",
+    "IGSRT fraction log approval": "Fraction log approval",
+    "Carepath pre-auth note": "Carepath preauth note"
+  };
+  return replacements[title] ?? title;
+}
+
+function notePreview(noteId: string, preview: string) {
+  const labels: Record<string, string> = {
+    "NOTE-1": "Reviewed weekly physics chart.",
+    "NOTE-2": "Patient stable. Continue protocol.",
+    "NOTE-3": "Simulation verified.",
+    "NOTE-4": "Task routed to Rad Onc.",
+    "NOTE-5": "Upcoming schedule discussed.",
+    "NOTE-6": "Authorization pending."
+  };
+  return labels[noteId] ?? preview;
+}
+
+function noteTone(category: string): "blue" | "green" | "orange" | "red" | "purple" | "slate" {
+  if (category === "Communication") return "red";
+  if (category === "Workflow") return "orange";
+  if (category === "Assessment") return "purple";
+  if (category === "Procedure") return "green";
+  if (category === "Administrative") return "slate";
+  return "blue";
+}
+
+const auditDisplayRows = [
+  { id: "AUD-PREAUTH", item: "Carepath Preauth", category: "Chart Prep", status: "COMPLETED", requirement: "Preauth note", cpt: "N/A", evidence: "Signed note", owner: "VA" },
+  { id: "AUD-SIM-ORDER", item: "Simulation Order", category: "Planning", status: "COMPLETED", requirement: "Order signed", cpt: "77436", evidence: "DOC-2401-SIM", owner: "Rad Onc" },
+  { id: "AUD-RX", item: "Treatment Prescription", category: "Planning", status: "SIGNED", requirement: "Prescription", cpt: "77300", evidence: "Signed Rx", owner: "Rad Onc" },
+  { id: "AUD-FRACTIONS", item: "Fractionation Log", category: "On Treatment", status: "COMPLETED", requirement: "Daily delivery", cpt: "77437", evidence: "Log complete", owner: "Therapist" },
+  { id: "AUD-PHYSICS", item: "Weekly Physics Check", category: "On Treatment", status: "SIGNED", requirement: "Weekly check", cpt: "77336", evidence: "Signed check", owner: "Physicist" },
+  { id: "AUD-MGMT", item: "Treatment Management", category: "On Treatment", status: "READY_FOR_REVIEW", requirement: "OTV every 5 fx", cpt: "77427", evidence: "Review pending", owner: "Rad Onc" },
+  { id: "AUD-SUMMARY", item: "Treatment Summary", category: "Post-TX", status: "PENDING", requirement: "Course summary", cpt: "N/A", evidence: "Pending", owner: "Rad Onc" },
+  { id: "AUD-BILLING", item: "Billing Evidence", category: "Billing", status: "READY_FOR_REVIEW", requirement: "Claim support", cpt: "77439", evidence: "Matched docs", owner: "Billing" },
+  { id: "AUD-FOLLOW", item: "Follow-up Scheduled", category: "Post-TX", status: "COMPLETED", requirement: "Follow-up plan", cpt: "99213", evidence: "Schedule", owner: "Admin" },
+  { id: "AUD-SIGNOFF", item: "Final Audit Sign", category: "Audit", status: "PENDING", requirement: "Final signature", cpt: "N/A", evidence: "Draft packet", owner: "Rad Onc" }
+];
 
 export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
   const [page, setPage] = useState(1);
@@ -962,44 +1093,79 @@ export function ImagingWorkspaceTab() {
 }
 
 export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstance[] }) {
+  const [page, setPage] = useState(1);
   const completed = documents.filter((doc) => doc.signedAt).length;
   const uploaded = documents.filter((doc) => doc.uploadedToEcwAt).length;
   const pending = documents.length - completed;
+  const totalPages = Math.max(1, Math.ceil(documents.length / documentsRowsPerPage));
+  const visibleDocuments = useMemo(
+    () => documents.slice((page - 1) * documentsRowsPerPage, page * documentsRowsPerPage),
+    [documents, page]
+  );
 
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div><h2 className="text-xl font-bold text-[#061A55]">Documents</h2><p className="mt-1 text-sm font-semibold text-[#3D5A80]">All documents, versions, signatures, and uploads organized by category.</p></div>
-          <WorkspaceButton variant="primary"><Upload className="h-4 w-4" /> Upload Document</WorkspaceButton>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Documents</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Documents, signatures, versions, and uploads.</p>
+          </div>
+          <WorkspaceButton variant="primary" size="compact"><Upload className="h-4 w-4" /> Upload Document</WorkspaceButton>
         </div>
         <MetricGrid>
-          <MetricCard label="Total Documents" value={86} detail="All time" tone="purple" icon={<FileText className="h-5 w-5" />} />
-          <MetricCard label="Ready for Review" value={12} detail="Require attention" tone="orange" icon={<Clock3 className="h-5 w-5" />} />
-          <MetricCard label="Pending Signatures" value={pending} detail="Awaiting signatures" tone="orange" icon={<FileCheck2 className="h-5 w-5" />} />
-          <MetricCard label="Completed" value={completed || 59} detail="Fully processed" tone="green" icon={<ShieldCheck className="h-5 w-5" />} />
-          <MetricCard label="Uploaded" value={uploaded} detail="eCW placeholders" tone="blue" icon={<Upload className="h-5 w-5" />} />
+          <MetricCard size="compact" label="Total Documents" value={86} detail="All time" tone="purple" icon={<FileText className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Ready for Review" value={12} detail="Needs review" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Pending Signatures" value={pending} detail="Awaiting signatures" tone="orange" icon={<FileCheck2 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Completed" value={completed || 59} detail="Fully processed" tone="green" icon={<ShieldCheck className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Uploaded" value={uploaded} detail="eCW" tone="blue" icon={<Upload className="h-4 w-4" />} />
         </MetricGrid>
       </section>
-      <FilterBar searchPlaceholder="Search documents..." filters={["All Categories", "All Status", "All Phases", "All Uploaders", "All Date Range"]} />
-      <CompactTable
-        minWidth="1260px"
-        columns={[{ header: "Document" }, { header: "Category" }, { header: "Phase" }, { header: "Status" }, { header: "Version" }, { header: "Updated" }, { header: "Signature" }, { header: "eCW Upload" }, { header: "Action" }]}
-        rows={documents.map((doc) => ({
-          id: doc.id,
-          cells: [
-            <div key="doc"><p className="font-bold">{doc.title}</p><p className="mt-1 text-xs font-semibold text-[#3D5A80]">{doc.id}</p></div>,
-            <Pill key="cat" tone="blue">{doc.category.replaceAll("_", " ")}</Pill>,
-            doc.category.replaceAll("_", " "),
-            <WorkflowStatusPill key="status" status={doc.lockedAt ? "LOCKED" : doc.status} />,
-            `v${doc.version}.0`,
-            doc.generatedAt ?? "Pending",
-            doc.signedAt ? "Signed" : "Pending signature",
-            doc.uploadedToEcwAt ? "Uploaded" : "Needs upload",
-            <ActionCell key="action" />
-          ]
-        }))}
-      />
+      <FilterBar searchPlaceholder="Search documents..." filters={["Category", "Status", "Phase", "Uploader", "Date"]} />
+      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <CompactFixedTable
+          columns={[
+            { header: "Document", width: "28%" },
+            { header: "Category", width: "12%" },
+            { header: "Phase", width: "11%" },
+            { header: "Status", width: "12%" },
+            { header: "Version", width: "8%" },
+            { header: "Updated", width: "12%" },
+            { header: "Readiness", width: "11%" },
+            { header: "Actions", width: "6%" }
+          ]}
+          rows={visibleDocuments.map((doc) => ({
+            id: doc.id,
+            cells: [
+              <div key="doc" className="flex min-w-0 items-center gap-2">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <TruncateText className="font-bold" title={doc.title}>{compactDocumentTitle(doc.title)}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={doc.id}>{doc.id}</TruncateText>
+                </div>
+              </div>,
+              <Pill key="cat" tone="blue" size="compact">{compactCategoryLabel(doc.category)}</Pill>,
+              <Pill key="phase" tone="green" size="compact">On Treatment</Pill>,
+              <WorkflowStatusPill key="status" status={doc.lockedAt ? "LOCKED" : doc.status} size="compact" label={compactDocStatusLabel(doc.status, Boolean(doc.lockedAt))} />,
+              <span key="version" className="font-bold">{`v${doc.version}.0`}</span>,
+              <TruncateText key="updated" title={doc.generatedAt ?? undefined}>{displayDate(doc.generatedAt)}</TruncateText>,
+              <div key="ready" className="flex min-w-0 flex-col gap-1">
+                <Pill tone={doc.signedAt ? "green" : "orange"} size="compact">{doc.signedAt ? "Signed" : "Signature"}</Pill>
+                <Pill tone={doc.uploadedToEcwAt ? "green" : "blue"} size="compact">{doc.uploadedToEcwAt ? "eCW" : "Upload"}</Pill>
+              </div>,
+              <ActionCell key="action" />
+            ]
+          }))}
+        />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+          onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+        />
+      </section>
     </div>
   );
 }
@@ -1016,41 +1182,61 @@ export function TasksWorkspaceTab({ tasks }: { tasks: Task[] }) {
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div><h2 className="text-xl font-bold text-[#061A55]">Tasks</h2><p className="mt-1 text-sm font-semibold text-[#3D5A80]">Manage patient and course tasks, follow-ups, and action items.</p></div>
-          <WorkspaceButton variant="primary"><Plus className="h-4 w-4" /> Add Task</WorkspaceButton>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Tasks</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Patient course tasks and follow-ups.</p>
+          </div>
+          <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> Add Task</WorkspaceButton>
         </div>
-        <FilterBar searchPlaceholder="Search tasks..." filters={["Assigned to: All", "Priority: All", "Status: All", "Task Type: All", "Due: All"]} />
+        <FilterBar searchPlaceholder="Search tasks..." filters={["Assignee", "Priority", "Status", "Type", "Due"]} />
       </section>
       <section className="grid gap-3 xl:grid-cols-4">
         {columns.map((column) => {
-          const columnTasks = tasks.filter((task) => column.status === "COMPLETED" ? task.completedAt || task.status === "COMPLETED" : task.status === column.status).slice(0, 4);
-          const fallback = columnTasks.length ? columnTasks : tasks.slice(0, 3);
+          const columnTasks = tasks
+            .filter((task) => column.status === "COMPLETED" ? task.completedAt || task.status === "COMPLETED" : task.status === column.status)
+            .slice(0, 3);
           return (
             <div key={column.label} className="rounded-2xl border border-[#D8E4F5] bg-[#F8FBFF] p-3 shadow-[0_8px_24px_rgba(0,51,160,0.04)]">
               <div className="mb-3 flex items-center justify-between">
-                <Pill tone={column.tone}>{column.label}</Pill>
-                <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-[#061A55]">{fallback.length}</span>
+                <Pill tone={column.tone} size="compact">{column.label}</Pill>
+                <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-[#061A55]">{columnTasks.length}</span>
               </div>
-              <div className="space-y-3">
-                {fallback.map((task) => (
+              <div className="space-y-2.5">
+                {columnTasks.length ? columnTasks.map((task) => (
                   <div key={`${column.label}-${task.id}`} className="rounded-xl border border-[#D8E4F5] bg-white p-3">
-                    <div className="flex items-start justify-between gap-2"><p className="text-sm font-bold text-[#061A55]">{task.title}</p><Pill tone={task.priority === "URGENT" || task.priority === "HIGH" ? "red" : task.priority === "MEDIUM" ? "orange" : "blue"}>{task.priority}</Pill></div>
-                    <p className="mt-2 text-xs font-semibold text-[#3D5A80]">Course 2401 · {task.status.replaceAll("_", " ")}</p>
-                    <p className="mt-3 text-xs font-bold text-[#3D5A80]">Due {task.dueDate ?? "Next workflow step"}</p>
-                    <p className="mt-1 text-xs font-semibold text-[#3D5A80]">{task.assignedUserId ?? task.assignedRole}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <TruncateText className="text-[13px] font-bold text-[#061A55]" title={task.title}>{compactTaskTitle(task.title)}</TruncateText>
+                      <Pill tone={priorityTone(task.priority)} size="compact">{priorityLabel(task.priority)}</Pill>
+                    </div>
+                    <p className="mt-1 truncate text-[11px] font-semibold text-[#3D5A80]">Course 2401 · {taskStatusMeta(task.status)}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold text-[#3D5A80]">
+                      <span className="inline-flex min-w-0 items-center gap-1 truncate">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span className="truncate">Due {task.dueDate ?? "Next step"}</span>
+                      </span>
+                      <MoreVertical className="h-4 w-4 shrink-0 text-[#0033A0]" aria-hidden="true" />
+                    </div>
+                    <p className="mt-1 flex items-center gap-1 truncate text-[11px] font-semibold text-[#3D5A80]">
+                      <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span className="truncate">{task.assignedUserId ?? shortRoleLabels[task.assignedRole] ?? task.assignedRole}</span>
+                    </p>
                   </div>
-                ))}
+                )) : (
+                  <div className="rounded-xl border border-dashed border-[#D8E4F5] bg-white p-3 text-center text-xs font-bold text-[#3D5A80]">
+                    No tasks
+                  </div>
+                )}
               </div>
-              <WorkspaceButton variant="ghost" className="mt-3 w-full"><Plus className="h-4 w-4" /> Add Task</WorkspaceButton>
+              <WorkspaceButton variant="ghost" size="compact" className="mt-3 w-full"><Plus className="h-3.5 w-3.5" /> Add Task</WorkspaceButton>
             </div>
           );
         })}
       </section>
       <MetricGrid columns="xl:grid-cols-4">
-        <MetricCard label="Overdue" value={2} detail="Tasks past due" tone="red" icon={<AlertTriangle className="h-5 w-5" />} />
-        <MetricCard label="Due Today" value={1} detail="Due within 24 hours" tone="orange" icon={<CalendarDays className="h-5 w-5" />} />
-        <MetricCard label="Due This Week" value={7} detail="Due within 7 days" tone="blue" icon={<CalendarDays className="h-5 w-5" />} />
-        <MetricCard label="Average Completion" value="86%" detail="This course" tone="green" icon={<CheckCircle2 className="h-5 w-5" />} />
+        <MetricCard size="compact" label="Overdue" value={2} detail="Tasks past due" tone="red" icon={<AlertTriangle className="h-4 w-4" />} />
+        <MetricCard size="compact" label="Due Today" value={1} detail="Due within 24 hours" tone="orange" icon={<CalendarDays className="h-4 w-4" />} />
+        <MetricCard size="compact" label="Due This Week" value={7} detail="Due within 7 days" tone="blue" icon={<CalendarDays className="h-4 w-4" />} />
+        <MetricCard size="compact" label="Completion" value="86%" detail="This course" tone="green" icon={<CheckCircle2 className="h-4 w-4" />} />
       </MetricGrid>
     </div>
   );
@@ -1107,39 +1293,73 @@ export function BillingWorkspaceTab() {
 }
 
 export function NotesWorkspaceTab() {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(clinicalNotes.length / notesRowsPerPage));
+  const visibleNotes = useMemo(
+    () => clinicalNotes.slice((page - 1) * notesRowsPerPage, page * notesRowsPerPage),
+    [page]
+  );
+
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div><h2 className="text-xl font-bold text-[#061A55]">Clinical Notes</h2><p className="mt-1 text-sm font-semibold text-[#3D5A80]">Patient notes and communications across the care continuum.</p></div>
-          <WorkspaceButton variant="primary"><Plus className="h-4 w-4" /> Add Note</WorkspaceButton>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Clinical Notes</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Patient notes and care communication.</p>
+          </div>
+          <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> Add Note</WorkspaceButton>
         </div>
-        <FilterBar searchPlaceholder="Search notes..." filters={["Note Type: All", "Author: All", "Date Range: All"]} />
+        <FilterBar searchPlaceholder="Search notes..." filters={["Type", "Author", "Date"]} />
       </section>
       <section className="grid gap-4 xl:grid-cols-[1fr_340px]">
-        <CompactTable
-          minWidth="980px"
-          columns={[{ header: "Note / Subject" }, { header: "Type" }, { header: "Author" }, { header: "Date / Time" }, { header: "Visibility" }, { header: "Source" }, { header: "Actions" }]}
-          rows={clinicalNotes.map((note) => ({
-            id: note.id,
-            cells: [
-              <div key="note"><p className="font-bold">{note.title}</p><p className="mt-1 max-w-md text-xs font-semibold text-[#3D5A80]">{note.preview}</p></div>,
-              <Pill key="cat" tone={note.category === "Communication" ? "red" : note.category === "Workflow" ? "orange" : "blue"}>{note.category}</Pill>,
-              <div key="author"><p>{note.author}</p><p className="text-xs font-semibold text-[#3D5A80]">{note.role}</p></div>,
-              note.timestamp,
-              <Pill key="visibility" tone={note.visibility === "Billing" ? "purple" : "green"}>{note.visibility}</Pill>,
-              note.source,
-              <ActionCell key="action" />
-            ]
-          }))}
-        />
+        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+          <CompactFixedTable
+            columns={[
+              { header: "Note", width: "34%" },
+              { header: "Type", width: "13%" },
+              { header: "Author", width: "18%" },
+              { header: "Date", width: "17%" },
+              { header: "Visibility", width: "12%" },
+              { header: "Actions", width: "6%" }
+            ]}
+            rows={visibleNotes.map((note) => ({
+              id: note.id,
+              cells: [
+                <div key="note" className="flex min-w-0 items-center gap-2">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                    <MessageSquareText className="h-3.5 w-3.5" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <TruncateText className="font-bold" title={note.title}>{note.title}</TruncateText>
+                    <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={note.preview}>{notePreview(note.id, note.preview)}</TruncateText>
+                  </div>
+                </div>,
+                <Pill key="cat" tone={noteTone(note.category)} size="compact">{note.category}</Pill>,
+                <div key="author" className="min-w-0">
+                  <TruncateText title={note.author}>{note.author}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={note.role}>{note.role}</TruncateText>
+                </div>,
+                <TruncateText key="date" title={note.timestamp}>{note.timestamp.replace(" 2026 ", ", ")}</TruncateText>,
+                <Pill key="visibility" tone={note.visibility === "Billing" ? "purple" : "green"} size="compact">{note.visibility}</Pill>,
+                <ActionCell key="action" />
+              ]
+            }))}
+          />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+            onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+          />
+        </div>
         <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
           <h3 className="text-lg font-bold text-[#061A55]">Note Composer</h3>
-          <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] p-3 text-sm font-bold text-[#061A55]">Category: Clinical</div>
-            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] p-3 text-sm font-bold text-[#061A55]">Visibility: Care Team</div>
-            <div className="min-h-28 rounded-xl border border-[#D8E4F5] bg-white p-3 text-sm font-semibold text-[#3D5A80]">Write a PHI-safe placeholder note...</div>
-            <WorkspaceButton variant="primary" className="w-full">Save Note Draft</WorkspaceButton>
+          <div className="mt-3 space-y-2.5">
+            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-[13px] font-bold text-[#061A55]">Category: Clinical</div>
+            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-[13px] font-bold text-[#061A55]">Visibility: Care Team</div>
+            <div className="min-h-24 rounded-xl border border-[#D8E4F5] bg-white p-3 text-[13px] font-semibold text-[#3D5A80]">Write a PHI-safe placeholder note...</div>
+            <WorkspaceButton variant="primary" size="compact" className="w-full">Save Draft</WorkspaceButton>
           </div>
         </div>
       </section>
@@ -1148,49 +1368,80 @@ export function NotesWorkspaceTab() {
 }
 
 export function AuditWorkspaceTab({ checks, readiness }: { checks: AuditCheck[]; events: AuditEvent[]; readiness: number }) {
+  const [page, setPage] = useState(1);
   const complete = checks.filter((check) => check.status === "COMPLETED").length;
   const missing = checks.filter((check) => ["BLOCKED", "OVERDUE", "PENDING"].includes(check.status)).length;
   const selected = auditDetails[0];
+  const readinessDetail = readiness >= 90 ? "Ready" : "Needs review";
+  const totalPages = Math.max(1, Math.ceil(auditDisplayRows.length / auditRowsPerPage));
+  const visibleAuditRows = useMemo(
+    () => auditDisplayRows.slice((page - 1) * auditRowsPerPage, page * auditRowsPerPage),
+    [page]
+  );
 
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div><h2 className="text-xl font-bold text-[#061A55]">Audit Dashboard</h2><p className="mt-1 text-sm font-semibold text-[#3D5A80]">Monitor documentation compliance and billing audit status for this patient’s course.</p></div>
-          <div className="flex flex-wrap gap-2"><WorkspaceButton>Run Audit Check</WorkspaceButton><WorkspaceButton variant="primary">Create Audit Report</WorkspaceButton></div>
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-[#061A55]">Audit Dashboard</h2>
+            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Course audit readiness and documentation status.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <WorkspaceButton size="compact"><Clock3 className="h-4 w-4" /> Run Audit Check</WorkspaceButton>
+            <WorkspaceButton variant="primary" size="compact"><FileCheck2 className="h-4 w-4" /> Create Audit Report</WorkspaceButton>
+          </div>
         </div>
         <MetricGrid>
-          <MetricCard label="Overall Audit" value={`${readiness}%`} detail="Excellent" tone="green" icon={<ShieldCheck className="h-5 w-5" />} />
-          <MetricCard label="Documents Complete" value={`${complete}/${checks.length}`} detail="Signed evidence" tone="green" icon={<FileCheck2 className="h-5 w-5" />} />
-          <MetricCard label="CPT Codes Validated" value="18/20" detail="90%" tone="blue" icon={<WalletCards className="h-5 w-5" />} />
-          <MetricCard label="Issues to Resolve" value={missing} detail="Minor" tone="orange" icon={<AlertTriangle className="h-5 w-5" />} />
-          <MetricCard label="Ready for Billing" value="Yes" detail="Major items complete" tone="green" icon={<CheckCircle2 className="h-5 w-5" />} />
+          <MetricCard size="compact" label="Overall Audit" value={`${readiness}%`} detail={readinessDetail} tone={readiness >= 90 ? "green" : "orange"} icon={<ShieldCheck className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Documents" value={`${complete}/${checks.length}`} detail="Signed evidence" tone="green" icon={<FileCheck2 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="CPT Codes" value="18/20" detail="90%" tone="blue" icon={<WalletCards className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Issues" value={missing} detail={missing ? "Needs review" : "Clear"} tone={missing ? "orange" : "green"} icon={<AlertTriangle className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Ready for Billing" value={missing <= 2 ? "Yes" : "No"} detail="Major items" tone={missing <= 2 ? "green" : "orange"} icon={<CheckCircle2 className="h-4 w-4" />} />
         </MetricGrid>
       </section>
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <CompactTable
-          minWidth="1120px"
-          columns={[{ header: "Document / Item" }, { header: "Status" }, { header: "Requirement" }, { header: "CPT Code(s)" }, { header: "Evidence" }, { header: "Last Updated" }, { header: "Actions" }]}
-          rows={checks.map((check, index) => ({
-            id: check.id,
-            cells: [
-              <div key="item"><p className="font-bold">{index + 1}. {check.label}</p><p className="mt-1 text-xs font-semibold text-[#3D5A80]">{check.category}</p></div>,
-              <WorkflowStatusPill key="status" status={check.status} />,
-              check.required ? "Required" : "Optional",
-              index % 3 === 0 ? "99213" : index % 3 === 1 ? "77439" : "N/A",
-              check.evidenceDocumentId ?? "Evidence pending",
-              check.completedAt ?? "Apr 26, 2026",
-              <ActionCell key="action" />
-            ]
-          }))}
-        />
+        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+          <CompactFixedTable
+            columns={[
+              { header: "Item", width: "26%" },
+              { header: "Status", width: "13%" },
+              { header: "Requirement", width: "17%" },
+              { header: "CPT", width: "10%" },
+              { header: "Evidence", width: "15%" },
+              { header: "Owner", width: "12%" },
+              { header: "Action", width: "7%" }
+            ]}
+            rows={visibleAuditRows.map((row, index) => ({
+              id: row.id,
+              cells: [
+                <div key="item" className="min-w-0">
+                  <TruncateText className="font-bold" title={row.item}>{(page - 1) * auditRowsPerPage + index + 1}. {row.item}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={row.category}>{row.category}</TruncateText>
+                </div>,
+                <WorkflowStatusPill key="status" status={row.status} size="compact" label={compactDocStatusLabel(row.status, false)} />,
+                <TruncateText key="req" title={row.requirement}>{row.requirement}</TruncateText>,
+                <TruncateText key="cpt" title={row.cpt}>{row.cpt}</TruncateText>,
+                <TruncateText key="evidence" title={row.evidence}>{row.evidence}</TruncateText>,
+                <TruncateText key="owner" title={row.owner}>{row.owner}</TruncateText>,
+                <ActionCell key="action" />
+              ]
+            }))}
+          />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+            onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+          />
+        </div>
         <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">{selected.title}</h3>
-          <div className="mt-4 space-y-4">
-            <div><p className="text-xs font-bold uppercase text-[#3D5A80]">Completion Steps</p><div className="mt-2 space-y-2">{selected.steps.map((step) => <CheckLine key={step} state="info">{step}</CheckLine>)}</div></div>
-            <div><p className="text-xs font-bold uppercase text-[#3D5A80]">Required Evidence</p><div className="mt-2 flex flex-wrap gap-2">{selected.evidence.map((item) => <Pill key={item} tone="blue">{item}</Pill>)}</div></div>
-            <div><p className="text-xs font-bold uppercase text-[#3D5A80]">Billing Codes</p><div className="mt-2 flex flex-wrap gap-2">{selected.codes.map((code) => <Pill key={code} tone="orange">{code}</Pill>)}</div></div>
-            <div><p className="text-xs font-bold uppercase text-[#3D5A80]">Responsible Parties</p><div className="mt-2 flex flex-wrap gap-2">{selected.parties.map((party) => <RolePill key={party} role={party} />)}</div></div>
+          <h3 className="text-lg font-bold text-[#061A55]">Treatment Management</h3>
+          <div className="mt-3 space-y-3">
+            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Completion Steps</p><div className="mt-2 space-y-1.5">{selected.steps.slice(0, 3).map((step) => <CheckLine key={step} state="info">{step}</CheckLine>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Evidence</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.evidence.map((item) => <Pill key={item} tone="blue" size="compact">{item}</Pill>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Billing Codes</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.codes.map((code) => <Pill key={code} tone="orange" size="compact">{code}</Pill>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Responsible Parties</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.parties.map((party) => <RolePill key={party} role={party} size="compact" />)}</div></div>
           </div>
         </div>
       </section>
@@ -1473,9 +1724,50 @@ export function WorkspaceTabRail({
   if (activeTab === "documents") {
     return (
       <>
-        <DonutSummary label="Document Storage" value={46} center="4.6" segments={[{ label: "PDF Documents", value: 46, tone: "red" }, { label: "Images / Photos", value: 28, tone: "purple" }, { label: "Word Documents", value: 17, tone: "blue" }, { label: "Other Files", value: 9, tone: "orange" }]} />
-        <RailPanel title="Recent Activity"><RailList items={documentActivities.map((item) => ({ title: item.title, meta: `${item.detail} · ${item.time}` }))} /></RailPanel>
-        <RailPanel title="Quick Actions"><RailList items={["Upload Document", "Create from Template", "Request Signature", "Document Checklist", "Scan & Upload"].map((title) => ({ title }))} /></RailPanel>
+        <DonutSummary
+          label="Document Storage"
+          value={86}
+          centerLabel="86"
+          centerSubtitle="documents"
+          centerLabelClassName="text-[28px]"
+          centerSubtitleClassName="max-w-20 text-[10px]"
+          segments={[
+            { label: "PDF", value: 46, tone: "red" },
+            { label: "Images", value: 28, tone: "purple" },
+            { label: "Word", value: 17, tone: "blue" },
+            { label: "Other", value: 9, tone: "orange" }
+          ]}
+        />
+        <RightRailCard
+          title="Recent Activity"
+          icon={<History className="h-4 w-4" aria-hidden="true" />}
+          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+        >
+          <div className="space-y-2.5">
+            {documentActivities.map((item) => (
+              <IconActionRow
+                key={item.id}
+                title={item.title.replace("OTV / Treatment Management Note", "Treatment Management Note")}
+                meta={`${compactDocumentTitle(item.detail)} · ${item.time}`}
+                icon={item.status === "SIGNED" ? <FileCheck2 className="h-4 w-4" aria-hidden="true" /> : <FileText className="h-4 w-4" aria-hidden="true" />}
+                badge={<WorkflowStatusPill status={item.status} size="compact" label={compactDocStatusLabel(item.status, false)} />}
+              />
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<FolderOpen className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Upload Document", icon: <Upload className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Create from Template", icon: <FilePlus2 className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Request Signature", icon: <PenLine className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Document Checklist", icon: <ListChecks className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Scan Upload", icon: <Upload className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <IconActionRow key={action.title} title={action.title} icon={action.icon} />
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }
@@ -1483,9 +1775,50 @@ export function WorkspaceTabRail({
   if (activeTab === "tasks") {
     return (
       <>
-        <DonutSummary label="Tasks Overview" value={41} center="29" segments={[{ label: "To Do", value: 7, tone: "slate" }, { label: "In Progress", value: 6, tone: "orange" }, { label: "Review", value: 4, tone: "blue" }, { label: "Completed", value: 12, tone: "green" }]} />
-        <RailPanel title="Upcoming Due"><RailList items={tasks.slice(0, 3).map((task) => ({ title: task.title, meta: `${task.dueDate ?? "Due soon"} · ${task.assignedUserId ?? task.assignedRole}`, badge: <Pill tone={task.priority === "HIGH" || task.priority === "URGENT" ? "red" : "orange"}>{task.priority}</Pill> }))} /></RailPanel>
-        <RailPanel title="Quick Actions"><RailList items={["Create Task", "Task Templates", "Task Checklist", "My Tasks", "Task Report"].map((title) => ({ title }))} /></RailPanel>
+        <DonutSummary
+          label="Tasks Overview"
+          value={41}
+          centerLabel="29"
+          centerSubtitle="total tasks"
+          centerLabelClassName="text-[28px]"
+          centerSubtitleClassName="max-w-20 text-[10px]"
+          segments={[
+            { label: "To Do", value: 7, tone: "slate" },
+            { label: "In Progress", value: 6, tone: "orange" },
+            { label: "Review", value: 4, tone: "blue" },
+            { label: "Completed", value: 12, tone: "green" }
+          ]}
+        />
+        <RightRailCard
+          title="Upcoming Due"
+          icon={<Bell className="h-4 w-4" aria-hidden="true" />}
+          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+        >
+          <div className="space-y-2.5">
+            {tasks.slice(0, 3).map((task) => (
+              <IconActionRow
+                key={task.id}
+                title={compactTaskTitle(task.title)}
+                meta={`${task.dueDate ?? "Due soon"} · ${task.assignedUserId ?? shortRoleLabels[task.assignedRole] ?? task.assignedRole}`}
+                icon={<ClipboardCheck className="h-4 w-4" aria-hidden="true" />}
+                badge={<Pill tone={priorityTone(task.priority)} size="compact">{priorityLabel(task.priority)}</Pill>}
+              />
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<ListChecks className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Create Task", icon: <Plus className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Task Templates", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Task Checklist", icon: <ListChecks className="h-4 w-4" aria-hidden="true" /> },
+              { title: "My Tasks", icon: <UserRound className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Task Report", icon: <ClipboardCheck className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <IconActionRow key={action.title} title={action.title} icon={action.icon} />
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }
@@ -1503,9 +1836,47 @@ export function WorkspaceTabRail({
   if (activeTab === "notes") {
     return (
       <>
-        <RailPanel title="Note Categories"><RailList items={["Clinical", "Assessment", "Procedure", "Communication", "Workflow", "Intake", "Administrative"].map((title, index) => ({ title, meta: `${12 - index} notes` }))} /></RailPanel>
-        <RailPanel title="Recent Notes"><RailList items={clinicalNotes.slice(0, 5).map((note) => ({ title: note.title, meta: note.timestamp, badge: <Pill tone="blue">{note.category}</Pill> }))} /></RailPanel>
-        <RailPanel title="Quick Actions"><RailList items={[{ title: "Add Clinical Note" }, { title: "Add Administrative Note" }]} /></RailPanel>
+        <RightRailCard title="Note Categories" icon={<NotebookPen className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {["Clinical", "Assessment", "Procedure", "Communication", "Workflow", "Intake", "Administrative"].map((title, index) => (
+              <IconActionRow
+                key={title}
+                title={title}
+                icon={<MessageSquareText className="h-4 w-4" aria-hidden="true" />}
+                badge={<span className="rounded-full bg-[#EAF1FF] px-2 py-1 text-[11px] font-bold text-[#0033A0]">{[12, 6, 4, 3, 3, 2, 2][index]}</span>}
+              />
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard
+          title="Recent Notes"
+          icon={<Clock3 className="h-4 w-4" aria-hidden="true" />}
+          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+        >
+          <div className="space-y-2.5">
+            {clinicalNotes.slice(0, 5).map((note) => (
+              <IconActionRow
+                key={note.id}
+                title={note.title}
+                meta={note.timestamp}
+                icon={<MessageSquareText className="h-4 w-4" aria-hidden="true" />}
+                badge={<Pill tone={noteTone(note.category)} size="compact">{note.category}</Pill>}
+              />
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Quick Actions" icon={<Plus className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Add Clinical Note", icon: <Plus className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Add Administrative Note", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Add Workflow Note", icon: <Route className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Export Notes", icon: <Upload className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <IconActionRow key={action.title} title={action.title} icon={action.icon} />
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }
@@ -1513,9 +1884,47 @@ export function WorkspaceTabRail({
   if (activeTab === "audit") {
     return (
       <>
-        <DonutSummary label="Audit Status Summary" value={readiness} center={`${checks.length}`} segments={[{ label: "Complete", value: 24, tone: "green" }, { label: "Pending", value: 1, tone: "orange" }, { label: "Incomplete", value: 1, tone: "red" }]} />
-        <RailPanel title="Recent Audit Activity"><RailList items={[{ title: "Audit check completed", meta: "May 5, 2026 · System" }, { title: "Daily treatment records verified", meta: "May 5, 2026 · Mika Alvarez" }, { title: "Missing Mgmt note flagged", meta: "May 4, 2026 · System", tone: "orange" }, { title: "Billing claim review pending", meta: "May 4, 2026 · Billing Team" }]} /></RailPanel>
-        <RailPanel title="Audit Actions"><RailList items={["Run Full Audit Check", "Generate Audit Report (PDF)", "View Audit History", "Add Audit Note"].map((title) => ({ title }))} /></RailPanel>
+        <DonutSummary
+          label="Audit Status Summary"
+          value={readiness}
+          centerLabel={`${readiness}%`}
+          centerSubtitle="ready"
+          centerLabelClassName="text-[28px]"
+          centerSubtitleClassName="max-w-20 text-[10px]"
+          segments={[
+            { label: "Complete", value: 24, tone: "green" },
+            { label: "Pending", value: 1, tone: "orange" },
+            { label: "Incomplete", value: 1, tone: "red" }
+          ]}
+        />
+        <RightRailCard
+          title="Recent Audit Activity"
+          icon={<History className="h-4 w-4" aria-hidden="true" />}
+          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+        >
+          <div className="space-y-2.5">
+            {[
+              { title: "Audit check completed", meta: "May 5, 2026 · System", badge: <Pill tone="green" size="compact">Summary</Pill>, icon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Daily records verified", meta: "May 5, 2026 · Mika Alvarez", badge: <Pill tone="blue" size="compact">Clinical</Pill>, icon: <FileCheck2 className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Mgmt note flagged", meta: "May 4, 2026 · System", badge: <Pill tone="orange" size="compact">Flagged</Pill>, icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Billing claim review pending", meta: "May 4, 2026 · Billing Team", badge: <Pill tone="purple" size="compact">Billing</Pill>, icon: <Clock3 className="h-4 w-4" aria-hidden="true" /> }
+            ].map((item) => (
+              <IconActionRow key={item.title} title={item.title} meta={item.meta} icon={item.icon} badge={item.badge} />
+            ))}
+          </div>
+        </RightRailCard>
+        <RightRailCard title="Audit Actions" icon={<ShieldCheck className="h-4 w-4" aria-hidden="true" />}>
+          <div className="space-y-2">
+            {[
+              { title: "Run Full Audit Check", icon: <Clock3 className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Generate Report", icon: <FileCheck2 className="h-4 w-4" aria-hidden="true" /> },
+              { title: "View History", icon: <History className="h-4 w-4" aria-hidden="true" /> },
+              { title: "Add Audit Note", icon: <Plus className="h-4 w-4" aria-hidden="true" /> }
+            ].map((action) => (
+              <IconActionRow key={action.title} title={action.title} icon={action.icon} />
+            ))}
+          </div>
+        </RightRailCard>
       </>
     );
   }

@@ -362,6 +362,46 @@ export function ActionCell() {
   );
 }
 
+export function IconActionRow({
+  title,
+  meta,
+  icon,
+  badge,
+  className
+}: {
+  title: string;
+  meta?: string;
+  icon: ReactNode;
+  badge?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 py-2.5 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10",
+        className
+      )}
+    >
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <TruncateText className="text-[13px] font-bold text-[#061A55]" title={title}>
+          {title}
+        </TruncateText>
+        {meta ? (
+          <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={meta}>
+            {meta}
+          </TruncateText>
+        ) : null}
+      </span>
+      {badge ? <span className="shrink-0">{badge}</span> : null}
+      <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+    </button>
+  );
+}
+
 export function RailList({ items }: { items: Array<{ title: string; meta?: string; badge?: ReactNode; tone?: Tone }> }) {
   return (
     <div className="space-y-2">
