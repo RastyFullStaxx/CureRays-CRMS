@@ -162,4 +162,4 @@ npm run build
 
 Use the existing frontend components and workflow helpers when extending the system. Prefer refactoring toward shared workflow definitions, document requirements, and registry-driven state instead of adding one-off pages for each template.
 
-When a workflow detail is unknown, represent it as configurable metadata or a visible unmapped state. Do not hardcode assumptions about missing templates, billing pre-auth, diagnosis-specific variations, or future Drive mappings.
+When a workflow detail is unknown, represent it as configurable metadata or a visible unmapped state. Do not hardcode assumptions about missing templates, billing pre-auth, diagnosis-specific variations, or future Drive mappings
