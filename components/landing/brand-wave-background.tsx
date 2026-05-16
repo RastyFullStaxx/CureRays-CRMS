@@ -1,10 +1,31 @@
 export function BrandWaveBackground() {
+  const layerBaseStyle = {
+    bottom: "-2px",
+    height: "47vh",
+    left: "-7vw",
+    minHeight: "260px",
+    position: "absolute",
+    width: "114vw"
+  } as const;
+
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-white" aria-hidden="true">
+    <div
+      className="brand-wave-background pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-white"
+      aria-hidden="true"
+      style={{
+        background: "#FFFFFF",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        position: "absolute",
+        zIndex: -1
+      }}
+    >
       <svg
         className="wave-layer wave-layer-blue"
         viewBox="0 0 1600 560"
         preserveAspectRatio="none"
+        style={{ ...layerBaseStyle, bottom: "-5vh" }}
       >
         <path
           d="M-80 410 C 170 250 365 505 600 356 C 840 204 1085 262 1320 182 C 1465 132 1560 118 1680 138 L1680 560 L-80 560 Z"
@@ -22,6 +43,7 @@ export function BrandWaveBackground() {
         className="wave-layer wave-layer-light"
         viewBox="0 0 1600 520"
         preserveAspectRatio="none"
+        style={{ ...layerBaseStyle, bottom: "-1vh" }}
       >
         <path
           d="M-90 394 C 135 270 324 300 530 382 C 765 474 980 410 1165 286 C 1340 170 1502 150 1690 190 L1690 520 L-90 520 Z"
@@ -39,6 +61,7 @@ export function BrandWaveBackground() {
         className="wave-layer wave-layer-orange"
         viewBox="0 0 1600 520"
         preserveAspectRatio="none"
+        style={{ ...layerBaseStyle, bottom: "1vh" }}
       >
         <path
           d="M-100 322 C 120 388 250 506 505 468 C 760 430 858 282 1118 340 C 1356 394 1456 456 1700 286 L1700 520 L-100 520 Z"
@@ -59,6 +82,7 @@ export function BrandWaveBackground() {
         className="wave-layer wave-layer-contours"
         viewBox="0 0 1600 620"
         preserveAspectRatio="none"
+        style={{ ...layerBaseStyle, bottom: "-3vh", height: "58vh", opacity: 0.9 }}
       >
         {Array.from({ length: 12 }).map((_, index) => (
           <path
@@ -72,7 +96,18 @@ export function BrandWaveBackground() {
         ))}
       </svg>
 
-      <div className="absolute right-[-14%] top-[18%] h-[56%] w-[48%] rounded-full border border-[#0033A0]/[0.05]" />
+      <div
+        className="absolute right-[-14%] top-[18%] h-[56%] w-[48%] rounded-full border border-[#0033A0]/[0.05]"
+        style={{
+          border: "1px solid rgba(0, 51, 160, 0.05)",
+          borderRadius: "9999px",
+          height: "56%",
+          position: "absolute",
+          right: "-14%",
+          top: "18%",
+          width: "48%"
+        }}
+      />
     </div>
   );
 }
