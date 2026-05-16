@@ -35,7 +35,7 @@ type NavGroup = {
 const navGroups: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }]
+    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
   },
   {
     label: "Patient Management",
@@ -87,10 +87,6 @@ const navGroups: NavGroup[] = [
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === "/" && pathname === "/dashboard") {
-    return true;
-  }
-
   if (href === "/workflow") {
     return pathname === "/workflow";
   }
@@ -107,7 +103,7 @@ function isActive(pathname: string, href: string) {
     return pathname === "/templates" || pathname === "/settings/templates" || pathname === "/workflow/templates";
   }
 
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function Sidebar({ pathname }: { pathname: string }) {
@@ -115,7 +111,7 @@ export function Sidebar({ pathname }: { pathname: string }) {
     <aside className="sticky top-0 z-30 max-h-screen overflow-hidden bg-[#0033A0] p-4 text-white shadow-[18px_0_50px_rgba(0,51,160,0.18)] xl:min-h-screen">
       <div className="flex h-full flex-col gap-6">
         <div className="rounded-lg bg-white px-4 py-5">
-          <Link href="/" className="block">
+          <Link href="/dashboard" className="block">
             <NextImage
               src="/System_Logo.svg"
               alt="CureRays"

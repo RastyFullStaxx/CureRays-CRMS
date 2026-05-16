@@ -8,6 +8,10 @@ import { Topbar } from "@/components/topbar";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
+  if (pathname === "/") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="grid min-h-screen xl:grid-cols-[292px_minmax(0,1fr)]">

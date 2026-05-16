@@ -116,6 +116,38 @@ input {
   border-radius: 999px;
 }
 
+.wave-layer {
+  bottom: -2px;
+  height: 47vh;
+  left: -7vw;
+  min-height: 260px;
+  position: absolute;
+  width: 114vw;
+  will-change: transform;
+}
+
+.wave-layer-blue {
+  animation: wave-drift-a 26s ease-in-out infinite alternate;
+  bottom: -5vh;
+}
+
+.wave-layer-light {
+  animation: wave-drift-b 32s ease-in-out infinite alternate;
+  bottom: -1vh;
+}
+
+.wave-layer-orange {
+  animation: wave-drift-c 22s ease-in-out infinite alternate;
+  bottom: 1vh;
+}
+
+.wave-layer-contours {
+  animation: wave-drift-d 30s ease-in-out infinite alternate;
+  bottom: -3vh;
+  height: 58vh;
+  opacity: 0.9;
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
@@ -140,6 +172,59 @@ input {
   }
 }
 
+@keyframes wave-drift-a {
+  from {
+    transform: translate3d(-2%, 1%, 0) scale(1.02);
+  }
+
+  to {
+    transform: translate3d(2%, -2%, 0) scale(1.045);
+  }
+}
+
+@keyframes wave-drift-b {
+  from {
+    transform: translate3d(2%, -1%, 0) scale(1.01);
+  }
+
+  to {
+    transform: translate3d(-2%, 1.5%, 0) scale(1.035);
+  }
+}
+
+@keyframes wave-drift-c {
+  from {
+    transform: translate3d(-1%, -1%, 0) scale(1.01);
+  }
+
+  to {
+    transform: translate3d(2.5%, 1%, 0) scale(1.03);
+  }
+}
+
+@keyframes wave-drift-d {
+  from {
+    transform: translate3d(1%, 0, 0) scale(1.01);
+  }
+
+  to {
+    transform: translate3d(-1.5%, -1%, 0) scale(1.02);
+  }
+}
+
+@media (max-width: 1023px) {
+  .wave-layer {
+    height: 38vh;
+    left: -18vw;
+    min-height: 220px;
+    width: 136vw;
+  }
+
+  .wave-layer-contours {
+    height: 44vh;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -151,7 +236,9 @@ input {
   }
 
   .page-transition,
-  .nav-item-active {
+  .nav-item-active,
+  .wave-layer {
     animation: none;
+    transform: none;
   }
 }
