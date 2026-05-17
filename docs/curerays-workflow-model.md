@@ -42,17 +42,17 @@ Items marked N/A must include a reason before the state is saved.
 0. Carepath Preauth
 1. Image Guidance Order
 2. Simulation Order
-3. Simulation Note
-4. Construct Treatment Device Note
-5. Clinical Treatment Planning Note
-6. Special Physics Consult Note
-7. Orthovoltage Radiation Prescription
+3. Simulation Note //removed
+4. Construct Treatment Device Note //removed
+5. Clinical Treatment Planning Note 
+6. Special Physics Consult Note //optional value
+7. Orthovoltage Radiation Prescription //remove Orthovoltage
 8. Fractionation Log
-9. Special Treatment Procedure
-10. OTV / Treatment Management Notes
-11. Weekly Physics Chart Check Note
-12. In-Vivo Dosimetry Note
+9. Special Treatment Procedure //Optional
+10. OTV / Treatment Management Notes //Removed
+11. Weekly Physics Chart Check Note //Removed
+12. In-Vivo Dosimetry Note //Removed, exists in ACW
 13. Treatment Summary
-14. Carepath Audit Note Sign
+14. Carepath Audit Note Sign 
 
 When a course is created, the app selects the correct workflow template by diagnosis/protocol, creates the applicable steps, assigns default roles, creates initial tasks, and creates or links the patient/course file folder placeholder.
