@@ -2,7 +2,7 @@
 
 CureRays Clinical Workflow System (CWS) is a centralized workflow and document tracking system for CureRays treatment operations
 
-The purpose of the system is to replace fragmented Google Drive files, worksheets, and manual reminders with one operational workspace that shows staff what is happening, what is done, what is missing, who owns the next action, and what needs review before a patient workflow can move forward.
+The purpose of the system is to replace fragmented Google Drive files, worksheets, and manual reminders with one operational workspace that shows staff what is happening, what is done, what is missing, who owns the next action, and what needs review before a patient workflow can move forward
 
 ## Persistent Product Documentation
 
