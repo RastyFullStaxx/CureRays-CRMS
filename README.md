@@ -13,6 +13,7 @@ The CureRays workflow context is stored in repo docs so future development sessi
 - [Page Plan](docs/curerays-page-plan.md)
 - [Data Model](docs/curerays-data-model.md)
 - [File Storage And Documents](docs/curerays-file-storage-and-documents.md)
+- [Drive Template Registry](docs/curerays-drive-template-registry.md)
 - [Automation Rules](docs/curerays-automation-rules.md)
 
 The current architecture is patient-course centered:
@@ -162,4 +163,4 @@ npm run build
 
 Use the existing frontend components and workflow helpers when extending the system. Prefer refactoring toward shared workflow definitions, document requirements, and registry-driven state instead of adding one-off pages for each template.
 
-When a workflow detail is unknown, represent it as configurable metadata or a visible unmapped state. Do not hardcode assumptions about missing templates, billing pre-auth, diagnosis-specific variations, or future Drive mappings
+When a workflow detail is unknown, represent it as configurable metadata or a visible unmapped state. Do not hardcode assumptions about missing templates, billing pre-auth, diagnosis-specific variations, or future Drive mappings.
