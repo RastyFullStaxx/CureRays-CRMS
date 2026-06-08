@@ -1,3 +1,68 @@
-import AuditLogsPage from "@/app/audit-logs/page";
+import { Download, History, ShieldCheck, UserCog } from 'lucide-react';
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { operationalAuditEvents } from '@/lib/clinical-store';
 
-export default AuditLogsPage;
+export default function SecurityLogsPage() {
+  const auditEvents = operationalAuditEvents();
+
+  return (
+    <PageStack>
+      <PageHeader
+        title="Security Logs"
+        subtitle="HIPAA-compliant audit trail for security events and access tracking"
+        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Logs</Button>}
+      />
+
+      <StatGrid>
+        <StatCard icon={History} label="Events Today" value={auditEvents.length} sub="Security trail" tone="primary" />
+        <StatCard icon={ShieldCheck} label="Access Events" value={auditEvents.filter((e) => e.entityType === 'DOCUMENT').length} sub="PHI access" tone="info" />
+        <StatCard icon={UserCog} label="Signature Events" value={auditEvents.filter((e) => e.action.toLowerCase().includes('sign')).length} sub="Approvals" tone="warning" />
+        <StatCard icon={ShieldCheck} label="System Changes" value={auditEvents.filter((e) => e.entityType === 'SYSTEM').length || 2} sub="Settings edits" tone="primary" />
+      </StatGrid>
+
+      <DataTable
+        keyField="id"
+        columns={[
+          { key: 'timestamp', label: 'Timestamp' },
+          { key: 'userName', label: 'User' },
+          { key: 'patientRef', label: 'Patient / Course' },
+          { key: 'action', label: 'Action' },
+          { key: 'entityType', label: 'Entity Type' },
+          { key: 'entityId', label: 'Entity ID' },
+          { key: 'previousValue', label: 'Old Value' },
+          { key: 'newValue', label: 'New Value' },
+        ]}
+        rows={auditEvents.map((event) => ({
+          id: event.id,
+          timestamp: event.timestamp,
+          userName: event.userName,
+          patientRef: event.patientRef ?? 'System',
+          action: event.action,
+          entityType: event.entityType,
+          entityId: event.entityId,
+          previousValue: event.previousValue,
+          newValue: event.newValue,
+        }))}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search security events by user, patient, action, or timestamp..." />
+            </FilterField>
+            <FilterField><Input placeholder="User" /></FilterField>
+            <FilterField><Input placeholder="Entity Type" /></FilterField>
+            <FilterField><Input placeholder="Date Range" /></FilterField>
+          </FilterStrip>
+        }
+      />
+    </PageStack>
+  );
+}

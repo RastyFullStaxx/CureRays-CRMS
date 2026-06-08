@@ -283,7 +283,7 @@ export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn
         <tbody className="divide-y divide-[#E7EEF8]">
           {rows.map((row) => (
             <tr key={row.id} className="bg-white transition hover:bg-[#F8FBFF]">
-              {row.cells.map((cell, index) => (
+              {(row.cells as React.ReactNode[]).map((cell: React.ReactNode, index: number) => (
                 <td key={`${row.id}-${index}`} className="min-w-0 px-2.5 py-2 align-middle text-[12px] font-semibold leading-5 text-[#061A55]">
                   {cell}
                 </td>

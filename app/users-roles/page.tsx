@@ -1,77 +1,167 @@
-import Link from "next/link";
-import { CheckCircle2, Eye, MinusCircle, PenLine, Plus, ShieldCheck, Upload, UserCog, UsersRound } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import { Badge, DonutChart, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, PrimaryButton, QuickActions, RightRailCard, RowActions, SecondaryButton, TabBar, WorkGrid } from "@/components/module-ui";
-import { adminRoles, adminUsers, permissionRoles, permissionRows } from "@/lib/global-page-data";
+import { useState } from 'react';
+import Link from 'next/link';
+import { Plus, UserCog, ShieldCheck, UsersRound } from 'lucide-react';
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { adminRoles, adminUsers, permissionRoles, permissionRows } from '@/lib/global-page-data';
 
 function AccessIcon({ level }: { level: string }) {
-  if (level === "full") return <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-600" />;
-  if (level === "edit") return <PenLine className="mx-auto h-4 w-4 text-[#FF6620]" />;
-  if (level === "view") return <Eye className="mx-auto h-4 w-4 text-[#0033A0]" />;
-  if (level === "none") return <MinusCircle className="mx-auto h-4 w-4 text-rose-600" />;
-  return <span className="block text-center text-[#7DA0CA]">-</span>;
+  if (level === 'full') return <Badge variant="success">Full</Badge>;
+  if (level === 'edit') return <Badge variant="info">Edit</Badge>;
+  if (level === 'view') return <Badge variant="default">View</Badge>;
+  if (level === 'none') return <Badge variant="error">None</Badge>;
+  return <span style={{ color: 'var(--color-text-muted)' }}>-</span>;
 }
 
 export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?: string } }) {
-  const active = searchParams?.tab === "roles" ? 1 : searchParams?.tab === "permissions" ? 2 : 0;
+  const active = searchParams?.tab === 'roles' ? 1 : searchParams?.tab === 'permissions' ? 2 : 0;
 
   return (
-    <ModulePage>
-      <ModuleActions>
-        <PrimaryButton><Plus className="h-4 w-4" />Invite User</PrimaryButton>
-      </ModuleActions>
-      <div className="rounded-lg border border-[#D8E4F5] bg-white">
-        <div className="flex items-center">
-          {["users", "roles", "permissions"].map((tab, index) => (
-            <Link key={tab} href={`/users-roles${tab === "users" ? "" : `?tab=${tab}`}`} className={`border-b-2 px-6 py-4 text-sm font-bold ${active === index ? "border-[#0033A0] text-[#0033A0]" : "border-transparent text-[#2B2F5F]"}`}>
-              {tab[0].toUpperCase() + tab.slice(1)}
-            </Link>
-          ))}
-        </div>
+    <PageStack>
+      <PageHeader
+        title="Users & Roles"
+        subtitle="Manage system users, role assignments, and permission matrices"
+        actions={<Button><Plus className="h-4 w-4" /> Invite User</Button>}
+      />
+
+      <div
+        className="flex items-center"
+        style={{
+          background: 'var(--color-card)',
+          border: 'var(--border-container)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-card)',
+        }}
+      >
+        {['users', 'roles', 'permissions'].map((tab, index) => (
+          <Link
+            key={tab}
+            href={`/users-roles${tab === 'users' ? '' : `?tab=${tab}`}`}
+            className="border-b-2 px-6 py-4 text-sm font-bold transition"
+            style={{
+              borderColor: active === index ? 'var(--color-primary)' : 'transparent',
+              color: active === index ? 'var(--color-primary)' : 'var(--color-text)',
+            }}
+          >
+            {tab[0].toUpperCase() + tab.slice(1)}
+          </Link>
+        ))}
       </div>
-      <FilterBar search={active === 2 ? "Search modules or permissions..." : "Search users by name, email, or role..."} filters={active === 2 ? ["Module", "Role", "Access Level"] : ["Role", "Status", "Location"]} actions={<SecondaryButton><Upload className="h-4 w-4" />Export</SecondaryButton>} />
-      {active === 0 ? (
-        <WorkGrid
-          main={
-            <DataTable
-              compact
-              minWidth="900px"
-              columns={[{ header: "User" }, { header: "Role" }, { header: "Location" }, { header: "Status" }, { header: "Last Login" }, { header: "MFA" }, { header: "Actions" }]}
-              footer={<Pagination label={`Showing 1 to ${adminUsers.length} of 32 users`} />}
-              rows={adminUsers.map((user) => ({ id: user.email, cells: [<div key="user"><p className="font-bold">{user.name}</p><p className="text-[11px] text-[#3D5A80]">{user.email}</p></div>, <Badge key="role" tone="purple">{user.role}</Badge>, user.location, <Badge key="status" tone={user.status === "Active" ? "green" : "amber"}>{user.status}</Badge>, user.lastLogin, user.mfa, <RowActions key="actions" />] }))}
-            />
-          }
-          rail={
-            <>
-              <RightRailCard title="User Summary">
-                <MetricGrid columns={4}><MetricTile label="Total Users" value={32} detail="System users" icon={UsersRound} /><MetricTile label="Active" value={26} detail="81%" icon={UserCog} tone="green" /><MetricTile label="Roles" value={adminRoles.length} detail="Defined" icon={ShieldCheck} tone="orange" /><MetricTile label="Locations" value={2} detail="Sites" icon={UsersRound} /></MetricGrid>
-              </RightRailCard>
-              <RightRailCard title="Users by Role">
-                <DonutChart total={32} label="total" segments={adminRoles.slice(0, 6).map((role, index) => ({ label: role.name, value: role.users, color: ["#7C3AED", "#2563EB", "#10B981", "#FF6620", "#F59E0B", "#3D5A80"][index] }))} />
-              </RightRailCard>
-              <RightRailCard title="Recent Activity"><div className="space-y-2">{adminUsers.slice(0, 4).map((user) => <ListItem key={user.email} title={`${user.name} updated`} meta={user.lastLogin} />)}</div></RightRailCard>
-            </>
-          }
-        />
-      ) : active === 1 ? (
-        <WorkGrid
-          main={<DataTable compact minWidth="880px" columns={[{ header: "Role Name" }, { header: "Description" }, { header: "Users" }, { header: "Status" }, { header: "Last Updated" }, { header: "Actions" }]} footer={<Pagination label={`Showing 1 to ${adminRoles.length} of ${adminRoles.length} roles`} />} rows={adminRoles.map((role) => ({ id: role.name, cells: [<span key="role" className="font-bold text-[#0033A0]">{role.name}</span>, <span key="desc" className="line-clamp-2">{role.description}</span>, role.users, <Badge key="status" tone="green">{role.status}</Badge>, role.updated, <RowActions key="actions" />] }))} />}
-          rail={<><RightRailCard title="Role Details"><ListItem title={adminRoles[0].name} meta={adminRoles[0].description} badge={<Badge tone="green">Active</Badge>} /></RightRailCard><RightRailCard title="Permissions Summary"><div className="space-y-2"><ListItem title="Clinical Forms" meta="Edit access" /><ListItem title="Documents" meta="Signature route access" /><ListItem title="Audit & QA" meta="View access" /></div></RightRailCard><RightRailCard title="Quick Actions"><QuickActions actions={[{ label: "Create Role", icon: <Plus className="h-4 w-4" /> }, { label: "Copy Role", icon: <UserCog className="h-4 w-4" /> }, { label: "Compare Roles", icon: <ShieldCheck className="h-4 w-4" /> }]} /></RightRailCard></>}
-        />
-      ) : (
-        <WorkGrid
-          main={
-            <DataTable
-              compact
-              minWidth="1120px"
-              columns={[{ header: "Module / Feature" }, { header: "Description" }, ...permissionRoles.map((role) => ({ header: role }))]}
-              rows={permissionRows.map((row) => ({ id: row.module, cells: [<span key="module" className="font-bold">{row.module}</span>, row.description, ...row.levels.map((level, index) => <AccessIcon key={`${row.module}-${index}`} level={level} />)] }))}
-              footer={<div className="flex flex-wrap gap-4 text-xs font-bold text-[#3D5A80]"><span>Access Levels:</span><span>Full Access</span><span>Edit</span><span>View Only</span><span>No Access</span><span>Not Applicable</span></div>}
-            />
-          }
-          rail={<><RightRailCard title="Permission Details"><ListItem title="Patient Management" meta="Access to patient demographic information and medical records" /></RightRailCard><RightRailCard title="Access Level Descriptions"><div className="space-y-2"><ListItem title="Full Access" meta="Create, read, update, delete and manage settings" /><ListItem title="Edit" meta="Create and update records" /><ListItem title="View Only" meta="Read and download information" /><ListItem title="No Access" meta="No permission" /></div></RightRailCard><RightRailCard title="Quick Actions"><QuickActions actions={[{ label: "Create New Role", icon: <Plus className="h-4 w-4" /> }, { label: "Copy Role", icon: <UserCog className="h-4 w-4" /> }, { label: "Permission Audit Log", icon: <ShieldCheck className="h-4 w-4" /> }]} /></RightRailCard></>}
-        />
+
+      {active === 0 && (
+        <>
+          <StatGrid>
+            <StatCard icon={UsersRound} label="Total Users" value={32} tone="primary" />
+            <StatCard icon={UsersRound} label="Active" value={26} sub="81%" tone="success" />
+            <StatCard icon={ShieldCheck} label="Roles" value={adminRoles.length} tone="warning" />
+            <StatCard icon={UserCog} label="Locations" value={2} />
+          </StatGrid>
+          <DataTable
+            keyField="email"
+            columns={[
+              { key: 'name', label: 'User' },
+              { key: 'role', label: 'Role' },
+              { key: 'location', label: 'Location' },
+              { key: 'status', label: 'Status' },
+              { key: 'lastLogin', label: 'Last Login' },
+              { key: 'mfa', label: 'MFA' },
+            ]}
+            rows={adminUsers.map((user) => ({
+              id: user.email,
+              name: user.name,
+              role: user.role,
+              location: user.location,
+              status: user.status,
+              lastLogin: user.lastLogin,
+              mfa: user.mfa,
+            }))}
+            toolbar={
+              <FilterStrip>
+                <FilterField grow>
+                  <Input placeholder="Search users by name, email, or role..." />
+                </FilterField>
+                <FilterField><Input placeholder="Role" /></FilterField>
+                <FilterField><Input placeholder="Status" /></FilterField>
+              </FilterStrip>
+            }
+          />
+        </>
       )}
-    </ModulePage>
+
+      {active === 1 && (
+        <>
+          <StatGrid>
+            <StatCard icon={ShieldCheck} label="Total Roles" value={adminRoles.length} tone="primary" />
+            <StatCard icon={ShieldCheck} label="Active Roles" value={adminRoles.filter((r) => r.status === 'Active').length} tone="success" />
+          </StatGrid>
+          <DataTable
+            keyField="name"
+            columns={[
+              { key: 'name', label: 'Role Name' },
+              { key: 'description', label: 'Description' },
+              { key: 'users', label: 'Users' },
+              { key: 'status', label: 'Status' },
+              { key: 'updated', label: 'Last Updated' },
+            ]}
+            rows={adminRoles.map((role) => ({
+              id: role.name,
+              name: role.name,
+              description: role.description,
+              users: role.users,
+              status: role.status,
+              updated: role.updated,
+            }))}
+            toolbar={
+              <FilterStrip>
+                <FilterField grow>
+                  <Input placeholder="Search roles..." />
+                </FilterField>
+              </FilterStrip>
+            }
+          />
+        </>
+      )}
+
+      {active === 2 && (
+        <>
+          <StatGrid>
+            <StatCard icon={ShieldCheck} label="Permission Modules" value={permissionRows.length} tone="primary" />
+            <StatCard icon={UserCog} label="Role Columns" value={permissionRoles.length} tone="info" />
+          </StatGrid>
+          <DataTable
+            keyField="module"
+            columns={[
+              { key: 'module', label: 'Module / Feature' },
+              { key: 'description', label: 'Description' },
+              ...permissionRoles.map((role) => ({ key: role, label: role })),
+            ]}
+            rows={permissionRows.map((row) => ({
+              id: row.module,
+              module: row.module,
+              description: row.description,
+              ...Object.fromEntries(permissionRoles.map((role, i) => [role, row.levels[i]])),
+            }))}
+            toolbar={
+              <FilterStrip>
+                <FilterField grow>
+                  <Input placeholder="Search modules or permissions..." />
+                </FilterField>
+                <FilterField><Input placeholder="Module" /></FilterField>
+                <FilterField><Input placeholder="Access Level" /></FilterField>
+              </FilterStrip>
+            }
+          />
+        </>
+      )}
+    </PageStack>
   );
 }

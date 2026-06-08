@@ -1,167 +1,74 @@
-import Link from "next/link";
-import { AlertTriangle, ArrowRight, LockKeyhole } from "lucide-react";
 import type {
   CarepathTask,
+  ChartRoundsPhase,
   FractionLogEntry,
   GeneratedDocument,
   OperationalPatient,
   OperationalTreatmentCourse,
   Patient,
-  TreatmentCourse
-} from "@/lib/types";
-import {
-  auditReadinessScore,
-  carepathProgress,
-  completedTaskStatuses,
-  courseDisplayLabel,
-  courseDocuments,
-  courseFractions,
-  courseTasks,
-  documentProgress,
-  formatLastUpdated,
-  patientActionSummary,
-  patientActiveCourse,
-  patientDisplayLabel
-} from "@/lib/workflow";
-import { PhaseBadge, ResponsiblePartyBadge, StatusBadge } from "@/components/badges";
-import { ProgressBar } from "@/components/progress-bar";
-
-type PatientTableProps = {
-  patients: Array<Patient | OperationalPatient>;
-  courses?: Array<TreatmentCourse | OperationalTreatmentCourse>;
-  tasks?: CarepathTask[];
-  documents?: GeneratedDocument[];
-  fractions?: FractionLogEntry[];
-  title?: string;
-  description?: string;
-};
+  TreatmentCourse,
+} from '@/lib/types';
+import { patientName } from '@/lib/workflow';
+import { SectionCard } from '@/components/section-card';
 
 export function PatientTable({
   patients,
-  courses = [],
-  tasks = [],
-  documents = [],
-  fractions = [],
-  title = "Patient workflow",
-  description
-}: PatientTableProps) {
+  courses,
+  tasks,
+  documents,
+  fractions,
+  title,
+  description,
+}: {
+  patients: Array<Patient | OperationalPatient>;
+  courses: Array<TreatmentCourse | OperationalTreatmentCourse>;
+  tasks: CarepathTask[];
+  documents: GeneratedDocument[];
+  fractions: FractionLogEntry[];
+  title?: string;
+  description?: string;
+}) {
   return (
-    <section className="glass-panel overflow-hidden rounded-glass">
-      <div className="flex flex-col gap-2 border-b border-white/70 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-curerays-dark-plum">{title}</h3>
-          {description ? <p className="mt-1 text-sm text-curerays-indigo">{description}</p> : null}
-        </div>
-        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/60 px-3 py-2 text-xs font-semibold text-curerays-indigo">
-          <LockKeyhole className="h-3.5 w-3.5 text-curerays-plum" aria-hidden="true" />
-          PHI-minimized operational view
-        </span>
-      </div>
-
-      <div className="scrollbar-soft overflow-x-auto">
-        <table className="min-w-[1280px] w-full border-collapse">
+    <SectionCard title={title ?? 'Patients'} description={description}>
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
           <thead>
-            <tr className="bg-white/42 text-left text-xs font-bold uppercase text-curerays-indigo">
-              <th scope="col" className="px-5 py-3">Patient</th>
-              <th scope="col" className="px-5 py-3">Course</th>
-              <th scope="col" className="px-5 py-3">Phase</th>
-              <th scope="col" className="px-5 py-3">Status</th>
-              <th scope="col" className="px-5 py-3">Carepath</th>
-              <th scope="col" className="px-5 py-3">Documents</th>
-              <th scope="col" className="px-5 py-3">Audit</th>
-              <th scope="col" className="px-5 py-3">Next Action</th>
-              <th scope="col" className="px-5 py-3">Flag</th>
-              <th scope="col" className="px-5 py-3">Updated</th>
+            <tr className="border-b border-white/70 text-left text-xs font-bold uppercase text-curerays-indigo">
+              <th scope="col" className="px-4 py-3">Patient</th>
+              <th scope="col" className="px-4 py-3">Phase</th>
+              <th scope="col" className="px-4 py-3">Status</th>
+              <th scope="col" className="px-4 py-3">Next Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/70">
             {patients.map((patient) => {
-              const course = patientActiveCourse(patient, courses);
-              const patientTasks = course ? courseTasks(course.id, tasks) : [];
-              const patientDocuments = course ? courseDocuments(course.id, documents) : [];
-              const patientFractions = course ? courseFractions(course.id, fractions) : [];
-              const carepath = carepathProgress(patientTasks);
-              const document = documentProgress(patientDocuments);
-              const audit = auditReadinessScore(patientTasks, patientDocuments, patientFractions);
-              const nextTask = patientTasks.find((task) => !completedTaskStatuses.includes(task.status));
-
+              const displayName =
+                'displayLabel' in patient ? patient.displayLabel : patientName(patient as Patient);
               return (
-                <tr key={patient.id} className="bg-white/28 transition hover:bg-white/58">
-                  <td className="px-5 py-4 align-top">
-                    <Link href={`/patients/${patient.id}`} className="font-semibold text-curerays-dark-plum hover:text-curerays-blue">
-                      {patientDisplayLabel(patient)}
-                    </Link>
-                    <p className="mt-1 text-xs font-semibold text-curerays-indigo">
-                      {"patientRef" in patient ? patient.patientRef : patient.id}
-                    </p>
-                    <p className="mt-1 text-xs text-curerays-indigo/70">
-                      {"restricted" in patient ? "PHI in Google Cloud SQL" : patient.mrn}
-                    </p>
+                <tr key={patient.id} className="transition hover:bg-white/40">
+                  <td className="px-4 py-3 text-sm font-semibold text-curerays-dark-plum">{displayName}</td>
+                  <td className="px-4 py-3 text-sm text-curerays-indigo">
+                    {patient.chartRoundsPhase.replace(/_/g, ' ')}
                   </td>
-                  <td className="px-5 py-4 align-top">
-                    <p className="max-w-52 text-sm font-semibold leading-5 text-curerays-dark-plum">
-                      {courseDisplayLabel(course)}
-                    </p>
-                    <p className="mt-1 text-xs text-curerays-indigo">
-                      {patient.diagnosisCategory.replaceAll("_", " ")}
-                    </p>
+                  <td className="px-4 py-3 text-sm text-curerays-indigo">
+                    {patient.status.replace(/_/g, ' ')}
                   </td>
-                  <td className="px-5 py-4 align-top">
-                    <PhaseBadge phase={patient.chartRoundsPhase} />
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <StatusBadge status={patient.status} />
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <div className="min-w-36">
-                      <ProgressBar value={carepath.percent} />
-                      <p className="mt-2 text-xs font-semibold text-curerays-indigo">
-                        {carepath.completed}/{carepath.total} tasks
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <div className="min-w-36">
-                      <ProgressBar value={document.percent} />
-                      <p className="mt-2 text-xs font-semibold text-curerays-indigo">
-                        {document.completed}/{document.total} docs
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <span className="text-lg font-semibold text-curerays-dark-plum">{audit}%</span>
-                    <p className="text-xs font-semibold text-curerays-indigo">ready</p>
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    <div className="flex max-w-60 items-start gap-2 text-sm font-medium leading-5 text-curerays-dark-plum/82">
-                      <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-curerays-orange" aria-hidden="true" />
-                      <span>{patientActionSummary(patient)}</span>
-                    </div>
-                    {nextTask ? (
-                      <div className="mt-2">
-                        <ResponsiblePartyBadge party={nextTask.responsibleParty} />
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="px-5 py-4 align-top">
-                    {patient.flags.length > 0 ? (
-                      <span className="inline-flex max-w-44 items-center gap-2 rounded-full bg-curerays-orange/10 px-3 py-1 text-xs font-bold text-curerays-orange ring-1 ring-curerays-orange/15">
-                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span className="truncate">{patient.flags[0].summary}</span>
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold text-curerays-indigo/58">No active flags</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 align-top text-xs font-semibold text-curerays-indigo">
-                    {formatLastUpdated(patient.lastUpdatedAt)}
+                  <td className="px-4 py-3 text-sm text-curerays-indigo">
+                    {'nextAction' in patient ? (patient as Patient).nextAction ?? '—' : '—'}
                   </td>
                 </tr>
               );
             })}
+            {patients.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-sm text-curerays-indigo">
+                  No patients in this phase.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-    </section>
+    </SectionCard>
   );
 }

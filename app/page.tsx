@@ -11,8 +11,8 @@ const trustItems = [
 
 const landingCriticalCss = `
 .landing-page {
-  background: #ffffff;
-  color: #061a55;
+  background: var(--color-card);
+  color: var(--color-text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   isolation: isolate;
   min-height: 100vh;
@@ -54,7 +54,7 @@ const landingCriticalCss = `
 }
 
 .landing-title {
-  color: #061a55;
+  color: var(--color-text);
   font-size: clamp(2.5rem, 5vw, 3.5rem);
   font-weight: 800;
   letter-spacing: 0;
@@ -64,7 +64,7 @@ const landingCriticalCss = `
 }
 
 .landing-accent {
-  background: #ff6620;
+  background: var(--color-accent);
   border-radius: 999px;
   height: 4px;
   margin-top: 1.75rem;
@@ -110,10 +110,10 @@ const landingCriticalCss = `
 .landing-trust-icon {
   align-items: center;
   background: rgba(255, 255, 255, 0.84);
-  border: 1px solid #dde6f5;
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   box-shadow: 0 10px 24px rgba(43, 47, 95, 0.06);
-  color: #0033a0;
+  color: var(--color-primary);
   display: grid;
   height: 36px;
   justify-items: center;
@@ -133,18 +133,18 @@ const landingCriticalCss = `
 }
 
 .landing-login-card {
-  background: #ffffff;
-  border: 1px solid #dde6f5;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   box-shadow: 0 16px 40px rgba(43, 47, 95, 0.08);
   box-sizing: border-box;
-  color: #061a55;
+  color: var(--color-text);
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3.2vw, 2.5rem);
   width: 100%;
 }
 
 .landing-login-card h2 {
-  color: #061a55;
+  color: var(--color-text);
   font-size: clamp(2.25rem, 4vw, 2.75rem);
   font-weight: 800;
   letter-spacing: 0;
@@ -170,7 +170,7 @@ const landingCriticalCss = `
 }
 
 .landing-field-label {
-  color: #061a55;
+  color: var(--color-text);
   display: grid;
   font-size: 0.875rem;
   font-weight: 800;
@@ -198,11 +198,11 @@ const landingCriticalCss = `
 }
 
 .landing-input {
-  background: #ffffff;
-  border: 1px solid #dde6f5;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   box-sizing: border-box;
-  color: #061a55;
+  color: var(--color-text);
   font: inherit;
   font-size: 1rem;
   font-weight: 600;
@@ -222,7 +222,7 @@ const landingCriticalCss = `
 }
 
 .landing-input:focus {
-  border-color: #0033a0;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(0, 51, 160, 0.1);
 }
 
@@ -247,17 +247,17 @@ const landingCriticalCss = `
 
 .landing-password-toggle:hover,
 .landing-password-toggle:focus {
-  background: #f5f7fb;
-  color: #0033a0;
+  background: var(--color-bg);
+  color: var(--color-primary);
   outline: none;
 }
 
 .landing-submit {
-  background: #0033a0;
+  background: var(--color-primary);
   border: 0;
   border-radius: 8px;
   box-shadow: 0 10px 22px rgba(0, 51, 160, 0.18);
-  color: #ffffff;
+  color: var(--color-card);
   cursor: pointer;
   font: inherit;
   font-size: 1rem;
@@ -270,7 +270,7 @@ const landingCriticalCss = `
 
 .landing-submit:hover,
 .landing-submit:focus {
-  background: #082f86;
+  background: var(--color-primary-dark);
   outline: none;
 }
 
@@ -286,7 +286,7 @@ const landingCriticalCss = `
 }
 
 .landing-divider-line {
-  background: #dde6f5;
+  background: var(--color-border);
   height: 1px;
 }
 
@@ -295,7 +295,7 @@ const landingCriticalCss = `
   background: transparent;
   border: 0;
   border-radius: 8px;
-  color: #0033a0;
+  color: var(--color-primary);
   cursor: pointer;
   display: flex;
   font: inherit;
@@ -332,7 +332,7 @@ const landingCriticalCss = `
 }
 
 .brand-wave-background {
-  background: #ffffff;
+  background: var(--color-card);
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -439,7 +439,7 @@ const landingCriticalCss = `
 
 export default function LandingPage() {
   return (
-    <main className="landing-page relative isolate min-h-screen overflow-hidden bg-white text-[#061A55]">
+    <main className="landing-page relative isolate min-h-screen overflow-hidden bg-[var(--color-card)] text-[var(--color-text)]">
       <style dangerouslySetInnerHTML={{ __html: landingCriticalCss }} />
       <BrandWaveBackground />
 
@@ -455,26 +455,26 @@ export default function LandingPage() {
           />
 
           <div className="landing-copy-block mt-14 max-w-xl sm:mt-16 lg:mt-[72px]">
-            <h1 className="landing-title text-balance text-4xl font-bold leading-tight tracking-normal text-[#061A55] sm:text-5xl lg:text-[56px]">
+            <h1 className="landing-title text-balance text-4xl font-bold leading-tight tracking-normal text-[var(--color-text)] sm:text-5xl lg:text-[56px]">
               CureRays Clinical Workflow System
             </h1>
-            <div className="landing-accent mx-auto mt-7 h-1 w-12 rounded-full bg-[#FF6620] lg:mx-0" />
-            <p className="landing-description mt-7 max-w-[560px] text-base font-semibold leading-8 text-[#2B2F5F]/82 sm:text-lg">
+            <div className="landing-accent mx-auto mt-7 h-1 w-12 rounded-full bg-[var(--color-accent)] lg:mx-0" />
+            <p className="landing-description mt-7 max-w-[560px] text-base font-semibold leading-8 text-[var(--color-text-muted)] sm:text-lg">
               Securely manage treatment workflows, documentation, audit readiness,
               and administrative tools from one centralized dashboard.
             </p>
           </div>
 
-          <ul className="landing-trust-list mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-sm font-bold text-[#2B2F5F]/76 lg:justify-start">
+          <ul className="landing-trust-list mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-sm font-bold text-[var(--color-text-muted)] lg:justify-start">
             {trustItems.map((item, index) => {
               const Icon = item.icon;
 
               return (
                 <li key={item.label} className="landing-trust-item flex items-center gap-3">
                   {index > 0 ? (
-                    <span className="landing-trust-dot hidden h-1 w-1 rounded-full bg-[#2B2F5F]/48 sm:block" aria-hidden="true" />
+                    <span className="landing-trust-dot hidden h-1 w-1 rounded-full bg-[var(--color-text-muted)] sm:block" aria-hidden="true" />
                   ) : null}
-                  <span className="landing-trust-icon grid h-9 w-9 place-items-center rounded-full border border-[#DDE6F5] bg-white/84 text-[#0033A0] shadow-[0_10px_24px_rgba(43,47,95,0.06)]">
+                  <span className="landing-trust-icon grid h-9 w-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/84 text-[var(--color-primary)] shadow-[0_10px_24px_rgba(43,47,95,0.06)]">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span>{item.label}</span>

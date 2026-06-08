@@ -10,10 +10,10 @@ export function BrandWaveBackground() {
 
   return (
     <div
-      className="brand-wave-background pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-white"
+      className="brand-wave-background pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-[var(--color-card)]"
       aria-hidden="true"
       style={{
-        background: "#FFFFFF",
+        background: "var(--color-card)",
         inset: 0,
         overflow: "hidden",
         pointerEvents: "none",
@@ -29,12 +29,12 @@ export function BrandWaveBackground() {
       >
         <path
           d="M-80 410 C 170 250 365 505 600 356 C 840 204 1085 262 1320 182 C 1465 132 1560 118 1680 138 L1680 560 L-80 560 Z"
-          fill="#0033A0"
+          fill="var(--color-primary)"
           opacity="0.16"
         />
         <path
           d="M-80 486 C 170 318 410 520 665 410 C 910 304 1098 386 1338 260 C 1485 184 1585 168 1680 172 L1680 560 L-80 560 Z"
-          fill="#0033A0"
+          fill="var(--color-primary)"
           opacity="0.28"
         />
       </svg>
@@ -52,7 +52,7 @@ export function BrandWaveBackground() {
         />
         <path
           d="M-90 438 C 220 350 435 452 650 435 C 900 416 1080 286 1270 236 C 1435 192 1564 218 1690 260 L1690 520 L-90 520 Z"
-          fill="#0033A0"
+          fill="var(--color-primary)"
           opacity="0.08"
         />
       </svg>
@@ -65,13 +65,13 @@ export function BrandWaveBackground() {
       >
         <path
           d="M-100 322 C 120 388 250 506 505 468 C 760 430 858 282 1118 340 C 1356 394 1456 456 1700 286 L1700 520 L-100 520 Z"
-          fill="#FF6620"
+          fill="var(--color-accent)"
           opacity="0.18"
         />
         <path
           d="M-100 398 C 140 440 306 526 560 488 C 792 454 930 332 1158 382 C 1378 430 1488 464 1700 356"
           fill="none"
-          stroke="#FF6620"
+          stroke="var(--color-accent)"
           strokeLinecap="round"
           strokeWidth="10"
           opacity="0.34"
@@ -89,7 +89,7 @@ export function BrandWaveBackground() {
             key={index}
             d={`M-120 ${390 + index * 16} C 130 ${260 + index * 8} 340 ${500 - index * 9} 600 ${390 + index * 10} C 858 ${282 + index * 8} 1010 ${450 - index * 8} 1260 ${304 + index * 7} C 1438 ${200 + index * 8} 1548 ${220 + index * 10} 1720 ${190 + index * 8}`}
             fill="none"
-            stroke={index % 3 === 0 ? "#FF6620" : "#0033A0"}
+            stroke={index % 3 === 0 ? "var(--color-accent)" : "var(--color-primary)"}
             strokeWidth="1.2"
             opacity={index % 3 === 0 ? "0.12" : "0.08"}
           />
@@ -97,7 +97,7 @@ export function BrandWaveBackground() {
       </svg>
 
       <div
-        className="absolute right-[-14%] top-[18%] h-[56%] w-[48%] rounded-full border border-[#0033A0]/[0.05]"
+        className="absolute right-[-14%] top-[18%] h-[56%] w-[48%] rounded-full border border-[var(--color-primary)]/[0.05]"
         style={{
           border: "1px solid rgba(0, 51, 160, 0.05)",
           borderRadius: "9999px",

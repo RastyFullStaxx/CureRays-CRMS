@@ -1,45 +1,68 @@
-import { Download, History, ShieldCheck, UserCog } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import { operationalAuditEvents } from "@/lib/clinical-store";
-import { Badge, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, RightRailCard, RowActions, SecondaryButton, WorkGrid } from "@/components/module-ui";
+import { Download, History, ShieldCheck, UserCog } from 'lucide-react';
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { operationalAuditEvents } from '@/lib/clinical-store';
 
 export default function AuditLogsPage() {
   const auditEvents = operationalAuditEvents();
 
   return (
-    <ModulePage>
-      <ModuleActions><SecondaryButton><Download className="h-4 w-4" />Export Logs</SecondaryButton></ModuleActions>
-      <MetricGrid columns={4}>
-        <MetricTile label="Events Today" value={auditEvents.length} detail="Audit trail" icon={History} />
-        <MetricTile label="Document Events" value={auditEvents.filter((event) => event.entityType === "DOCUMENT").length} detail="File activity" icon={ShieldCheck} />
-        <MetricTile label="Signature Events" value={auditEvents.filter((event) => event.action.toLowerCase().includes("sign")).length} detail="Approvals" icon={UserCog} tone="orange" />
-        <MetricTile label="Admin Changes" value={auditEvents.filter((event) => event.entityType === "SYSTEM").length || 2} detail="Settings edits" icon={ShieldCheck} tone="purple" />
-      </MetricGrid>
-      <FilterBar search="Search user, patient, course, action, entity, or timestamp..." filters={["User", "Patient", "Course", "Action Type", "Date Range", "Entity Type"]} />
-      <WorkGrid
-        main={
-          <DataTable
-            compact
-            minWidth="1120px"
-            columns={[{ header: "Timestamp" }, { header: "User" }, { header: "Patient / Course" }, { header: "Action" }, { header: "Entity Type" }, { header: "Entity ID" }, { header: "Old Value" }, { header: "New Value" }, { header: "Actions" }]}
-            footer={<Pagination label={`Showing 1 to ${auditEvents.length} of ${auditEvents.length} events`} />}
-            rows={auditEvents.map((event) => ({
-              id: event.id,
-              cells: [event.timestamp, event.userName, event.patientRef ?? "System", event.action, <Badge key="entity" tone="blue">{event.entityType}</Badge>, event.entityId, event.previousValue, event.newValue, <RowActions key="actions" />]
-            }))}
-          />
-        }
-        rail={
-          <>
-            <RightRailCard title="Log Detail">
-              <div className="space-y-2">{auditEvents.slice(0, 3).map((event) => <ListItem key={event.id} title={event.action} meta={`${event.userName} - ${event.entityType}`} badge={<Badge tone={event.redacted ? "orange" : "green"}>{event.redacted ? "Redacted" : "Logged"}</Badge>} />)}</div>
-            </RightRailCard>
-            <RightRailCard title="Audit Posture">
-              <div className="space-y-2"><ListItem title="PHI values redacted" meta="Operational log avoids raw PHI payloads" /><ListItem title="Sensitive actions tracked" meta="Documents, signatures, phase changes, and admin events" /></div>
-            </RightRailCard>
-          </>
+    <PageStack>
+      <PageHeader
+        title="Audit Logs"
+        subtitle="Track system events, document changes, and administrative actions"
+        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Logs</Button>}
+      />
+
+      <StatGrid>
+        <StatCard icon={History} label="Events Today" value={auditEvents.length} sub="Audit trail" tone="primary" />
+        <StatCard icon={ShieldCheck} label="Document Events" value={auditEvents.filter((e) => e.entityType === 'DOCUMENT').length} sub="File activity" tone="info" />
+        <StatCard icon={UserCog} label="Signature Events" value={auditEvents.filter((e) => e.action.toLowerCase().includes('sign')).length} sub="Approvals" tone="warning" />
+        <StatCard icon={ShieldCheck} label="Admin Changes" value={auditEvents.filter((e) => e.entityType === 'SYSTEM').length || 2} sub="Settings edits" tone="primary" />
+      </StatGrid>
+
+      <DataTable
+        keyField="id"
+        columns={[
+          { key: 'timestamp', label: 'Timestamp' },
+          { key: 'userName', label: 'User' },
+          { key: 'patientRef', label: 'Patient / Course' },
+          { key: 'action', label: 'Action' },
+          { key: 'entityType', label: 'Entity Type' },
+          { key: 'entityId', label: 'Entity ID' },
+          { key: 'previousValue', label: 'Old Value' },
+          { key: 'newValue', label: 'New Value' },
+        ]}
+        rows={auditEvents.map((event) => ({
+          id: event.id,
+          timestamp: event.timestamp,
+          userName: event.userName,
+          patientRef: event.patientRef ?? 'System',
+          action: event.action,
+          entityType: event.entityType,
+          entityId: event.entityId,
+          previousValue: event.previousValue,
+          newValue: event.newValue,
+        }))}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search user, patient, course, action, entity, or timestamp..." />
+            </FilterField>
+            <FilterField><Input placeholder="User" /></FilterField>
+            <FilterField><Input placeholder="Entity Type" /></FilterField>
+            <FilterField><Input placeholder="Date Range" /></FilterField>
+          </FilterStrip>
         }
       />
-    </ModulePage>
+    </PageStack>
   );
 }

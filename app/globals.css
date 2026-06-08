@@ -1,124 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   CURERAYS CRMS — DESIGN TOKENS
+   Source of truth for all UI. No component overrides these.
+   ============================================================ */
+
 :root {
-  --air: #f5f5f5;
-  --dark-plum: #2e1a47;
-  --blue: #0033a0;
-  --orange: #ff671f;
-  --amber: #ffc701;
-  --plum: #725784;
-  --indigo: #3d5a80;
-  --light-indigo: #7da0ca;
+  /* --- Brand Colors --- */
+  --color-primary:      #0033A0;
+  --color-primary-dark: #002080;
+
+  /* --- Accent --- */
+  --color-accent:       #FF671F;
+
+  /* --- Neutrals --- */
+  --color-bg:           #F7F8FA;
+  --color-card:         #FFFFFF;
+  --color-text:         #0B1220;
+  --color-text-muted:   #667085;
+
+  /* --- Status --- */
+  --color-success:      #22C55E;
+  --color-warning:      #F59E0B;
+  --color-error:        #EF4444;
+  --color-info:         #3B82F6;
+
+  /* --- Typography --- */
+  --font-heading:       'Manrope', sans-serif;
+  --font-body:          'Inter', sans-serif;
+  --font-size-heading:  22px;
+  --font-size-body:     14px;
+  --font-size-small:    13px;
+  --font-weight-normal:   400;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     800;
+  --line-height-tight:    1.2;
+  --line-height-body:     1.45;
+
+  /* --- Spacing (8px grid) --- */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+
+  /* --- Page & Card spacing --- */
+  --space-page:    clamp(16px, 1.7vw, 28px);
+  --space-card:    20px;
+  --space-section: 16px;
+
+  /* --- Sidebar spacing --- */
+  --space-sidebar-x: 8px;
+  --sidebar-logo-pl: 14px;
+  --nav-item-gap:    4px;
+  --nav-label-gap:   6px;
+  --nav-section-gap: 10px;
+
+  /* --- Border Radius --- */
+  --radius-md: 8px;
+  --radius-lg: 8px;
+
+  /* --- 4-Layer Card Shadow --- */
+  --shadow-card:
+    0 18px 48px -44px rgba(15, 23, 42, 0.34),
+    0 8px  18px -18px rgba(15, 23, 42, 0.16),
+    0 1px  2px  rgba(15, 23, 42, 0.04);
+
+  /* --- Container Border --- */
+  --border-container:  1px solid #DDE3EA;
+  --color-border:      #DDE3EA;
+  --color-border-soft: #EEF2F6;
+
+  /* --- Table header --- */
+  --color-table-header-bg: #fafafa;
+  --border-table-header:   1px solid var(--color-border);
+
+  /* --- Focus --- */
+  --ring-focus:         none;
+  --border-focus-width: 2px;
+
+  /* --- Hover surface tint --- */
+  --color-hover: rgba(0, 0, 0, 0.04);
+
+  /* --- Component Dimensions --- */
+  --height-btn:            40px;
+  --height-btn-sm:         34px;
+  --height-input:          40px;
+  --height-table-row:      44px;
+  --height-table-header:   40px;
+  --width-sidebar:         240px;
+  --width-sidebar-collapsed: 64px;
+  --height-header:         56px;
 }
 
-* {
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+
+.dark {
+  --color-primary:      #4D9AFF;
+  --color-primary-dark: #3D80E0;
+  --color-accent:       #FF8A4D;
+  --color-bg:           #0a0a0a;
+  --color-card:         #141414;
+  --color-text:         #e8e8e8;
+  --color-text-muted:   #9a9a9a;
+  --color-success:      #34D399;
+  --color-warning:      #FBBF24;
+  --color-error:        #F87171;
+  --color-info:         #60A5FA;
+
+  --border-container:  1px solid #2a2a2a;
+  --color-border:      #2a2a2a;
+  --color-border-soft: #202020;
+
+  --color-table-header-bg: #1a1a1a;
+  --border-table-header:   1px solid var(--color-border);
+  --color-hover:           rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================
+   GLOBAL BASE STYLES
+   ============================================================ */
+
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
-  min-height: 100%;
-  background: #ffffff;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  min-height: 100%;
-  margin: 0;
-  color: var(--dark-plum);
-  background: #ffffff;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-button,
-input {
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-heading);
+  line-height: var(--line-height-tight);
+  color: var(--color-text);
+}
+
+button, input, select, textarea {
   font: inherit;
+  line-height: var(--line-height-body);
 }
 
 ::selection {
-  background: rgba(255, 103, 31, 0.22);
+  background: rgba(0, 51, 160, 0.18);
 }
 
-.glass-panel {
-  border: 1px solid rgba(221, 230, 245, 0.92);
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(43, 47, 95, 0.08);
-  backdrop-filter: none;
+/* ============================================================
+   SMOOTH DARK-MODE TRANSITIONS
+   ============================================================ */
+
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
 }
 
-.page-transition {
-  animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  transform-origin: top center;
-}
-
-.nav-item {
-  position: relative;
-  isolation: isolate;
-  transition:
-    color 220ms ease,
-    background-color 220ms ease,
-    box-shadow 220ms ease,
-    transform 220ms ease;
-}
-
-.nav-item:hover {
-  transform: translateY(-1px);
-}
-
-.nav-item-active {
-  animation: nav-select 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.nav-item-active::after {
-  position: absolute;
-  bottom: 10px;
-  left: -4px;
-  top: 10px;
-  width: 4px;
-  border-radius: 999px;
-  background: var(--orange);
-  content: "";
-  opacity: 0.95;
-}
-
-.nav-icon {
-  transition:
-    color 220ms ease,
-    transform 220ms ease;
-}
-
-.nav-item-active .nav-icon {
-  transform: scale(1.08);
-}
-
-.soft-border {
-  border: 1px solid rgba(46, 26, 71, 0.08);
-}
-
-.text-balance {
-  text-wrap: balance;
-}
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
 
 .scrollbar-soft {
-  scrollbar-color: rgba(114, 87, 132, 0.35) transparent;
+  scrollbar-color: rgba(102, 112, 133, 0.3) transparent;
   scrollbar-width: thin;
 }
 
 .scrollbar-soft::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 6px;
+  width: 6px;
 }
 
 .scrollbar-soft::-webkit-scrollbar-thumb {
-  background: rgba(114, 87, 132, 0.28);
+  background: rgba(102, 112, 133, 0.25);
   border-radius: 999px;
 }
 
+/* ============================================================
+   COLLAPSED SIDEBAR TOOLTIPS — pure CSS via data-tooltip
+   ============================================================ */
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background-color: var(--color-text);
+  color: var(--color-card);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================================
+   SIDEBAR LOGO TOGGLE — collapse → hover shows expand icon
+   ============================================================ */
+
+.sidebar-logo-toggle .sidebar-logo-expand {
+  display: none;
+}
+
+.sidebar-logo-toggle:hover .sidebar-logo-brand {
+  display: none;
+}
+
+.sidebar-logo-toggle:hover .sidebar-logo-expand {
+  display: flex;
+}
+
+/* ============================================================
+   LANDING PAGE
+   ============================================================ */
+
 .landing-page {
   background: #ffffff;
-  color: #061a55;
+  color: var(--color-text);
   isolation: isolate;
   min-height: 100vh;
   overflow: hidden;
@@ -164,9 +298,9 @@ input {
 
 .landing-login-card {
   background: #ffffff;
-  border: 1px solid #dde6f5;
-  border-radius: 8px;
-  box-shadow: 0 16px 40px rgba(43, 47, 95, 0.08);
+  border: var(--border-container);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   padding: 3rem 2.5rem;
 }
 
@@ -181,21 +315,25 @@ input {
 }
 
 .landing-input {
-  border: 1px solid #dde6f5;
-  border-radius: 8px;
-  color: #061a55;
-  min-height: 52px;
+  border: var(--border-container);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  min-height: 48px;
   width: 100%;
 }
 
 .landing-submit {
-  background: #0033a0;
+  background: var(--color-primary);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: #ffffff;
   cursor: pointer;
-  min-height: 52px;
+  min-height: 48px;
   width: 100%;
+}
+
+.landing-submit:hover {
+  background: var(--color-primary-dark);
 }
 
 .brand-wave-background {
@@ -239,68 +377,24 @@ input {
   opacity: 0.9;
 }
 
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.996);
-    filter: blur(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes nav-select {
-  from {
-    transform: translateY(1px) scale(0.98);
-  }
-
-  to {
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes wave-drift-a {
-  from {
-    transform: translate3d(-2%, 1%, 0) scale(1.02);
-  }
-
-  to {
-    transform: translate3d(2%, -2%, 0) scale(1.045);
-  }
+  from { transform: translate3d(-2%, 1%, 0) scale(1.02); }
+  to   { transform: translate3d(2%, -2%, 0) scale(1.045); }
 }
 
 @keyframes wave-drift-b {
-  from {
-    transform: translate3d(2%, -1%, 0) scale(1.01);
-  }
-
-  to {
-    transform: translate3d(-2%, 1.5%, 0) scale(1.035);
-  }
+  from { transform: translate3d(2%, -1%, 0) scale(1.01); }
+  to   { transform: translate3d(-2%, 1.5%, 0) scale(1.035); }
 }
 
 @keyframes wave-drift-c {
-  from {
-    transform: translate3d(-1%, -1%, 0) scale(1.01);
-  }
-
-  to {
-    transform: translate3d(2.5%, 1%, 0) scale(1.03);
-  }
+  from { transform: translate3d(-1%, -1%, 0) scale(1.01); }
+  to   { transform: translate3d(2.5%, 1%, 0) scale(1.03); }
 }
 
 @keyframes wave-drift-d {
-  from {
-    transform: translate3d(1%, 0, 0) scale(1.01);
-  }
-
-  to {
-    transform: translate3d(-1.5%, -1%, 0) scale(1.02);
-  }
+  from { transform: translate3d(1%, 0, 0) scale(1.01); }
+  to   { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
 }
 
 @media (max-width: 1023px) {
@@ -328,17 +422,13 @@ input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
   }
 
-  .page-transition,
-  .nav-item-active,
   .wave-layer {
     animation: none;
     transform: none;

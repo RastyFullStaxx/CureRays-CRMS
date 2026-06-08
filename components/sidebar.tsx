@@ -1,178 +1,285 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import NextImage from "next/image";
+import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
-  CalendarDays,
-  ClipboardList,
-  FileText,
-  Image,
-  LineChart,
   LayoutDashboard,
-  ListChecks,
-  NotebookTabs,
-  Radiation,
-  Settings,
-  ShieldCheck,
   TableProperties,
+  NotebookTabs,
+  ClipboardList,
+  ListChecks,
+  CalendarDays,
+  Radiation,
+  FileText,
+  Target,
+  Image as ImageIcon,
+  FolderOpen,
+  WalletCards,
+  ShieldCheck,
+  LineChart,
   UserCog,
-  WalletCards
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/workflow";
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
+import { NavItem } from './layout/nav-item';
 
-type NavItem = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-};
-
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const navGroups: NavGroup[] = [
+const NAV_SECTIONS = [
   {
-    label: "Overview",
-    items: [{ label: "Dashboard", href: "/dashboard", icon: LayoutDashboard }]
+    key: 'overview',
+    label: 'Overview',
+    items: [
+      { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    ],
   },
   {
-    label: "Patient Management",
+    key: 'patients',
+    label: 'Patient Management',
     items: [
-      { label: "Patients", href: "/patients", icon: TableProperties },
-      { label: "Courses", href: "/courses", icon: NotebookTabs }
-    ]
+      { key: 'patients', href: '/patients', icon: TableProperties, label: 'Patients' },
+      { key: 'courses', href: '/courses', icon: NotebookTabs, label: 'Courses' },
+    ],
   },
   {
-    label: "Clinical Operations",
+    key: 'clinical',
+    label: 'Clinical Operations',
     items: [
-      { label: "Workflow", href: "/workflow", icon: ClipboardList },
-      { label: "Tasks", href: "/tasks", icon: ListChecks },
-      { label: "Schedule", href: "/schedule", icon: CalendarDays },
-      { label: "Treatment Delivery", href: "/treatment-delivery", icon: Radiation }
-    ]
+      { key: 'workflow', href: '/workflow', icon: ClipboardList, label: 'Workflow' },
+      { key: 'tasks', href: '/tasks', icon: ListChecks, label: 'Tasks' },
+      { key: 'schedule', href: '/schedule', icon: CalendarDays, label: 'Schedule' },
+      { key: 'treatment-delivery', href: '/treatment-delivery', icon: Radiation, label: 'Treatment Delivery' },
+    ],
   },
   {
-    label: "Clinical Tools",
+    key: 'tools',
+    label: 'Clinical Tools',
     items: [
-      { label: "Clinical Forms", href: "/clinical-forms", icon: NotebookTabs },
-      { label: "Treatment Planning", href: "/treatment-planning", icon: Radiation },
-      { label: "Imaging", href: "/imaging", icon: Image }
-    ]
+      { key: 'clinical-forms', href: '/clinical-forms', icon: FileText, label: 'Clinical Forms' },
+      { key: 'treatment-planning', href: '/treatment-planning', icon: Target, label: 'Treatment Planning' },
+      { key: 'imaging', href: '/imaging', icon: ImageIcon, label: 'Imaging' },
+    ],
   },
   {
-    label: "Documentation",
+    key: 'docs',
+    label: 'Documentation',
     items: [
-      { label: "Documents", href: "/documents", icon: FileText },
-      { label: "Billing", href: "/billing", icon: WalletCards },
-      { label: "Audit & QA", href: "/audit", icon: ShieldCheck }
-    ]
+      { key: 'documents', href: '/documents', icon: FolderOpen, label: 'Documents' },
+      { key: 'billing', href: '/billing', icon: WalletCards, label: 'Billing' },
+      { key: 'audit', href: '/audit', icon: ShieldCheck, label: 'Audit & QA' },
+    ],
   },
   {
-    label: "Intelligence",
+    key: 'intel',
+    label: 'Intelligence',
     items: [
-      { label: "Analytics & Reports", href: "/analytics", icon: LineChart }
-    ]
+      { key: 'analytics', href: '/analytics', icon: LineChart, label: 'Analytics & Reports' },
+    ],
   },
   {
-    label: "Administration",
+    key: 'admin',
+    label: 'Administration',
     items: [
-      { label: "Users & Roles", href: "/users-roles", icon: UserCog },
-      { label: "Templates", href: "/templates", icon: FileText },
-      { label: "Settings", href: "/settings", icon: Settings },
-      { label: "Security Logs", href: "/security-logs", icon: ShieldCheck }
-    ]
-  }
+      { key: 'users-roles', href: '/users-roles', icon: UserCog, label: 'Users & Roles' },
+      { key: 'templates', href: '/templates', icon: FileText, label: 'Templates' },
+      { key: 'settings', href: '/settings', icon: Settings, label: 'Settings' },
+      { key: 'security-logs', href: '/security-logs', icon: ShieldCheck, label: 'Security Logs' },
+    ],
+  },
 ];
 
-function isActive(pathname: string, href: string) {
-  if (href === "/workflow") {
-    return pathname === "/workflow";
-  }
+export function Sidebar() {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
 
-  if (href === "/settings") {
-    return pathname === "/settings";
-  }
+  useEffect(() => {
+    const stored = localStorage.getItem('curerays_sidebar_collapsed');
+    if (stored !== null) {
+      setCollapsed(stored === 'true');
+    }
+  }, []);
 
-  if (href === "/users-roles") {
-    return pathname === "/users-roles" || pathname === "/settings/users";
-  }
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+    localStorage.setItem('curerays_sidebar_collapsed', (!collapsed).toString());
+  };
 
-  if (href === "/templates") {
-    return pathname === "/templates" || pathname === "/settings/templates" || pathname === "/workflow/templates";
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-export function Sidebar({ pathname }: { pathname: string }) {
   return (
-    <aside className="sticky top-0 z-30 max-h-screen overflow-hidden bg-[#0033A0] p-4 text-white shadow-[18px_0_50px_rgba(0,51,160,0.18)] xl:min-h-screen">
-      <div className="flex h-full flex-col gap-6">
-        <div className="rounded-lg bg-white px-4 py-5">
-          <Link href="/dashboard" className="block">
-            <NextImage
-              src="/System_Logo.svg"
-              alt="CureRays"
-              width={220}
-              height={52}
-              priority
-              className="h-auto w-full max-w-[210px]"
-            />
-          </Link>
-        </div>
-
-        <nav className="scrollbar-soft min-w-0 flex-1 space-y-6 overflow-y-auto pr-1" aria-label="Primary navigation">
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              <p className="px-3 text-[11px] font-bold uppercase tracking-wide text-white/58">
-                {group.label}
-              </p>
-              <div className="mt-2 grid gap-1">
-                {group.items.map((item) => {
-                  const active = isActive(pathname, item.href);
-                  const Icon = item.icon;
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "nav-item flex min-w-0 items-center gap-3 rounded-lg px-4 py-3 text-[15px] font-bold",
-                        active
-                          ? "nav-item-active bg-[#084BC5] text-white shadow-[0_14px_30px_rgba(0,0,0,0.16)]"
-                          : "text-white/86 hover:bg-white/10 hover:text-white"
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          "nav-icon h-5 w-5 shrink-0",
-                          active ? "text-white" : "text-white/86"
-                        )}
-                        aria-hidden="true"
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        <div className="rounded-lg border border-white/18 bg-white/8 p-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-lg border border-white/20 bg-white/10">
-              <ShieldCheck className="h-5 w-5 text-white" aria-hidden="true" />
+    <aside
+      className="flex flex-col h-screen"
+      style={{
+        width: collapsed ? 'var(--width-sidebar-collapsed)' : 'var(--width-sidebar)',
+        background: 'var(--color-card)',
+        borderRight: '1px solid var(--color-border)',
+        boxShadow: 'var(--shadow-card)',
+        transition: 'width 200ms ease',
+        overflow: 'hidden',
+        flexShrink: 0,
+      }}
+    >
+      {/* Logo Area */}
+      <div
+        className="flex items-center"
+        style={{
+          height: 'var(--height-header)',
+          padding: collapsed ? '0 12px' : '0 16px',
+          borderBottom: '1px solid var(--color-border)',
+        }}
+      >
+        <div
+          className="flex items-center"
+          style={{
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            width: '100%',
+          }}
+        >
+          <Image
+            src="/System_Logo.svg"
+            alt="CureRays"
+            width={28}
+            height={28}
+            style={{
+              flexShrink: 0,
+            }}
+          />
+          {!collapsed && (
+            <span
+              style={{
+                marginLeft: '10px',
+                fontWeight: 'var(--font-weight-bold)',
+                fontFamily: 'var(--font-heading)',
+                fontSize: 'var(--font-size-body)',
+                color: 'var(--color-text)',
+              }}
+            >
+              CureRays
             </span>
-            <p className="text-sm font-bold leading-5 text-white">
-              Precision care.
-              <span className="block">Powered by clarity.</span>
-            </p>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Nav Sections */}
+      <nav
+        className="flex-1 overflow-y-auto"
+        style={{
+          padding: collapsed ? '8px 0' : '8px 12px',
+        }}
+      >
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.key} style={{ marginBottom: '16px' }}>
+            {!collapsed && (
+              <div
+                style={{
+                  padding: '0 10px 6px',
+                  fontSize: 'var(--font-size-label)',
+                  fontFamily: 'var(--font-body)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--color-text-muted)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                {section.label}
+              </div>
+            )}
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {section.items.map((item) => (
+                <NavItem
+                  key={item.key}
+                  href={item.href}
+                  icon={item.icon}
+                  label={item.label}
+                  pathname={pathname}
+                  collapsed={collapsed}
+                />
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+
+      {/* Account Row */}
+      <div
+        className="flex items-center"
+        style={{
+          height: 'var(--height-header)',
+          padding: collapsed ? '0 12px' : '0 16px',
+          borderTop: '1px solid var(--color-border)',
+        }}
+      >
+        <div
+          className="flex items-center"
+          style={{
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            width: '100%',
+          }}
+        >
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'var(--color-primary)',
+              color: '#ffffff',
+              fontSize: 'var(--font-size-small)',
+              fontWeight: 'var(--font-weight-bold)',
+              flexShrink: 0,
+            }}
+          >
+            SJ
+          </div>
+          {!collapsed && (
+            <div style={{ marginLeft: '10px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  fontSize: 'var(--font-size-small)',
+                  fontFamily: 'var(--font-body)',
+                  fontWeight: 'var(--font-weight-semibold)',
+                  color: 'var(--color-text)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                Dr. Sarah Johnson
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--font-size-caption)',
+                  fontFamily: 'var(--font-body)',
+                  color: 'var(--color-text-muted)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                Physician
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Collapse Toggle */}
+      <button
+        onClick={toggleCollapse}
+        className="flex items-center justify-center"
+        style={{
+          height: '32px',
+          margin: collapsed ? '0 12px 12px' : '0 12px 12px',
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--color-hover)',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'var(--color-text-muted)',
+        }}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      </button>
     </aside>
   );
 }

@@ -1,6 +1,15 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardCheck, Download, ListChecks, PenLine, Plus } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import { Badge, DonutChart, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, PrimaryButton, QuickActions, RightRailCard, RowActions, SecondaryButton, TabBar, WorkGrid } from "@/components/module-ui";
+'use client';
+import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardCheck, ListChecks, PenLine, Plus } from "lucide-react";
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
 
 export default function TasksPage() {
@@ -11,104 +20,84 @@ export default function TasksPage() {
   const review = tasks.filter((task) => task.status === "READY_FOR_REVIEW").length;
   const inProgress = tasks.filter((task) => task.status === "IN_PROGRESS" || task.status === "PENDING").length;
 
+  const mapTone = (t: string) => {
+    if (t === "green" || t === "emerald") return "success";
+    if (t === "orange") return "warning";
+    if (t === "red") return "error";
+    if (t === "purple") return "primary";
+    if (t === "blue") return "info";
+    return "default";
+  };
+
   return (
-    <ModulePage>
-      <ModuleActions>
-        <SecondaryButton><Download className="h-4 w-4" />Export</SecondaryButton>
-        <PrimaryButton><Plus className="h-4 w-4" />Add Task</PrimaryButton>
-      </ModuleActions>
-      <FilterBar search="Search tasks, patient, course, assignee, or linked record..." filters={["Assigned To", "Priority", "Status", "Task Type", "Due"]} />
-      <MetricGrid columns={6}>
-        <MetricTile label="To Do" value={tasks.length - completed.length - inProgress} detail="Open tasks" icon={ClipboardCheck} />
-        <MetricTile label="In Progress" value={inProgress} detail="Being worked" icon={CalendarDays} tone="orange" />
-        <MetricTile label="Review" value={review} detail="Ready for check" icon={ListChecks} />
-        <MetricTile label="Pending Signature" value={signatures.length} detail="Provider queue" icon={PenLine} tone="purple" />
-        <MetricTile label="Completed" value={completed.length} detail="Closed work" icon={CheckCircle2} tone="green" />
-        <MetricTile label="Overdue" value={overdue.length} detail="Needs escalation" icon={AlertTriangle} tone="red" />
-      </MetricGrid>
-      <TabBar tabs={["My Tasks", "Team Tasks", "Unassigned", "Signatures", "Overdue", "Completed"]} />
-      <WorkGrid
-        main={
+    <PageStack>
+      <PageHeader
+        title="Tasks"
+        subtitle="Track and manage clinical and administrative tasks"
+        actions={
           <>
-            <DataTable
-              compact
-              minWidth="1040px"
-              columns={[
-                { header: "Task" },
-                { header: "Patient / Course" },
-                { header: "Step / Phase" },
-                { header: "Type" },
-                { header: "Assigned To" },
-                { header: "Priority" },
-                { header: "Due Date" },
-                { header: "Status" },
-                { header: "Actions" }
-              ]}
-              footer={<Pagination label={`Showing 1 to ${Math.min(8, tasks.length)} of ${tasks.length} tasks`} />}
-              rows={tasks.slice(0, 8).map((task) => {
-                const step = moduleSnapshot.workflowSteps.find((item) => item.id === task.workflowStepId);
-                return {
-                  id: task.id,
-                  cells: [
-                    <div key="task" className="min-w-0"><p className="truncate font-bold">{task.title}</p><p className="truncate text-[11px] text-[#3D5A80]">{task.description}</p></div>,
-                    <span key="course" className="block truncate">{patientLabel(task.patientId)} / {task.courseId.replace("COURSE-", "C")}</span>,
-                    <div key="step"><p className="truncate">{step?.stepName ?? task.workflowStepId}</p><Badge tone="blue">{step ? phaseLabel(step.phase) : "Workflow"}</Badge></div>,
-                    <Badge key="type" tone="blue">{statusLabel(task.type)}</Badge>,
-                    <span key="assigned" className="block truncate">{task.assignedUserId ?? responsiblePartyName(task.assignedRole)}</span>,
-                    <Badge key="priority" tone={task.priority === "URGENT" || task.priority === "HIGH" ? "red" : task.priority === "MEDIUM" ? "orange" : "green"}>{task.priority}</Badge>,
-                    task.dueDate ?? "Ongoing",
-                    <Badge key="status" tone={statusTone(task.status)}>{statusLabel(task.status)}</Badge>,
-                    <RowActions key="actions" />
-                  ]
-                };
-              })}
-            />
-            <div className="rounded-lg border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.05)]">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-bold text-[#061A55]">Upcoming Due (Next 7 Days)</h2>
-                <button className="text-xs font-bold text-[#0033A0]" type="button">View Calendar</button>
-              </div>
-              <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                {tasks.slice(0, 6).map((task, index) => (
-                  <div key={task.id} className="rounded-lg border border-[#E7EEF8] bg-[#F8FBFF] p-3">
-                    <p className="text-[11px] font-bold text-[#0033A0]">May {6 + index}</p>
-                    <p className="mt-2 line-clamp-2 text-xs font-bold text-[#061A55]">{task.title}</p>
-                    <p className="mt-1 truncate text-[11px] font-semibold text-[#3D5A80]">{patientLabel(task.patientId)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        }
-        rail={
-          <>
-            <RightRailCard title="My Tasks" action={<button className="text-xs font-bold text-[#0033A0]">View All</button>}>
-              <div className="space-y-2">
-                {tasks.slice(0, 4).map((task) => (
-                  <ListItem key={task.id} title={task.title} meta={task.dueDate ? `Due ${task.dueDate}` : "No due date"} badge={<Badge tone={task.priority === "HIGH" || task.priority === "URGENT" ? "red" : "orange"}>{task.priority}</Badge>} />
-                ))}
-              </div>
-            </RightRailCard>
-            <RightRailCard title="Tasks by Priority">
-              <DonutChart total={tasks.length} label="total" segments={[
-                { label: "High", value: tasks.filter((task) => task.priority === "HIGH" || task.priority === "URGENT").length, color: "#F43F5E" },
-                { label: "Medium", value: tasks.filter((task) => task.priority === "MEDIUM").length, color: "#F59E0B" },
-                { label: "Low", value: tasks.filter((task) => task.priority === "LOW").length, color: "#10B981" }
-              ]} />
-            </RightRailCard>
-            <RightRailCard title="Overdue Tasks">
-              <div className="space-y-2">
-                {(overdue.length ? overdue : tasks.slice(0, 3)).slice(0, 3).map((task) => (
-                  <ListItem key={task.id} title={task.title} meta={`${patientLabel(task.patientId)} - ${task.courseId.replace("COURSE-", "C")}`} badge={<Badge tone="red">Due</Badge>} />
-                ))}
-              </div>
-            </RightRailCard>
-            <RightRailCard title="Quick Actions">
-              <QuickActions actions={[{ label: "Create Task", icon: <Plus className="h-4 w-4" /> }, { label: "Assign Unowned", icon: <ListChecks className="h-4 w-4" /> }, { label: "Route Signatures", icon: <PenLine className="h-4 w-4" /> }]} />
-            </RightRailCard>
+            <Button variant="secondary"><ClipboardCheck className="h-4 w-4" /> Export</Button>
+            <Button><Plus className="h-4 w-4" /> Add Task</Button>
           </>
         }
       />
-    </ModulePage>
+      <StatGrid>
+        <StatCard icon={ClipboardCheck} label="To Do" value={tasks.length - completed.length - inProgress} sub="Open tasks" />
+        <StatCard icon={CalendarDays} label="In Progress" value={inProgress} sub="Being worked" tone="warning" />
+        <StatCard icon={ListChecks} label="Review" value={review} sub="Ready for check" tone="info" />
+        <StatCard icon={PenLine} label="Pending Signature" value={signatures.length} sub="Provider queue" tone="primary" />
+        <StatCard icon={CheckCircle2} label="Completed" value={completed.length} sub="Closed work" tone="success" />
+        <StatCard icon={AlertTriangle} label="Overdue" value={overdue.length} sub="Needs escalation" tone="error" />
+      </StatGrid>
+      <DataTable
+        columns={[
+          { key: 'task', label: 'Task', render: (row) => (
+            <div className="min-w-0">
+              <p className="truncate font-bold">{row.title}</p>
+              <p className="truncate text-[11px] text-[var(--color-text-muted)]">{row.description}</p>
+            </div>
+          )},
+          { key: 'course', label: 'Patient / Course', render: (row) => (
+            <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
+          )},
+          { key: 'step', label: 'Step / Phase', render: (row) => {
+            const step = moduleSnapshot.workflowSteps.find((item) => item.id === row.workflowStepId);
+            return (
+              <div>
+                <p className="truncate">{step?.stepName ?? row.workflowStepId}</p>
+                <Badge variant="info">{step ? phaseLabel(step.phase) : "Workflow"}</Badge>
+              </div>
+            );
+          }},
+          { key: 'type', label: 'Type', render: (row) => (
+            <Badge variant="info">{statusLabel(row.type)}</Badge>
+          )},
+          { key: 'assigned', label: 'Assigned To', render: (row) => (
+            <span className="block truncate">{row.assignedUserId ?? responsiblePartyName(row.assignedRole)}</span>
+          )},
+          { key: 'priority', label: 'Priority', render: (row) => (
+            <Badge variant={row.priority === "URGENT" || row.priority === "HIGH" ? "error" : row.priority === "MEDIUM" ? "warning" : "success"}>{row.priority}</Badge>
+          )},
+          { key: 'dueDate', label: 'Due Date' },
+          { key: 'status', label: 'Status', render: (row) => (
+            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+          )},
+        ]}
+        rows={tasks.slice(0, 8).map((task) => ({
+          ...task,
+        }))}
+        pageSize={8}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search tasks, patient, course, assignee, or linked record..." />
+            </FilterField>
+            <FilterField><Input placeholder="Assigned To" /></FilterField>
+            <FilterField><Input placeholder="Priority" /></FilterField>
+            <FilterField><Input placeholder="Status" /></FilterField>
+          </FilterStrip>
+        }
+      />
+    </PageStack>
   );
 }

@@ -1,6 +1,15 @@
+'use client';
 import { AlertTriangle, CheckCircle2, LockKeyhole, PenLine, Plus, Radiation, Send, ShieldCheck } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import { Badge, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, PrimaryButton, ProgressRing, QuickActions, RightRailCard, RowActions, WorkGrid } from "@/components/module-ui";
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
 
 export default function TreatmentPlanningPage() {
@@ -9,89 +18,82 @@ export default function TreatmentPlanningPage() {
   const radOnc = plans.filter((plan) => plan.radOncSignatureStatus === "READY_FOR_REVIEW").length;
   const locked = plans.filter((plan) => plan.lockedAt).length;
 
+  const mapTone = (t: string) => {
+    if (t === "green" || t === "emerald") return "success";
+    if (t === "orange") return "warning";
+    if (t === "red") return "error";
+    if (t === "purple") return "primary";
+    if (t === "blue") return "info";
+    return "default";
+  };
+
   return (
-    <ModulePage>
-      <ModuleActions><PrimaryButton><Plus className="h-4 w-4" />New Plan</PrimaryButton></ModuleActions>
-      <MetricGrid columns={5}>
-        <MetricTile label="Plans in Progress" value={plans.length - locked} detail="Open planning work" icon={Radiation} />
-        <MetricTile label="Physics Review" value={physics} detail="Physicist queue" icon={ShieldCheck} />
-        <MetricTile label="Rad Onc Signature" value={radOnc} detail="Ready to sign" icon={PenLine} tone="purple" />
-        <MetricTile label="Locked Plans" value={locked} detail="Signed plans" icon={CheckCircle2} tone="green" />
-        <MetricTile label="Blocked" value={2} detail="Missing inputs" icon={AlertTriangle} tone="orange" />
-      </MetricGrid>
-      <FilterBar search="Search patient, MRN, diagnosis, site, energy, or plan status..." filters={["Diagnosis", "Site", "Energy", "Phase", "Physicist", "Status"]} />
-      <WorkGrid
-        main={
-          <>
-            <DataTable
-              compact
-              minWidth="1120px"
-              columns={[
-                { header: "Plan ID" },
-                { header: "Patient / Course" },
-                { header: "Diagnosis" },
-                { header: "Site" },
-                { header: "Energy" },
-                { header: "Applicator" },
-                { header: "DOI" },
-                { header: "Dose" },
-                { header: "Fractions" },
-                { header: "Coverage" },
-                { header: "Physics" },
-                { header: "Rad Onc" },
-                { header: "Status" },
-                { header: "Actions" }
-              ]}
-              footer={<Pagination label={`Showing 1 to ${plans.length} of ${plans.length} plans`} />}
-              rows={plans.map((plan) => ({
-                id: plan.id,
-                cells: [
-                  <span key="plan" className="font-bold text-[#0033A0]">{plan.id}</span>,
-                  <span key="patient" className="block truncate">{patientLabel(plan.patientId)} / {plan.courseId.replace("COURSE-", "C")}</span>,
-                  plan.diagnosisType,
-                  <span key="site" className="block truncate">{plan.site}</span>,
-                  plan.energy ?? "Pending",
-                  plan.applicatorSize ?? "Pending",
-                  plan.depthOfInvasion ?? "Pending",
-                  plan.dosePerFraction ?? "Pending",
-                  plan.totalFractions ?? "Pending",
-                  plan.percentDepthDose ? `${plan.percentDepthDose}%` : "Pending",
-                  <Badge key="physics" tone={statusTone(plan.physicistReviewStatus)}>{statusLabel(plan.physicistReviewStatus)}</Badge>,
-                  <Badge key="rad" tone={statusTone(plan.radOncSignatureStatus)}>{statusLabel(plan.radOncSignatureStatus)}</Badge>,
-                  <Badge key="status" tone={plan.lockedAt ? "green" : "blue"}>{plan.lockedAt ? "Locked" : "In Progress"}</Badge>,
-                  <RowActions key="actions" />
-                ]
-              }))}
-            />
-            <section className="grid gap-4 xl:grid-cols-3">
-              {["Review Parameters", "Generate Planning Document", "Send to Physics"].map((title, index) => (
-                <div key={title} className="rounded-lg border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.055)]">
-                  <p className="text-sm font-bold text-[#061A55]">{title}</p>
-                  <p className="mt-2 text-xs font-semibold leading-5 text-[#3D5A80]">{index === 0 ? "Energy, applicator, DOI, dose, and coverage parameters." : index === 1 ? "Create plan summary from structured fields." : "Route plan to physics review queue."}</p>
-                </div>
-              ))}
-            </section>
-          </>
-        }
-        rail={
-          <>
-            <RightRailCard title="Planning Summary">
-              <div className="flex justify-center"><ProgressRing value={80} label="complete" /></div>
-            </RightRailCard>
-            <RightRailCard title="Review Queue">
-              <div className="space-y-2">
-                {plans.map((plan) => <ListItem key={plan.id} title={plan.id} meta={`${patientLabel(plan.patientId)} - ${plan.site}`} badge={<Badge tone={statusTone(plan.physicistReviewStatus)}>{statusLabel(plan.physicistReviewStatus)}</Badge>} />)}
-              </div>
-            </RightRailCard>
-            <RightRailCard title="Blockers">
-              <ListItem title="Required images incomplete" meta="Planning documents need image evidence" badge={<Badge tone="orange">2</Badge>} />
-            </RightRailCard>
-            <RightRailCard title="Quick Actions">
-              <QuickActions actions={[{ label: "Open Plan", icon: <Radiation className="h-4 w-4" /> }, { label: "Send to Physics", icon: <Send className="h-4 w-4" /> }, { label: "Lock Plan", icon: <LockKeyhole className="h-4 w-4" /> }]} />
-            </RightRailCard>
-          </>
+    <PageStack>
+      <PageHeader
+        title="Treatment Planning"
+        subtitle="Plan creation, physics review, and signature routing"
+        actions={<Button><Plus className="h-4 w-4" /> New Plan</Button>}
+      />
+      <StatGrid>
+        <StatCard icon={Radiation} label="Plans in Progress" value={plans.length - locked} sub="Open planning work" />
+        <StatCard icon={ShieldCheck} label="Physics Review" value={physics} sub="Physicist queue" tone="info" />
+        <StatCard icon={PenLine} label="Rad Onc Signature" value={radOnc} sub="Ready to sign" tone="primary" />
+        <StatCard icon={CheckCircle2} label="Locked Plans" value={locked} sub="Signed plans" tone="success" />
+        <StatCard icon={AlertTriangle} label="Blocked" value={2} sub="Missing inputs" tone="warning" />
+      </StatGrid>
+      <DataTable
+        columns={[
+          { key: 'planId', label: 'Plan ID', render: (row) => (
+            <span className="font-bold text-[var(--color-primary)]">{row.id}</span>
+          )},
+          { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
+            <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
+          )},
+          { key: 'diagnosis', label: 'Diagnosis', render: (row) => row.diagnosisType },
+          { key: 'site', label: 'Site', render: (row) => (
+            <span className="block truncate">{row.site}</span>
+          )},
+          { key: 'energy', label: 'Energy', render: (row) => row.energy ?? "Pending" },
+          { key: 'applicator', label: 'Applicator', render: (row) => row.applicatorSize ?? "Pending" },
+          { key: 'doi', label: 'DOI', render: (row) => row.depthOfInvasion ?? "Pending" },
+          { key: 'dose', label: 'Dose', render: (row) => row.dosePerFraction ?? "Pending" },
+          { key: 'fractions', label: 'Fractions', render: (row) => row.totalFractions ?? "Pending" },
+          { key: 'coverage', label: 'Coverage', render: (row) => row.percentDepthDose ? `${row.percentDepthDose}%` : "Pending" },
+          { key: 'physics', label: 'Physics', render: (row) => (
+            <Badge variant={mapTone(statusTone(row.physicistReviewStatus)) as any}>{statusLabel(row.physicistReviewStatus)}</Badge>
+          )},
+          { key: 'radOnc', label: 'Rad Onc', render: (row) => (
+            <Badge variant={mapTone(statusTone(row.radOncSignatureStatus)) as any}>{statusLabel(row.radOncSignatureStatus)}</Badge>
+          )},
+          { key: 'status', label: 'Status', render: (row) => (
+            <Badge variant={row.lockedAt ? "success" : "info"}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
+          )},
+        ]}
+        rows={plans.map((plan) => ({
+          ...plan,
+        }))}
+        pageSize={10}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search patient, MRN, diagnosis, site, energy, or plan status..." />
+            </FilterField>
+            <FilterField><Input placeholder="Diagnosis" /></FilterField>
+            <FilterField><Input placeholder="Status" /></FilterField>
+            <FilterField><Input placeholder="Physicist" /></FilterField>
+          </FilterStrip>
         }
       />
-    </ModulePage>
+      <div className="grid gap-4 xl:grid-cols-3">
+        {["Review Parameters", "Generate Planning Document", "Send to Physics"].map((title, index) => (
+          <div key={title} className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+            <p className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{title}</p>
+            <p className="mt-2 text-xs font-semibold leading-5" style={{ color: 'var(--color-text-muted)' }}>
+              {index === 0 ? "Energy, applicator, DOI, dose, and coverage parameters." : index === 1 ? "Create plan summary from structured fields." : "Route plan to physics review queue."}
+            </p>
+          </div>
+        ))}
+      </div>
+    </PageStack>
   );
 }

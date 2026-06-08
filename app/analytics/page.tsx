@@ -1,4 +1,13 @@
 import { AlertTriangle, BarChart3, CalendarDays, CheckCircle2, Clock3, Download, PenLine, UsersRound } from "lucide-react";
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   carepathTasks,
   fractionLogEntries,
@@ -9,13 +18,10 @@ import {
 import {
   auditBlockers,
   auditReadinessScore,
-  courseAttentionSignals,
   documentStatusCounts,
-  generateAnalyticsInsights,
   overdueTaskCount,
   workflowBottlenecksByParty
 } from "@/lib/workflow";
-import { Badge, DonutChart, FilterBar, ListItem, MetricGrid, MetricTile, MiniBars, ModuleActions, ModulePage, RightRailCard, SecondaryButton, WorkGrid } from "@/components/module-ui";
 
 export default function AnalyticsPage() {
   const patients = operationalPatients();
@@ -23,84 +29,111 @@ export default function AnalyticsPage() {
   const blockers = auditBlockers(carepathTasks, generatedDocuments, fractionLogEntries);
   const documentCounts = documentStatusCounts(generatedDocuments);
   const bottlenecks = workflowBottlenecksByParty(carepathTasks, generatedDocuments);
-  const insights = generateAnalyticsInsights({
-    patients,
-    courses: treatmentCourses,
-    tasks: carepathTasks,
-    documents: generatedDocuments,
-    fractions: fractionLogEntries
-  });
-  const coursesNeedingAttention = courseAttentionSignals(treatmentCourses);
   const onTreatment = patients.filter((patient) => patient.chartRoundsPhase === "ON_TREATMENT").length;
   const auditReady = auditReadinessScore(carepathTasks, generatedDocuments, fractionLogEntries);
 
   return (
-    <ModulePage>
-      <ModuleActions><SecondaryButton><Download className="h-4 w-4" />Export Report</SecondaryButton></ModuleActions>
-      <FilterBar search="Filter by date range, location, physician, diagnosis, or phase..." filters={["Date Range", "Location", "Physician", "Diagnosis", "Phase"]} />
-      <MetricGrid columns={6}>
-        <MetricTile label="Active Courses" value={treatmentCourses.length} detail="All locations" icon={UsersRound} />
-        <MetricTile label="On Treatment" value={onTreatment} detail="Active courses" icon={CalendarDays} tone="green" />
-        <MetricTile label="Pending Signatures" value={generatedDocuments.filter((document) => document.signReviewState !== "SIGNED").length} detail="Documents" icon={PenLine} tone="orange" />
-        <MetricTile label="Overdue Tasks" value={overdueTaskCount(carepathTasks)} detail="Role queues" icon={Clock3} tone="red" />
-        <MetricTile label="Audit Ready" value={`${auditReady}%`} detail="Closeout" icon={CheckCircle2} tone="green" />
-        <MetricTile label="Billing Ready" value={14} detail="Courses" icon={BarChart3} />
-      </MetricGrid>
-      <WorkGrid
-        main={
-          <>
-            <section className="grid gap-4 xl:grid-cols-2">
-              <RightRailCard title="Patient/Course Volume Trend">
-                <div className="flex h-52 items-end gap-3 px-3 pb-4">
-                  {[62, 78, 84, 93, 82, 88, 79].map((value, index) => (
-                    <div key={index} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="w-full rounded-t bg-[#0033A0]" style={{ height: `${value}%` }} />
-                      <span className="text-[10px] font-bold text-[#3D5A80]">W{index + 1}</span>
-                    </div>
-                  ))}
-                </div>
-              </RightRailCard>
-              <RightRailCard title="Phase Distribution">
-                <DonutChart total={patients.length} label="patients" segments={[
-                  { label: "Upcoming", value: patients.filter((patient) => patient.chartRoundsPhase === "UPCOMING").length, color: "#2563EB" },
-                  { label: "On Treatment", value: onTreatment, color: "#059669" },
-                  { label: "Post", value: patients.filter((patient) => patient.chartRoundsPhase === "POST").length, color: "#8B5CF6" }
-                ]} />
-              </RightRailCard>
-            </section>
-            <section className="grid gap-4 xl:grid-cols-3">
-              <RightRailCard title="Workflow Funnel">
-                <MiniBars rows={[{ label: "Consult", value: 238 }, { label: "Chart Prep", value: 212 }, { label: "Simulation", value: 176 }, { label: "Planning", value: 128 }, { label: "Treatment", value: 52 }, { label: "Audit", value: 18 }]} />
-              </RightRailCard>
-              <RightRailCard title="Overdue Tasks by Role">
-                <MiniBars rows={bottlenecks.slice(0, 6).map((item) => ({ label: item.responsibleParty, value: item.overdueActions + item.reviewItems, color: "#FF6620" }))} />
-              </RightRailCard>
-              <RightRailCard title="Documentation Readiness">
-                <DonutChart total={generatedDocuments.length} label="docs" segments={[
-                  { label: "Ready", value: documentCounts.SIGNED + documentCounts.UPLOADED + documentCounts.COMPLETED, color: "#059669" },
-                  { label: "Review", value: documentCounts.READY_FOR_REVIEW + documentCounts.NEEDS_REVIEW, color: "#2563EB" },
-                  { label: "Missing", value: documentCounts.MISSING_FIELDS + documentCounts.PENDING_NEEDED, color: "#FF6620" }
-                ]} />
-              </RightRailCard>
-            </section>
-          </>
-        }
-        rail={
-          <>
-            <RightRailCard title="Key Insights">
-              <div className="space-y-2">
-                {insights.slice(0, 5).map((insight) => <ListItem key={insight.id} title={insight.title} meta={insight.evidence} badge={<Badge tone={insight.severity === "HIGH" ? "red" : insight.severity === "MEDIUM" ? "orange" : "blue"}>{insight.severity}</Badge>} />)}
-              </div>
-            </RightRailCard>
-            <RightRailCard title="Export Options">
-              <div className="space-y-2"><ListItem title="Workflow snapshot" meta="CSV / PDF" /><ListItem title="Audit readiness" meta="PDF packet" /><ListItem title="Documentation report" meta="CSV export" /></div>
-            </RightRailCard>
-            <RightRailCard title="Operational Alerts">
-              <div className="space-y-2"><ListItem title="Open blockers" meta={`${blockers.total} active blockers`} badge={<Badge tone="red">Alert</Badge>} icon={<AlertTriangle className="h-4 w-4" />} /><ListItem title="Courses to watch" meta={`${coursesNeedingAttention.length} attention signals`} /></div>
-            </RightRailCard>
-          </>
-        }
+    <PageStack>
+      <PageHeader
+        title="Analytics"
+        subtitle="Operational insights, workflow metrics, and audit readiness"
+        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Report</Button>}
       />
-    </ModulePage>
+      <FilterStrip>
+        <FilterField grow>
+          <Input placeholder="Filter by date range, location, physician, diagnosis, or phase..." />
+        </FilterField>
+        <FilterField><Input placeholder="Date Range" /></FilterField>
+        <FilterField><Input placeholder="Location" /></FilterField>
+        <FilterField><Input placeholder="Physician" /></FilterField>
+      </FilterStrip>
+      <StatGrid>
+        <StatCard icon={UsersRound} label="Active Courses" value={treatmentCourses.length} sub="All locations" />
+        <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} sub="Active courses" tone="success" />
+        <StatCard icon={PenLine} label="Pending Signatures" value={generatedDocuments.filter((document) => document.signReviewState !== "SIGNED").length} sub="Documents" tone="warning" />
+        <StatCard icon={Clock3} label="Overdue Tasks" value={overdueTaskCount(carepathTasks)} sub="Role queues" tone="error" />
+        <StatCard icon={CheckCircle2} label="Audit Ready" value={`${auditReady}%`} sub="Closeout" tone="success" />
+        <StatCard icon={BarChart3} label="Billing Ready" value={14} sub="Courses" />
+      </StatGrid>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="mb-3 text-sm font-bold" style={{ color: 'var(--color-text)' }}>Patient/Course Volume Trend</h2>
+          <div className="flex h-52 items-end gap-3 px-3 pb-4">
+            {[62, 78, 84, 93, 82, 88, 79].map((value, index) => (
+              <div key={index} className="flex flex-1 flex-col items-center gap-2">
+                <div className="w-full rounded-t" style={{ height: `${value}%`, background: 'var(--color-primary)' }} />
+                <span className="text-[10px] font-bold" style={{ color: 'var(--color-text-muted)' }}>W{index + 1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="mb-3 text-sm font-bold" style={{ color: 'var(--color-text)' }}>Phase Distribution</h2>
+          <div className="space-y-2">
+            {[
+              { label: "Upcoming", value: patients.filter((p) => p.chartRoundsPhase === "UPCOMING").length, color: "var(--color-info)" },
+              { label: "On Treatment", value: onTreatment, color: "var(--color-success)" },
+              { label: "Post", value: patients.filter((p) => p.chartRoundsPhase === "POST").length, color: "var(--color-primary)" },
+            ].map((segment) => (
+              <div key={segment.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
+                </div>
+                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="mb-3 text-sm font-bold" style={{ color: 'var(--color-text)' }}>Workflow Funnel</h2>
+          <div className="space-y-3">
+            {[{ label: "Consult", value: 238 }, { label: "Chart Prep", value: 212 }, { label: "Simulation", value: 176 }, { label: "Planning", value: 128 }, { label: "Treatment", value: 52 }, { label: "Audit", value: 18 }].map((item) => (
+              <div key={item.label} className="flex items-center gap-3">
+                <span className="w-20 text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>{item.label}</span>
+                <div className="flex-1 h-4 rounded" style={{ background: 'var(--color-border-soft)' }}>
+                  <div className="h-full rounded" style={{ width: `${(item.value / 238) * 100}%`, background: 'var(--color-primary)' }} />
+                </div>
+                <span className="text-[11px] font-bold" style={{ color: 'var(--color-text)' }}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="mb-3 text-sm font-bold" style={{ color: 'var(--color-text)' }}>Overdue Tasks by Role</h2>
+          <div className="space-y-3">
+            {bottlenecks.slice(0, 6).map((item) => (
+              <div key={item.responsibleParty} className="flex items-center gap-3">
+                <span className="w-20 text-[11px] font-semibold truncate" style={{ color: 'var(--color-text-muted)' }}>{item.responsibleParty}</span>
+                <div className="flex-1 h-4 rounded" style={{ background: 'var(--color-border-soft)' }}>
+                  <div className="h-full rounded" style={{ width: `${Math.min(100, ((item.overdueActions + item.reviewItems) / 20) * 100)}%`, background: 'var(--color-warning)' }} />
+                </div>
+                <span className="text-[11px] font-bold" style={{ color: 'var(--color-text)' }}>{item.overdueActions + item.reviewItems}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <h2 className="mb-3 text-sm font-bold" style={{ color: 'var(--color-text)' }}>Documentation Readiness</h2>
+          <div className="space-y-2">
+            {[
+              { label: "Ready", value: documentCounts.SIGNED + documentCounts.UPLOADED + documentCounts.COMPLETED, color: "var(--color-success)" },
+              { label: "Review", value: documentCounts.READY_FOR_REVIEW + documentCounts.NEEDS_REVIEW, color: "var(--color-info)" },
+              { label: "Missing", value: documentCounts.MISSING_FIELDS + documentCounts.PENDING_NEEDED, color: "var(--color-warning)" },
+            ].map((segment) => (
+              <div key={segment.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
+                </div>
+                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </PageStack>
   );
 }

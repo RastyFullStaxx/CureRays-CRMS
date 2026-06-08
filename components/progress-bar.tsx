@@ -1,22 +1,34 @@
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/workflow';
+
 export function ProgressBar({
   value,
-  label
+  label,
+  tone = 'blue',
+  width = 'w-full',
 }: {
   value: number;
-  label?: string;
+  label?: ReactNode;
+  tone?: 'blue' | 'green' | 'orange' | 'red';
+  width?: string;
 }) {
+  const color =
+    tone === 'green'
+      ? 'bg-emerald-500'
+      : tone === 'orange'
+        ? 'bg-[#F59E0B]'
+        : tone === 'red'
+          ? 'bg-rose-500'
+          : 'bg-[#0033A0]';
   return (
     <div>
       {label ? (
-        <div className="mb-2 flex items-center justify-between text-xs font-semibold text-curerays-indigo">
-          <span>{label}</span>
-          <span>{value}%</span>
-        </div>
+        <p className="mb-1 text-xs font-bold text-curerays-indigo">{label}</p>
       ) : null}
-      <div className="h-2 rounded-full bg-curerays-light-indigo/18">
+      <div className={cn('h-2 overflow-hidden rounded-full bg-[#E7EEF8]', width)}>
         <div
-          className="h-full rounded-full bg-gradient-to-r from-curerays-orange via-curerays-amber to-curerays-blue"
-          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+          className={cn('h-full rounded-full', color)}
+          style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
         />
       </div>
     </div>

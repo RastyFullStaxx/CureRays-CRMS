@@ -1,6 +1,15 @@
-import { AlertTriangle, CalendarDays, ClipboardList, FileText, PenLine, Settings, ShieldCheck, Upload } from "lucide-react";
-import { DataTable } from "@/components/data-table";
-import { Badge, DonutChart, FilterBar, ListItem, MetricGrid, MetricTile, ModuleActions, ModulePage, Pagination, PrimaryButton, QuickActions, RightRailCard, RowActions, SecondaryButton, WorkGrid } from "@/components/module-ui";
+'use client';
+import { AlertTriangle, CalendarDays, ClipboardList, FileText, PenLine, Settings, ShieldCheck } from "lucide-react";
+import { PageStack } from '@/components/shared/page-stack';
+import { PageHeader } from '@/components/shared/page-header';
+import { StatGrid } from '@/components/shared/stat-grid';
+import { StatCard } from '@/components/shared/stat-card';
+import { DataTable } from '@/components/shared/data-table';
+import { FilterStrip } from '@/components/shared/filter-strip';
+import { FilterField } from '@/components/shared/filter-strip';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
 
 export default function WorkflowPage() {
@@ -11,84 +20,74 @@ export default function WorkflowPage() {
   const blocked = steps.filter((step) => step.status === "BLOCKED").length;
   const overdue = steps.filter((step) => step.blockers.length).length;
 
+  const mapTone = (t: string) => {
+    if (t === "green" || t === "emerald") return "success";
+    if (t === "orange") return "warning";
+    if (t === "red") return "error";
+    if (t === "purple") return "primary";
+    if (t === "blue") return "info";
+    return "default";
+  };
+
   return (
-    <ModulePage>
-      <ModuleActions>
-        <SecondaryButton><Upload className="h-4 w-4" />Export</SecondaryButton>
-        <PrimaryButton><Settings className="h-4 w-4" />Customize</PrimaryButton>
-      </ModuleActions>
-      <FilterBar search="Search workflow steps, patients, courses, or blockers..." filters={["Phase", "Status", "Diagnosis", "Assignee", "Due", "Role"]} />
-      <MetricGrid columns={5}>
-        <MetricTile label="Active Steps" value={steps.length} detail="Across all courses" icon={CalendarDays} />
-        <MetricTile label="Ready for Review" value={ready} detail="Awaiting check" icon={PenLine} tone="purple" />
-        <MetricTile label="Pending Signatures" value={signed} detail="Signed steps" icon={FileText} tone="green" />
-        <MetricTile label="Blocked" value={blocked} detail="Needs escalation" icon={AlertTriangle} tone="red" />
-        <MetricTile label="Overdue" value={overdue} detail="Past due or blocked" icon={ShieldCheck} tone="orange" />
-      </MetricGrid>
-      <WorkGrid
-        main={
-          <DataTable
-            compact
-            minWidth="1120px"
-            columns={[
-              { header: "Step" },
-              { header: "Patient / Course" },
-              { header: "Phase" },
-              { header: "Status" },
-              { header: "Role" },
-              { header: "Assigned" },
-              { header: "Due" },
-              { header: "Signature" },
-              { header: "Linked Doc" },
-              { header: "Blocker" },
-              { header: "Actions" }
-            ]}
-            footer={<Pagination label={`Showing 1 to ${steps.length} of ${steps.length} steps`} perPage="15 per page" />}
-            rows={steps.map((step) => ({
-              id: step.id,
-              cells: [
-                <div key="step"><p className="font-bold text-[#0033A0]">{step.stepNumber}. {step.stepName}</p></div>,
-                <span key="course" className="block truncate">{patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === step.courseId)?.patientId ?? "")} / {step.courseId.replace("COURSE-", "C")}</span>,
-                <Badge key="phase" tone={statusTone(step.phase)}>{phaseLabel(step.phase)}</Badge>,
-                <Badge key="status" tone={statusTone(step.status)}>{statusLabel(step.status)}</Badge>,
-                responsiblePartyName(step.responsibleRole),
-                step.assignedUserId ?? responsiblePartyName(step.responsibleRole),
-                step.dueDate ?? "Ongoing",
-                step.requiresSignature ? (step.signedAt ? <Badge key="signed" tone="green">Signed</Badge> : <Badge key="sig" tone="orange">Required</Badge>) : "-",
-                step.linkedDocumentId ?? "Pending",
-                step.blockers[0] ? <span key="blocker" className="line-clamp-2 text-[#FF6620]">{step.blockers[0]}</span> : "-",
-                <RowActions key="actions" />
-              ]
-            }))}
-          />
-        }
-        rail={
+    <PageStack>
+      <PageHeader
+        title="Workflow"
+        subtitle="Manage clinical workflow steps and approvals"
+        actions={
           <>
-            <RightRailCard title="Workflow by Phase">
-              <DonutChart total={steps.length} label="steps" segments={[
-                { label: "Chart Prep", value: steps.filter((step) => step.phase === "CHART_PREP").length, color: "#F59E0B" },
-                { label: "Planning", value: steps.filter((step) => step.phase === "PLANNING").length, color: "#2563EB" },
-                { label: "On Treatment", value: steps.filter((step) => step.phase === "ON_TREATMENT").length, color: "#059669" },
-                { label: "Audit", value: steps.filter((step) => step.phase === "AUDIT").length, color: "#8B5CF6" }
-              ]} />
-            </RightRailCard>
-            <RightRailCard title="Current Blockers">
-              <div className="space-y-2">
-                {steps.filter((step) => step.status === "BLOCKED" || step.blockers.length).map((step) => (
-                  <ListItem key={step.id} title={step.stepName} meta={step.blockers[0] ?? "Signature or evidence required"} badge={<Badge tone="red">High</Badge>} />
-                ))}
-              </div>
-            </RightRailCard>
-            <RightRailCard title="Quick Actions">
-              <QuickActions actions={[
-                { label: "Assign Step", meta: "Route to role or user", icon: <ClipboardList className="h-4 w-4" /> },
-                { label: "Route for Signature", meta: "Send linked document", icon: <PenLine className="h-4 w-4" /> },
-                { label: "Generate Missing Document", meta: "Create from template", icon: <FileText className="h-4 w-4" /> }
-              ]} />
-            </RightRailCard>
+            <Button variant="secondary"><ClipboardList className="h-4 w-4" /> Export</Button>
+            <Button><Settings className="h-4 w-4" /> Customize</Button>
           </>
         }
       />
-    </ModulePage>
+      <StatGrid>
+        <StatCard icon={CalendarDays} label="Active Steps" value={steps.length} sub="Across all courses" />
+        <StatCard icon={PenLine} label="Ready for Review" value={ready} sub="Awaiting check" tone="primary" />
+        <StatCard icon={FileText} label="Pending Signatures" value={signed} sub="Signed steps" tone="success" />
+        <StatCard icon={AlertTriangle} label="Blocked" value={blocked} sub="Needs escalation" tone="error" />
+        <StatCard icon={ShieldCheck} label="Overdue" value={overdue} sub="Past due or blocked" tone="warning" />
+      </StatGrid>
+      <DataTable
+        columns={[
+          { key: 'step', label: 'Step', render: (row) => (
+            <span className="font-bold text-[var(--color-primary)]">{row.stepNumber}. {row.stepName}</span>
+          )},
+          { key: 'course', label: 'Patient / Course', render: (row) => (
+            <span className="block truncate">{patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === row.courseId)?.patientId ?? "")} / {row.courseId.replace("COURSE-", "C")}</span>
+          )},
+          { key: 'phase', label: 'Phase', render: (row) => (
+            <Badge variant={mapTone(statusTone(row.phase)) as any}>{phaseLabel(row.phase)}</Badge>
+          )},
+          { key: 'status', label: 'Status', render: (row) => (
+            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+          )},
+          { key: 'role', label: 'Role', render: (row) => responsiblePartyName(row.responsibleRole) },
+          { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? responsiblePartyName(row.responsibleRole) },
+          { key: 'due', label: 'Due' },
+          { key: 'signature', label: 'Signature', render: (row) => (
+            row.requiresSignature ? (row.signedAt ? <Badge variant="success">Signed</Badge> : <Badge variant="warning">Required</Badge>) : "-"
+          )},
+          { key: 'linkedDoc', label: 'Linked Doc', render: (row) => row.linkedDocumentId ?? "Pending" },
+          { key: 'blocker', label: 'Blocker', render: (row) => (
+            row.blockers[0] ? <span className="line-clamp-2 text-[var(--color-warning)]">{row.blockers[0]}</span> : "-"
+          )},
+        ]}
+        rows={steps.map((step) => ({
+          ...step,
+        }))}
+        pageSize={15}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search workflow steps, patients, courses, or blockers..." />
+            </FilterField>
+            <FilterField><Input placeholder="Phase" /></FilterField>
+            <FilterField><Input placeholder="Status" /></FilterField>
+            <FilterField><Input placeholder="Assignee" /></FilterField>
+          </FilterStrip>
+        }
+      />
+    </PageStack>
   );
 }
