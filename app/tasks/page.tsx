@@ -10,7 +10,9 @@ import { FilterField } from '@/components/shared/filter-strip';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function TasksPage() {
   const tasks = moduleSnapshot.tasks;
@@ -19,15 +21,6 @@ export default function TasksPage() {
   const completed = tasks.filter((task) => ["COMPLETED", "SIGNED", "CLOSED"].includes(task.status));
   const review = tasks.filter((task) => task.status === "READY_FOR_REVIEW").length;
   const inProgress = tasks.filter((task) => task.status === "IN_PROGRESS" || task.status === "PENDING").length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -98,6 +91,20 @@ export default function TasksPage() {
           </FilterStrip>
         }
       />
+      <Card>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>Upcoming Due (Next 7 Days)</h2>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+          {tasks.slice(0, 6).map((task, index) => (
+            <div key={task.id} className="rounded-lg border p-3" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+              <p className="text-[11px] font-bold" style={{ color: 'var(--color-primary)' }}>May {6 + index}</p>
+              <p className="mt-2 truncate text-xs font-bold" style={{ color: 'var(--color-text)' }}>{task.title}</p>
+              <p className="truncate text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>{patientLabel(task.patientId)}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </PageStack>
   );
 }

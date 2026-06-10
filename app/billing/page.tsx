@@ -41,19 +41,32 @@ export default function BillingPage() {
       <DataTable
         columns={[
           { key: 'code', label: 'Code', render: (row) => (
-            <span className="font-semibold">{row.code}</span>
+            <span className="font-bold text-[var(--color-primary)]">{row.code}</span>
           )},
-          { key: 'description', label: 'Description' },
-          { key: 'planned', label: 'Planned', render: (row) => row.plannedQuantity },
-          { key: 'completed', label: 'Completed', render: (row) => row.completedQuantity },
-          { key: 'billed', label: 'Billed', render: (row) => row.billedQuantity },
-          { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={row.status === "COMPLETED" ? "success" : row.status === "IN_PROGRESS" ? "warning" : "info"}>
-              {row.status.replaceAll("_", " ")}
-            </Badge>
+          { key: 'description', label: 'Description', render: (row) => (
+            <span className="block truncate">{row.description}</span>
           )},
-          { key: 'linkedDoc', label: 'Linked Document', render: (row) => row.linkedDocumentId ?? "Pending" },
-          { key: 'notes', label: 'Notes', render: (row) => row.notes ?? "" },
+          { key: 'planned', label: 'Planned', render: (row) => (
+            <span className="font-semibold">{row.plannedQuantity}</span>
+          )},
+          { key: 'completed', label: 'Completed', render: (row) => (
+            <span className="font-semibold">{row.completedQuantity}</span>
+          )},
+          { key: 'billed', label: 'Billed', render: (row) => (
+            <span className="font-semibold">{row.billedQuantity}</span>
+          )},
+          { key: 'status', label: 'Status', render: (row) => {
+            const variant = row.status === "COMPLETED" ? "success" : row.status === "IN_PROGRESS" ? "warning" : row.status === "BLOCKED" ? "error" : "info";
+            return <Badge variant={variant}>{row.status.replaceAll("_", " ")}</Badge>;
+          }},
+          { key: 'linkedDoc', label: 'Linked Document', render: (row) => row.linkedDocumentId ? (
+            <span className="text-[var(--color-primary)] font-medium">{row.linkedDocumentId}</span>
+          ) : (
+            <span className="text-[var(--color-text-muted)]">Pending</span>
+          )},
+          { key: 'notes', label: 'Notes', render: (row) => row.notes ? (
+            <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span>
+          ) : "-"},
         ]}
         rows={billingItems.map((item) => ({
           ...item,

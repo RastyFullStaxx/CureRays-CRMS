@@ -11,21 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentPlanningPage() {
   const plans = moduleSnapshot.plans;
   const physics = plans.filter((plan) => plan.physicistReviewStatus === "READY_FOR_REVIEW").length;
   const radOnc = plans.filter((plan) => plan.radOncSignatureStatus === "READY_FOR_REVIEW").length;
   const locked = plans.filter((plan) => plan.lockedAt).length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -49,7 +41,9 @@ export default function TreatmentPlanningPage() {
           { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
           )},
-          { key: 'diagnosis', label: 'Diagnosis', render: (row) => row.diagnosisType },
+          { key: 'diagnosis', label: 'Diagnosis', render: (row) => (
+            <Badge variant={row.diagnosisType === "Skin" ? "info" : "primary"}>{row.diagnosisType}</Badge>
+          )},
           { key: 'site', label: 'Site', render: (row) => (
             <span className="block truncate">{row.site}</span>
           )},
@@ -57,6 +51,7 @@ export default function TreatmentPlanningPage() {
           { key: 'applicator', label: 'Applicator', render: (row) => row.applicatorSize ?? "Pending" },
           { key: 'doi', label: 'DOI', render: (row) => row.depthOfInvasion ?? "Pending" },
           { key: 'dose', label: 'Dose', render: (row) => row.dosePerFraction ?? "Pending" },
+          { key: 'totalDose', label: 'Total Dose', render: (row) => row.totalDose ?? "Pending" },
           { key: 'fractions', label: 'Fractions', render: (row) => row.totalFractions ?? "Pending" },
           { key: 'coverage', label: 'Coverage', render: (row) => row.percentDepthDose ? `${row.percentDepthDose}%` : "Pending" },
           { key: 'physics', label: 'Physics', render: (row) => (
@@ -66,7 +61,7 @@ export default function TreatmentPlanningPage() {
             <Badge variant={mapTone(statusTone(row.radOncSignatureStatus)) as any}>{statusLabel(row.radOncSignatureStatus)}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={row.lockedAt ? "success" : "info"}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
+            <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS")) as any}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
           )},
         ]}
         rows={plans.map((plan) => ({

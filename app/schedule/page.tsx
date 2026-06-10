@@ -65,7 +65,7 @@ export default function SchedulePage() {
                 return (
                   <div key={`${day}-${hour}`} className="min-h-[86px] border-l border-t p-2" style={{ borderColor: 'var(--color-border-soft)' }}>
                     {(row + col) % 2 === 0 ? (
-                      <div className={`rounded-lg border p-2 ${treatment ? "border-emerald-200 bg-emerald-50" : "border-blue-200 bg-blue-50"}`}>
+                      <div className="rounded-lg border p-2" style={{ background: treatment ? 'color-mix(in srgb, var(--color-success) 8%, var(--color-card))' : 'color-mix(in srgb, var(--color-info) 8%, var(--color-card))', borderColor: treatment ? 'color-mix(in srgb, var(--color-success) 20%, transparent)' : 'color-mix(in srgb, var(--color-info) 20%, transparent)' }}>
                         <p className="truncate font-bold text-xs" style={{ color: 'var(--color-text)' }}>{appointment.patientName}</p>
                         <p className="mt-1 truncate font-bold text-xs" style={{ color: 'var(--color-primary)' }}>{appointment.title}</p>
                         <p className="mt-1 truncate text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>{appointment.time}</p>

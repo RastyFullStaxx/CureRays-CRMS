@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Link from 'next/link';
 import { Plus, UserCog, ShieldCheck, UsersRound } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
@@ -68,16 +67,22 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
           <DataTable
             keyField="email"
             columns={[
-              { key: 'name', label: 'User' },
-              { key: 'role', label: 'Role' },
+              { key: 'name', label: 'User', render: (row) => (
+                <div className="flex flex-col">
+                  <span className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{row.name}</span>
+                  <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{row.email}</span>
+                </div>
+              )},
+              { key: 'role', label: 'Role', render: (row) => <Badge variant="default">{row.role}</Badge> },
               { key: 'location', label: 'Location' },
-              { key: 'status', label: 'Status' },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'error'}>{row.status}</Badge> },
               { key: 'lastLogin', label: 'Last Login' },
               { key: 'mfa', label: 'MFA' },
             ]}
             rows={adminUsers.map((user) => ({
               id: user.email,
               name: user.name,
+              email: user.email,
               role: user.role,
               location: user.location,
               status: user.status,
@@ -106,10 +111,10 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
           <DataTable
             keyField="name"
             columns={[
-              { key: 'name', label: 'Role Name' },
+              { key: 'name', label: 'Role Name', render: (row) => <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{row.name}</span> },
               { key: 'description', label: 'Description' },
               { key: 'users', label: 'Users' },
-              { key: 'status', label: 'Status' },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'warning'}>{row.status}</Badge> },
               { key: 'updated', label: 'Last Updated' },
             ]}
             rows={adminRoles.map((role) => ({
@@ -140,9 +145,9 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
           <DataTable
             keyField="module"
             columns={[
-              { key: 'module', label: 'Module / Feature' },
+              { key: 'module', label: 'Module / Feature', render: (row) => <span className="font-bold" style={{ color: 'var(--color-text)' }}>{row.module}</span> },
               { key: 'description', label: 'Description' },
-              ...permissionRoles.map((role) => ({ key: role, label: role })),
+              ...permissionRoles.map((role) => ({ key: role, label: role, render: (row: Record<string, any>) => <AccessIcon level={row[role]} /> })),
             ]}
             rows={permissionRows.map((row) => ({
               id: row.module,

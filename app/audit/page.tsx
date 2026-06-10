@@ -1,4 +1,3 @@
-'use client';
 import { AlertTriangle, CheckCircle2, FileWarning, PenLine, PlayCircle, ShieldCheck, Upload } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -11,20 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function AuditPage() {
   const blockers = moduleSnapshot.auditChecks.filter((check) => ["BLOCKED", "OVERDUE", "READY_FOR_REVIEW"].includes(check.status));
   const courses = moduleSnapshot.courses;
   const signedMissing = moduleSnapshot.generatedDocuments.filter((document) => document.signReviewState !== "SIGNED").length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>

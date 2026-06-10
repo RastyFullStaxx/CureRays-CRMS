@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function WorkflowPage() {
   const steps = moduleSnapshot.workflowSteps;
@@ -19,15 +20,6 @@ export default function WorkflowPage() {
   const signed = steps.filter((step) => step.signedAt).length;
   const blocked = steps.filter((step) => step.status === "BLOCKED").length;
   const overdue = steps.filter((step) => step.blockers.length).length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -64,9 +56,12 @@ export default function WorkflowPage() {
           )},
           { key: 'role', label: 'Role', render: (row) => responsiblePartyName(row.responsibleRole) },
           { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? responsiblePartyName(row.responsibleRole) },
-          { key: 'due', label: 'Due' },
+          { key: 'due', label: 'Due', render: (row) => row.dueDate ? new Date(row.dueDate).toLocaleDateString() : "-" },
           { key: 'signature', label: 'Signature', render: (row) => (
             row.requiresSignature ? (row.signedAt ? <Badge variant="success">Signed</Badge> : <Badge variant="warning">Required</Badge>) : "-"
+          )},
+          { key: 'trigger', label: 'Trigger', render: (row) => (
+            <span className="text-[var(--color-text-muted)] text-[11px]">{row.triggerEvent}</span>
           )},
           { key: 'linkedDoc', label: 'Linked Doc', render: (row) => row.linkedDocumentId ?? "Pending" },
           { key: 'blocker', label: 'Blocker', render: (row) => (

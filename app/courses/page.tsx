@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function CoursesPage() {
   const courses = moduleSnapshot.courses;
@@ -19,15 +20,6 @@ export default function CoursesPage() {
   const onTreatment = courses.filter((course) => course.simpleDashboardPhase === "ON_TREATMENT").length;
   const post = courses.filter((course) => course.simpleDashboardPhase === "POST").length;
   const blocked = courses.filter((course) => course.flagsIssues.length || course.status === "BLOCKED").length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -66,6 +58,9 @@ export default function CoursesPage() {
           { key: 'site', label: 'Site', render: (row) => (
             <span className="block truncate">{row.treatmentSite}</span>
           )},
+          { key: 'location', label: 'Location', render: (row) => (
+            <span className="block truncate text-[var(--color-text-muted)]">{row.location}</span>
+          )},
           { key: 'physician', label: 'Physician', render: (row) => (
             <span className="block truncate">{row.physicianId ?? "Unassigned"}</span>
           )},
@@ -75,8 +70,8 @@ export default function CoursesPage() {
           { key: 'status', label: 'Status', render: (row) => (
             <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
           )},
-          { key: 'startDate', label: 'Start Date' },
-          { key: 'endDate', label: 'End Date' },
+          { key: 'startDate', label: 'Start Date', render: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : "-" },
+          { key: 'endDate', label: 'End Date', render: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : "-" },
           { key: 'nextAction', label: 'Next Action', render: (row) => (
             <span className="line-clamp-2">{row.nextAction}</span>
           )},

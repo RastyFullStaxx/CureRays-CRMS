@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "ui-runtime-speed-optimizer": {
+      "description": "Reviews and improves user-perceived UI runtime speed: page loads, tab switches, button actions, form submissions, modal flows, React client/server component rendering, asset bloat, and DOM performance.",
+      "mode": "all",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "npm run build*": "ask",
+          "npm run lint*": "ask",
+          "npm run typecheck*": "ask",
+          "npm run test*": "ask",
+          "npx prisma*": "ask"
+        }
+      },
+      "prompt": "{file:.opencode/agents/ui-runtime-speed-optimizer.md}"
+    }
+  }
+}

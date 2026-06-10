@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function DocumentsPage() {
   const documents = moduleSnapshot.documents;
@@ -18,15 +19,6 @@ export default function DocumentsPage() {
   const pending = documents.filter((document) => ["READY_FOR_REVIEW", "PENDING"].includes(document.status)).length;
   const signed = documents.filter((document) => document.signedAt).length;
   const uploaded = documents.filter((document) => document.uploadedToEcwAt).length;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -55,7 +47,9 @@ export default function DocumentsPage() {
           { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
           )},
-          { key: 'category', label: 'Category' },
+          { key: 'category', label: 'Category', render: (row) => (
+            <Badge variant="info">{row.category}</Badge>
+          )},
           { key: 'phase', label: 'Phase', render: (row) => (
             <Badge variant="info">{phaseLabel(row.category)}</Badge>
           )},

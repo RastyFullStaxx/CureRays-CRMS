@@ -49,12 +49,12 @@ export default function ImagingPage() {
             <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
           )},
           { key: 'modality', label: 'Modality', render: (row) => (
-            row.category.includes("X-ray") ? "X-ray" : row.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo"
+            <Badge variant="info">{row.category.includes("X-ray") ? "X-ray" : row.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo"}</Badge>
           )},
           { key: 'phase', label: 'Phase', render: (row) => (
             <Badge variant="info">{phaseLabel(row.phase)}</Badge>
           )},
-          { key: 'uploaded', label: 'Uploaded', render: (row) => row.uploadedAt ?? "Pending" },
+          { key: 'uploaded', label: 'Uploaded', render: (row) => row.uploadedAt ? new Date(row.uploadedAt).toLocaleDateString() : "Pending" },
           { key: 'uploader', label: 'Uploader', render: (row) => row.uploadedByUserId ?? "Unassigned" },
           { key: 'status', label: 'Status', render: (row) => (
             <Badge variant={row.uploadedAt ? "success" : "warning"}>{row.uploadedAt ? "Tagged" : "Queued"}</Badge>

@@ -35,11 +35,11 @@ export default function PatientsPage() {
       <DataTable
         keyField="id"
         columns={[
-          { key: 'name', label: 'Patient' },
-          { key: 'mrn', label: 'MRN' },
-          { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase' },
-          { key: 'course', label: 'Course' },
+          { key: 'name', label: 'Patient', render: (row) => <span className="font-bold" style={{ color: 'var(--color-text)' }}>{row.name}</span> },
+          { key: 'mrn', label: 'MRN', render: (row) => <span className="font-mono text-xs" style={{ color: 'var(--color-text-muted)' }}>{row.mrn}</span> },
+          { key: 'diagnosis', label: 'Diagnosis', render: (row) => <Badge variant="default">{row.diagnosis}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{row.phase}</Badge> },
+          { key: 'course', label: 'Course', render: (row) => <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{row.course}</span> },
           { key: 'status', label: 'Status' },
         ]}
         rows={patients.map((patient) => {

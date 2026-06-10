@@ -11,21 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentDeliveryPage() {
   const fractions = moduleSnapshot.fractions;
   const activeFractions = fractions.slice(0, 5);
   const completed = fractions.filter((fraction) => fraction.status === "COMPLETED").length;
   const held = fractions.filter((fraction) => fraction.status === "BLOCKED" || fraction.status === "OVERDUE").length || 2;
-
-  const mapTone = (t: string) => {
-    if (t === "green" || t === "emerald") return "success";
-    if (t === "orange") return "warning";
-    if (t === "red") return "error";
-    if (t === "purple") return "primary";
-    if (t === "blue") return "info";
-    return "default";
-  };
 
   return (
     <PageStack>
@@ -85,7 +77,9 @@ export default function TreatmentDeliveryPage() {
           { key: 'patient', label: 'Patient', render: (row) => (
             <span className="block truncate font-bold">{patientLabel(row.patientId)}</span>
           )},
-          { key: 'course', label: 'Course', render: (row) => row.courseId.replace("COURSE-", "C") },
+          { key: 'course', label: 'Course', render: (row) => (
+            <span className="font-bold text-[var(--color-primary)]">{row.courseId.replace("COURSE-", "C")}</span>
+          )},
           { key: 'fraction', label: 'Fraction', render: (row) => {
             const course = moduleSnapshot.treatmentCourses.find((item) => item.id === row.courseId);
             return `${row.fractionNumber} of ${course?.totalFractions ?? 20}`;
