@@ -39,14 +39,6 @@ export default function TreatmentDeliveryPage() {
         <StatCard icon={UsersRound} label="OTV Due" value={3} sub="Patients" tone="warning" />
         <StatCard icon={ShieldCheck} label="Physics Check Due" value={2} sub="Patients" tone="info" />
       </StatGrid>
-      <FilterStrip>
-        <FilterField grow>
-          <Input placeholder="Search patient, MRN, appointment, therapist, or fraction..." />
-        </FilterField>
-        <FilterField><Input placeholder="Location" /></FilterField>
-        <FilterField><Input placeholder="Therapist" /></FilterField>
-        <FilterField><Input placeholder="Status" /></FilterField>
-      </FilterStrip>
       <div
         className="rounded-[var(--radius-lg)] p-4"
         style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
@@ -111,6 +103,16 @@ export default function TreatmentDeliveryPage() {
           };
         })}
         pageSize={10}
+        toolbar={
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search patient, MRN, appointment, therapist, or fraction..." />
+            </FilterField>
+            <FilterField><Input placeholder="Location" /></FilterField>
+            <FilterField><Input placeholder="Therapist" /></FilterField>
+            <FilterField><Input placeholder="Status" /></FilterField>
+          </FilterStrip>
+        }
       />
     </PageStack>
   );

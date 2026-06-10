@@ -30,14 +30,6 @@ export default function SchedulePage() {
           </>
         }
       />
-      <FilterStrip>
-        <FilterField grow>
-          <Input placeholder="Search schedule, patient, MRN, appointment, or provider..." />
-        </FilterField>
-        <FilterField><Input placeholder="Date" /></FilterField>
-        <FilterField><Input placeholder="Site" /></FilterField>
-        <FilterField><Input placeholder="Provider" /></FilterField>
-      </FilterStrip>
       <StatGrid>
         <StatCard icon={CalendarDays} label="Total" value={appointments.length} sub="Appointments" />
         <StatCard icon={CheckCircle2} label="Treatments" value={treatments} sub="Fractions" tone="success" />
@@ -48,8 +40,16 @@ export default function SchedulePage() {
         className="rounded-[var(--radius-lg)] overflow-hidden"
         style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
       >
-        <div className="p-4">
-          <h2 className="mb-4 text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>May 4 - May 10, 2026</h2>
+        <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
+          <h2 className="mb-3 text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>May 4 - May 10, 2026</h2>
+          <FilterStrip>
+            <FilterField grow>
+              <Input placeholder="Search schedule, patient, MRN, appointment, or provider..." />
+            </FilterField>
+            <FilterField><Input placeholder="Date" /></FilterField>
+            <FilterField><Input placeholder="Site" /></FilterField>
+            <FilterField><Input placeholder="Provider" /></FilterField>
+          </FilterStrip>
         </div>
         <div className="grid grid-cols-[56px_repeat(7,minmax(120px,1fr))] overflow-hidden border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
           <div className="p-2 font-bold text-xs" style={{ background: 'var(--color-hover)', color: 'var(--color-text-muted)' }}>PDT</div>

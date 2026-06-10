@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ClipboardList, FileText, CalendarDays, Radiation } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
@@ -6,6 +7,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   carepathTasks,
   fractionLogEntries,
@@ -50,6 +52,18 @@ export default function PatientProfilePage({ params }: { params: { id: string } 
         <StatCard icon={CalendarDays} label="Fractions" value={fractions.length} tone="success" />
         <StatCard icon={Radiation} label="Audit Events" value={auditEvents.length} sub="System-wide" />
       </StatGrid>
+
+      <div className="flex flex-wrap gap-3">
+        <Link href={`/patients/${patient.id}/carepath`}>
+          <Button variant="secondary">Carepath</Button>
+        </Link>
+        <Link href={`/patients/${patient.id}/documents`}>
+          <Button variant="secondary">Documents</Button>
+        </Link>
+        <Link href={`/patients/${patient.id}/fraction-log`}>
+          <Button variant="secondary">Fraction Log</Button>
+        </Link>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

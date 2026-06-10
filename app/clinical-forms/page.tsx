@@ -34,7 +34,8 @@ export default function ClinicalFormsPage() {
         <StatCard icon={FileText} label="Missing Fields" value={missingFields || 4} sub="Need completion" tone="warning" />
         <StatCard icon={RefreshCw} label="Existing Documents" value={documents.length} sub="Editable through fields" />
       </StatGrid>
-      <DataTable
+      <div style={{ marginTop: '-1px' }}>
+        <DataTable
         columns={[
           { key: 'title', label: 'Document Name', render: (row) => (
             <span className="block truncate font-bold text-[var(--color-primary)]">{row.title}</span>
@@ -73,7 +74,7 @@ export default function ClinicalFormsPage() {
             <FilterField><Input placeholder="Phase" /></FilterField>
           </FilterStrip>
         }
-      />
+      /></div>
       <div
         className="rounded-[var(--radius-lg)] p-4"
         style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}

@@ -27,7 +27,7 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
 
   if (collapsed) {
     return (
-      <li>
+      <li style={{ display: 'flex', justifyContent: 'center' }}>
         <Link
           href={href}
           className="flex items-center justify-center"

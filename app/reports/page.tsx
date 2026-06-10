@@ -30,6 +30,14 @@ export default function ReportsPage() {
         subtitle="Operational intelligence and clinical workflow signals"
       />
 
+      <StatGrid>
+        <StatCard icon={UsersRound} label="Active Patients" value={patients.length} tone="primary" />
+        <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} tone="success" />
+        <StatCard icon={ClipboardList} label="Pending Tasks" value={carepathTasks.length} tone="warning" />
+        <StatCard icon={FileText} label="Documents Ready" value={generatedDocuments.length} tone="info" />
+        <StatCard icon={PenLine} label="Overdue Tasks" value={overdueTasks} tone="error" />
+      </StatGrid>
+
       <FilterStrip>
         <FilterField grow>
           <Input placeholder="Search report, diagnosis, phase, staff workload, or audit signal" />
@@ -38,14 +46,6 @@ export default function ReportsPage() {
         <FilterField><Input placeholder="Location" /></FilterField>
         <FilterField><Input placeholder="Phase" /></FilterField>
       </FilterStrip>
-
-      <StatGrid>
-        <StatCard icon={UsersRound} label="Active Patients" value={patients.length} tone="primary" />
-        <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} tone="success" />
-        <StatCard icon={ClipboardList} label="Pending Tasks" value={carepathTasks.length} tone="warning" />
-        <StatCard icon={FileText} label="Documents Ready" value={generatedDocuments.length} tone="info" />
-        <StatCard icon={PenLine} label="Overdue Tasks" value={overdueTasks} tone="error" />
-      </StatGrid>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>

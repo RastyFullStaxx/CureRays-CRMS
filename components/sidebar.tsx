@@ -20,8 +20,10 @@ import {
   LineChart,
   UserCog,
   Settings,
-  ChevronLeft,
-  ChevronRight,
+  Sun,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { NavItem } from './layout/nav-item';
 
@@ -91,6 +93,7 @@ const NAV_SECTIONS = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('curerays_sidebar_collapsed');
@@ -98,6 +101,22 @@ export function Sidebar() {
       setCollapsed(stored === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('curerays_darkmode');
+    if (stored !== null) {
+      const isDark = stored === 'true';
+      setDarkMode(isDark);
+      document.documentElement.classList.toggle('dark', isDark);
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem('curerays_darkmode', next.toString());
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -117,33 +136,26 @@ export function Sidebar() {
         flexShrink: 0,
       }}
     >
-      {/* Logo Area */}
+      {/* Header Area */}
       <div
         className="flex items-center"
         style={{
           height: 'var(--height-header)',
           padding: collapsed ? '0 12px' : '0 16px',
           borderBottom: '1px solid var(--color-border)',
+          justifyContent: collapsed ? 'center' : 'space-between',
         }}
       >
-        <div
-          className="flex items-center"
-          style={{
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            width: '100%',
-          }}
-        >
-          <Image
-            src="/System_Logo.svg"
-            alt="CureRays"
-            width={28}
-            height={28}
-            style={{
-              flexShrink: 0,
-            }}
-          />
-          {!collapsed && (
+        {/* Logo + Title */}
+        {!collapsed && (
+          <div className="flex items-center" style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}>
+            <Image
+              src="/System_Logo.svg"
+              alt="CureRays"
+              width={28}
+              height={28}
+              style={{ flexShrink: 0 }}
+            />
             <span
               style={{
                 marginLeft: '10px',
@@ -155,19 +167,59 @@ export function Sidebar() {
             >
               CureRays
             </span>
+          </div>
+        )}
+
+        {/* Controls: Dark mode toggle + Collapse button */}
+        <div className="flex items-center" style={{ gap: 4, flexShrink: 0 }}>
+          {!collapsed && (
+            <button
+              onClick={toggleDarkMode}
+              className="flex items-center justify-center"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 'var(--radius-md)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-muted)',
+              }}
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           )}
+          <button
+            onClick={toggleCollapse}
+            className="flex items-center justify-center"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 'var(--radius-md)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+            }}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
       </div>
 
       {/* Nav Sections */}
       <nav
-        className="flex-1 overflow-y-auto"
+        className="flex-1"
         style={{
           padding: collapsed ? '8px 0' : '8px 12px',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         {NAV_SECTIONS.map((section) => (
-          <div key={section.key} style={{ marginBottom: '16px' }}>
+          <div key={section.key} style={{ marginBottom: '8px' }}>
             {!collapsed && (
               <div
                 style={{
@@ -183,7 +235,7 @@ export function Sidebar() {
                 {section.label}
               </div>
             )}
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: collapsed ? 'flex' : undefined, flexDirection: collapsed ? 'column' : undefined, alignItems: collapsed ? 'center' : undefined }}>
               {section.items.map((item) => (
                 <NavItem
                   key={item.key}
@@ -206,6 +258,7 @@ export function Sidebar() {
           height: 'var(--height-header)',
           padding: collapsed ? '0 12px' : '0 16px',
           borderTop: '1px solid var(--color-border)',
+          overflow: 'hidden',
         }}
       >
         <div
@@ -214,6 +267,7 @@ export function Sidebar() {
             overflow: 'hidden',
             whiteSpace: 'nowrap',
             width: '100%',
+            minWidth: 0,
           }}
         >
           <div
@@ -262,24 +316,6 @@ export function Sidebar() {
           )}
         </div>
       </div>
-
-      {/* Collapse Toggle */}
-      <button
-        onClick={toggleCollapse}
-        className="flex items-center justify-center"
-        style={{
-          height: '32px',
-          margin: collapsed ? '0 12px 12px' : '0 12px 12px',
-          borderRadius: 'var(--radius-md)',
-          background: 'var(--color-hover)',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--color-text-muted)',
-        }}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-      </button>
     </aside>
   );
 }

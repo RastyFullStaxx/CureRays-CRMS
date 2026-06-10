@@ -1,3 +1,5 @@
+'use client';
+import Link from 'next/link';
 import { UsersRound } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -35,12 +37,12 @@ export default function PatientsPage() {
       <DataTable
         keyField="id"
         columns={[
-          { key: 'name', label: 'Patient', render: (row) => <span className="font-bold" style={{ color: 'var(--color-text)' }}>{row.name}</span> },
+          { key: 'name', label: 'Patient', render: (row) => <Link href={"/patients/" + row.id} className="hover:underline"><span className="font-bold" style={{ color: 'var(--color-text)' }}>{row.name}</span></Link> },
           { key: 'mrn', label: 'MRN', render: (row) => <span className="font-mono text-xs" style={{ color: 'var(--color-text-muted)' }}>{row.mrn}</span> },
           { key: 'diagnosis', label: 'Diagnosis', render: (row) => <Badge variant="default">{row.diagnosis}</Badge> },
           { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{row.phase}</Badge> },
           { key: 'course', label: 'Course', render: (row) => <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{row.course}</span> },
-          { key: 'status', label: 'Status' },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'ON_TREATMENT' ? 'success' : row.status === 'POST' ? 'primary' : 'info'}>{row.status}</Badge> },
         ]}
         rows={patients.map((patient) => {
           const course = treatmentCourses.find((c) => c.patientId === patient.id);

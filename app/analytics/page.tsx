@@ -3,9 +3,7 @@ import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -40,14 +38,6 @@ export default function AnalyticsPage() {
         subtitle="Operational insights, workflow metrics, and audit readiness"
         actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Report</Button>}
       />
-      <FilterStrip>
-        <FilterField grow>
-          <Input placeholder="Filter by date range, location, physician, diagnosis, or phase..." />
-        </FilterField>
-        <FilterField><Input placeholder="Date Range" /></FilterField>
-        <FilterField><Input placeholder="Location" /></FilterField>
-        <FilterField><Input placeholder="Physician" /></FilterField>
-      </FilterStrip>
       <StatGrid>
         <StatCard icon={UsersRound} label="Active Courses" value={treatmentCourses.length} sub="All locations" />
         <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} sub="Active courses" tone="success" />

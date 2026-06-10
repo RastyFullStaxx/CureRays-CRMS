@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { Plus, UserCog, ShieldCheck, UsersRound } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
