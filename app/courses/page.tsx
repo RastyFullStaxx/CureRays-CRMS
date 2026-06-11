@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
@@ -82,20 +79,29 @@ export default function CoursesPage() {
             <span className="block truncate">{row.assignedStaff.join(", ")}</span>
           )},
         ]}
-        rows={courses.map((course) => ({
-          ...course,
-        }))}
+        rows={courses}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search patient, MRN, diagnosis, course, or next action..." />
-            </FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-            <FilterField><Input placeholder="Physician" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search patient, MRN, diagnosis, course, or next action...',
+          getText: (row) => [
+            row.id,
+            row.courseNumber,
+            patientLabel(row.patientId),
+            patientMrn(row.patientId),
+            row.diagnosisType,
+            row.treatmentSite,
+            row.location,
+            row.physicianId,
+            row.status,
+            row.nextAction,
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.currentPhase) },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'physician', label: 'Physician', getValue: (row) => row.physicianId ?? 'Unassigned' },
+          { id: 'diagnosisType', label: 'Diagnosis' },
+        ]}
       />
     </PageStack>
   );

@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
@@ -68,20 +65,27 @@ export default function WorkflowPage() {
             row.blockers[0] ? <span className="line-clamp-2 text-[var(--color-warning)]">{row.blockers[0]}</span> : "-"
           )},
         ]}
-        rows={steps.map((step) => ({
-          ...step,
-        }))}
+        rows={steps}
         pageSize={15}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search workflow steps, patients, courses, or blockers..." />
-            </FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-            <FilterField><Input placeholder="Assignee" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search workflow steps, patients, courses, or blockers...',
+          getText: (row) => [
+            row.stepName,
+            row.courseId,
+            patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === row.courseId)?.patientId ?? ''),
+            phaseLabel(row.phase),
+            statusLabel(row.status),
+            responsiblePartyName(row.responsibleRole),
+            row.assignedUserId,
+            row.linkedDocumentId,
+            ...row.blockers,
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.phase) },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'assignee', label: 'Assignee', getValue: (row) => row.assignedUserId ?? responsiblePartyName(row.responsibleRole) },
+        ]}
       />
     </PageStack>
   );

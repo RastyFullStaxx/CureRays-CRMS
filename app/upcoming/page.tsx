@@ -4,10 +4,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   carepathTasks,
   generatedDocuments,
@@ -19,6 +15,18 @@ export default function UpcomingPage() {
   const patients = operationalPatients();
   const treatmentCourses = operationalTreatmentCourses();
   const upcoming = patients.filter((p) => p.chartRoundsPhase === 'UPCOMING');
+  const rows = upcoming.map((patient) => {
+    const course = treatmentCourses.find((c) => c.patientRef === patient.patientRef);
+    return {
+      id: patient.id,
+      name: patient.displayLabel,
+      mrn: patient.patientRef,
+      diagnosis: patient.diagnosisCategory ?? '—',
+      phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
+      course: course ? course.id.replace('COURSE-', 'C') : '—',
+      status: patient.chartRoundsPhase ?? '—',
+    };
+  });
 
   return (
     <PageStack>
@@ -44,27 +52,12 @@ export default function UpcomingPage() {
           { key: 'course', label: 'Course' },
           { key: 'status', label: 'Status' },
         ]}
-        rows={upcoming.map((patient) => {
-          const course = treatmentCourses.find((c) => c.patientRef === patient.id);
-          return {
-            id: patient.id,
-            name: patient.displayLabel,
-            mrn: patient.patientRef,
-            diagnosis: patient.diagnosisCategory ?? '—',
-            phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
-            course: course ? course.id.replace('COURSE-', 'C') : '—',
-            status: patient.chartRoundsPhase ?? '—',
-          };
-        })}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search upcoming patients by name, MRN, or diagnosis..." />
-            </FilterField>
-            <FilterField><Input placeholder="Diagnosis" /></FilterField>
-            <FilterField><Input placeholder="Course" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search upcoming patients by name, MRN, or diagnosis...', keys: ['name', 'mrn', 'diagnosis', 'course', 'status'] }}
+        filters={[
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'course', label: 'Course' },
+        ]}
       />
     </PageStack>
   );

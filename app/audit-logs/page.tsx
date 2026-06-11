@@ -4,15 +4,22 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { operationalAuditEvents } from '@/lib/clinical-store';
 
 export default function AuditLogsPage() {
   const auditEvents = operationalAuditEvents();
+  const rows = auditEvents.map((event) => ({
+    id: event.id,
+    timestamp: event.timestamp,
+    userName: event.userName,
+    patientRef: event.patientRef ?? 'System',
+    action: event.action,
+    entityType: event.entityType,
+    entityId: event.entityId,
+    previousValue: event.previousValue,
+    newValue: event.newValue,
+  }));
 
   return (
     <PageStack>
@@ -41,27 +48,13 @@ export default function AuditLogsPage() {
           { key: 'previousValue', label: 'Old Value' },
           { key: 'newValue', label: 'New Value' },
         ]}
-        rows={auditEvents.map((event) => ({
-          id: event.id,
-          timestamp: event.timestamp,
-          userName: event.userName,
-          patientRef: event.patientRef ?? 'System',
-          action: event.action,
-          entityType: event.entityType,
-          entityId: event.entityId,
-          previousValue: event.previousValue,
-          newValue: event.newValue,
-        }))}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search user, patient, course, action, entity, or timestamp..." />
-            </FilterField>
-            <FilterField><Input placeholder="User" /></FilterField>
-            <FilterField><Input placeholder="Entity Type" /></FilterField>
-            <FilterField><Input placeholder="Date Range" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search user, patient, course, action, entity, or timestamp...', keys: ['timestamp', 'userName', 'patientRef', 'action', 'entityType', 'entityId'] }}
+        filters={[
+          { id: 'userName', label: 'User' },
+          { id: 'entityType', label: 'Entity Type' },
+          { id: 'action', label: 'Action' },
+        ]}
       />
     </PageStack>
   );

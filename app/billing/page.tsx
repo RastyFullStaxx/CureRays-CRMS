@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { billingItems } from "@/lib/module-data";
@@ -68,20 +65,14 @@ export default function BillingPage() {
             <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span>
           ) : "-"},
         ]}
-        rows={billingItems.map((item) => ({
-          ...item,
-        }))}
+        rows={billingItems}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search code, patient ID, course, document, or billing note..." />
-            </FilterField>
-            <FilterField><Input placeholder="Code" /></FilterField>
-            <FilterField><Input placeholder="Documentation" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        search={{ placeholder: 'Search code, patient ID, course, document, or billing note...', keys: ['code', 'description', 'linkedDocumentId', 'notes', 'status'] }}
+        filters={[
+          { id: 'code', label: 'Code' },
+          { id: 'documentation', label: 'Documentation', getValue: (row) => row.linkedDocumentId ? 'Linked' : 'Pending' },
+          { id: 'status', label: 'Status', getValue: (row) => row.status.replaceAll('_', ' ') },
+        ]}
       />
       <div className="grid gap-3 md:grid-cols-3">
         {["Consultation", "Simulation", "Treatment", "Follow-up", "Audit"].map((phase) => (

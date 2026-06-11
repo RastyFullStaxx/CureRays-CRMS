@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -60,20 +57,26 @@ export default function ClinicalFormsPage() {
             </div>
           )},
         ]}
-        rows={documents.map((document) => ({
-          ...document,
-        }))}
+        rows={documents}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search form, document, patient, MRN, status, or reviewer..." />
-            </FilterField>
-            <FilterField><Input placeholder="Form Type" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search form, document, patient, MRN, status, or reviewer...',
+          getText: (row) => [
+            row.title,
+            patientLabel(row.patientId),
+            patientMrn(row.patientId),
+            row.formType,
+            row.phase,
+            statusLabel(row.status),
+            row.assignedStaff,
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'formType', label: 'Form Type' },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'phase', label: 'Phase' },
+          { id: 'assignedStaff', label: 'Reviewer' },
+        ]}
       /></div>
       <div
         className="rounded-[var(--radius-lg)] p-4"

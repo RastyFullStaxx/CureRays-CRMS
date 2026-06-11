@@ -8,13 +8,26 @@ export const metadata: Metadata = {
   description: "Clinical workflow dashboard for CureRays treatment operations."
 };
 
+const themeScript = `
+try {
+  var storedTheme = window.localStorage.getItem('curerays_darkmode');
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (storedTheme === 'true' || (storedTheme === null && prefersDark)) {
+    document.documentElement.classList.add('dark');
+  }
+} catch (error) {}
+`;
+
 export default function RootLayout({
   children
 }: Readonly<{
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>

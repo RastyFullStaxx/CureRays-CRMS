@@ -27,10 +27,10 @@ export function SummaryMetricCard({
   tone?: 'blue' | 'orange' | 'amber' | 'indigo';
 }) {
   const tones = {
-    blue: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
-    orange: 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]',
-    amber: 'bg-amber-50 text-amber-700',
-    indigo: 'bg-slate-50 text-slate-600',
+    blue: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
+    orange: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
+    amber: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
+    indigo: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
   };
 
   return (
@@ -105,7 +105,7 @@ export function ViewTabs({ tabs, active = 0 }: { tabs: string[]; active?: number
           className={cn(
             'min-w-fit rounded-[var(--radius-md)] px-3 text-sm font-semibold transition-colors duration-0',
             index === active
-              ? 'bg-[var(--color-primary)] text-white'
+              ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
               : 'text-[var(--color-text-muted)] hover:bg-[var(--color-hover)]'
           )}
           style={{ height: 'var(--height-btn-sm)', fontFamily: 'var(--font-body)' }}
@@ -121,7 +121,7 @@ export function PrimaryAction({ children }: { children: ReactNode }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-primary-dark)]"
+      className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-primary-foreground)] transition-colors hover:bg-[var(--color-primary-dark)]"
       style={{ height: 'var(--height-btn)', fontFamily: 'var(--font-body)' }}
     >
       {children}

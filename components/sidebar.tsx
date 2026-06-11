@@ -104,11 +104,11 @@ export function Sidebar() {
 
   useEffect(() => {
     const stored = localStorage.getItem('curerays_darkmode');
-    if (stored !== null) {
-      const isDark = stored === 'true';
-      setDarkMode(isDark);
-      document.documentElement.classList.toggle('dark', isDark);
-    }
+    const isDark = stored !== null
+      ? stored === 'true'
+      : document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
   }, []);
 
   const toggleDarkMode = () => {
@@ -141,7 +141,7 @@ export function Sidebar() {
         className="flex items-center"
         style={{
           height: 'var(--height-header)',
-          padding: collapsed ? '0 12px' : '0 16px',
+          padding: collapsed ? '0 3px' : '0 16px',
           borderBottom: '1px solid var(--color-border)',
           justifyContent: collapsed ? 'center' : 'space-between',
         }}
@@ -171,25 +171,24 @@ export function Sidebar() {
         )}
 
         {/* Controls: Dark mode toggle + Collapse button */}
-        <div className="flex items-center" style={{ gap: 4, flexShrink: 0 }}>
-          {!collapsed && (
-            <button
-              onClick={toggleDarkMode}
-              className="flex items-center justify-center"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 'var(--radius-md)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-muted)',
-              }}
-              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-          )}
+        <div className="flex items-center" style={{ gap: collapsed ? 2 : 4, flexShrink: 0 }}>
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center justify-center"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 'var(--radius-md)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+            }}
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            data-tooltip={collapsed ? (darkMode ? 'Light mode' : 'Dark mode') : undefined}
+          >
+            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <button
             onClick={toggleCollapse}
             className="flex items-center justify-center"
@@ -277,7 +276,7 @@ export function Sidebar() {
               height: 28,
               borderRadius: '50%',
               background: 'var(--color-primary)',
-              color: '#ffffff',
+              color: 'var(--color-primary-foreground)',
               fontSize: 'var(--font-size-small)',
               fontWeight: 'var(--font-weight-bold)',
               flexShrink: 0,

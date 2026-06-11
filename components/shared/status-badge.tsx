@@ -6,16 +6,16 @@ type StatusBadgeProps = {
 };
 
 const statusStyles: Record<string, string> = {
-  ACTIVE: 'bg-emerald-50 text-emerald-700',
-  ON_HOLD: 'bg-amber-50 text-amber-700',
-  PAUSED: 'bg-slate-50 text-slate-600',
-  BLOCKED: 'bg-red-50 text-red-700',
-  COMPLETED: 'bg-emerald-50 text-emerald-700',
-  PENDING: 'bg-blue-50 text-blue-700',
-  IN_PROGRESS: 'bg-blue-50 text-blue-700',
-  UPCOMING: 'bg-blue-50 text-blue-700',
-  ON_TREATMENT: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
-  POST: 'bg-slate-50 text-slate-600',
+  ACTIVE: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  ON_HOLD: 'bg-[color-mix(in_srgb,var(--color-warning)_12%,transparent)] text-[var(--color-warning)]',
+  PAUSED: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  BLOCKED: 'bg-[color-mix(in_srgb,var(--color-error)_12%,transparent)] text-[var(--color-error)]',
+  COMPLETED: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  PENDING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  IN_PROGRESS: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  UPCOMING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  ON_TREATMENT: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  POST: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {

@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
@@ -65,20 +62,27 @@ export default function DocumentsPage() {
             row.uploadedToEcwAt ? <Badge variant="success">Uploaded</Badge> : <Badge variant="default">Not Sent</Badge>
           )},
         ]}
-        rows={documents.map((document) => ({
-          ...document,
-        }))}
+        rows={documents}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search document, patient, course, category, signature, or eCW status..." />
-            </FilterField>
-            <FilterField><Input placeholder="Category" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search document, patient, course, category, signature, or eCW status...',
+          getText: (row) => [
+            row.title,
+            patientLabel(row.patientId),
+            row.courseId,
+            row.category,
+            statusLabel(row.status),
+            row.signedAt ? 'Signed' : 'Pending',
+            row.uploadedToEcwAt ? 'Uploaded' : 'Not Sent',
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'category', label: 'Category' },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.category) },
+          { id: 'signature', label: 'Signature', getValue: (row) => row.signedAt ? 'Signed' : 'Pending' },
+          { id: 'ecw', label: 'eCW', getValue: (row) => row.uploadedToEcwAt ? 'Uploaded' : 'Not Sent' },
+        ]}
       />
     </PageStack>
   );

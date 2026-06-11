@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (major >= 21) { console.error('Unsupported Node.js ' + process.version + '. CureRays CRMS uses Next 14.2.16 and supports Node >=18.17 <21 for reliable Windows builds. Use nvm install 20.11.1 && nvm use 20.11.1, then remove .next and rebuild.'); process.exit(1); }\"",
-    "build": "next build",
+    "prebuild": "node scripts/check-build-node.mjs",
+    "build": "node scripts/run-next-build.mjs",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

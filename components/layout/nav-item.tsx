@@ -35,7 +35,7 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
             ...itemStyle,
             width: 40,
             background: isActive ? 'var(--color-primary)' : 'transparent',
-            color: isActive ? '#ffffff' : 'var(--color-text-muted)',
+            color: isActive ? 'var(--color-primary-foreground)' : 'var(--color-text-muted)',
           }}
           data-tooltip={label}
         >
@@ -59,7 +59,7 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
           fontFamily: 'var(--font-body)',
           fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-normal)',
           background: isActive ? 'var(--color-primary)' : 'transparent',
-          color: isActive ? '#ffffff' : 'var(--color-text)',
+          color: isActive ? 'var(--color-primary-foreground)' : 'var(--color-text)',
           textDecoration: 'none',
         }}
         onMouseEnter={(e) => {
@@ -69,7 +69,7 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
           if (!isActive) e.currentTarget.style.background = 'transparent';
         }}
       >
-        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: isActive ? '#ffffff' : 'var(--color-text-muted)' }}>
+        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: isActive ? 'var(--color-primary-foreground)' : 'var(--color-text-muted)' }}>
           <Icon size={20} />
         </span>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

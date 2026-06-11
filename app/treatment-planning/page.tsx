@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
@@ -64,20 +61,29 @@ export default function TreatmentPlanningPage() {
             <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS"))}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
           )},
         ]}
-        rows={plans.map((plan) => ({
-          ...plan,
-        }))}
+        rows={plans}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search patient, MRN, diagnosis, site, energy, or plan status..." />
-            </FilterField>
-            <FilterField><Input placeholder="Diagnosis" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-            <FilterField><Input placeholder="Physicist" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search patient, MRN, diagnosis, site, energy, or plan status...',
+          getText: (row) => [
+            row.id,
+            patientLabel(row.patientId),
+            row.courseId,
+            row.diagnosisType,
+            row.site,
+            row.energy,
+            row.applicatorSize,
+            row.physicistReviewStatus,
+            row.radOncSignatureStatus,
+            row.lockedAt ? 'Locked' : 'In Progress',
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'diagnosisType', label: 'Diagnosis' },
+          { id: 'status', label: 'Status', getValue: (row) => row.lockedAt ? 'Locked' : 'In Progress' },
+          { id: 'physics', label: 'Physics', getValue: (row) => statusLabel(row.physicistReviewStatus) },
+          { id: 'radOnc', label: 'Rad Onc', getValue: (row) => statusLabel(row.radOncSignatureStatus) },
+        ]}
       />
       <div className="grid gap-4 xl:grid-cols-3">
         {["Review Parameters", "Generate Planning Document", "Send to Physics"].map((title, index) => (

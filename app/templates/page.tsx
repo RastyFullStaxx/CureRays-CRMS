@@ -4,18 +4,15 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { templateRows } from '@/lib/global-page-data';
 
 export default function TemplatesPage() {
+  const rows = templateRows;
   const active = templateRows.filter((t) => t.status === 'Active').length;
-  const documentTemplates = templateRows.filter((t) => t.type.includes('Document')).length;
-  const workflowTemplates = templateRows.filter((t) => t.type.includes('Workflow')).length;
-  const clinicalForms = templateRows.filter((t) => t.type.includes('Clinical')).length;
+  const documentTemplates = templateRows.filter((t) => t.fileType === 'DOCX').length;
+  const workflowTemplates = templateRows.filter((t) => t.type.includes('Order') || t.type.includes('Log')).length;
+  const clinicalForms = templateRows.filter((t) => t.type.includes('Mapping') || t.type.includes('Intake')).length;
   const needsReview = templateRows.filter((t) => t.status !== 'Active').length;
 
   return (
@@ -40,36 +37,25 @@ export default function TemplatesPage() {
       </StatGrid>
 
       <DataTable
-        keyField="name"
+        keyField="id"
         columns={[
           { key: 'name', label: 'Template Name' },
           { key: 'type', label: 'Type' },
           { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'version', label: 'Version' },
+          { key: 'workflowStep', label: 'Workflow Step' },
+          { key: 'fileType', label: 'File Type' },
           { key: 'status', label: 'Status' },
           { key: 'updated', label: 'Last Updated' },
           { key: 'owner', label: 'Owner' },
         ]}
-        rows={templateRows.map((template) => ({
-          id: template.name,
-          name: template.name,
-          type: template.type,
-          diagnosis: template.diagnosis,
-          version: template.version,
-          status: template.status,
-          updated: template.updated,
-          owner: template.owner,
-        }))}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search templates by name, type, diagnosis, status, or owner..." />
-            </FilterField>
-            <FilterField><Input placeholder="Type" /></FilterField>
-            <FilterField><Input placeholder="Diagnosis" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search templates by name, type, diagnosis, status, or owner...', keys: ['name', 'type', 'diagnosis', 'workflowStep', 'fileType', 'status', 'owner', 'sourcePath'] }}
+        filters={[
+          { id: 'type', label: 'Type' },
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'fileType', label: 'File Type' },
+          { id: 'status', label: 'Status' },
+        ]}
       />
     </PageStack>
   );

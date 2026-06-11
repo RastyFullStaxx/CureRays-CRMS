@@ -14,18 +14,18 @@ export function ProgressBar({
 }) {
   const color =
     tone === 'green'
-      ? 'bg-emerald-500'
+      ? 'bg-[var(--color-success)]'
       : tone === 'orange'
-        ? 'bg-[#F59E0B]'
+        ? 'bg-[var(--color-warning)]'
         : tone === 'red'
-          ? 'bg-rose-500'
-          : 'bg-[#0033A0]';
+          ? 'bg-[var(--color-error)]'
+          : 'bg-[var(--color-primary)]';
   return (
     <div>
       {label ? (
-        <p className="mb-1 text-xs font-bold text-curerays-indigo">{label}</p>
+        <p className="mb-1 text-xs font-bold text-[var(--color-text-muted)]">{label}</p>
       ) : null}
-      <div className={cn('h-2 overflow-hidden rounded-full bg-[#E7EEF8]', width)}>
+      <div className={cn('h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]', width)}>
         <div
           className={cn('h-full rounded-full', color)}
           style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}

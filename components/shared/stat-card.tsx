@@ -13,18 +13,7 @@ type StatCardProps = {
   className?: string;
 };
 
-const toneColors = {
-  default: 'var(--color-text)',
-  success: 'var(--color-success)',
-  warning: 'var(--color-warning)',
-  error: 'var(--color-error)',
-  info: 'var(--color-info)',
-  primary: 'var(--color-primary)',
-};
-
-export function StatCard({ icon, label, value, sub, tone = 'default', color, className = '' }: StatCardProps) {
-  const toneColor = color ?? toneColors[tone] ?? toneColors.default;
-
+export function StatCard({ icon, label, value, sub, className = '' }: StatCardProps) {
   let iconNode: ReactNode = null;
   if (icon) {
     if (isValidElement(icon)) {
@@ -40,12 +29,11 @@ export function StatCard({ icon, label, value, sub, tone = 'default', color, cla
       <div className="flex h-full items-center gap-3">
         {iconNode && (
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center ring-1"
+            className="flex h-10 w-10 shrink-0 items-center justify-center"
             style={{
               borderRadius: 'var(--radius-md)',
-              background: `color-mix(in srgb, ${toneColor} 10%, var(--color-card))`,
-              color: toneColor === 'var(--color-text)' ? 'var(--color-primary)' : toneColor,
-              boxShadow: 'inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent)',
+              background: 'var(--color-stat-icon-bg)',
+              color: 'var(--color-primary)',
             }}
           >
             {iconNode}

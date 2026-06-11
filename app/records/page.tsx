@@ -4,10 +4,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   carepathTasks,
   fractionLogEntries,
@@ -19,6 +15,20 @@ import {
 export default function RecordsPage() {
   const patients = operationalPatients();
   const treatmentCourses = operationalTreatmentCourses();
+  const rows = patients.map((patient) => {
+    const course = treatmentCourses.find((c) => c.patientRef === patient.patientRef);
+    return {
+      id: patient.id,
+      name: patient.displayLabel,
+      mrn: patient.patientRef,
+      diagnosis: patient.diagnosisCategory ?? '—',
+      phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
+      course: course ? course.id.replace('COURSE-', 'C') : '—',
+      fractions: fractionLogEntries.filter((f) => f.courseId === course?.id).length || '—',
+      documents: generatedDocuments.filter((d) => d.courseId === course?.id).length || '—',
+      status: patient.chartRoundsPhase ?? '—',
+    };
+  });
 
   return (
     <PageStack>
@@ -47,29 +57,13 @@ export default function RecordsPage() {
           { key: 'documents', label: 'Documents' },
           { key: 'status', label: 'Status' },
         ]}
-        rows={patients.map((patient) => {
-          const course = treatmentCourses.find((c) => c.patientRef === patient.id);
-          return {
-            id: patient.id,
-            name: patient.displayLabel,
-            mrn: patient.patientRef,
-            diagnosis: patient.diagnosisCategory ?? '—',
-            phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
-            course: course ? course.id.replace('COURSE-', 'C') : '—',
-            fractions: fractionLogEntries.filter((f) => f.courseId === course?.id).length || '—',
-            documents: generatedDocuments.filter((d) => d.courseId === course?.id).length || '—',
-            status: patient.chartRoundsPhase ?? '—',
-          };
-        })}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search master records by name, MRN, diagnosis, or phase..." />
-            </FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-            <FilterField><Input placeholder="Diagnosis" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search master records by name, MRN, diagnosis, or phase...', keys: ['name', 'mrn', 'diagnosis', 'phase', 'course', 'status'] }}
+        filters={[
+          { id: 'phase', label: 'Phase' },
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'status', label: 'Status' },
+        ]}
       />
     </PageStack>
   );

@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -122,16 +119,24 @@ export default function TreatmentDeliveryPage() {
           };
         })}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search patient, MRN, appointment, therapist, or fraction..." />
-            </FilterField>
-            <FilterField><Input placeholder="Location" /></FilterField>
-            <FilterField><Input placeholder="Therapist" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search patient, MRN, appointment, therapist, or fraction...',
+          getText: (row) => [
+            patientLabel(row.patientId),
+            row.courseId,
+            row.fractionNumber,
+            row.apptTime,
+            row.room,
+            row.therapistId,
+            statusLabel(row.status),
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'room', label: 'Location' },
+          { id: 'therapistId', label: 'Therapist', getValue: (row) => row.therapistId ?? 'Unassigned' },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'alerts', label: 'Alerts', getValue: (row) => (row._index as number) % 3 === 0 ? 'OTV' : 'Clear' },
+        ]}
       />
     </PageStack>
   );

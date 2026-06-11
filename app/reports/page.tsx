@@ -1,4 +1,7 @@
-import { BarChart3, UsersRound, CalendarDays, ClipboardList, FileText, PenLine } from 'lucide-react';
+'use client';
+
+import { useMemo, useState } from 'react';
+import { UsersRound, CalendarDays, ClipboardList, FileText, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -9,18 +12,41 @@ import { Button } from '@/components/ui/button';
 import { FilterStrip } from '@/components/shared/filter-strip';
 import { FilterField } from '@/components/shared/filter-strip';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
   operationalPatients,
-  operationalTreatmentCourses,
 } from '@/lib/clinical-store';
+import { createFacetOptions } from '@/lib/table-filters';
 
 export default function ReportsPage() {
   const patients = operationalPatients();
-  const treatmentCourses = operationalTreatmentCourses();
-  const onTreatment = patients.filter((p) => p.chartRoundsPhase === 'ON_TREATMENT').length;
+  const [query, setQuery] = useState('');
+  const [diagnosisFilter, setDiagnosisFilter] = useState('');
+  const [phaseFilter, setPhaseFilter] = useState('');
+  const [signalFilter, setSignalFilter] = useState('');
+  const diagnosisOptions = createFacetOptions(patients, (patient) => patient.diagnosisCategory);
+  const phaseOptions = createFacetOptions(patients, (patient) => patient.chartRoundsPhase?.replace(/_/g, ' '));
+  const scopedPatients = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return patients.filter((patient) => {
+      const phase = patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '';
+      const text = [
+        patient.displayLabel,
+        patient.patientRef,
+        patient.diagnosisCategory,
+        phase,
+        patient.nextActionCategory,
+      ].join(' ').toLowerCase();
+
+      return (!normalizedQuery || text.includes(normalizedQuery))
+        && (!diagnosisFilter || patient.diagnosisCategory === diagnosisFilter)
+        && (!phaseFilter || phase === phaseFilter);
+    });
+  }, [diagnosisFilter, patients, phaseFilter, query]);
+  const onTreatment = scopedPatients.filter((p) => p.chartRoundsPhase === 'ON_TREATMENT').length;
   const overdueTasks = carepathTasks.filter((t) => t.status === 'BLOCKED').length;
 
   return (
@@ -31,7 +57,7 @@ export default function ReportsPage() {
       />
 
       <StatGrid>
-        <StatCard icon={UsersRound} label="Active Patients" value={patients.length} tone="primary" />
+        <StatCard icon={UsersRound} label="Active Patients" value={scopedPatients.length} tone="primary" />
         <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} tone="success" />
         <StatCard icon={ClipboardList} label="Pending Tasks" value={carepathTasks.length} tone="warning" />
         <StatCard icon={FileText} label="Documents Ready" value={generatedDocuments.length} tone="info" />
@@ -40,23 +66,44 @@ export default function ReportsPage() {
 
       <FilterStrip>
         <FilterField grow>
-          <Input placeholder="Search report, diagnosis, phase, staff workload, or audit signal" />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search report, diagnosis, phase, staff workload, or audit signal"
+          />
         </FilterField>
-        <FilterField><Input placeholder="Date Range" /></FilterField>
-        <FilterField><Input placeholder="Location" /></FilterField>
-        <FilterField><Input placeholder="Phase" /></FilterField>
+        <FilterField>
+          <Select value={diagnosisFilter} onChange={(event) => setDiagnosisFilter(event.target.value)} aria-label="Diagnosis">
+            <option value="">All Diagnoses</option>
+            {diagnosisOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select value={phaseFilter} onChange={(event) => setPhaseFilter(event.target.value)} aria-label="Phase">
+            <option value="">All Phases</option>
+            {phaseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select value={signalFilter} onChange={(event) => setSignalFilter(event.target.value)} aria-label="Signal">
+            <option value="">All Signals</option>
+            <option value="patients">Patient Phase</option>
+            <option value="documents">Documentation</option>
+            <option value="tasks">Tasks</option>
+          </Select>
+        </FilterField>
       </FilterStrip>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card>
+        {signalFilter !== 'documents' && signalFilter !== 'tasks' && <Card>
           <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
             Patient Phase Distribution
           </h2>
           <div className="space-y-2">
             {[
-              { label: 'Upcoming', value: patients.filter((p) => p.chartRoundsPhase === 'UPCOMING').length, color: 'var(--color-info)' },
+              { label: 'Upcoming', value: scopedPatients.filter((p) => p.chartRoundsPhase === 'UPCOMING').length, color: 'var(--color-info)' },
               { label: 'On Treatment', value: onTreatment, color: 'var(--color-success)' },
-              { label: 'Post', value: patients.filter((p) => p.chartRoundsPhase === 'POST').length, color: 'var(--color-primary)' },
+              { label: 'Post', value: scopedPatients.filter((p) => p.chartRoundsPhase === 'POST').length, color: 'var(--color-primary)' },
             ].map((segment) => (
               <div key={segment.label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -67,9 +114,9 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Card>}
 
-        <Card>
+        {signalFilter !== 'patients' && signalFilter !== 'tasks' && <Card>
           <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
             Documentation Readiness
           </h2>
@@ -88,7 +135,28 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Card>}
+
+        {signalFilter !== 'patients' && signalFilter !== 'documents' && <Card>
+          <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
+            Task Pressure
+          </h2>
+          <div className="space-y-2">
+            {[
+              { label: 'Open Tasks', value: carepathTasks.filter((task) => !['COMPLETED', 'SIGNED', 'CLOSED'].includes(task.status)).length, color: 'var(--color-info)' },
+              { label: 'Blocked', value: overdueTasks, color: 'var(--color-error)' },
+              { label: 'Completed', value: carepathTasks.filter((task) => task.status === 'COMPLETED').length, color: 'var(--color-success)' },
+            ].map((segment) => (
+              <div key={segment.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
+                </div>
+                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
+              </div>
+            ))}
+          </div>
+        </Card>}
       </div>
 
       <Card>

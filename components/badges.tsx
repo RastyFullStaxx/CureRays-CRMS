@@ -9,43 +9,43 @@ import type {
 import { cn } from '@/lib/workflow';
 
 const statusColors: Record<string, string> = {
-  COMPLETED: 'bg-emerald-500/10 text-emerald-700',
-  SIGNED: 'bg-emerald-500/10 text-emerald-700',
-  UPLOADED: 'bg-emerald-500/10 text-emerald-700',
-  CLOSED: 'bg-slate-500/10 text-slate-700',
-  READY_FOR_REVIEW: 'bg-[#FFF0E8] text-[#D94E11]',
-  NEEDS_REVIEW: 'bg-[#FFF0E8] text-[#D94E11]',
-  REVIEW_REQUIRED: 'bg-[#FFF0E8] text-[#D94E11]',
-  IN_PROGRESS: 'bg-[#EAF1FF] text-[#0033A0]',
-  PENDING: 'bg-[#EAF1FF] text-[#0033A0]',
-  NOT_STARTED: 'bg-slate-500/10 text-slate-700',
-  BLOCKED: 'bg-rose-500/10 text-rose-700',
-  OVERDUE: 'bg-rose-500/10 text-rose-700',
-  MISSING_FIELDS: 'bg-rose-500/10 text-rose-700',
-  NOT_APPLICABLE: 'bg-slate-500/10 text-slate-700',
-  DRAFT: 'bg-violet-500/10 text-violet-700',
-  PENDING_NEEDED: 'bg-[#FFF0E8] text-[#D94E11]',
-  ACTIVE: 'bg-emerald-500/10 text-emerald-700',
-  ON_HOLD: 'bg-amber-500/10 text-amber-700',
-  PAUSED: 'bg-amber-500/10 text-amber-700',
+  COMPLETED: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  SIGNED: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  UPLOADED: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  CLOSED: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  READY_FOR_REVIEW: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+  NEEDS_REVIEW: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+  REVIEW_REQUIRED: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+  IN_PROGRESS: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  PENDING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  NOT_STARTED: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  BLOCKED: 'bg-[color-mix(in_srgb,var(--color-error)_12%,transparent)] text-[var(--color-error)]',
+  OVERDUE: 'bg-[color-mix(in_srgb,var(--color-error)_12%,transparent)] text-[var(--color-error)]',
+  MISSING_FIELDS: 'bg-[color-mix(in_srgb,var(--color-error)_12%,transparent)] text-[var(--color-error)]',
+  NOT_APPLICABLE: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  DRAFT: 'bg-[color-mix(in_srgb,var(--color-info)_12%,transparent)] text-[var(--color-info)]',
+  PENDING_NEEDED: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+  ACTIVE: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  ON_HOLD: 'bg-[color-mix(in_srgb,var(--color-warning)_12%,transparent)] text-[var(--color-warning)]',
+  PAUSED: 'bg-[color-mix(in_srgb,var(--color-warning)_12%,transparent)] text-[var(--color-warning)]',
 };
 
 const phaseColors: Record<ChartRoundsPhase, string> = {
-  UPCOMING: 'bg-[#EAF1FF] text-[#0033A0]',
-  ON_TREATMENT: 'bg-emerald-500/10 text-emerald-700',
-  POST: 'bg-violet-500/10 text-violet-700',
+  UPCOMING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  ON_TREATMENT: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  POST: 'bg-[color-mix(in_srgb,var(--color-info)_12%,transparent)] text-[var(--color-info)]',
 };
 
 const partyColors: Record<string, string> = {
-  VA: 'bg-[#EAF1FF] text-[#0033A0]',
-  MA: 'bg-emerald-500/10 text-emerald-700',
-  RTT: 'bg-emerald-500/10 text-emerald-700',
-  NP_PA: 'bg-[#EAF1FF] text-[#0033A0]',
-  PCP: 'bg-[#EAF1FF] text-[#0033A0]',
-  RAD_ONC: 'bg-violet-500/10 text-violet-700',
-  PHYSICIST: 'bg-slate-500/10 text-slate-700',
-  BILLING: 'bg-[#FFF0E8] text-[#D94E11]',
-  ADMIN: 'bg-slate-500/10 text-slate-700',
+  VA: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  MA: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  RTT: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
+  NP_PA: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  PCP: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
+  RAD_ONC: 'bg-[color-mix(in_srgb,var(--color-info)_12%,transparent)] text-[var(--color-info)]',
+  PHYSICIST: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  BILLING: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
+  ADMIN: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
 };
 
 const partyLabels: Record<string, string> = {
@@ -74,25 +74,25 @@ function Pill({ color, children }: { color: string; children: React.ReactNode })
 }
 
 export function CarepathTaskStatusBadge({ status }: { status: CarepathTaskStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-slate-500/10 text-slate-700'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]'}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function DocumentStatusBadge({ status }: { status: DocumentStatus | WorkflowItemStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-slate-500/10 text-slate-700'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]'}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function ResponsiblePartyBadge({ party }: { party: ResponsibleParty }) {
   return (
-    <Pill color={partyColors[party] ?? 'bg-[#EAF1FF] text-[#0033A0]'}>
+    <Pill color={partyColors[party] ?? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'}>
       {partyLabels[party] ?? party}
     </Pill>
   );
 }
 
 export function PhaseBadge({ phase }: { phase: ChartRoundsPhase }) {
-  return <Pill color={phaseColors[phase] ?? 'bg-slate-500/10 text-slate-700'}>{phase.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={phaseColors[phase] ?? 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]'}>{phase.replaceAll('_', ' ')}</Pill>;
 }
 
 export function StatusBadge({ status }: { status: PatientStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-slate-500/10 text-slate-700'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]'}>{status.replaceAll('_', ' ')}</Pill>;
 }

@@ -6,9 +6,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { patients, treatmentCourses, carepathTasks } from '@/lib/clinical-store';
@@ -18,6 +15,18 @@ export default function PatientsPage() {
   const upcomingCount = patients.filter((p) => p.chartRoundsPhase === 'UPCOMING').length;
   const postCount = patients.filter((p) => p.chartRoundsPhase === 'POST').length;
   const totalTasks = carepathTasks.length;
+  const rows = patients.map((patient) => {
+    const course = treatmentCourses.find((c) => c.patientId === patient.id);
+    return {
+      id: patient.id,
+      name: `${patient.firstName} ${patient.lastName}`,
+      mrn: patient.mrn,
+      diagnosis: patient.diagnosisSummary ?? patient.diagnosis ?? '—',
+      phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
+      course: course ? course.id.replace('COURSE-', 'C') : '—',
+      status: patient.chartRoundsPhase ?? '—',
+    };
+  });
 
   return (
     <PageStack>
@@ -44,27 +53,13 @@ export default function PatientsPage() {
           { key: 'course', label: 'Course', render: (row) => <span className="font-bold" style={{ color: 'var(--color-primary)' }}>{row.course}</span> },
           { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'ON_TREATMENT' ? 'success' : row.status === 'POST' ? 'primary' : 'info'}>{row.status}</Badge> },
         ]}
-        rows={patients.map((patient) => {
-          const course = treatmentCourses.find((c) => c.patientId === patient.id);
-          return {
-            id: patient.id,
-            name: `${patient.firstName} ${patient.lastName}`,
-            mrn: patient.mrn,
-            diagnosis: patient.diagnosisSummary ?? patient.diagnosis ?? '—',
-            phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
-            course: course ? course.id.replace('COURSE-', 'C') : '—',
-            status: patient.chartRoundsPhase ?? '—',
-          };
-        })}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search patients by name, MRN, or diagnosis..." />
-            </FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-            <FilterField><Input placeholder="Diagnosis" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search patients by name, MRN, or diagnosis...', keys: ['name', 'mrn', 'diagnosis', 'course', 'status'] }}
+        filters={[
+          { id: 'phase', label: 'Phase' },
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'status', label: 'Status' },
+        ]}
       />
     </PageStack>
   );

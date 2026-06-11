@@ -18,7 +18,7 @@ import {
   imagingAssets,
   imagingCategories
 } from "@/lib/module-data";
-import type { CarepathWorkflowPhase, ResponsibleParty, WorkflowItemStatus } from "@/lib/types";
+import type { CarepathWorkflowPhase, ResponsibleParty, TemplateSource, WorkflowItemStatus } from "@/lib/types";
 import { carepathPhaseLabels, patientName, responsiblePartyLabels } from "@/lib/workflow";
 
 export function patientById(id: string) {
@@ -149,19 +149,86 @@ export const settingsCategories = [
   { title: "Integration Settings", description: "Configure third-party integrations and external system connections.", summary: "3 integrations connected" }
 ];
 
-export const templateRows = [
-  ...templateSources.map((template, index) => ({
+export type TemplateTableRow = {
+  id: string;
+  name: string;
+  type: string;
+  diagnosis: string;
+  workflowStep: string;
+  fileType: string;
+  status: string;
+  registryStatus: string;
+  updated: string;
+  owner: string;
+  sourcePath: string;
+};
+
+function templateText(template: TemplateSource) {
+  return `${template.name} ${template.sourceFileName}`.toUpperCase();
+}
+
+function inferTemplateDiagnosis(template: TemplateSource) {
+  const text = templateText(template);
+  if (text.includes("UNIVERSAL")) return "Universal";
+  if (text.includes("SKIN_CANCER") || text.includes("SKIN CANCER") || text.includes(".SKIN.")) return "Skin Cancer";
+  if (text.includes("ARTHRITIS")) return "Arthritis";
+  if (text.includes("DUPUYTREN")) return "Dupuytren's";
+  if (text.includes("GYNECOMASTIA")) return "Gynecomastia";
+  return "All";
+}
+
+function inferTemplateType(template: TemplateSource) {
+  const text = templateText(template);
+  if (text.includes("INTAKE")) return "Universal Intake";
+  if (text.includes("AVS")) return "AVS / PCP Communication";
+  if (text.includes("CAREPATH") || text.includes("PREAUTH")) return "Carepath / Preauth Audit";
+  if (text.includes("JOINT_MAPPING") || text.includes("US_MAPPING") || text.includes("MAPPING")) return "Mapping / Simulation Prep";
+  if (text.includes("SIM_CTP") || text.includes("SIMULATION")) return "Simulation / CTP Order";
+  if (text.includes("PRESCRIPTION")) return "Prescription";
+  if (text.includes("ISODOSE")) return "Isodose / Planning";
+  if (text.includes("FRACTIONATION_LOG") || text.includes("FX LOG")) return "Fractionation Log";
+  if (text.includes("API")) return "API Mapping Draft";
+  if (template.mimeType === "PPTX") return "Treatment Planning Support";
+  if (template.mimeType === "XLSX") return "Treatment Delivery Record";
+  return "Document Template";
+}
+
+function inferWorkflowStep(template: TemplateSource) {
+  const path = template.sourceFileName;
+  const fileName = path.split("/").pop() ?? path;
+  const match = fileName.match(/^(\d{2})[_\s.]/);
+  if (match) return `Step ${match[1]}`;
+  if (fileName.toUpperCase().includes("INTAKE")) return "Intake";
+  if (fileName.toUpperCase().includes("AVS")) return "Post-treatment";
+  if (path.includes("90_")) return "Revision / Draft";
+  if (path.includes("99_")) return "Duplicate Review";
+  return "Workflow Support";
+}
+
+function templateOwner(status: TemplateSource["status"]) {
+  if (status === "ACTIVE") return "Clinical Operations";
+  if (status === "DRAFT") return "QA Review";
+  if (status === "RETIRED") return "Archive";
+  return "Template Mapping";
+}
+
+export function normalizeTemplateRows(sources: TemplateSource[]): TemplateTableRow[] {
+  return sources.map((template) => ({
+    id: template.id,
     name: template.name,
-    type: template.mimeType === "PPTX" ? "Clinical Reference" : template.mimeType === "XLSX" ? "Workflow Templates" : "Document Templates",
-    diagnosis: index % 3 === 0 ? "Skin Cancer" : index % 3 === 1 ? "Arthritis" : "All",
-    version: index % 2 === 0 ? "v2.0" : "v1.3",
-    status: template.status === "ACTIVE" ? "Active" : template.status === "DRAFT" ? "Draft" : "Needs Review",
-    updated: template.modifiedAt ?? "May 6, 2026",
-    owner: index % 2 === 0 ? "Dr. Sarah Johnson" : "QA Team"
-  })),
-  { name: "Hand Arthritis Mapping", type: "Clinical Forms", diagnosis: "Arthritis", version: "v1.1", status: "Active", updated: "Apr 28, 2026", owner: "Iris Lim, RTT" },
-  { name: "IGSRT Isodose Planning", type: "IGSRT Planning", diagnosis: "Skin Cancer", version: "v1.3", status: "Active", updated: "Apr 30, 2026", owner: "Dr. Mateo Reyes" }
-];
+    type: inferTemplateType(template),
+    diagnosis: inferTemplateDiagnosis(template),
+    workflowStep: inferWorkflowStep(template),
+    fileType: template.mimeType,
+    status: statusLabel(template.status),
+    registryStatus: template.status,
+    updated: template.modifiedAt ?? "Pending registry timestamp",
+    owner: templateOwner(template.status),
+    sourcePath: template.sourceFileName
+  }));
+}
+
+export const templateRows = normalizeTemplateRows(templateSources);
 
 export function countByStatus<T extends { status: string }>(items: T[], status: string) {
   return items.filter((item) => item.status === status).length;

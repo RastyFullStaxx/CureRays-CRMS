@@ -3,11 +3,7 @@ import { FileText } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { generatedDocuments, treatmentCourses, billingCodes } from '@/lib/clinical-store';
+import { generatedDocuments, treatmentCourses } from '@/lib/clinical-store';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, patientActiveCourse } from '@/lib/workflow';
 
@@ -25,6 +21,14 @@ export default function PatientDocumentsPage({ params }: { params: { id: string 
   }
 
   const docs = courseDocuments(course.id, generatedDocuments);
+  const rows = docs.map((doc) => ({
+    id: doc.id,
+    name: doc.name,
+    category: doc.clinicalPhase?.replace(/_/g, ' ') ?? '—',
+    status: doc.status ?? '—',
+    assignedTo: doc.assignedTo ?? '—',
+    updatedAt: doc.lastUpdatedAt ?? '—',
+  }));
 
   return (
     <PageStack>
@@ -47,23 +51,13 @@ export default function PatientDocumentsPage({ params }: { params: { id: string 
           { key: 'assignedTo', label: 'Assigned To' },
           { key: 'updatedAt', label: 'Last Updated' },
         ]}
-        rows={docs.map((doc) => ({
-          id: doc.id,
-          name: doc.name,
-          category: doc.clinicalPhase?.replace(/_/g, ' ') ?? '—',
-          status: doc.status ?? '—',
-          assignedTo: doc.assignedTo ?? '—',
-          updatedAt: doc.lastUpdatedAt ?? '—',
-        }))}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search documents by name, category, or status..." />
-            </FilterField>
-            <FilterField><Input placeholder="Category" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        rows={rows}
+        search={{ placeholder: 'Search documents by name, category, or status...', keys: ['name', 'category', 'status', 'assignedTo'] }}
+        filters={[
+          { id: 'category', label: 'Category' },
+          { id: 'status', label: 'Status' },
+          { id: 'assignedTo', label: 'Assigned To' },
+        ]}
       />
     </PageStack>
   );

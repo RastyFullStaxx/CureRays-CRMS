@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -76,20 +73,28 @@ export default function TasksPage() {
             <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
         ]}
-        rows={tasks.slice(0, 8).map((task) => ({
-          ...task,
-        }))}
+        rows={tasks.slice(0, 8)}
         pageSize={8}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search tasks, patient, course, assignee, or linked record..." />
-            </FilterField>
-            <FilterField><Input placeholder="Assigned To" /></FilterField>
-            <FilterField><Input placeholder="Priority" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search tasks, patient, course, assignee, or linked record...',
+          getText: (row) => [
+            row.title,
+            row.description,
+            patientLabel(row.patientId),
+            row.courseId,
+            row.workflowStepId,
+            responsiblePartyName(row.assignedRole),
+            row.assignedUserId,
+            row.priority,
+            statusLabel(row.status),
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'assigned', label: 'Assigned To', getValue: (row) => row.assignedUserId ?? responsiblePartyName(row.assignedRole) },
+          { id: 'priority', label: 'Priority' },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+          { id: 'type', label: 'Type', getValue: (row) => statusLabel(row.type) },
+        ]}
       />
       <Card>
         <div className="mb-3 flex items-center justify-between">

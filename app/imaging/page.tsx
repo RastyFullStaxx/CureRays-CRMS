@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel } from "@/lib/global-page-data";
@@ -60,20 +57,24 @@ export default function ImagingPage() {
             <Badge variant={row.uploadedAt ? "success" : "warning"}>{row.uploadedAt ? "Tagged" : "Queued"}</Badge>
           )},
         ]}
-        rows={assets.map((asset) => ({
-          ...asset,
-        }))}
+        rows={assets}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search modality, category, phase, patient, uploader, or status..." />
-            </FilterField>
-            <FilterField><Input placeholder="Modality" /></FilterField>
-            <FilterField><Input placeholder="Phase" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search modality, category, phase, patient, uploader, or status...',
+          getText: (row) => [
+            row.category,
+            patientLabel(row.patientId),
+            row.courseId,
+            phaseLabel(row.phase),
+            row.uploadedByUserId,
+            row.uploadedAt ? 'Tagged' : 'Queued',
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'modality', label: 'Modality', getValue: (row) => row.category.includes("X-ray") ? "X-ray" : row.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo" },
+          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.phase) },
+          { id: 'status', label: 'Status', getValue: (row) => row.uploadedAt ? 'Tagged' : 'Queued' },
+        ]}
       />
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
         {categories.slice(0, 10).map((category) => (

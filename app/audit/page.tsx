@@ -5,9 +5,6 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
@@ -84,16 +81,23 @@ export default function AuditPage() {
           _index: index,
         }))}
         pageSize={10}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search course, patient, diagnosis, blocker, document, or audit check..." />
-            </FilterField>
-            <FilterField><Input placeholder="Readiness" /></FilterField>
-            <FilterField><Input placeholder="Documents" /></FilterField>
-            <FilterField><Input placeholder="Billing" /></FilterField>
-          </FilterStrip>
-        }
+        search={{
+          placeholder: 'Search course, patient, diagnosis, blocker, document, or audit check...',
+          getText: (row) => [
+            row.id,
+            patientLabel(row.patientId),
+            row.diagnosisType,
+            phaseLabel(row.currentPhase),
+            statusLabel(row.status),
+            ...row.flagsIssues,
+          ].join(' '),
+        }}
+        filters={[
+          { id: 'readiness', label: 'Readiness', getValue: (row) => Math.max(58, 96 - (row._index as number) * 7) > 85 ? 'Ready' : Math.max(58, 96 - (row._index as number) * 7) > 70 ? 'Review' : 'Blocked' },
+          { id: 'documents', label: 'Documents', getValue: (row) => row.flagsIssues.length || ((row._index as number) % 3) ? 'Missing Items' : 'Complete' },
+          { id: 'billing', label: 'Billing', getValue: (row) => (row._index as number) % 3 ? 'Review' : 'Ready' },
+          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+        ]}
       />
     </PageStack>
   );
