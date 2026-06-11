@@ -33,6 +33,7 @@ import type {
   GeneratedDocument,
   ImagingAsset,
   Patient,
+  Phase6PlanningReadiness,
   Task,
   TreatmentCourse,
   TreatmentFraction,
@@ -74,6 +75,7 @@ type PatientWorkspaceProps = {
   clinicalFormTemplates: ClinicalFormTemplate[];
   treatmentPlans: TreatmentPlan[];
   treatmentFractions: TreatmentFraction[];
+  planningReadiness: Phase6PlanningReadiness;
   images: ImagingAsset[];
   auditChecks: AuditCheck[];
   auditEvents: AuditEvent[];
@@ -168,6 +170,7 @@ export function PatientWorkspace({
   clinicalFormTemplates,
   treatmentPlans,
   treatmentFractions,
+  planningReadiness,
   images,
   auditChecks,
   auditEvents,
@@ -189,6 +192,7 @@ export function PatientWorkspace({
   const missingImageFractions = treatmentFractions.filter((fraction) => fraction.imageGuidanceStatus === 'MISSING');
   const otvDueFractions = treatmentFractions.filter((fraction) => fraction.otvRequired && !fraction.otvCompletedAt);
   const physicsDueFractions = treatmentFractions.filter((fraction) => fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt);
+  const clinicalValidationChecklist = planningReadiness.clinicalValidationChecklist;
 
   const tabContent = useMemo(() => {
     if (activeTab === 'workflow') {
@@ -326,6 +330,32 @@ export function PatientWorkspace({
               <ReadinessStrip label="Missing Imaging" values={missingImageFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
               <ReadinessStrip label="OTV" values={otvDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
               <ReadinessStrip label="Physics" values={physicsDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+            </div>
+            <div className="mt-4 clinical-muted-surface p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="clinical-label">Clinical Sign-Off Gate</p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                    Reference {clinicalValidationChecklist.referenceVersion}
+                  </p>
+                </div>
+                <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'warning' : 'success'}>
+                  {planningReadiness.clinicianSignoffStatus}
+                </Badge>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {clinicalValidationChecklist.items.map((item) => (
+                  <div key={item.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-bold text-[var(--color-text)]">{item.label}</p>
+                      <Badge variant="warning">{item.status}</Badge>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">
+                      {responsiblePartyLabels[item.ownerRole]} evidence required before production use.
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </Card>
         </div>
@@ -516,9 +546,11 @@ export function PatientWorkspace({
     fractionEntries,
     fractionPercent,
     images,
+    clinicalValidationChecklist,
     missingImageFractions,
     openChecks.length,
     otvDueFractions,
+    planningReadiness.clinicianSignoffStatus,
     physicsDueFractions,
     readiness,
     scheduledFractions.length,

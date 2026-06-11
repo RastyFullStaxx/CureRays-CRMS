@@ -23,6 +23,7 @@ import type {
   FractionApprovalType,
   FractionLogEntry,
   GeneratedDocument,
+  GeneratedDocumentFormat,
   GeneratedDocumentOutput,
   InitialCourseCreateInput,
   IgsrtWorkspace,
@@ -34,6 +35,8 @@ import type {
   PatientUpdateInput,
   PatientValidationResult,
   Patient,
+  OperationalAuditEvent,
+  Phase6ClinicalValidationChecklist,
   Phase6GateStatus,
   Phase6PlanningReadiness,
   Prescription,
@@ -44,6 +47,7 @@ import type {
   TreatmentFraction,
   WorkflowDefinition,
   WorkflowStep,
+  WorkflowStepApplicability,
   WorkflowSnapshot
 } from "@/lib/types";
 import {
@@ -75,6 +79,7 @@ import {
 import {
   calculateFractionWorksheetEntry,
   deriveFractionLogStatus,
+  fractionWorksheetReferenceVersion,
   isVoidedFractionEntry,
   recalculateFractionWorksheetEntries
 } from "@/lib/services/fraction-worksheet-service";
@@ -107,8 +112,39 @@ function activeFractionEntries(entries: FractionLogEntry[]) {
   return entries.filter((entry) => !isVoidedFractionEntry(entry));
 }
 
+function assertUniqueActiveFractionNumber(courseId: string, fractionNumber: number, excludeEntryId?: string) {
+  const duplicate = activeFractionEntries(courseFractions(courseId, fractionLogEntries)).find(
+    (entry) => entry.fractionNumber === fractionNumber && entry.id !== excludeEntryId
+  );
+
+  if (duplicate) {
+    throw new Error(`Active fraction ${fractionNumber} already exists for this course. Void the existing row before recording another.`);
+  }
+}
+
 function textInput(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+type DocumentLifecycleMutationContext = {
+  userId?: string;
+  userName?: string;
+  role?: PrototypeAccessRole;
+  sessionId?: string;
+  ipAddress?: string;
+  deviceId?: string;
+  reason?: string;
+};
+
+function auditActor(context: DocumentLifecycleMutationContext | undefined, fallbackName: string) {
+  return {
+    userId: textInput(context?.userId) || (context?.role ? `PROTO-${context.role}` : "SYSTEM"),
+    userName: textInput(context?.userName) || fallbackName,
+    role: context?.role,
+    sessionId: context?.sessionId,
+    ipAddress: context?.ipAddress,
+    deviceId: context?.deviceId
+  };
 }
 
 function diagnosisCategoryInput(value: unknown): DiagnosisCategory {
@@ -211,8 +247,111 @@ const workflowStepRole: Record<number, CarepathTask["responsibleParty"]> = {
   14: "ADMIN"
 };
 
+const removedCarepathSteps = new Set([3, 4, 10, 11, 12]);
+const optionalCarepathSteps = new Set([6, 9]);
+const removedCarepathReason = "Removed from the CureRays 2026 Carepath model.";
+const optionalCarepathReason = "Optional Carepath step was not triggered for this course.";
+
 function normalizeCourseText(value: string | undefined, fallback: string) {
   return textInput(value).toUpperCase() || fallback;
+}
+
+function addDays(dateIso: string, offsetDays: number) {
+  const date = new Date(`${dateIso}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) {
+    return todayIsoDate();
+  }
+
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
+function expectedFinalTreatmentDate(course: TreatmentCourse) {
+  return weekdayTreatmentDate(course.startDate, Math.max(course.totalFractions - 1, 0));
+}
+
+export function calculateWorkflowDueDate(
+  phase: CarepathWorkflowPhase,
+  course: TreatmentCourse
+) {
+  const finalTreatmentDate = expectedFinalTreatmentDate(course);
+
+  if (phase === "CONSULTATION") return addDays(course.startDate, -14);
+  if (phase === "CHART_PREP") return addDays(course.startDate, -10);
+  if (phase === "SIMULATION") return addDays(course.startDate, -7);
+  if (phase === "PLANNING") return addDays(course.startDate, -2);
+  if (phase === "ON_TREATMENT") return course.startDate;
+  if (phase === "POST_TX") return addDays(finalTreatmentDate, 2);
+  if (phase === "AUDIT") return addDays(finalTreatmentDate, 7);
+  return addDays(finalTreatmentDate, 10);
+}
+
+function workflowRequirements(workflowDefinition: WorkflowDefinition) {
+  return workflowDefinition.documentRequirementIds
+    .map((requirementId) => documentRequirements.find((requirement) => requirement.id === requirementId))
+    .filter((requirement): requirement is typeof documentRequirements[number] => Boolean(requirement));
+}
+
+function requirementIdsForStep(stepNumber: number, workflowDefinition: WorkflowDefinition) {
+  const requirements = workflowRequirements(workflowDefinition);
+
+  if (stepNumber === 0) {
+    return requirements
+      .filter((requirement) => requirement.workflowPhase === "CONSULTATION")
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 2) {
+    return requirements
+      .filter((requirement) => /sim/i.test(requirement.name))
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 6) {
+    return requirements
+      .filter((requirement) => /isodose|physics/i.test(requirement.name))
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 7) {
+    return requirements
+      .filter((requirement) => /prescription|rx/i.test(requirement.name))
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 8) {
+    return requirements
+      .filter((requirement) => /fraction|fxlog/i.test(requirement.name))
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 13) {
+    return requirements
+      .filter((requirement) => requirement.workflowPhase === "POST_TX")
+      .map((requirement) => requirement.id);
+  }
+
+  if (stepNumber === 14) {
+    return requirements
+      .filter((requirement) => requirement.workflowPhase === "AUDIT")
+      .map((requirement) => requirement.id);
+  }
+
+  return requirements
+    .filter((requirement) => requirement.workflowPhase === workflowStepPhase[stepNumber])
+    .map((requirement) => requirement.id);
+}
+
+function workflowStepApplicability(stepNumber: number): WorkflowStepApplicability {
+  if (removedCarepathSteps.has(stepNumber)) {
+    return "REMOVED";
+  }
+
+  if (optionalCarepathSteps.has(stepNumber)) {
+    return "OPTIONAL";
+  }
+
+  return "REQUIRED";
 }
 
 function normalizeInitialCourseInput(
@@ -266,31 +405,88 @@ function createWorkflowStepsForCourse(
   workflowDefinition: WorkflowDefinition,
   timestamp: string
 ): WorkflowStep[] {
-  return carepathStepNames.map((stepName, stepNumber) => ({
-    id: `WF-${course.id}-${stepNumber}`,
-    courseId: course.id,
-    stepNumber,
-    stepName,
-    phase: workflowStepPhase[stepNumber],
-    status: stepNumber === 0 ? "PENDING" : "NOT_STARTED",
-    responsibleRole: workflowStepRole[stepNumber],
-    triggerEvent:
-      stepNumber === 0
-        ? "New patient-course bundle created"
-        : stepNumber === 14
-          ? "Summary, billing, images, signatures, and follow-up complete"
-          : "Previous workflow requirement ready",
-    dueDate: stepNumber < 8 ? course.startDate : undefined,
-    requiresSignature: [0, 1, 2, 5, 6, 7, 11, 13, 14].includes(stepNumber),
-    blockers:
+  return carepathStepNames.map((stepName, stepNumber) => {
+    const phase = workflowStepPhase[stepNumber];
+    const applicability = workflowStepApplicability(stepNumber);
+    const requirementIds = requirementIdsForStep(stepNumber, workflowDefinition);
+    const systemReason = applicability === "REMOVED"
+      ? removedCarepathReason
+      : applicability === "OPTIONAL" && requirementIds.length === 0
+        ? optionalCarepathReason
+        : undefined;
+    const status = applicability === "REMOVED" || systemReason
+      ? "NOT_APPLICABLE"
+      : stepNumber === 0
+        ? "PENDING"
+        : "NOT_STARTED";
+    const blockers =
       workflowDefinition.status === "MAPPING_IN_PROGRESS" && stepNumber === 14
         ? ["Workflow mapping must be reviewed before final closeout"]
-        : [],
-    auditChecklist: ["Status documented", "Responsible role assigned", "Linked evidence tracked"],
-    notes: `Generated from ${workflowDefinition.name}.`,
-    createdAt: timestamp,
-    updatedAt: timestamp
-  }));
+        : [];
+
+    if (applicability === "REQUIRED" && requirementIds.length === 0 && ![1, 5, 14].includes(stepNumber)) {
+      blockers.push("No mapped document requirement is linked to this required Carepath step.");
+    }
+
+    return {
+      id: `WF-${course.id}-${stepNumber}`,
+      courseId: course.id,
+      stepNumber,
+      stepName,
+      phase,
+      status,
+      applicability,
+      requirementIds,
+      responsibleRole: workflowStepRole[stepNumber],
+      triggerEvent:
+        stepNumber === 0
+          ? "New patient-course bundle created"
+          : stepNumber === 14
+            ? "Summary, billing, images, signatures, and follow-up complete"
+            : "Previous workflow requirement ready",
+      dueDate: calculateWorkflowDueDate(phase, course),
+      requiresSignature: [0, 1, 2, 5, 6, 7, 11, 13, 14].includes(stepNumber),
+      linkedDocumentId: undefined,
+      naReason: systemReason,
+      systemReason,
+      blockers,
+      auditChecklist: ["Status documented", "Responsible role assigned", "Linked evidence tracked"],
+      notes: `Generated from ${workflowDefinition.name}.`,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+  });
+}
+
+export function ensureCourseWorkflowSteps(
+  courses: TreatmentCourse[],
+  steps: WorkflowStep[],
+  timestamp = nowIso()
+) {
+  courses.forEach((course) => {
+    if (steps.some((step) => step.courseId === course.id)) {
+      return;
+    }
+
+    const workflowDefinition = workflowDefinitions.find((workflow) => workflow.id === course.workflowDefinitionId) ??
+      selectWorkflowDefinition(course.diagnosisCategory, course);
+    course.workflowDefinitionId = workflowDefinition.id;
+    steps.push(...createWorkflowStepsForCourse(course, workflowDefinition, timestamp));
+  });
+}
+
+export function ensureCarepathTaskDueDates(
+  courses: TreatmentCourse[],
+  tasks: CarepathTask[]
+) {
+  tasks.forEach((task) => {
+    const course = courses.find((item) => item.id === task.courseId);
+    if (!course) {
+      return;
+    }
+
+    task.dueDate = calculateWorkflowDueDate(task.workflowPhase, course);
+  });
 }
 
 function createAuditChecksForCourse(course: TreatmentCourse, timestamp: string): AuditCheck[] {
@@ -662,8 +858,10 @@ export const mappingRecords: MappingRecord[] = [];
 export const generatedDocumentOutputs: GeneratedDocumentOutput[] = [];
 export const treatmentFractions: TreatmentFraction[] = seedTreatmentFractionsFromEntries();
 
+ensureCourseWorkflowSteps(treatmentCourses, patientCourseWorkflowSteps);
 ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
 ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
+ensureCarepathTaskDueDates(treatmentCourses, carepathTasks);
 
 function addAuditEvent(event: Omit<AuditEvent, "id" | "timestamp">) {
   const auditEvent: AuditEvent = {
@@ -673,6 +871,10 @@ function addAuditEvent(event: Omit<AuditEvent, "id" | "timestamp">) {
   };
   auditEvents.unshift(auditEvent);
   return auditEvent;
+}
+
+export function recordOperationalAuditEvent(event: Omit<AuditEvent, "id" | "timestamp">): OperationalAuditEvent {
+  return redactAuditEvent(addAuditEvent(event));
 }
 
 function getSimulationOrder(courseId: string) {
@@ -960,11 +1162,60 @@ function buildGateStatus(input: {
   };
 }
 
+const phase6ClinicalValidationChecklistTemplate: Phase6ClinicalValidationChecklist["items"] = [
+  {
+    id: "phase6-reference-curves",
+    label: "Reference curves verified against approved worksheet source",
+    referenceVersion: fractionWorksheetReferenceVersion,
+    ownerRole: "PHYSICIST",
+    status: "REQUIRED",
+    evidenceRequired: "Physicist comparison of normalized 50/70/100 kV curves against the approved CureRays worksheet.",
+    productionGate: true
+  },
+  {
+    id: "phase6-rounding-and-overrides",
+    label: "Rounding and manual override policy clinically approved",
+    referenceVersion: fractionWorksheetReferenceVersion,
+    ownerRole: "RAD_ONC",
+    status: "REQUIRED",
+    evidenceRequired: "Rad Onc approval of rounding, missing-curve handling, manual override reason rules, and displayed warnings.",
+    productionGate: true
+  },
+  {
+    id: "phase6-cumulative-dose-recalculation",
+    label: "Cumulative dose correction behavior validated",
+    referenceVersion: fractionWorksheetReferenceVersion,
+    ownerRole: "PHYSICIST",
+    status: "REQUIRED",
+    evidenceRequired: "Clinical QA scenarios covering historical corrections, voided rows, dependent total recalculation, and approval reset.",
+    productionGate: true
+  },
+  {
+    id: "phase6-generated-notes",
+    label: "Generated isodose note language approved",
+    referenceVersion: fractionWorksheetReferenceVersion,
+    ownerRole: "RAD_ONC",
+    status: "REQUIRED",
+    evidenceRequired: "Clinical review of generated DOT, cumulative dose, and validation-warning language before patient-facing use.",
+    productionGate: true
+  }
+];
+
+export function getPhase6ClinicalValidationChecklist(): Phase6ClinicalValidationChecklist {
+  return {
+    referenceVersion: fractionWorksheetReferenceVersion,
+    status: "REQUIRED",
+    productionUseBlocked: true,
+    items: phase6ClinicalValidationChecklistTemplate.map((item) => ({ ...item }))
+  };
+}
+
 export function getPhase6PlanningReadiness(courseId: string): Phase6PlanningReadiness {
   const course = treatmentCourses.find((item) => item.id === courseId);
   const prescription = getPrescription(courseId);
   const simulationOrder = getSimulationOrder(courseId);
   const scheduled = courseTreatmentFractions(courseId);
+  const clinicalValidationChecklist = getPhase6ClinicalValidationChecklist();
   const missingInputs: string[] = [];
 
   if (!course) {
@@ -1005,7 +1256,8 @@ export function getPhase6PlanningReadiness(courseId: string): Phase6PlanningRead
     scheduledFractions: scheduled.length,
     plannedFractions,
     clinicalValidationRequired: true,
-    clinicianSignoffStatus: "REQUIRED"
+    clinicianSignoffStatus: clinicalValidationChecklist.status,
+    clinicalValidationChecklist
   };
 }
 
@@ -1090,6 +1342,10 @@ function applyGeneratedDocumentRecord(
   auditReady: boolean
 ) {
   if (!document) {
+    return;
+  }
+
+  if (document.manualEditExceptionAt || document.voidedAt) {
     return;
   }
 
@@ -1470,6 +1726,7 @@ export function createPatient(
     patientCourseWorkflowSteps.push(...createWorkflowStepsForCourse(course, workflowDefinition, timestamp));
     ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
     ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
+    ensureCarepathTaskDueDates(treatmentCourses, carepathTasks);
     patientCourseAuditChecks.push(...createAuditChecksForCourse(course, timestamp));
     courseFolderPlaceholders.push(createFolderPlaceholderForCourse(course, timestamp));
     const auditEvent = addAuditEvent({
@@ -1852,11 +2109,13 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
   );
   const previousEntry = courseEntries.at(-1);
   const nextFractionNumber = previousEntry ? previousEntry.fractionNumber + 1 : 1;
+  const requestedFractionNumber = Number(input.fractionNumber ?? nextFractionNumber);
+  assertUniqueActiveFractionNumber(input.courseId, requestedFractionNumber);
   const entry = calculateFractionWorksheetEntry(
     {
       ...input,
       id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(nextFractionNumber).padStart(2, "0")}`,
-      fractionNumber: input.fractionNumber ?? nextFractionNumber,
+      fractionNumber: requestedFractionNumber,
       date: input.date ?? todayIsoDate(),
       status: input.status ?? "NEEDS_REVIEW",
       mdApproval: false,
@@ -1899,6 +2158,11 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
 
   const courseEntries = activeFractionEntries(courseFractions(input.courseId, fractionLogEntries)).sort(
     (a, b) => a.fractionNumber - b.fractionNumber
+  );
+  const requestedFractionNumber = Number(input.fractionNumber ?? existingEntry.fractionNumber);
+  assertUniqueActiveFractionNumber(input.courseId, requestedFractionNumber, existingEntry.id);
+  const hasLowerActiveEntry = courseEntries.some(
+    (entry) => entry.id !== existingEntry.id && entry.fractionNumber < requestedFractionNumber
   );
   const latestActiveFractionNumber = Math.max(...courseEntries.map((entry) => entry.fractionNumber));
   const isHistoricalCorrection =
@@ -1947,7 +2211,16 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
       dotApproval: approvalReset.dotApproval ?? existingEntry.dotApproval
     },
     courseEntries,
-    { existingId: existingEntry.id }
+    {
+      existingId: existingEntry.id,
+      firstEntryCumulativeDelta:
+        correctionReason && !hasLowerActiveEntry
+          ? {
+              previousDoseCgy: existingEntry.dosePerFractionCgy ?? existingEntry.dosePerFraction,
+              previousDoseToDotCgy: existingEntry.doseToDotCgy ?? existingEntry.doseToDepth
+            }
+          : undefined
+    }
   );
   Object.assign(existingEntry, updatedEntry);
   recalculateCourseFractionEntries(input.courseId);
@@ -2329,7 +2602,26 @@ function renderContent(document: GeneratedDocument) {
   return `${document.name}\nPatient: ${patientName(patient)}\nStatus: ${document.status}`;
 }
 
-export function renderGeneratedDocument(documentId: string, format: GeneratedDocumentOutput["format"] = "PDF") {
+export function latestGeneratedDocumentOutput(documentId: string) {
+  return generatedDocumentOutputs
+    .filter((output) => output.documentId === documentId)
+    .sort((left, right) => right.version - left.version)[0] ?? null;
+}
+
+function generatedDocumentStorage(document: GeneratedDocument, version: number, format: GeneratedDocumentFormat) {
+  const storageKey = `${courseRef(document.courseId)}/${document.id}/v${version}.${format.toLowerCase()}`;
+  return {
+    storageProvider: "APP_STORAGE" as const,
+    storageKey,
+    storageUrl: `app-storage://generated/${storageKey}`
+  };
+}
+
+export function renderGeneratedDocument(
+  documentId: string,
+  format: GeneratedDocumentFormat = "PDF",
+  context?: DocumentLifecycleMutationContext
+) {
   const document = generatedDocuments.find((item) => item.id === documentId);
   if (!document) {
     return null;
@@ -2337,70 +2629,268 @@ export function renderGeneratedDocument(documentId: string, format: GeneratedDoc
 
   const priorVersions = generatedDocumentOutputs.filter((output) => output.documentId === documentId);
   const renderedAt = nowIso();
+  const version = priorVersions.length + 1;
+  const storage = generatedDocumentStorage(document, version, format);
+  const actor = auditActor(context, "Document Renderer");
   const output: GeneratedDocumentOutput = {
-    id: `OUT-${documentId}-${priorVersions.length + 1}`,
+    id: `OUT-${documentId}-${version}`,
     documentId,
     patientId: document.patientId,
     courseId: document.courseId,
     format,
-    version: priorVersions.length + 1,
+    version,
     status: "READY",
-    driveFileUrl: `drive://generated/${document.patientId}/${document.courseId}/${documentId}.${format.toLowerCase()}`,
+    ...storage,
     contentPreview: renderContent(document),
-    renderedAt
+    renderedAt,
+    renderedByUserId: actor.userId
   };
   generatedDocumentOutputs.unshift(output);
-  document.exportedAt = renderedAt;
-  document.status = document.status === "SIGNED" ? "EXPORTED" : document.status;
+  document.version = version;
+  document.latestOutputId = output.id;
+  document.storageProvider = storage.storageProvider;
+  document.storageKey = storage.storageKey;
+  document.storageUrl = storage.storageUrl;
+  document.renderedAt = renderedAt;
+  document.renderedByUserId = actor.userId;
+  document.status = document.status === "SIGNED" ? "SIGNED" : "READY_FOR_REVIEW";
+  document.signReviewState = document.signReviewState === "SIGNED" ? "SIGNED" : "READY_FOR_SIGNATURE";
+  document.requiredAction = document.signReviewState === "SIGNED"
+    ? document.requiredAction
+    : "Review generated output and route for signature";
   document.lastUpdatedAt = renderedAt;
 
   const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Document Renderer",
+    ...actor,
     action: "Generated document rendered",
     entityType: "DOCUMENT",
     entityId: document.id,
     previousValue: "No rendered output",
     newValue: `${format} v${output.version}`,
-    reason: "System generated a document output from structured source-of-truth data."
+    reason: context?.reason ?? "System generated a document output from structured source-of-truth data."
   });
-  return { data: output, workspace: getWorkflowResponseForCourse(document.courseId), auditEvent };
+  return { data: output, auditEvent };
 }
 
-export function signGeneratedDocument(documentId: string) {
+export function exportGeneratedDocumentOutput(documentId: string, context?: DocumentLifecycleMutationContext) {
+  const document = generatedDocuments.find((item) => item.id === documentId);
+  const output = latestGeneratedDocumentOutput(documentId);
+  if (!document || !output || output.status === "VOIDED") {
+    return null;
+  }
+
+  const exportedAt = nowIso();
+  const actor = auditActor(context, "Document Exporter");
+  const previousValue = `${output.status} v${output.version}`;
+  output.status = "EXPORTED";
+  output.exportedAt = exportedAt;
+  output.exportedByUserId = actor.userId;
+  document.status = document.status === "SIGNED" ? "SIGNED" : "EXPORTED";
+  document.exportedAt = exportedAt;
+  document.exportedByUserId = actor.userId;
+  document.requiredAction = document.signReviewState === "SIGNED"
+    ? document.requiredAction
+    : "Signature required before eCW upload";
+  document.lastUpdatedAt = exportedAt;
+
+  const auditEvent = addAuditEvent({
+    ...actor,
+    action: "Generated document exported",
+    entityType: "DOCUMENT",
+    entityId: document.id,
+    previousValue,
+    newValue: `EXPORTED v${output.version}`,
+    reason: context?.reason ?? "System recorded an adapter-ready generated output export."
+  });
+  return { data: output, auditEvent };
+}
+
+export function signGeneratedDocument(documentId: string, context?: DocumentLifecycleMutationContext) {
   const document = generatedDocuments.find((item) => item.id === documentId);
   if (!document) {
     return null;
   }
 
+  const output = latestGeneratedDocumentOutput(documentId);
   const previousValue = document.status;
+  const signedAt = nowIso();
+  const actor = auditActor(context, "Workflow API");
   if (["TPL-IGSRT-SIM", "REQ-SKIN-IGSRT-SIM"].includes(document.templateId)) {
     const order = getSimulationOrder(document.courseId);
     if (order) {
-      order.signedAt = nowIso();
+      order.signedAt = signedAt;
     }
   }
   if (["TPL-IGSRT-RX", "REQ-SKIN-IGSRT-RX"].includes(document.templateId)) {
     const prescription = getPrescription(document.courseId);
     if (prescription) {
-      prescription.signedAt = nowIso();
+      prescription.signedAt = signedAt;
     }
   }
+  if (output && output.status !== "VOIDED") {
+    output.status = "LOCKED";
+    output.lockedAt = signedAt;
+    output.lockedByUserId = actor.userId;
+  }
   document.status = "SIGNED";
-  document.signedAt = nowIso();
+  document.signedAt = signedAt;
+  document.signedByUserId = actor.userId;
+  document.lockedAt = signedAt;
+  document.lockedByUserId = actor.userId;
   document.signReviewState = "SIGNED";
   document.auditReady = true;
-  document.requiredAction = "No action needed";
-  document.lastUpdatedAt = nowIso();
+  document.requiredAction = "Manual eCW upload confirmation needed";
+  document.lastUpdatedAt = signedAt;
   const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Workflow API",
+    ...actor,
     action: "Generated document signed",
     entityType: "DOCUMENT",
     entityId: document.id,
     previousValue,
     newValue: "SIGNED",
-    reason: "Document signature state updated inside the workflow system."
+    reason: context?.reason ?? "Document signature state updated inside the workflow system."
   });
-  return { data: getWorkflowResponseForCourse(document.courseId), auditEvent };
+  return { auditEvent };
+}
+
+export function confirmGeneratedDocumentEcwUpload(
+  documentId: string,
+  input: { externalReference: string; reason: string },
+  context?: DocumentLifecycleMutationContext
+) {
+  const document = generatedDocuments.find((item) => item.id === documentId);
+  const output = latestGeneratedDocumentOutput(documentId);
+  if (!document || !output) {
+    return null;
+  }
+
+  const uploadedAt = nowIso();
+  const actor = auditActor(context, "eCW Upload Confirmer");
+  const previousValue = document.uploadedToEcwAt ? "eCW upload already recorded" : "No eCW upload recorded";
+  document.status = "UPLOADED";
+  document.uploadedToEcwAt = uploadedAt;
+  document.uploadedToEcwByUserId = actor.userId;
+  document.ecwUploadReference = input.externalReference;
+  document.ecwUploadReason = input.reason;
+  document.requiredAction = "No action needed";
+  document.auditReady = true;
+  document.lastUpdatedAt = uploadedAt;
+
+  const auditEvent = addAuditEvent({
+    ...actor,
+    action: "Generated document eCW upload confirmed",
+    entityType: "DOCUMENT",
+    entityId: document.id,
+    previousValue,
+    newValue: "eCW upload confirmed",
+    reason: input.reason || context?.reason || "Manual eCW upload confirmation recorded."
+  });
+  return { data: output, auditEvent };
+}
+
+export function voidGeneratedDocumentOutput(
+  documentId: string,
+  input: { reason: string },
+  context?: DocumentLifecycleMutationContext
+) {
+  const document = generatedDocuments.find((item) => item.id === documentId);
+  const output = latestGeneratedDocumentOutput(documentId);
+  if (!document || !output) {
+    return null;
+  }
+
+  const voidedAt = nowIso();
+  const actor = auditActor(context, "Document Lifecycle Admin");
+  const previousValue = `${output.status} v${output.version}`;
+  output.status = "VOIDED";
+  output.voidedAt = voidedAt;
+  output.voidedByUserId = actor.userId;
+  output.voidReason = input.reason;
+  document.status = "BLOCKED";
+  document.voidedAt = voidedAt;
+  document.voidedByUserId = actor.userId;
+  document.voidReason = input.reason;
+  document.auditReady = false;
+  document.signReviewState = "REVIEW_REQUIRED";
+  document.requiredAction = "Void reviewed; regenerate or mark not applicable with reason";
+  document.lastUpdatedAt = voidedAt;
+
+  const auditEvent = addAuditEvent({
+    ...actor,
+    action: "Generated document output voided",
+    entityType: "DOCUMENT",
+    entityId: document.id,
+    previousValue,
+    newValue: "VOIDED",
+    reason: input.reason
+  });
+  return { data: output, auditEvent };
+}
+
+export function recordGeneratedDocumentManualEditException(
+  documentId: string,
+  input: { reason: string },
+  context?: DocumentLifecycleMutationContext
+) {
+  const document = generatedDocuments.find((item) => item.id === documentId);
+  if (!document) {
+    return null;
+  }
+
+  const previousOutput = latestGeneratedDocumentOutput(documentId);
+  const recordedAt = nowIso();
+  const actor = auditActor(context, "Document Lifecycle Admin");
+  const version = (previousOutput?.version ?? document.version ?? 0) + 1;
+  const format = previousOutput?.format ?? "PDF";
+  const storage = generatedDocumentStorage(document, version, format);
+  const output: GeneratedDocumentOutput = {
+    id: `OUT-${documentId}-${version}`,
+    documentId,
+    patientId: document.patientId,
+    courseId: document.courseId,
+    format,
+    version,
+    status: "DRAFT",
+    ...storage,
+    contentPreview: "Manual edit exception recorded. Regenerate from structured source before signature.",
+    renderedAt: recordedAt,
+    renderedByUserId: actor.userId,
+    manualEditExceptionAt: recordedAt,
+    manualEditExceptionByUserId: actor.userId,
+    manualEditReason: input.reason
+  };
+  generatedDocumentOutputs.unshift(output);
+
+  document.version = version;
+  document.latestOutputId = output.id;
+  document.storageProvider = storage.storageProvider;
+  document.storageKey = storage.storageKey;
+  document.storageUrl = storage.storageUrl;
+  document.status = "NEEDS_REVIEW";
+  document.signReviewState = "REVIEW_REQUIRED";
+  document.auditReady = false;
+  document.requiredAction = "Manual edit exception requires review, regeneration, and signature";
+  document.signedAt = undefined;
+  document.signedByUserId = undefined;
+  document.lockedAt = undefined;
+  document.lockedByUserId = undefined;
+  document.uploadedToEcwAt = undefined;
+  document.uploadedToEcwByUserId = undefined;
+  document.ecwUploadReference = undefined;
+  document.ecwUploadReason = undefined;
+  document.manualEditExceptionAt = recordedAt;
+  document.manualEditExceptionByUserId = actor.userId;
+  document.manualEditReason = input.reason;
+  document.lastUpdatedAt = recordedAt;
+
+  const auditEvent = addAuditEvent({
+    ...actor,
+    action: "Generated document manual edit exception recorded",
+    entityType: "DOCUMENT",
+    entityId: document.id,
+    previousValue: previousOutput ? `v${previousOutput.version}` : "No prior output",
+    newValue: `Manual edit exception v${version}`,
+    reason: input.reason
+  });
+  return { data: output, auditEvent };
 }

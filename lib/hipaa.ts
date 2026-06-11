@@ -82,6 +82,7 @@ export function toOperationalCourse(course: TreatmentCourse): OperationalTreatme
     totalFractions: course.totalFractions,
     currentFraction: course.currentFraction,
     chartRoundsPhase: course.chartRoundsPhase,
+    coursePhase: course.coursePhase,
     status: course.status
   };
 }

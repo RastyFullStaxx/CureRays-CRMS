@@ -5,9 +5,11 @@ import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
+  latestGeneratedDocumentOutput,
   mappingRecords,
   operationalPatients,
   operationalTreatmentCourses,
+  patientCourseWorkflowSteps,
   patients,
   prescriptions,
   priorityFlags,
@@ -190,6 +192,14 @@ export function getCourses(): Course[] {
 }
 
 export function getWorkflowSteps(courseId?: string): WorkflowStep[] {
+  const storedSteps = courseId
+    ? patientCourseWorkflowSteps.filter((step) => step.courseId === courseId)
+    : patientCourseWorkflowSteps;
+
+  if (storedSteps.length > 0) {
+    return storedSteps;
+  }
+
   const course = treatmentCourses.find((item) => item.id === courseId) ?? treatmentCourses[0];
   const courseDocs = courseDocuments(course.id, generatedDocuments);
   return canonicalWorkflowSteps.map((step) => {
@@ -242,24 +252,51 @@ export function getTasks(): Task[] {
 }
 
 export function getDocumentInstances(): DocumentInstance[] {
-  return generatedDocuments.map((document, index) => ({
-    id: document.id,
-    patientId: document.patientId,
-    courseId: document.courseId,
-    templateId: document.templateId,
-    title: document.name,
-    category: document.clinicalPhase,
-    status: toWorkflowStatus(document.status),
-    storageProvider: "GOOGLE_DRIVE",
-    fileIdOrPath: `Patients/course-output/${document.id}`,
-    previewUrl: `/api/generated-documents/${document.id}`,
-    version: index + 1,
-    generatedAt: document.lastUpdatedAt,
-    signedAt: document.signedAt,
-    uploadedToEcwAt: document.exportedAt,
-    lockedAt: document.signedAt,
-    naReason: document.status === "NOT_APPLICABLE" ? "Document not required for this diagnosis/protocol." : undefined
-  }));
+  return generatedDocuments.map((document, index) => {
+    const latestOutput = latestGeneratedDocumentOutput(document.id);
+    const storageProvider = document.storageProvider ?? latestOutput?.storageProvider ?? "APP_STORAGE";
+    const storageKey = document.storageKey ?? latestOutput?.storageKey ?? `pending/${document.id}`;
+    const storageUrl = document.storageUrl ?? latestOutput?.storageUrl;
+
+    return {
+      id: document.id,
+      patientId: document.patientId,
+      courseId: document.courseId,
+      templateId: document.templateId,
+      title: document.name,
+      category: document.clinicalPhase,
+      status: toWorkflowStatus(document.status),
+      storageProvider,
+      fileIdOrPath: storageKey,
+      previewUrl: `/api/generated-documents/${document.id}`,
+      version: document.version ?? latestOutput?.version ?? index + 1,
+      latestOutputId: document.latestOutputId ?? latestOutput?.id,
+      latestOutputStatus: latestOutput?.status,
+      storageKey,
+      storageUrl,
+      generatedAt: document.renderedAt ?? document.lastUpdatedAt,
+      generatedByUserId: document.renderedByUserId,
+      renderedAt: document.renderedAt ?? latestOutput?.renderedAt,
+      renderedByUserId: document.renderedByUserId ?? latestOutput?.renderedByUserId,
+      exportedAt: document.exportedAt ?? latestOutput?.exportedAt,
+      exportedByUserId: document.exportedByUserId ?? latestOutput?.exportedByUserId,
+      signedAt: document.signedAt,
+      signedByUserId: document.signedByUserId,
+      uploadedToEcwAt: document.uploadedToEcwAt,
+      uploadedToEcwByUserId: document.uploadedToEcwByUserId,
+      ecwUploadReference: document.ecwUploadReference,
+      ecwUploadReason: document.ecwUploadReason,
+      lockedAt: document.lockedAt ?? latestOutput?.lockedAt,
+      lockedByUserId: document.lockedByUserId ?? latestOutput?.lockedByUserId,
+      voidedAt: document.voidedAt ?? latestOutput?.voidedAt,
+      voidedByUserId: document.voidedByUserId ?? latestOutput?.voidedByUserId,
+      voidReason: document.voidReason ?? latestOutput?.voidReason,
+      manualEditExceptionAt: document.manualEditExceptionAt ?? latestOutput?.manualEditExceptionAt,
+      manualEditExceptionByUserId: document.manualEditExceptionByUserId ?? latestOutput?.manualEditExceptionByUserId,
+      manualEditReason: document.manualEditReason ?? latestOutput?.manualEditReason,
+      naReason: document.status === "NOT_APPLICABLE" ? "Document not required for this diagnosis/protocol." : undefined
+    };
+  });
 }
 
 export const clinicalFormTemplates: ClinicalFormTemplate[] = [

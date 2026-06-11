@@ -14,6 +14,24 @@ The database remains the source of truth for patient/course workflow state, docu
 
 Do not manually move patients between folders, tabs, or files to represent status. Patient phase and workflow status must be stored as course/workflow state in the app.
 
+## Phase 4 Pilot Registry Implementation
+
+Phase 4 registry metadata now lives in `lib/template-registry-data.json`. `lib/template-registry.ts` is the typed loader/helper layer, and app pages should consume registry exports from the server-only operational page service where possible.
+
+Current Phase 4 pilot guarantees:
+
+- Template source records include version, SHA-256, approval status, and pilot approval metadata.
+- Document requirements include diagnosis/protocol/body-region/laterality/modality applicability, phase, owner role, reviewer role, required fields, output formats, CPT relevance, pilot scope, and generation-readiness metadata.
+- Field maps are tracked as structured `TemplateFieldMap` records using the same form-section and form-field vocabulary as internal clinical forms.
+- `lib/server/template-registry-verification.ts` verifies recorded SHA-256 values against normalized local files.
+- `scripts/phase4-template-registry.mjs` validates registry integrity, source hashes, approved deferrals/placeholders, workflow references, field-map coverage, and applicability scenarios.
+
+Explicit Phase 4 boundaries:
+
+- Billing pre-authorization mapping is visible but explicitly deferred; it must not auto-create tasks or generated documents.
+- Gynecomastia, duplicate Arthritis mapping, and API-in-process prescription sources are future/draft placeholders, not pilot workflow requirements.
+- Phase 4 does not implement DOCX/PPTX/XLSX/PDF generation, live Drive sync, eCW upload, electronic signatures, or generated-output storage.
+
 ## Implemented Local Template Structure
 
 ```text

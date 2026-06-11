@@ -24,6 +24,7 @@ const treatmentPlanningPage = read("app/treatment-planning/page.tsx");
 const patientWorkspace = read("components/patients/patient-workspace.tsx");
 const worksheetPanel = read("components/fraction-worksheet-panel.tsx");
 const routeSmoke = read("scripts/route-smoke.mjs");
+const progressTracker = read("docs/curerays-system-progress-tracker.md");
 
 for (const expected of [
   'import "server-only"',
@@ -32,9 +33,24 @@ for (const expected of [
   "completePhysicsCheck",
   "completeOtvCheck",
   "approveFractionRow",
+  "requestFractionRowRevision",
+  "requireClinicalMutation(access);\n  return approveFractionLogEntry",
+  "requireClinicalMutation(access);\n  return requestFractionRevision",
   "voidFractionRow"
 ]) {
   assertIncludes(serverService, expected, `${serverServicePath} must expose ${expected}`);
+}
+
+const mutateActions = apiRoute.match(/const mutateActions = new Set\(\[([\s\S]*?)\]\);/)?.[1] ?? "";
+for (const expected of [
+  '"approveFraction"',
+  '"requestFractionRevision"',
+  '"generateFractionSchedule"',
+  '"linkFractionImage"',
+  '"recordPhysicsCheck"',
+  '"recordOtvCheck"'
+]) {
+  assertIncludes(mutateActions, expected, `/api/igsrt mutateActions must authorize ${expected}`);
 }
 
 for (const expected of [
@@ -57,8 +73,11 @@ for (const expected of [
   "recordPhysicsCheck",
   "recordOtvCheck",
   "assertFractionImagingGate",
+  "assertUniqueActiveFractionNumber",
   "resetDownstreamRowsAfterCorrection",
   "getPhase6PlanningReadiness",
+  "getPhase6ClinicalValidationChecklist",
+  "phase6ClinicalValidationChecklistTemplate",
   "getPhase6GateStatuses",
   "TREATMENT_FRACTION"
 ]) {
@@ -68,6 +87,8 @@ for (const expected of [
 for (const expected of [
   "clinicalValidationRequired: true",
   "fractionWorksheetReferenceVersion",
+  "Manual isodose override must be greater than 0 and no more than 100.",
+  "firstEntryCumulativeDelta",
   "recalculateFractionWorksheetEntries",
   "lowerVoidedEntries"
 ]) {
@@ -76,6 +97,8 @@ for (const expected of [
 
 for (const expected of [
   "type Phase6PlanningReadiness",
+  "type Phase6ClinicalValidationChecklist",
+  "clinicalValidationChecklist: Phase6ClinicalValidationChecklist",
   "type Phase6GateStatus",
   "treatmentFractions: TreatmentFraction[]",
   "imageGuidanceStatus",
@@ -102,6 +125,8 @@ for (const schema of [mainSchema, phiSchema]) {
 for (const expected of [
   "getPhase6PlanningReadiness",
   "getPhase6GateStatuses",
+  "Phase 6 Clinical Sign-Off Checklist",
+  "clinicalValidationChecklist.referenceVersion",
   "Phase6PlanningActions",
   "Worksheet"
 ]) {
@@ -111,6 +136,8 @@ for (const expected of [
 for (const expected of [
   "Phase 6 Readiness",
   "Clinical Validation Required",
+  "Clinical Sign-Off Gate",
+  "clinicalValidationChecklist.referenceVersion",
   "missingImageFractions",
   "physicsDueFractions",
   "otvDueFractions"
@@ -139,5 +166,7 @@ for (const expected of [
 
 assertIncludes(packageJson, '"test:phase6"', "package.json must expose npm run test:phase6");
 assertIncludes(packageJson, "npm run test:phase6", "npm run verify must include Phase 6 guardrails");
+assertIncludes(progressTracker, "Current completion: 100% for de-identified pilot/code-owned scope", "Progress tracker must record Phase 6 pilot-scope completion");
+assertIncludes(progressTracker, "formal clinical validation remains a production blocker", "Progress tracker must not imply production clinical validation is complete");
 
 console.log("Phase 6 treatment planning guardrails passed");

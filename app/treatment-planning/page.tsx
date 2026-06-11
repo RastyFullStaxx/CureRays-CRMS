@@ -15,6 +15,7 @@ import {
   getPhase6PlanningReadiness,
   moduleSnapshot,
   patientLabel,
+  responsiblePartyName,
   statusLabel,
   statusTone
 } from "@/lib/services/operational-page-service";
@@ -31,6 +32,8 @@ export default function TreatmentPlanningPage() {
   const locked = plans.filter((plan) => plan.lockedAt).length;
   const scheduled = plans.filter((plan) => plan.readiness.scheduleGenerated).length;
   const gated = plans.filter((plan) => plan.gates.imagingGateStatus.status === "BLOCKED").length;
+  const clinicalValidationChecklist = plans[0]?.readiness.clinicalValidationChecklist;
+  const clinicalGateBlocked = plans.filter((plan) => plan.readiness.clinicalValidationChecklist.productionUseBlocked).length;
 
   return (
     <PageStack>
@@ -45,6 +48,7 @@ export default function TreatmentPlanningPage() {
         <StatCard icon={PenLine} label="Rad Onc Signature" value={radOnc} sub="Ready to sign" tone="primary" />
         <StatCard icon={CalendarCheck2} label="Schedules" value={`${scheduled}/${plans.length}`} sub="Generated from Rx" tone="success" />
         <StatCard icon={AlertTriangle} label="Gated" value={gated} sub="Imaging or review gates" tone="warning" />
+        <StatCard icon={ShieldCheck} label="Clinical Gate" value={clinicalGateBlocked} sub="Production sign-off required" tone="warning" />
       </StatGrid>
       <DataTable
         columns={[
@@ -95,6 +99,14 @@ export default function TreatmentPlanningPage() {
               <Badge variant={row.gates.otvDueStatus.dueFractions.length ? "warning" : "success"}>
                 OTV {row.gates.otvDueStatus.dueFractions.length}
               </Badge>
+            </div>
+          )},
+          { key: 'signoff', label: 'Sign-off', render: (row) => (
+            <div className="grid gap-1">
+              <Badge variant="warning">{row.readiness.clinicianSignoffStatus}</Badge>
+              <span className="text-xs font-semibold text-[var(--color-text-muted)]">
+                {row.readiness.clinicalValidationChecklist.referenceVersion}
+              </span>
             </div>
           )},
           { key: 'physics', label: 'Physics', render: (row) => (
@@ -148,6 +160,38 @@ export default function TreatmentPlanningPage() {
           { id: 'radOnc', label: 'Rad Onc', getValue: (row) => statusLabel(row.radOncSignatureStatus) },
         ]}
       />
+      {clinicalValidationChecklist ? (
+        <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="clinical-label">Phase 6 Clinical Sign-Off Checklist</p>
+              <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                Reference {clinicalValidationChecklist.referenceVersion}
+              </h2>
+              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+                Production clinical use remains blocked until each validation item has documented sign-off.
+              </p>
+            </div>
+            <Badge variant="warning">{clinicalValidationChecklist.status}</Badge>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {clinicalValidationChecklist.items.map((item) => (
+              <div key={item.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-bold text-[var(--color-text)]">{item.label}</p>
+                  <Badge variant="warning">{item.status}</Badge>
+                </div>
+                <p className="mt-2 text-xs font-bold uppercase text-[var(--color-text-muted)]">
+                  {responsiblePartyName(item.ownerRole)}
+                </p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">
+                  {item.evidenceRequired}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="grid gap-4 xl:grid-cols-3">
         {["Review Parameters", "Generate Planning Document", "Send to Physics"].map((title, index) => (
           <div key={title} className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}>

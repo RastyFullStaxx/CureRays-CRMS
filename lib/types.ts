@@ -48,6 +48,10 @@ export type DocumentStatus =
   | "OVERDUE"
   | "CLOSED";
 
+export type GeneratedDocumentFormat = "DOCX" | "PDF" | "XLSX";
+
+export type GeneratedDocumentStorageProvider = "APP_STORAGE" | "GOOGLE_DRIVE" | "EXTERNAL";
+
 export type BillingReadinessStatus = "READY" | "NEEDS_REVIEW" | "BLOCKED" | "NOT_APPLICABLE";
 
 export type TemplateSourceStatus =
@@ -58,6 +62,31 @@ export type TemplateSourceStatus =
   | "MAPPING_IN_PROGRESS";
 
 export type TemplateSourceMimeType = "DOCX" | "XLSX" | "PPTX" | "FOLDER" | "UNKNOWN";
+
+export type TemplateSourceApprovalStatus =
+  | "PILOT_APPROVED"
+  | "MAPPING_DEFERRED"
+  | "DRAFT_REVIEW"
+  | "MISSING_DEFERRED"
+  | "DEFERRED";
+
+export type TemplateCptRelevance = "REQUIRED" | "SUPPORTING" | "REFERENCE_ONLY" | "NOT_APPLICABLE" | "DEFERRED";
+
+export type TemplatePilotScope = "IN_SCOPE" | "DEFERRED" | "FUTURE_PLACEHOLDER";
+
+export type TemplateGenerationReadiness = "READY_FOR_PILOT" | "FIELD_MAP_COMPLETE" | "DEFERRED" | "FUTURE_PLACEHOLDER";
+
+export type TemplateLateralityApplicability = "REQUIRED" | "OPTIONAL" | "NOT_APPLICABLE";
+
+export type TemplateFieldMapStatus = "COMPLETE" | "PARTIAL" | "DEFERRED" | "FUTURE_PLACEHOLDER";
+
+export type TemplatePlaceholderKind =
+  | "MISSING_TEMPLATE_DEFERRAL"
+  | "FUTURE_PROTOCOL"
+  | "DUPLICATE_REVIEW"
+  | "API_MAPPING_DRAFT";
+
+export type TemplatePlaceholderDisposition = "DEFERRED" | "FUTURE_PLACEHOLDER";
 
 export type ResponsibleParty =
   | "VA"
@@ -86,6 +115,8 @@ export type WorkflowItemStatus =
   | "BLOCKED"
   | "OVERDUE"
   | "CLOSED";
+
+export type WorkflowStepApplicability = "REQUIRED" | "OPTIONAL" | "REMOVED";
 
 export type FlagSeverity = "LOW" | "MEDIUM" | "HIGH";
 
@@ -245,6 +276,8 @@ export type WorkflowStep = {
   stepName: string;
   phase: CarepathWorkflowPhase;
   status: WorkflowItemStatus;
+  applicability?: WorkflowStepApplicability;
+  requirementIds?: string[];
   responsibleRole: ResponsibleParty;
   assignedUserId?: string;
   triggerEvent: string;
@@ -254,6 +287,7 @@ export type WorkflowStep = {
   signedAt?: string;
   linkedDocumentId?: string;
   naReason?: string;
+  systemReason?: string;
   blockers: string[];
   auditChecklist: string[];
   notes?: string;
@@ -322,6 +356,7 @@ export type OperationalTreatmentCourse = {
   totalFractions: number;
   currentFraction: number;
   chartRoundsPhase: ChartRoundsPhase;
+  coursePhase?: CarepathWorkflowPhase;
   status: TreatmentCourseStatus;
 };
 
@@ -379,6 +414,9 @@ export type CarepathTask = {
   dueDate?: string;
   completedAt?: string;
   signedAt?: string;
+  blockedReason?: string;
+  naReason?: string;
+  reopenReason?: string;
   lastUpdatedAt: string;
   assignedUser: string;
 };
@@ -412,12 +450,30 @@ export type DocumentInstance = {
   fileIdOrPath?: string;
   previewUrl?: string;
   version: number;
+  latestOutputId?: string;
+  latestOutputStatus?: GeneratedDocumentOutput["status"];
+  storageKey?: string;
+  storageUrl?: string;
   generatedAt?: string;
   generatedByUserId?: string;
+  renderedAt?: string;
+  renderedByUserId?: string;
+  exportedAt?: string;
+  exportedByUserId?: string;
   signedAt?: string;
   signedByUserId?: string;
   uploadedToEcwAt?: string;
+  uploadedToEcwByUserId?: string;
+  ecwUploadReference?: string;
+  ecwUploadReason?: string;
   lockedAt?: string;
+  lockedByUserId?: string;
+  voidedAt?: string;
+  voidedByUserId?: string;
+  voidReason?: string;
+  manualEditExceptionAt?: string;
+  manualEditExceptionByUserId?: string;
+  manualEditReason?: string;
   naReason?: string;
 };
 
@@ -521,12 +577,20 @@ export type TemplateSource = {
   status: TemplateSourceStatus;
   notes?: string;
   modifiedAt?: string;
+  sourceSha256?: string;
+  version?: string;
+  approvalStatus?: TemplateSourceApprovalStatus;
+  approvedForPilot?: boolean;
+  clinicalApprovedAt?: string;
+  clinicalApprovedByRole?: ResponsibleParty;
+  registryNotes?: string;
 };
 
 export type DocumentApplicability = {
   diagnosis: DiagnosisCategory | "ALL";
   protocol?: string;
   bodyRegion?: string;
+  laterality?: TemplateLateralityApplicability;
   treatmentModality?: string;
   universal?: boolean;
   requiredWhen?: string;
@@ -544,8 +608,13 @@ export type DocumentRequirement = {
   requiredFields: string[];
   outputFormats: Array<"DOCX" | "PDF" | "XLSX" | "PPTX">;
   cptCode?: string;
+  cptRelevance?: TemplateCptRelevance;
   createsTask: boolean;
   autoCreate?: boolean;
+  reviewerRole?: ResponsibleParty;
+  fieldMapId?: string;
+  pilotScope?: TemplatePilotScope;
+  generationReadiness?: TemplateGenerationReadiness;
   taskTitle?: string;
   taskNumber?: string;
   timing?: string;
@@ -569,6 +638,76 @@ export type WorkflowCommandResult = {
   blockers: string[];
   auditAction: string;
   nextPhase?: CarepathWorkflowPhase;
+};
+
+export type WorkflowQueueName =
+  | "ALL"
+  | "MY_TASKS"
+  | "TEAM_TASKS"
+  | "UNASSIGNED"
+  | "SIGNATURES"
+  | "OVERDUE"
+  | "BLOCKED"
+  | "COMPLETED";
+
+export type WorkflowAdvanceInput = {
+  expectedCoursePhase?: CarepathWorkflowPhase;
+  changeReason: string;
+};
+
+export type WorkflowStepMutationInput = {
+  status?: WorkflowItemStatus;
+  assignedUserId?: string;
+  dueDate?: string;
+  blockedReason?: string;
+  naReason?: string;
+  reopenReason?: string;
+  expectedUpdatedAt?: string;
+  changeReason: string;
+};
+
+export type TaskMutationInput = {
+  status?: CarepathTaskStatus;
+  assignedUser?: string;
+  dueDate?: string;
+  blockedReason?: string;
+  naReason?: string;
+  reopenReason?: string;
+  expectedLastUpdatedAt?: string;
+  changeReason: string;
+};
+
+export type OperationalWorkflowStep = Omit<
+  WorkflowStep,
+  "courseId" | "linkedDocumentId" | "signedByUserId" | "assignedUserId"
+> & {
+  patientRef: string;
+  courseRef: string;
+  displayLabel: string;
+  linkedDocumentRef?: string;
+  assignedUserId?: string;
+};
+
+export type OperationalTask = Omit<CarepathTask, "courseId"> & {
+  patientRef: string;
+  courseRef: string;
+  displayLabel: string;
+};
+
+export type WorkflowQueueSnapshot = {
+  queue: WorkflowQueueName;
+  role?: PrototypeAccessRole;
+  tasks: OperationalTask[];
+  counts: Record<WorkflowQueueName, number>;
+  generatedAt: string;
+};
+
+export type WorkflowCommandMutationResult = WorkflowCommandResult & {
+  step?: OperationalWorkflowStep;
+  task?: OperationalTask;
+  course?: OperationalTreatmentCourse;
+  auditEvent?: OperationalAuditEvent;
+  phiBoundary: string;
 };
 
 export type WorkflowDocumentState = {
@@ -599,9 +738,30 @@ export type GeneratedDocument = {
   requiredAction: string;
   cptCode?: string;
   assignedTo: string;
+  version?: number;
+  latestOutputId?: string;
+  storageProvider?: GeneratedDocumentStorageProvider;
+  storageKey?: string;
+  storageUrl?: string;
+  renderedAt?: string;
+  renderedByUserId?: string;
   lastUpdatedAt: string;
   signedAt?: string;
+  signedByUserId?: string;
   exportedAt?: string;
+  exportedByUserId?: string;
+  lockedAt?: string;
+  lockedByUserId?: string;
+  uploadedToEcwAt?: string;
+  uploadedToEcwByUserId?: string;
+  ecwUploadReference?: string;
+  ecwUploadReason?: string;
+  voidedAt?: string;
+  voidedByUserId?: string;
+  voidReason?: string;
+  manualEditExceptionAt?: string;
+  manualEditExceptionByUserId?: string;
+  manualEditReason?: string;
   signReviewState: "NOT_STARTED" | "READY_FOR_SIGNATURE" | "SIGNED" | "REVIEW_REQUIRED";
   auditReady: boolean;
 };
@@ -633,6 +793,50 @@ export type InternalFormTemplate = {
   sourceFileName: string;
   outputFormats: Array<"DOCX" | "PDF" | "XLSX">;
   sections: FormTemplateSection[];
+};
+
+export type TemplateFieldMap = {
+  id: string;
+  requirementId: string;
+  templateSourceId?: string;
+  status: TemplateFieldMapStatus;
+  version: string;
+  mappedAt: string;
+  mappedByRole: ResponsibleParty;
+  sections: FormTemplateSection[];
+  completenessNotes: string;
+};
+
+export type TemplateRegistryPlaceholder = {
+  id: string;
+  sourceId: string;
+  requirementId?: string;
+  kind: TemplatePlaceholderKind;
+  disposition: TemplatePlaceholderDisposition;
+  notes: string;
+};
+
+export type TemplateRegistryData = {
+  schemaVersion: string;
+  generatedAt: string;
+  templateSources: TemplateSource[];
+  documentRequirements: DocumentRequirement[];
+  workflowDefinitions: WorkflowDefinition[];
+  templateFieldMaps: TemplateFieldMap[];
+  templateRegistryPlaceholders: TemplateRegistryPlaceholder[];
+};
+
+export type TemplateRequirementReadiness = {
+  requirementId: string;
+  templateSourceId?: string;
+  fieldMapId?: string;
+  sourceStatus: TemplateSourceStatus | "UNKNOWN";
+  fieldMapStatus: TemplateFieldMapStatus | "MISSING";
+  approvalStatus: TemplateSourceApprovalStatus | "UNKNOWN";
+  pilotScope: TemplatePilotScope;
+  generationReadiness: TemplateGenerationReadiness;
+  readyForPilot: boolean;
+  blockers: string[];
 };
 
 export type SimulationOrder = {
@@ -712,18 +916,51 @@ export type GeneratedDocumentOutput = {
   documentId: string;
   patientId: string;
   courseId: string;
-  format: "DOCX" | "PDF" | "XLSX";
+  format: GeneratedDocumentFormat;
   version: number;
-  status: "DRAFT" | "READY" | "EXPORTED";
+  status: "DRAFT" | "READY" | "EXPORTED" | "LOCKED" | "VOIDED";
+  storageProvider?: GeneratedDocumentStorageProvider;
+  storageKey?: string;
+  storageUrl?: string;
   driveFileUrl?: string;
   contentPreview: string;
+  exportedAt?: string;
+  exportedByUserId?: string;
+  lockedAt?: string;
+  lockedByUserId?: string;
+  voidedAt?: string;
+  voidedByUserId?: string;
+  voidReason?: string;
+  manualEditExceptionAt?: string;
+  manualEditExceptionByUserId?: string;
+  manualEditReason?: string;
   renderedAt: string;
+  renderedByUserId?: string;
+};
+
+export type DocumentLifecycleAction =
+  | "read"
+  | "render"
+  | "export"
+  | "sign"
+  | "confirmEcwUpload"
+  | "voidOutput"
+  | "recordManualEditException";
+
+export type DocumentLifecycleDocumentDto = Omit<GeneratedDocument, "patientId" | "courseId"> & {
+  patientRef: string;
+  courseRef: string;
+};
+
+export type DocumentLifecycleOutputDto = Omit<GeneratedDocumentOutput, "patientId" | "courseId" | "contentPreview"> & {
+  patientRef: string;
+  courseRef: string;
 };
 
 export type DocumentLifecycleResult = {
-  document: GeneratedDocument | null;
-  output?: GeneratedDocumentOutput;
-  auditEvent?: AuditEvent;
+  document: DocumentLifecycleDocumentDto | null;
+  output?: DocumentLifecycleOutputDto;
+  auditEvent?: OperationalAuditEvent;
   phiBoundary: string;
   blockedReason?: string;
 };
@@ -813,6 +1050,25 @@ export type CourseFolderPlaceholder = {
 
 export type Phase6ReadinessStatus = "BLOCKED" | "READY_FOR_SCHEDULE" | "SCHEDULED" | "CLINICAL_VALIDATION_REQUIRED";
 
+export type Phase6ClinicalValidationChecklistStatus = "REQUIRED" | "RECORDED";
+
+export type Phase6ClinicalValidationChecklistItem = {
+  id: string;
+  label: string;
+  referenceVersion: string;
+  ownerRole: ResponsibleParty;
+  status: Phase6ClinicalValidationChecklistStatus;
+  evidenceRequired: string;
+  productionGate: true;
+};
+
+export type Phase6ClinicalValidationChecklist = {
+  referenceVersion: string;
+  status: Phase6ClinicalValidationChecklistStatus;
+  productionUseBlocked: boolean;
+  items: Phase6ClinicalValidationChecklistItem[];
+};
+
 export type Phase6PlanningReadiness = {
   courseId: string;
   status: Phase6ReadinessStatus;
@@ -824,6 +1080,7 @@ export type Phase6PlanningReadiness = {
   plannedFractions: number;
   clinicalValidationRequired: true;
   clinicianSignoffStatus: "REQUIRED" | "RECORDED";
+  clinicalValidationChecklist: Phase6ClinicalValidationChecklist;
 };
 
 export type Phase6GateStatus = {

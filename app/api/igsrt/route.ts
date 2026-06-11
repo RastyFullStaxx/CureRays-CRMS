@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getIgsrtWorkspace,
-  renderGeneratedDocument,
-  signGeneratedDocument,
   updatePrescription,
   updateSimulationOrder,
 } from "@/lib/clinical-store";
+import {
+  renderGeneratedDocumentLifecycle,
+  signGeneratedDocumentLifecycle
+} from "@/lib/server/document-lifecycle-service";
 import {
   approveFractionRow,
   attachFractionImage,
@@ -18,8 +20,17 @@ import {
   voidFractionRow
 } from "@/lib/server/phase6-treatment-workflow-service";
 import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
+import type { DocumentLifecycleResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+function documentLifecycleResponse(result: DocumentLifecycleResult) {
+  if (result.blockedReason) {
+    return NextResponse.json(result, { status: result.document ? 409 : 404 });
+  }
+
+  return NextResponse.json(result);
+}
 
 export function GET(request: NextRequest) {
   if (!phiAccessFromRequest(request, "Open IGSRT PHI workspace")) {
@@ -77,6 +88,8 @@ export async function POST(request: NextRequest) {
   const mutateActions = new Set([
     "addFraction",
     "updateFraction",
+    "approveFraction",
+    "requestFractionRevision",
     "voidFraction",
     "generateFractionSchedule",
     "linkFractionImage",
@@ -218,17 +231,11 @@ export async function POST(request: NextRequest) {
   }
 
   if (body.action === "renderDocument") {
-    const result = renderGeneratedDocument(body.documentId, body.format ?? "PDF");
-    return result
-      ? NextResponse.json(result)
-      : NextResponse.json({ message: "Document not found" }, { status: 404 });
+    return documentLifecycleResponse(renderGeneratedDocumentLifecycle(access, body.documentId, body.format ?? "PDF"));
   }
 
   if (body.action === "signDocument") {
-    const result = signGeneratedDocument(body.documentId);
-    return result
-      ? NextResponse.json(result)
-      : NextResponse.json({ message: "Document not found" }, { status: 404 });
+    return documentLifecycleResponse(signGeneratedDocumentLifecycle(access, body.documentId));
   }
 
   return NextResponse.json({ message: "Unsupported IGSRT action" }, { status: 400 });

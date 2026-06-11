@@ -1,0 +1,2998 @@
+{
+  "schemaVersion": "phase4-template-registry-v1",
+  "generatedAt": "2026-06-12T00:00:00.000Z",
+  "templateSources": [
+    {
+      "id": "SRC-INTAKE",
+      "name": "Universal Intake Form",
+      "sourceFileName": "docs/2026_TEMPLATES/00_UNIVERSAL/Intake_Form.Universal.08APR2025.Template.docx",
+      "driveFileId": "1-lEfDuDmGyndX2zXDbtcyZoYRJXBEcnq",
+      "driveUrl": "https://docs.google.com/document/d/1-lEfDuDmGyndX2zXDbtcyZoYRJXBEcnq/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "notes": "Universal starting document. Field mapping is intentionally incomplete in V2.",
+      "modifiedAt": "2026-04-29T02:01:08.000Z",
+      "sourceSha256": "754ba224b90dfe98c6a5d82102b0acf29c2894cfbd328b4a9214b04bdafa6b23",
+      "version": "sha256:754ba224b90d",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "ADMIN",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-AVS-PCP",
+      "name": "Universal AVS PCP Template",
+      "sourceFileName": "docs/2026_TEMPLATES/00_UNIVERSAL/AVS_PCP.Universal.Template.docx",
+      "driveFileId": "1TxQzo7u2LAJ-VxDMlYU-3Nzxcr1qtXJf",
+      "driveUrl": "https://docs.google.com/document/d/1TxQzo7u2LAJ-VxDMlYU-3Nzxcr1qtXJf/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "notes": "Universal post-visit communication document. V2 tracks status before automating output.",
+      "modifiedAt": "2026-04-29T02:01:40.000Z",
+      "sourceSha256": "0187d4e34464c0d7bbe505f75978a9fd84fdfad00b1dd83d8186073ae5bf1eaf",
+      "version": "sha256:0187d4e34464",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-SKIN-CAREPATH-PREAUTH-20",
+      "name": "Skin Cancer Carepath PreAuth Audit - 20fx",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.20fx.LesionNumber.DDMMYY.LastName.FirstName.docx",
+      "driveFileId": "1bTY3iGIw367tB5NgmbAwPplv3OUChA7L",
+      "driveUrl": "https://docs.google.com/document/d/1bTY3iGIw367tB5NgmbAwPplv3OUChA7L/edit",
+      "mimeType": "DOCX",
+      "status": "MAPPING_IN_PROGRESS",
+      "notes": "Billing pre-auth and audit mapping are not final.",
+      "sourceSha256": "055bd4a898856941e406db755bc31f0a29e33c5d7f4260a16d9ff0927b0c774f",
+      "version": "sha256:055bd4a89885",
+      "approvalStatus": "MAPPING_DEFERRED",
+      "approvedForPilot": false,
+      "registryNotes": "Tracked for transparency but deferred from pilot generation readiness."
+    },
+    {
+      "id": "SRC-SKIN-CAREPATH-PREAUTH-30",
+      "name": "Skin Cancer Carepath PreAuth Audit - 30fx",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.30fx.LesionNumber.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "MAPPING_IN_PROGRESS",
+      "notes": "30 fraction pre-auth/audit variant retained separately from the 20fx workflow source.",
+      "sourceSha256": "001f666cbde700d5d559fd26f69df2a7e653bf8615154607fcd804369280afcf",
+      "version": "sha256:001f666cbde7",
+      "approvalStatus": "MAPPING_DEFERRED",
+      "approvedForPilot": false,
+      "registryNotes": "Tracked for transparency but deferred from pilot generation readiness."
+    },
+    {
+      "id": "SRC-SKIN-IGSRT-SIM",
+      "name": "Skin Cancer IGSRT Simulation Order",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/02_SIMULATION_AND_CTP_ORDER/02_SIM_CTP_IGSRT_Order.SKIN_CANCER.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "driveFileId": "1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX",
+      "driveUrl": "https://docs.google.com/document/d/1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "modifiedAt": "2026-04-22T10:47:28.000Z",
+      "sourceSha256": "7dd3fa88bc88821cfc9f9b2a569669ecebfae71f7a109efd65b4995f67988dcb",
+      "version": "sha256:7dd3fa88bc88",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-SKIN-IGSRT-RX",
+      "name": "Skin Cancer IGSRT Prescription",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/07_PRESCRIPTION/07_Prescription.SKIN_CANCER.SCC_BCC.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "driveFileId": "1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi",
+      "driveUrl": "https://docs.google.com/document/d/1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "modifiedAt": "2026-04-06T16:17:34.000Z",
+      "sourceSha256": "6ff7cc37d8487a5b97daaaba5521d683b5ee3ba99d5051a664754beef8e185c4",
+      "version": "sha256:6ff7cc37d848",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-SKIN-IGSRT-FXLOG",
+      "name": "Skin Cancer IGSRT Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/12_FRACTIONATION_LOG/12_Fractionation_Log.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "driveFileId": "1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ",
+      "driveUrl": "https://docs.google.com/spreadsheets/d/1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ/edit",
+      "mimeType": "XLSX",
+      "status": "ACTIVE",
+      "modifiedAt": "2026-04-22T10:53:16.000Z",
+      "sourceSha256": "feee9cf33688ac7cdb57a37b6966ef7e59e7286c53d1e9dc3e818a0ca0c329f2",
+      "version": "sha256:feee9cf33688",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RTT",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-SKIN-IGSRT-ISO",
+      "name": "Skin Cancer IGSRT Isodose Curves",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/09_ISODOSE_CURVES/09_Isodose_Curves.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx",
+      "driveFileId": "17wIN9r2QXhZ6o-dIM1FGgXf-CQNXE3jn",
+      "driveUrl": "https://docs.google.com/presentation/d/17wIN9r2QXhZ6o-dIM1FGgXf-CQNXE3jn/edit",
+      "mimeType": "PPTX",
+      "status": "ACTIVE",
+      "notes": "Tracked as registry metadata until output rules are mapped.",
+      "sourceSha256": "bfdbb653a4e273b6d058fd5b48456d1df0fd7381847aa7ad66f29b31a703360f",
+      "version": "sha256:bfdbb653a4e2",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "PHYSICIST",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-SKIN-API-RX",
+      "name": "Skin Cancer IGSRT Prescription API Mapping Draft",
+      "sourceFileName": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/90_API_IN_PROCESS/API_07_Prescription.SKIN_CANCER.SCC_BCC.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "DRAFT",
+      "notes": "API in-process file; not used as the production prescription source.",
+      "sourceSha256": "e31b2295f932749fc6f2b48e33ed2f4440172ed6915d41000123f84ef5e0f677",
+      "version": "sha256:e31b2295f932",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-ARTHRITIS-HAND-MAP",
+      "name": "Arthritis Hand Joint Mapping",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx",
+      "driveFileId": "13qRFW6VF8fJCuUW4O7qSHX3WtjDCQ7ta",
+      "driveUrl": "https://docs.google.com/document/d/13qRFW6VF8fJCuUW4O7qSHX3WtjDCQ7ta/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "notes": "Production source retained as mapping-in-progress until structured field generation is complete.",
+      "sourceSha256": "fa142548dc25c2cea0e1fa56add46b09a763f6647a8ccfb12e098b8aded092ba",
+      "version": "sha256:fa142548dc25",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-HAND-SIM",
+      "name": "Arthritis Hand SIM CTP IGRT",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/02_SIM_CTP_IGRT.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "2c2a3ec3a2f3b563073ed33ec130480a127f6491b03f2fab13a70325c50f3ee2",
+      "version": "sha256:2c2a3ec3a2f3",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-HAND-RX",
+      "name": "Arthritis Hand Prescription",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/07_Prescription.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "651748aca7037bffd772ac148931b1fbff1ca757dc307f5167badc2eb630fef2",
+      "version": "sha256:651748aca703",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-HAND-FXLOG",
+      "name": "Arthritis Hand Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/12_Fractionation_Log.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "ACTIVE",
+      "sourceSha256": "75504da0197a091c0a850ecdc0c990060a2c7865cce567ae1bff8a8b6b6c67e3",
+      "version": "sha256:75504da0197a",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RTT",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-FOOT-MAP",
+      "name": "Arthritis Foot Joint Mapping",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/01_Joint_Mapping.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "notes": "Production source retained as mapping-in-progress until structured field generation is complete.",
+      "sourceSha256": "6204dc775a088b9b3d9505d6f968606a82dc5618c3a005a9e565b5047be5ca3a",
+      "version": "sha256:6204dc775a08",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-FOOT-SIM",
+      "name": "Arthritis Foot SIM CTP IGRT",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/02_SIM_CTP_IGRT.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "5fc5ca8b6472f1d444fd23cd0f4edd79dbd6264453e93cd49c42dbdcbf10e329",
+      "version": "sha256:5fc5ca8b6472",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-FOOT-RX",
+      "name": "Arthritis Foot Prescription",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/07_Prescription.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "14e66f2194c538ec95da55152814a2204c1804ae7bb83baee34c13140092812e",
+      "version": "sha256:14e66f2194c5",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-FOOT-FXLOG",
+      "name": "Arthritis Foot Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/12_Fractionation_Log.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "ACTIVE",
+      "sourceSha256": "01909e98e414fba3b20f26f401b683a5518e3f7f8ab1b60747c85c7687fbbc12",
+      "version": "sha256:01909e98e414",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RTT",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-KNEE-SIM",
+      "name": "Arthritis Knee SIM CTP IGRT",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/02_SIM_CTP_IGRT.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "447a398ef9fa160241830dcdf46c2278774be89dea29ceefc24b92820ebf36da",
+      "version": "sha256:447a398ef9fa",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-KNEE-RX",
+      "name": "Arthritis Knee Prescription",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/07_Prescription.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "driveFileId": "1mV6QHLk8blVk31zxDhQMXXJFDljJSJl9",
+      "driveUrl": "https://docs.google.com/document/d/1mV6QHLk8blVk31zxDhQMXXJFDljJSJl9/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "5bb0338bc2df2fe45a4f8e520731c2b5ac01311a2dd0b2aa4d0b5fa0c12675df",
+      "version": "sha256:5bb0338bc2df",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-ARTHRITIS-KNEE-FXLOG",
+      "name": "Arthritis Knee Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/12_Fractionation_Log.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "ACTIVE",
+      "sourceSha256": "a59c682fbcecf13318a81e963542774e9824afcecae8003bdbc12adaef9d944f",
+      "version": "sha256:a59c682fbcec",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RTT",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DUPUYTRENS-SIM",
+      "name": "Dupuytren's SIM CTP IGRT",
+      "sourceFileName": "docs/2026_TEMPLATES/03_DUPUYTRENS/02_SIMULATION_AND_CTP_ORDER/02_SIM_CTP_IGRT.DUPUYTRENS.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "driveFileId": "1R2FClgrgied8AUX1SrEv1T2sykF_2XUx",
+      "driveUrl": "https://docs.google.com/document/d/1R2FClgrgied8AUX1SrEv1T2sykF_2XUx/edit",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "60eab9b9e608ba22f5454e8ff18db8b4ef895cc15aa913be4a6724b47200d6c8",
+      "version": "sha256:60eab9b9e608",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DUPUYTRENS-RX",
+      "name": "Dupuytren's Prescription",
+      "sourceFileName": "docs/2026_TEMPLATES/03_DUPUYTRENS/07_PRESCRIPTION/07_Prescription.DUPUYTRENS.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "a373f9e8c4b9746b131a244c62af84da412f690e36b5834d392e1a93398c0d27",
+      "version": "sha256:a373f9e8c4b9",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DUPUYTRENS-FXLOG",
+      "name": "Dupuytren's Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/03_DUPUYTRENS/12_FRACTIONATION_LOG/12_Fractionation_Log.DUPUYTRENS.HAND.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "ACTIVE",
+      "sourceSha256": "537bea138e923bdcda1a52bc79f48c5ce4a0610511a47f7929e3a5125989d18f",
+      "version": "sha256:537bea138e92",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RTT",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DUPUYTRENS-US-MAP",
+      "name": "Dupuytren's US Mapping",
+      "sourceFileName": "docs/2026_TEMPLATES/03_DUPUYTRENS/US_MAPPING/01_US_Mapping.DUPUYTRENS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "ACTIVE",
+      "sourceSha256": "2136d7ac0f63cdc4f5f3cae258df1026f42cb37b4a3d01228182c83e11e87ba4",
+      "version": "sha256:2136d7ac0f63",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "RAD_ONC",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DUPUYTRENS-ISO",
+      "name": "Dupuytren's Isodose Curves",
+      "sourceFileName": "docs/2026_TEMPLATES/03_DUPUYTRENS/09_ISODOSE_CURVES/09_Isodose_Curves.DUPUYTRENS.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx",
+      "mimeType": "PPTX",
+      "status": "ACTIVE",
+      "notes": "Planning support source tracked until isodose generation rules are mapped.",
+      "sourceSha256": "059ae3e199b5a6a6cd89ba2302c16729f9b0780e4979928fae026e03f3489405",
+      "version": "sha256:059ae3e199b5",
+      "approvalStatus": "PILOT_APPROVED",
+      "approvedForPilot": true,
+      "clinicalApprovedAt": "2026-06-12T00:00:00.000Z",
+      "clinicalApprovedByRole": "PHYSICIST",
+      "registryNotes": "Phase 4 pilot registry approval covers metadata and field mapping only; generation remains Phase 5."
+    },
+    {
+      "id": "SRC-DRAFT-ARTHRITIS-SITE-FXLOG",
+      "name": "Draft Arthritis Site Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_12_Fractionation_Log.ARTHRITIS.SITE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "DRAFT",
+      "notes": "On-going revision file; excluded from active workflow requirements.",
+      "sourceSha256": "2952e10fbbcd55f2457aed826b850f09c3902460210d4e4eb63cf19fe8c11ad8",
+      "version": "sha256:2952e10fbbcd",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-DRAFT-COPY-ARTHRITIS-SITE-FXLOG",
+      "name": "Draft Copy Arthritis Site Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.ARTHRITIS.SITE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "DRAFT",
+      "notes": "Copy retained for revision traceability.",
+      "sourceSha256": "2f716b84d336dedaf8026f557835669b3c2b1629e987d17c31a6f93bd8c38764",
+      "version": "sha256:2f716b84d336",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-DRAFT-COPY-ARTHRITIS-REGION-FXLOG",
+      "name": "Draft Copy Arthritis Anatomic Region Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.ARTHRITIS.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "DRAFT",
+      "notes": "Generic anatomic-region draft retained for revision traceability.",
+      "sourceSha256": "bc1a1d7dacbf1da26f576db0c499ab3a6cc087f01939a7f596dd5b602920aeea",
+      "version": "sha256:bc1a1d7dacbf",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-DRAFT-COPY-GYNECOMASTIA-FXLOG",
+      "name": "Draft Copy Gynecomastia Fraction Log",
+      "sourceFileName": "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.GYNECOMASTIA.BREAST.LATERALITY.DDMMYYYY.LastName.FirstName.xlsx",
+      "mimeType": "XLSX",
+      "status": "DRAFT",
+      "notes": "Possible future protocol; no active CureRays workflow coverage yet.",
+      "sourceSha256": "605c3eb7e9464d9b0109803e374114883f4b76afbe3944a26452e671958273f2",
+      "version": "sha256:605c3eb7e946",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-DUPLICATE-ARTHRITIS-HAND-MAP",
+      "name": "Duplicate Review Arthritis Hand Joint Mapping",
+      "sourceFileName": "docs/2026_TEMPLATES/99_DUPLICATE_REVIEW/Duplicate_01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx",
+      "mimeType": "DOCX",
+      "status": "DRAFT",
+      "notes": "Root-level duplicate candidate; kept out of active mapping until manual/hash review confirms replacement.",
+      "sourceSha256": "8819c11f5ca9fcf410ecb681cc36d8a7771d711a0c3037f4da1dbeae4088321c",
+      "version": "sha256:8819c11f5ca9",
+      "approvalStatus": "DRAFT_REVIEW",
+      "approvedForPilot": false,
+      "registryNotes": "Cataloged as draft or future placeholder; excluded from pilot workflow requirements."
+    },
+    {
+      "id": "SRC-BILLING-PREAUTH-MISSING",
+      "name": "Billing Pre-Authorization Mapping",
+      "sourceFileName": "Billing pre-auth template mapping pending",
+      "mimeType": "UNKNOWN",
+      "status": "MISSING",
+      "notes": "Placeholder so missing billing pre-auth work remains visible without hardcoding final rules.",
+      "version": "registry:src-billing-preauth-missing",
+      "approvalStatus": "DEFERRED",
+      "approvedForPilot": false,
+      "registryNotes": "Explicit Phase 4 deferral. Kept visible for billing/pre-auth workflow planning."
+    }
+  ],
+  "documentRequirements": [
+    {
+      "id": "REQ-INTAKE",
+      "name": "Intake Form",
+      "workflowPhase": "CONSULTATION",
+      "responsibleParty": "VA",
+      "applicability": {
+        "diagnosis": "ALL",
+        "universal": true,
+        "requiredWhen": "Required at the start of every patient workflow.",
+        "laterality": "NOT_APPLICABLE"
+      },
+      "templateSourceId": "SRC-INTAKE",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Complete intake packet and confirm required demographics/workflow fields",
+      "requiredFields": [
+        "patient identifiers",
+        "diagnosis",
+        "contact details",
+        "initial workflow needs"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete intake packet",
+      "taskNumber": "V2-01",
+      "timing": "Before chart prep",
+      "auditSteps": [
+        "Intake complete",
+        "Required fields reviewed"
+      ],
+      "reviewerRole": "VA",
+      "fieldMapId": "MAP-INTAKE",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-AVS-PCP",
+      "name": "AVS PCP Template",
+      "workflowPhase": "POST_TX",
+      "responsibleParty": "PCP",
+      "applicability": {
+        "diagnosis": "ALL",
+        "universal": true,
+        "requiredWhen": "Required when after-visit or PCP communication is part of closure.",
+        "laterality": "NOT_APPLICABLE"
+      },
+      "templateSourceId": "SRC-AVS-PCP",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Prepare AVS/PCP communication when discharge or closure details are ready",
+      "requiredFields": [
+        "visit summary",
+        "follow-up plan",
+        "PCP communication details"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Prepare AVS / PCP communication",
+      "taskNumber": "V2-02",
+      "timing": "At post-treatment or visit closure",
+      "auditSteps": [
+        "AVS reviewed",
+        "Communication status confirmed"
+      ],
+      "reviewerRole": "PCP",
+      "fieldMapId": "MAP-AVS-PCP",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-SKIN-PREAUTH-20FX",
+      "name": "Carepath PreAuth Audit - 20fx",
+      "workflowPhase": "CONSULTATION",
+      "responsibleParty": "ADMIN",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "Use for 20 fraction IGSRT courses when payer authorization and audit evidence are required.",
+        "laterality": "OPTIONAL",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-CAREPATH-PREAUTH-20",
+      "defaultStatus": "MISSING_FIELDS",
+      "requiredAction": "Map billing pre-auth requirements before treating this as fully automated",
+      "requiredFields": [
+        "diagnosis",
+        "authorization outcome",
+        "payer requirements"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "N/A",
+      "createsTask": false,
+      "autoCreate": false,
+      "reviewerRole": "ADMIN",
+      "fieldMapId": "MAP-SKIN-PREAUTH-20FX",
+      "cptRelevance": "DEFERRED",
+      "pilotScope": "DEFERRED",
+      "generationReadiness": "DEFERRED"
+    },
+    {
+      "id": "REQ-SKIN-PREAUTH-30FX",
+      "name": "Carepath PreAuth Audit - 30fx",
+      "workflowPhase": "CONSULTATION",
+      "responsibleParty": "ADMIN",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "Use for 30 fraction IGSRT courses when payer authorization and audit evidence are required.",
+        "laterality": "OPTIONAL",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-CAREPATH-PREAUTH-30",
+      "defaultStatus": "MISSING_FIELDS",
+      "requiredAction": "Map 30fx billing pre-auth requirements before treating this as fully automated",
+      "requiredFields": [
+        "diagnosis",
+        "authorization outcome",
+        "payer requirements",
+        "fraction count"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "N/A",
+      "createsTask": false,
+      "autoCreate": false,
+      "reviewerRole": "ADMIN",
+      "fieldMapId": "MAP-SKIN-PREAUTH-30FX",
+      "cptRelevance": "DEFERRED",
+      "pilotScope": "DEFERRED",
+      "generationReadiness": "DEFERRED"
+    },
+    {
+      "id": "REQ-SKIN-IGSRT-SIM",
+      "name": "CTP / SIM IGSRT Order",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "Before first treatment.",
+        "laterality": "OPTIONAL",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-IGSRT-SIM",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Complete simulation order and route for Rad Onc signature",
+      "requiredFields": [
+        "lesion location",
+        "margin instruction",
+        "setup photos",
+        "physics requirements"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77280",
+      "createsTask": true,
+      "taskTitle": "Complete simulation order",
+      "taskNumber": "IGSRT-01",
+      "timing": "Before first treatment",
+      "auditSteps": [
+        "Simulation order complete",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-SKIN-IGSRT-SIM",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-SKIN-IGSRT-RX",
+      "name": "IGSRT Prescription",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "Before treatment continuation.",
+        "laterality": "REQUIRED",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-IGSRT-RX",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Verify prescription parameters and route for signature",
+      "requiredFields": [
+        "site",
+        "laterality",
+        "phase dose",
+        "energy",
+        "SSD",
+        "DOT"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": true,
+      "taskTitle": "Review prescription parameters",
+      "taskNumber": "IGSRT-02",
+      "timing": "Before treatment continuation",
+      "auditSteps": [
+        "Prescription review",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-SKIN-IGSRT-RX",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-SKIN-IGSRT-FXLOG",
+      "name": "IGSRT Fraction Log",
+      "workflowPhase": "ON_TREATMENT",
+      "responsibleParty": "RTT",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "Daily during treatment.",
+        "laterality": "OPTIONAL",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-IGSRT-FXLOG",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Maintain treatment entries and reconcile approvals",
+      "requiredFields": [
+        "fraction",
+        "date",
+        "dose",
+        "DOT",
+        "isodose",
+        "MD approval",
+        "DOT approval"
+      ],
+      "outputFormats": [
+        "XLSX",
+        "PDF"
+      ],
+      "cptCode": "77439",
+      "createsTask": true,
+      "taskTitle": "Reconcile fraction log approvals",
+      "taskNumber": "IGSRT-03",
+      "timing": "Daily during treatment",
+      "auditSteps": [
+        "Daily treatment log",
+        "MD approval",
+        "DOT approval"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-SKIN-IGSRT-FXLOG",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-SKIN-IGSRT-ISO",
+      "name": "IGSRT Isodose Curve Support",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "PHYSICIST",
+      "applicability": {
+        "diagnosis": "SKIN_CANCER",
+        "protocol": "IGSRT",
+        "requiredWhen": "When isodose support is needed for treatment planning.",
+        "laterality": "OPTIONAL",
+        "treatmentModality": "IGSRT"
+      },
+      "templateSourceId": "SRC-SKIN-IGSRT-ISO",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Confirm isodose support requirements and mapping status",
+      "requiredFields": [
+        "energy",
+        "applicator",
+        "depth of target",
+        "isodose percentage"
+      ],
+      "outputFormats": [
+        "PPTX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": false,
+      "reviewerRole": "PHYSICIST",
+      "fieldMapId": "MAP-SKIN-IGSRT-ISO",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-HAND-MAPPING",
+      "name": "Arthritis Hand Joint Mapping",
+      "workflowPhase": "CHART_PREP",
+      "responsibleParty": "MA",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "HAND",
+        "requiredWhen": "Before simulation or planning review.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-HAND-MAP",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Capture joint scores and field design decision",
+      "requiredFields": [
+        "joint space narrowing",
+        "osteophyte",
+        "sclerosis",
+        "overall grade"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Joint mapping assessment",
+      "taskNumber": "ARTH-01",
+      "timing": "Before simulation",
+      "auditSteps": [
+        "Mapping fields complete",
+        "Provider review"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-HAND-MAPPING",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-FOOT-MAPPING",
+      "name": "Arthritis Foot Joint Mapping",
+      "workflowPhase": "CHART_PREP",
+      "responsibleParty": "MA",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "FOOT",
+        "requiredWhen": "Before simulation or planning review.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-MAP",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Capture joint scores and field design decision",
+      "requiredFields": [
+        "joint space narrowing",
+        "osteophyte",
+        "sclerosis",
+        "overall grade"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Foot joint mapping assessment",
+      "taskNumber": "ARTH-FOOT-01",
+      "timing": "Before simulation",
+      "auditSteps": [
+        "Mapping fields complete",
+        "Provider review"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-FOOT-MAPPING",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-HAND-SIM",
+      "name": "Arthritis Hand SIM / CTP / IGRT Order",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "HAND",
+        "requiredWhen": "Before treatment planning.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-HAND-SIM",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Complete hand simulation order and route for Rad Onc signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "field design",
+        "setup details"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete hand simulation order",
+      "taskNumber": "ARTH-HAND-02",
+      "timing": "Before first treatment",
+      "auditSteps": [
+        "Simulation order complete",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-HAND-SIM",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-FOOT-SIM",
+      "name": "Arthritis Foot SIM / CTP / IGRT Order",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "FOOT",
+        "requiredWhen": "Before treatment planning.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-SIM",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Complete foot simulation order and route for Rad Onc signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "field design",
+        "setup details"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete foot simulation order",
+      "taskNumber": "ARTH-FOOT-02",
+      "timing": "Before first treatment",
+      "auditSteps": [
+        "Simulation order complete",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-FOOT-SIM",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-KNEE-SIM",
+      "name": "Arthritis Knee SIM / CTP / IGRT Order",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "KNEE",
+        "requiredWhen": "Before treatment planning.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-SIM",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Complete knee simulation order and route for Rad Onc signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "field design",
+        "setup details"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete knee simulation order",
+      "taskNumber": "ARTH-KNEE-02",
+      "timing": "Before first treatment",
+      "auditSteps": [
+        "Simulation order complete",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-KNEE-SIM",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-HAND-RX",
+      "name": "Arthritis Hand Prescription",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "HAND",
+        "requiredWhen": "Before treatment continuation.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-HAND-RX",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Verify hand prescription parameters and route for signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "dose",
+        "energy",
+        "applicator"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": true,
+      "taskTitle": "Review hand prescription",
+      "taskNumber": "ARTH-HAND-03",
+      "timing": "Before treatment continuation",
+      "auditSteps": [
+        "Prescription review",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-HAND-RX",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-FOOT-RX",
+      "name": "Arthritis Foot Prescription",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "FOOT",
+        "requiredWhen": "Before treatment continuation.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-RX",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Verify foot prescription parameters and route for signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "dose",
+        "energy",
+        "applicator"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": true,
+      "taskTitle": "Review foot prescription",
+      "taskNumber": "ARTH-FOOT-03",
+      "timing": "Before treatment continuation",
+      "auditSteps": [
+        "Prescription review",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-FOOT-RX",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-KNEE-RX",
+      "name": "Arthritis Knee Prescription",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "KNEE",
+        "requiredWhen": "Before treatment continuation.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-RX",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Verify knee prescription parameters and route for signature",
+      "requiredFields": [
+        "joint site",
+        "laterality",
+        "dose",
+        "energy",
+        "applicator"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": true,
+      "taskTitle": "Review knee prescription",
+      "taskNumber": "ARTH-KNEE-03",
+      "timing": "Before treatment continuation",
+      "auditSteps": [
+        "Prescription review",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-KNEE-RX",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-HAND-FXLOG",
+      "name": "Arthritis Hand Fraction Log",
+      "workflowPhase": "ON_TREATMENT",
+      "responsibleParty": "RTT",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "HAND",
+        "requiredWhen": "Daily during treatment.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-HAND-FXLOG",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Maintain hand treatment entries and reconcile approvals",
+      "requiredFields": [
+        "fraction",
+        "date",
+        "dose",
+        "joint site",
+        "therapist",
+        "approval"
+      ],
+      "outputFormats": [
+        "XLSX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Reconcile hand fraction log",
+      "taskNumber": "ARTH-HAND-04",
+      "timing": "Daily during treatment",
+      "auditSteps": [
+        "Daily treatment log",
+        "Treatment approval"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-HAND-FXLOG",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-FOOT-FXLOG",
+      "name": "Arthritis Foot Fraction Log",
+      "workflowPhase": "ON_TREATMENT",
+      "responsibleParty": "RTT",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "FOOT",
+        "requiredWhen": "Daily during treatment.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-FXLOG",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Maintain foot treatment entries and reconcile approvals",
+      "requiredFields": [
+        "fraction",
+        "date",
+        "dose",
+        "joint site",
+        "therapist",
+        "approval"
+      ],
+      "outputFormats": [
+        "XLSX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Reconcile foot fraction log",
+      "taskNumber": "ARTH-FOOT-04",
+      "timing": "Daily during treatment",
+      "auditSteps": [
+        "Daily treatment log",
+        "Treatment approval"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-FOOT-FXLOG",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-ARTHRITIS-KNEE-FXLOG",
+      "name": "Arthritis Knee Fraction Log",
+      "workflowPhase": "ON_TREATMENT",
+      "responsibleParty": "RTT",
+      "applicability": {
+        "diagnosis": "ARTHRITIS",
+        "protocol": "Joint",
+        "bodyRegion": "KNEE",
+        "requiredWhen": "Daily during treatment.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-FXLOG",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Maintain knee treatment entries and reconcile approvals",
+      "requiredFields": [
+        "fraction",
+        "date",
+        "dose",
+        "joint site",
+        "therapist",
+        "approval"
+      ],
+      "outputFormats": [
+        "XLSX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Reconcile knee fraction log",
+      "taskNumber": "ARTH-KNEE-04",
+      "timing": "Daily during treatment",
+      "auditSteps": [
+        "Daily treatment log",
+        "Treatment approval"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-ARTHRITIS-KNEE-FXLOG",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-DUPUYTRENS-SIM",
+      "name": "Dupuytren's Simulation Order",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "DUPUYTRENS",
+        "protocol": "Dupuytren's",
+        "requiredWhen": "Before treatment planning.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-DUPUYTRENS-SIM",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Map Dupuytren's simulation fields before automation",
+      "requiredFields": [
+        "location",
+        "laterality",
+        "field design",
+        "setup details"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete Dupuytren's simulation order",
+      "taskNumber": "DUP-01",
+      "timing": "Before first treatment",
+      "auditSteps": [
+        "Simulation order complete",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-DUPUYTRENS-SIM",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-DUPUYTRENS-US-MAPPING",
+      "name": "Dupuytren's US Mapping",
+      "workflowPhase": "CHART_PREP",
+      "responsibleParty": "MA",
+      "applicability": {
+        "diagnosis": "DUPUYTRENS",
+        "protocol": "Dupuytren's",
+        "bodyRegion": "HAND",
+        "requiredWhen": "Before planning field definition.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-DUPUYTRENS-US-MAP",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Capture US mapping and route for provider planning review",
+      "requiredFields": [
+        "hand site",
+        "laterality",
+        "cord/nodule mapping",
+        "field limits"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Complete Dupuytren's US mapping",
+      "taskNumber": "DUP-02",
+      "timing": "Before simulation",
+      "auditSteps": [
+        "US mapping complete",
+        "Provider review"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-DUPUYTRENS-US-MAPPING",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-DUPUYTRENS-RX",
+      "name": "Dupuytren's Prescription",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "RAD_ONC",
+      "applicability": {
+        "diagnosis": "DUPUYTRENS",
+        "protocol": "Dupuytren's",
+        "requiredWhen": "Before treatment continuation.",
+        "laterality": "REQUIRED"
+      },
+      "templateSourceId": "SRC-DUPUYTRENS-RX",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Verify prescription parameters and route for signature",
+      "requiredFields": [
+        "location",
+        "laterality",
+        "dose",
+        "energy",
+        "applicator"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": true,
+      "taskTitle": "Review Dupuytren's prescription",
+      "taskNumber": "DUP-03",
+      "timing": "Before treatment continuation",
+      "auditSteps": [
+        "Prescription review",
+        "Rad Onc signature"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-DUPUYTRENS-RX",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-DUPUYTRENS-FXLOG",
+      "name": "Dupuytren's Fraction Log",
+      "workflowPhase": "ON_TREATMENT",
+      "responsibleParty": "RTT",
+      "applicability": {
+        "diagnosis": "DUPUYTRENS",
+        "protocol": "Dupuytren's",
+        "requiredWhen": "Daily during treatment.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-DUPUYTRENS-FXLOG",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Maintain treatment entries and reconcile approvals",
+      "requiredFields": [
+        "fraction",
+        "date",
+        "dose",
+        "hand site",
+        "therapist",
+        "approval"
+      ],
+      "outputFormats": [
+        "XLSX",
+        "PDF"
+      ],
+      "createsTask": true,
+      "taskTitle": "Reconcile Dupuytren's fraction log",
+      "taskNumber": "DUP-04",
+      "timing": "Daily during treatment",
+      "auditSteps": [
+        "Daily treatment log",
+        "Treatment approval"
+      ],
+      "reviewerRole": "RAD_ONC",
+      "fieldMapId": "MAP-DUPUYTRENS-FXLOG",
+      "cptRelevance": "NOT_APPLICABLE",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-DUPUYTRENS-ISO",
+      "name": "Dupuytren's Isodose Curve Support",
+      "workflowPhase": "PLANNING",
+      "responsibleParty": "PHYSICIST",
+      "applicability": {
+        "diagnosis": "DUPUYTRENS",
+        "protocol": "Dupuytren's",
+        "requiredWhen": "When isodose support is needed for treatment planning.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-DUPUYTRENS-ISO",
+      "defaultStatus": "PENDING_NEEDED",
+      "requiredAction": "Confirm isodose support requirements and mapping status",
+      "requiredFields": [
+        "energy",
+        "applicator",
+        "depth of target",
+        "isodose percentage"
+      ],
+      "outputFormats": [
+        "PPTX",
+        "PDF"
+      ],
+      "cptCode": "77300",
+      "createsTask": false,
+      "reviewerRole": "PHYSICIST",
+      "fieldMapId": "MAP-DUPUYTRENS-ISO",
+      "cptRelevance": "REQUIRED",
+      "pilotScope": "IN_SCOPE",
+      "generationReadiness": "READY_FOR_PILOT"
+    },
+    {
+      "id": "REQ-BILLING-PREAUTH-MAPPING",
+      "name": "Billing Pre-Authorization Mapping",
+      "workflowPhase": "CONSULTATION",
+      "responsibleParty": "ADMIN",
+      "applicability": {
+        "diagnosis": "ALL",
+        "requiredWhen": "Needed for workflows where billing pre-auth applies.",
+        "laterality": "OPTIONAL"
+      },
+      "templateSourceId": "SRC-BILLING-PREAUTH-MISSING",
+      "defaultStatus": "MISSING_FIELDS",
+      "requiredAction": "Template mapping missing; confirm billing pre-auth workflow before automation",
+      "requiredFields": [
+        "payer",
+        "authorization status",
+        "billing rule mapping"
+      ],
+      "outputFormats": [
+        "DOCX",
+        "PDF"
+      ],
+      "createsTask": false,
+      "autoCreate": false,
+      "reviewerRole": "ADMIN",
+      "fieldMapId": "MAP-BILLING-PREAUTH-MAPPING",
+      "cptRelevance": "DEFERRED",
+      "pilotScope": "DEFERRED",
+      "generationReadiness": "DEFERRED"
+    }
+  ],
+  "workflowDefinitions": [
+    {
+      "id": "WF-UNIVERSAL",
+      "name": "Universal Patient Workflow",
+      "diagnosis": "ALL",
+      "protocol": "Universal",
+      "description": "Core intake and closure documents that can apply across evolving diagnosis workflows.",
+      "phases": [
+        "CONSULTATION",
+        "CHART_PREP",
+        "SIMULATION",
+        "PLANNING",
+        "ON_TREATMENT",
+        "POST_TX",
+        "AUDIT",
+        "CLOSED"
+      ],
+      "documentRequirementIds": [
+        "REQ-INTAKE",
+        "REQ-AVS-PCP",
+        "REQ-BILLING-PREAUTH-MAPPING"
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "id": "WF-SKIN-IGSRT",
+      "name": "Skin Cancer IGSRT Workflow",
+      "diagnosis": "SKIN_CANCER",
+      "protocol": "IGSRT",
+      "description": "Skin cancer IGSRT tracking for simulation, prescription, fraction log, isodose, and pre-auth evidence.",
+      "phases": [
+        "CONSULTATION",
+        "CHART_PREP",
+        "SIMULATION",
+        "PLANNING",
+        "ON_TREATMENT",
+        "POST_TX",
+        "AUDIT",
+        "CLOSED"
+      ],
+      "documentRequirementIds": [
+        "REQ-INTAKE",
+        "REQ-SKIN-PREAUTH-20FX",
+        "REQ-SKIN-PREAUTH-30FX",
+        "REQ-SKIN-IGSRT-SIM",
+        "REQ-SKIN-IGSRT-RX",
+        "REQ-SKIN-IGSRT-FXLOG",
+        "REQ-SKIN-IGSRT-ISO",
+        "REQ-AVS-PCP"
+      ],
+      "status": "MAPPING_IN_PROGRESS"
+    },
+    {
+      "id": "WF-ARTHRITIS",
+      "name": "Arthritis Workflow",
+      "diagnosis": "ARTHRITIS",
+      "protocol": "Joint mapping",
+      "description": "Arthritis tracking by body region while template details continue to be mapped.",
+      "phases": [
+        "CONSULTATION",
+        "CHART_PREP",
+        "SIMULATION",
+        "PLANNING",
+        "ON_TREATMENT",
+        "POST_TX",
+        "AUDIT",
+        "CLOSED"
+      ],
+      "documentRequirementIds": [
+        "REQ-INTAKE",
+        "REQ-ARTHRITIS-HAND-MAPPING",
+        "REQ-ARTHRITIS-FOOT-MAPPING",
+        "REQ-ARTHRITIS-HAND-SIM",
+        "REQ-ARTHRITIS-FOOT-SIM",
+        "REQ-ARTHRITIS-KNEE-SIM",
+        "REQ-ARTHRITIS-HAND-RX",
+        "REQ-ARTHRITIS-FOOT-RX",
+        "REQ-ARTHRITIS-KNEE-RX",
+        "REQ-ARTHRITIS-HAND-FXLOG",
+        "REQ-ARTHRITIS-FOOT-FXLOG",
+        "REQ-ARTHRITIS-KNEE-FXLOG",
+        "REQ-AVS-PCP"
+      ],
+      "status": "MAPPING_IN_PROGRESS"
+    },
+    {
+      "id": "WF-DUPUYTRENS",
+      "name": "Dupuytren's Workflow",
+      "diagnosis": "DUPUYTRENS",
+      "protocol": "Dupuytren's",
+      "description": "Dupuytren's tracking with simulation, prescription, fraction log, and mapping still evolving.",
+      "phases": [
+        "CONSULTATION",
+        "CHART_PREP",
+        "SIMULATION",
+        "PLANNING",
+        "ON_TREATMENT",
+        "POST_TX",
+        "AUDIT",
+        "CLOSED"
+      ],
+      "documentRequirementIds": [
+        "REQ-INTAKE",
+        "REQ-DUPUYTRENS-US-MAPPING",
+        "REQ-DUPUYTRENS-SIM",
+        "REQ-DUPUYTRENS-RX",
+        "REQ-DUPUYTRENS-FXLOG",
+        "REQ-DUPUYTRENS-ISO",
+        "REQ-AVS-PCP"
+      ],
+      "status": "MAPPING_IN_PROGRESS"
+    }
+  ],
+  "templateFieldMaps": [
+    {
+      "id": "MAP-INTAKE",
+      "requirementId": "REQ-INTAKE",
+      "templateSourceId": "SRC-INTAKE",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "VA",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "patientIdentifiers",
+              "label": "Patient Identifiers",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "diagnosis",
+              "label": "Diagnosis",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "contactDetails",
+              "label": "Contact Details",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "initialWorkflowNeeds",
+              "label": "Initial Workflow Needs",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-AVS-PCP",
+      "requirementId": "REQ-AVS-PCP",
+      "templateSourceId": "SRC-AVS-PCP",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "PCP",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "visitSummary",
+              "label": "Visit Summary",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "followUpPlan",
+              "label": "Follow-Up Plan",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "pcpCommunicationDetails",
+              "label": "PCP Communication Details",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-SKIN-PREAUTH-20FX",
+      "requirementId": "REQ-SKIN-PREAUTH-20FX",
+      "templateSourceId": "SRC-SKIN-CAREPATH-PREAUTH-20",
+      "status": "DEFERRED",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "ADMIN",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "diagnosis",
+              "label": "Diagnosis",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "authorizationOutcome",
+              "label": "Authorization Outcome",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Denied",
+                "Not required",
+                "Deferred"
+              ]
+            },
+            {
+              "id": "payerRequirements",
+              "label": "Payer Requirements",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Pre-authorization mapping is explicitly deferred for Phase 4 pilot scope."
+    },
+    {
+      "id": "MAP-SKIN-PREAUTH-30FX",
+      "requirementId": "REQ-SKIN-PREAUTH-30FX",
+      "templateSourceId": "SRC-SKIN-CAREPATH-PREAUTH-30",
+      "status": "DEFERRED",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "ADMIN",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "diagnosis",
+              "label": "Diagnosis",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "authorizationOutcome",
+              "label": "Authorization Outcome",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Denied",
+                "Not required",
+                "Deferred"
+              ]
+            },
+            {
+              "id": "payerRequirements",
+              "label": "Payer Requirements",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "fractionCount",
+              "label": "Fraction Count",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Pre-authorization mapping is explicitly deferred for Phase 4 pilot scope."
+    },
+    {
+      "id": "MAP-SKIN-IGSRT-SIM",
+      "requirementId": "REQ-SKIN-IGSRT-SIM",
+      "templateSourceId": "SRC-SKIN-IGSRT-SIM",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "lesion",
+          "title": "Lesion and setup",
+          "fields": [
+            {
+              "id": "lesionLocation",
+              "label": "Lesion location",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral"
+              ]
+            },
+            {
+              "id": "phaseIMarginInstruction",
+              "label": "Phase I margin instruction",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "chairSetup",
+              "label": "Chair setup",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Face the wall",
+                "Facing the cabinet",
+                "Standard room setup"
+              ]
+            },
+            {
+              "id": "position",
+              "label": "Position",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Upright",
+                "Sitting reclined",
+                "Supine",
+                "Prone"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "title": "Physics and imaging",
+          "fields": [
+            {
+              "id": "ultrasoundFrequencies",
+              "label": "Ultrasound frequencies",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "weeklyPhysicsReason",
+              "label": "Weekly physics reason",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "dateCompleted",
+              "label": "Date completed",
+              "kind": "date",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "registry-coverage",
+          "title": "Registry coverage",
+          "fields": [
+            {
+              "id": "marginInstruction",
+              "label": "Margin Instruction",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "setupPhotos",
+              "label": "Setup Photos",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "physicsRequirements",
+              "label": "Physics Requirements",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-SKIN-IGSRT-RX",
+      "requirementId": "REQ-SKIN-IGSRT-RX",
+      "templateSourceId": "SRC-SKIN-IGSRT-RX",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "phase",
+          "title": "Phase prescription",
+          "fields": [
+            {
+              "id": "energyKv",
+              "label": "Energy kV",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose Gy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction Gy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "ssdCm",
+              "label": "SSD cm",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "depthOfTargetMm",
+              "label": "Depth of target mm",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "registry-coverage",
+          "title": "Registry coverage",
+          "fields": [
+            {
+              "id": "site",
+              "label": "Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "phaseDose",
+              "label": "Phase Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "ssd",
+              "label": "SSD",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "dot",
+              "label": "DOT",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-SKIN-IGSRT-FXLOG",
+      "requirementId": "REQ-SKIN-IGSRT-FXLOG",
+      "templateSourceId": "SRC-SKIN-IGSRT-FXLOG",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "daily",
+          "title": "Daily fraction",
+          "fields": [
+            {
+              "id": "fraction",
+              "label": "Fraction",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "date",
+              "label": "Date",
+              "kind": "date",
+              "required": true
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction cGy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "depthOfTarget",
+              "label": "Depth of target",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "isodose",
+              "label": "Isodose %",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "mdApproval",
+              "label": "MD approval",
+              "kind": "checkbox",
+              "required": true
+            },
+            {
+              "id": "dotApproval",
+              "label": "DOT approval",
+              "kind": "checkbox",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "registry-coverage",
+          "title": "Registry coverage",
+          "fields": [
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "dot",
+              "label": "DOT",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-SKIN-IGSRT-ISO",
+      "requirementId": "REQ-SKIN-IGSRT-ISO",
+      "templateSourceId": "SRC-SKIN-IGSRT-ISO",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "PHYSICIST",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "depthOfTarget",
+              "label": "Depth Of Target",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "isodosePercentage",
+              "label": "Isodose Percentage",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-HAND-MAPPING",
+      "requirementId": "REQ-ARTHRITIS-HAND-MAPPING",
+      "templateSourceId": "SRC-ARTHRITIS-HAND-MAP",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSpaceNarrowing",
+              "label": "Joint Space Narrowing",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "osteophyte",
+              "label": "Osteophyte",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "sclerosis",
+              "label": "Sclerosis",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "overallGrade",
+              "label": "Overall Grade",
+              "kind": "number",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-FOOT-MAPPING",
+      "requirementId": "REQ-ARTHRITIS-FOOT-MAPPING",
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-MAP",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSpaceNarrowing",
+              "label": "Joint Space Narrowing",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "osteophyte",
+              "label": "Osteophyte",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "sclerosis",
+              "label": "Sclerosis",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            },
+            {
+              "id": "overallGrade",
+              "label": "Overall Grade",
+              "kind": "number",
+              "required": true,
+              "options": [
+                "None",
+                "Mild",
+                "Moderate",
+                "Severe"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-HAND-SIM",
+      "requirementId": "REQ-ARTHRITIS-HAND-SIM",
+      "templateSourceId": "SRC-ARTHRITIS-HAND-SIM",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "fieldDesign",
+              "label": "Field Design",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "setupDetails",
+              "label": "Setup Details",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-FOOT-SIM",
+      "requirementId": "REQ-ARTHRITIS-FOOT-SIM",
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-SIM",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "fieldDesign",
+              "label": "Field Design",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "setupDetails",
+              "label": "Setup Details",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-KNEE-SIM",
+      "requirementId": "REQ-ARTHRITIS-KNEE-SIM",
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-SIM",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "fieldDesign",
+              "label": "Field Design",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "setupDetails",
+              "label": "Setup Details",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-HAND-RX",
+      "requirementId": "REQ-ARTHRITIS-HAND-RX",
+      "templateSourceId": "SRC-ARTHRITIS-HAND-RX",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-FOOT-RX",
+      "requirementId": "REQ-ARTHRITIS-FOOT-RX",
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-RX",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-KNEE-RX",
+      "requirementId": "REQ-ARTHRITIS-KNEE-RX",
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-RX",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-HAND-FXLOG",
+      "requirementId": "REQ-ARTHRITIS-HAND-FXLOG",
+      "templateSourceId": "SRC-ARTHRITIS-HAND-FXLOG",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "fraction",
+              "label": "Fraction",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "date",
+              "label": "Date",
+              "kind": "date",
+              "required": true
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "therapist",
+              "label": "Therapist",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "approval",
+              "label": "Approval",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Needs revision",
+                "Not applicable"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-FOOT-FXLOG",
+      "requirementId": "REQ-ARTHRITIS-FOOT-FXLOG",
+      "templateSourceId": "SRC-ARTHRITIS-FOOT-FXLOG",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "fraction",
+              "label": "Fraction",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "date",
+              "label": "Date",
+              "kind": "date",
+              "required": true
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "therapist",
+              "label": "Therapist",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "approval",
+              "label": "Approval",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Needs revision",
+                "Not applicable"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-ARTHRITIS-KNEE-FXLOG",
+      "requirementId": "REQ-ARTHRITIS-KNEE-FXLOG",
+      "templateSourceId": "SRC-ARTHRITIS-KNEE-FXLOG",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "fraction",
+              "label": "Fraction",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "date",
+              "label": "Date",
+              "kind": "date",
+              "required": true
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "jointSite",
+              "label": "Joint Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "therapist",
+              "label": "Therapist",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "approval",
+              "label": "Approval",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Needs revision",
+                "Not applicable"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-DUPUYTRENS-SIM",
+      "requirementId": "REQ-DUPUYTRENS-SIM",
+      "templateSourceId": "SRC-DUPUYTRENS-SIM",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "location",
+              "label": "Location",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "fieldDesign",
+              "label": "Field Design",
+              "kind": "textarea",
+              "required": true
+            },
+            {
+              "id": "setupDetails",
+              "label": "Setup Details",
+              "kind": "textarea",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-DUPUYTRENS-US-MAPPING",
+      "requirementId": "REQ-DUPUYTRENS-US-MAPPING",
+      "templateSourceId": "SRC-DUPUYTRENS-US-MAP",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "handSite",
+              "label": "Hand Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "cordNoduleMapping",
+              "label": "Cord/Nodule Mapping",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "fieldLimits",
+              "label": "Field Limits",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-DUPUYTRENS-RX",
+      "requirementId": "REQ-DUPUYTRENS-RX",
+      "templateSourceId": "SRC-DUPUYTRENS-RX",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "location",
+              "label": "Location",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "text",
+              "required": true,
+              "options": [
+                "Left",
+                "Right",
+                "Midline",
+                "Bilateral",
+                "Not applicable"
+              ]
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-DUPUYTRENS-FXLOG",
+      "requirementId": "REQ-DUPUYTRENS-FXLOG",
+      "templateSourceId": "SRC-DUPUYTRENS-FXLOG",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "RAD_ONC",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "fraction",
+              "label": "Fraction",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "date",
+              "label": "Date",
+              "kind": "date",
+              "required": true
+            },
+            {
+              "id": "dose",
+              "label": "Dose",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "handSite",
+              "label": "Hand Site",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "therapist",
+              "label": "Therapist",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "approval",
+              "label": "Approval",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Needs revision",
+                "Not applicable"
+              ]
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-DUPUYTRENS-ISO",
+      "requirementId": "REQ-DUPUYTRENS-ISO",
+      "templateSourceId": "SRC-DUPUYTRENS-ISO",
+      "status": "COMPLETE",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "PHYSICIST",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "energy",
+              "label": "Energy",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "applicator",
+              "label": "Applicator",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "depthOfTarget",
+              "label": "Depth Of Target",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "isodosePercentage",
+              "label": "Isodose Percentage",
+              "kind": "number",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+    },
+    {
+      "id": "MAP-BILLING-PREAUTH-MAPPING",
+      "requirementId": "REQ-BILLING-PREAUTH-MAPPING",
+      "templateSourceId": "SRC-BILLING-PREAUTH-MISSING",
+      "status": "DEFERRED",
+      "version": "phase4-pilot-v1",
+      "mappedAt": "2026-06-12T00:00:00.000Z",
+      "mappedByRole": "ADMIN",
+      "sections": [
+        {
+          "id": "required-fields",
+          "title": "Required fields",
+          "fields": [
+            {
+              "id": "payer",
+              "label": "Payer",
+              "kind": "text",
+              "required": true
+            },
+            {
+              "id": "authorizationStatus",
+              "label": "Authorization Status",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Pending",
+                "Approved",
+                "Denied",
+                "Not required",
+                "Deferred"
+              ]
+            },
+            {
+              "id": "billingRuleMapping",
+              "label": "Billing Rule Mapping",
+              "kind": "text",
+              "required": true
+            }
+          ]
+        }
+      ],
+      "completenessNotes": "Pre-authorization mapping is explicitly deferred for Phase 4 pilot scope."
+    }
+  ],
+  "templateRegistryPlaceholders": [
+    {
+      "id": "PHASE4-DEFER-BILLING-PREAUTH",
+      "sourceId": "SRC-BILLING-PREAUTH-MISSING",
+      "requirementId": "REQ-BILLING-PREAUTH-MAPPING",
+      "kind": "MISSING_TEMPLATE_DEFERRAL",
+      "disposition": "DEFERRED",
+      "notes": "Billing pre-authorization mapping is intentionally visible but outside Phase 4 pilot automation."
+    },
+    {
+      "id": "PHASE4-FUTURE-GYNECOMASTIA-FXLOG",
+      "sourceId": "SRC-DRAFT-COPY-GYNECOMASTIA-FXLOG",
+      "kind": "FUTURE_PROTOCOL",
+      "disposition": "FUTURE_PLACEHOLDER",
+      "notes": "Gynecomastia draft remains cataloged for future protocol planning with no workflow requirement."
+    },
+    {
+      "id": "PHASE4-DUPLICATE-ARTHRITIS-HAND-MAP",
+      "sourceId": "SRC-DUPLICATE-ARTHRITIS-HAND-MAP",
+      "kind": "DUPLICATE_REVIEW",
+      "disposition": "FUTURE_PLACEHOLDER",
+      "notes": "Root-level duplicate Arthritis hand mapping source remains visible for manual replacement review."
+    },
+    {
+      "id": "PHASE4-API-RX-DRAFT",
+      "sourceId": "SRC-SKIN-API-RX",
+      "kind": "API_MAPPING_DRAFT",
+      "disposition": "FUTURE_PLACEHOLDER",
+      "notes": "API-in-process prescription source is retained as a future mapping placeholder, not a pilot source."
+    }
+  ]
+}

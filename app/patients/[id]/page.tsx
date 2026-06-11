@@ -12,6 +12,7 @@ import {
   clinicalFormTemplates,
   getCourses,
   getDocumentInstances,
+  getPhase6PlanningReadiness,
   getTasks,
   getTreatmentFractions,
   getTreatmentPlans,
@@ -50,6 +51,7 @@ export default function PatientProfilePage({ params }: { params: { id: string } 
       clinicalFormTemplates={clinicalFormTemplates}
       treatmentPlans={getTreatmentPlans().filter((plan) => plan.courseId === course.id)}
       treatmentFractions={getTreatmentFractions().filter((fraction) => fraction.courseId === course.id)}
+      planningReadiness={getPhase6PlanningReadiness(course.id)}
       images={imagingAssets.filter((image) => image.courseId === course.id)}
       auditChecks={auditChecks.filter((check) => check.courseId === course.id)}
       auditEvents={auditEvents.filter((event) => event.patientId === patient.id || event.entityId.includes(course.id) || event.entityId.includes(patient.id))}

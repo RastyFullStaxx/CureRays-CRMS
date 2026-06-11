@@ -118,6 +118,49 @@ assert.equal(overrideEntry.calculationStatus, "MANUAL_OVERRIDE");
 assert.equal(overrideEntry.doseToDotCgy, 200);
 assert.equal(overrideEntry.calculationMeta.referenceVersion, service.fractionWorksheetReferenceVersion);
 
+assert.throws(
+  () =>
+    service.calculateFractionWorksheetEntry(
+      {
+        courseId: "COURSE-FIXTURE",
+        fractionNumber: 1,
+        date: "2026-04-03",
+        phase: "Phase I",
+        energyKv: 50,
+        fieldSizeCm: "2.0 cm",
+        ssdCm: 15,
+        dosePerFractionCgy: 250,
+        depthOfTargetMm: 1,
+        isodoseToDotPercent: 150,
+        isodoseOverrideReason: "Fixture invalid override.",
+        technicianInitials: "QA"
+      },
+      []
+    ),
+  /greater than 0 and no more than 100/
+);
+
+assert.throws(
+  () =>
+    service.calculateFractionWorksheetEntry(
+      {
+        courseId: "COURSE-FIXTURE",
+        fractionNumber: 1,
+        date: "2026-04-03",
+        phase: "Phase I",
+        energyKv: 50,
+        fieldSizeCm: "2.0 cm",
+        ssdCm: 15,
+        dosePerFractionCgy: 250,
+        depthOfTargetMm: 1,
+        isodoseToDotPercent: 80,
+        technicianInitials: "QA"
+      },
+      []
+    ),
+  /override requires an override reason/
+);
+
 const voidableEntry = service.calculateFractionWorksheetEntry(
   {
     courseId: "COURSE-FIXTURE",
@@ -157,6 +200,28 @@ const recalculatedAfterVoid = service.recalculateFractionWorksheetEntries([
 assert.equal(recalculatedAfterVoid[0].status, "VOIDED");
 assert.equal(recalculatedAfterVoid[1].cumulativeDoseCgy, 250);
 assert.equal(recalculatedAfterVoid[1].cumulativeDoseToDotCgy, 210);
+
+const correctedFirstWithDelta = service.calculateFractionWorksheetEntry(
+  { ...voidableEntry, dosePerFractionCgy: 300, dosePerFraction: 300 },
+  [],
+  {
+    existingId: voidableEntry.id,
+    firstEntryCumulativeDelta: {
+      previousDoseCgy: voidableEntry.dosePerFractionCgy,
+      previousDoseToDotCgy: voidableEntry.doseToDotCgy
+    }
+  }
+);
+assert.equal(correctedFirstWithDelta.cumulativeDoseCgy, 300);
+assert.equal(correctedFirstWithDelta.cumulativeDoseToDotCgy, 252);
+
+const correctedDoseEntries = service.recalculateFractionWorksheetEntries([
+  correctedFirstWithDelta,
+  dependentEntry
+]);
+assert.equal(correctedDoseEntries[0].cumulativeDoseCgy, 300);
+assert.equal(correctedDoseEntries[1].cumulativeDoseCgy, 550);
+assert.equal(correctedDoseEntries[1].cumulativeDoseToDotCgy, 462);
 
 assert.throws(() =>
   service.calculateFractionWorksheetEntry(

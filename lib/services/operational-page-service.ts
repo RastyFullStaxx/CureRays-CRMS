@@ -47,7 +47,14 @@ export {
 export {
   documentRequirements,
   documentTemplates,
+  fieldMapForRequirement,
   internalFormTemplates,
+  readinessForRequirement,
+  templateFieldMaps,
+  templateRegistryGeneratedAt,
+  templateRegistryPlaceholders,
+  templateRegistrySchemaVersion,
+  templateRequirementReadiness,
   templateSources,
   workflowDefinitions,
 } from '@/lib/template-registry';

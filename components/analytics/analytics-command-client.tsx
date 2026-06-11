@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import type { EChartsCoreOption } from 'echarts/core';
 import {
   Activity,
-  AlertTriangle,
   BarChart3,
   BrainCircuit,
   CalendarDays,
@@ -45,13 +44,14 @@ import type {
   AnalyticsTelemetry,
   AnalyticsTone,
 } from '@/lib/services/analytics-telemetry-service';
-import { Button } from '@/components/ui/button';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 
 type AnalyticsCommandClientProps = {
   telemetry: AnalyticsTelemetry;
   initialPanel: AnalyticsPanel;
 };
+
+type AnalyticsDateRange = '7' | '14' | '30';
 
 type Palette = {
   primary: string;
@@ -128,6 +128,12 @@ const toneClasses: Record<AnalyticsTone, string> = {
   neutral: 'is-neutral',
 };
 
+const dateRangeOptions: { label: string; value: AnalyticsDateRange }[] = [
+  { label: '7-day', value: '7' },
+  { label: '14-day', value: '14' },
+  { label: '30-day', value: '30' },
+];
+
 function cssVar(name: string, fallback: string) {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
@@ -187,6 +193,37 @@ function tooltipStyle() {
     color: 'var(--color-text)',
     fontFamily: 'var(--font-body)',
   };
+}
+
+function forecastDay(label: string) {
+  if (label === 'Now') return 0;
+  const dayMatch = label.match(/\+(\d+)d/);
+  return dayMatch ? Number(dayMatch[1]) : 0;
+}
+
+function AnalyticsRangeFilter({
+  value,
+  onChange,
+}: {
+  value: AnalyticsDateRange;
+  onChange: (value: AnalyticsDateRange) => void;
+}) {
+  return (
+    <label className="analytics-range-filter">
+      <span>Date range</span>
+      <select
+        aria-label="Analytics date range"
+        value={value}
+        onChange={(event) => onChange(event.target.value as AnalyticsDateRange)}
+      >
+        {dateRangeOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 }
 
 function SectionTitle({ icon: Icon, title, meta }: { icon: LucideIcon; title: string; meta: string }) {
@@ -261,10 +298,10 @@ function InsightRail({ insights, title = 'Insight Brief' }: { insights: Analytic
       <div className="analytics-insight-list">
         {insights.map((insight) => (
           <article key={insight.id} className={`analytics-insight ${toneClasses[insight.tone]}`}>
-            <div>
+            <div className="analytics-insight-severity-row">
               <span>{insight.severity}</span>
-              <strong>{insight.title}</strong>
             </div>
+            <strong className="analytics-insight-title">{insight.title}</strong>
             <p>{insight.summary}</p>
             <em>{insight.evidence}</em>
             <b>{insight.recommendation}</b>
@@ -276,10 +313,16 @@ function InsightRail({ insights, title = 'Insight Brief' }: { insights: Analytic
   );
 }
 
-function ForecastChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
+function ForecastChart({ dateRange, telemetry }: { dateRange: AnalyticsDateRange; telemetry: AnalyticsTelemetry }) {
+  const rangeDays = Number(dateRange);
+  const forecast = useMemo(
+    () => telemetry.overview.forecast.filter((point) => forecastDay(point.label) <= rangeDays),
+    [rangeDays, telemetry],
+  );
+
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={260} initialDimension={{ width: 760, height: 320 }}>
-      <ComposedChart data={telemetry.overview.forecast} margin={{ top: 18, right: 16, bottom: 0, left: -18 }}>
+      <ComposedChart data={forecast} margin={{ top: 18, right: 16, bottom: 14, left: -18 }}>
         <defs>
           <linearGradient id="analyticsForecastLoad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.28} />
@@ -415,13 +458,13 @@ function heatmapOption({
         return `${data[5]}\n${data[6]}\nOpen ${data[2]} · Blocked ${data[3]} · Review ${data[4]}`;
       },
     },
-    grid: { top: 14, right: 12, bottom: 58, left: 112 },
+    grid: { top: 16, right: 16, bottom: 86, left: 116, containLabel: true },
     xAxis: {
       type: 'category',
       data: xLabels,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 28 },
+      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 24 },
     },
     yAxis: {
       type: 'category',
@@ -474,6 +517,10 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
       {
         type: 'graph',
         layout: 'force',
+        left: '6%',
+        top: '10%',
+        right: '6%',
+        bottom: '10%',
         roam: false,
         draggable: false,
         data: telemetry.billingRisk.riskGraph.nodes.map((node) => ({
@@ -509,9 +556,9 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
         })),
         categories: [{ name: 'domain' }, { name: 'course' }],
         force: {
-          repulsion: 220,
-          edgeLength: [58, 118],
-          gravity: 0.08,
+          repulsion: 190,
+          edgeLength: [62, 126],
+          gravity: 0.1,
         },
         emphasis: {
           focus: 'adjacency',
@@ -525,7 +572,7 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
 function RoleLoadChart({ rows }: { rows: AnalyticsRoleLoad[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={240} initialDimension={{ width: 620, height: 270 }}>
-      <ComposedChart data={rows} layout="vertical" margin={{ top: 8, right: 18, bottom: 4, left: 16 }}>
+      <ComposedChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 18, left: 12 }}>
         <CartesianGrid horizontal={false} stroke="var(--color-border-soft)" />
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="role" width={112} tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
@@ -589,7 +636,7 @@ function TreatmentProgressList({ telemetry }: { telemetry: AnalyticsTelemetry })
 function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={260} initialDimension={{ width: 720, height: 300 }}>
-      <ComposedChart data={telemetry.treatment.throughput} margin={{ top: 16, right: 12, bottom: 0, left: -18 }}>
+      <ComposedChart data={telemetry.treatment.throughput} margin={{ top: 16, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
         <YAxis hide />
@@ -606,7 +653,7 @@ function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
 function LifecycleChart({ data }: { data: AnalyticsDistributionDatum[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={230} initialDimension={{ width: 520, height: 260 }}>
-      <ComposedChart data={data} margin={{ top: 10, right: 14, bottom: 0, left: -18 }}>
+      <ComposedChart data={data} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
         <YAxis hide />
@@ -622,7 +669,7 @@ function LifecycleChart({ data }: { data: AnalyticsDistributionDatum[] }) {
 function SignatureAgingChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={230} initialDimension={{ width: 520, height: 260 }}>
-      <ComposedChart data={telemetry.documents.signatureAging} margin={{ top: 10, right: 14, bottom: 0, left: -18 }}>
+      <ComposedChart data={telemetry.documents.signatureAging} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="bucket" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
         <YAxis hide />
@@ -669,7 +716,7 @@ function TemplateCoverage({ telemetry }: { telemetry: AnalyticsTelemetry }) {
 function CapacityChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={240} initialDimension={{ width: 640, height: 280 }}>
-      <ComposedChart data={telemetry.staffing.capacityBands} margin={{ top: 10, right: 14, bottom: 0, left: -18 }}>
+      <ComposedChart data={telemetry.staffing.capacityBands} margin={{ top: 10, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
         <YAxis hide />
@@ -714,14 +761,18 @@ function BillingReadiness({ rows }: { rows: AnalyticsBillingReadiness[] }) {
 
   return (
     <div className="analytics-billing-grid">
-      {rows.map((item) => (
-        <article key={item.label} className={`analytics-billing-chip ${toneClasses[item.tone]}`}>
-          <span>{item.label}</span>
-          <strong>{item.value}</strong>
-          <em>{Math.round((item.value / Math.max(total, 1)) * 100)}%</em>
-        </article>
-      ))}
-      <DonutChart data={data} centerLabel="Billing" />
+      <div className="analytics-billing-chip-grid">
+        {rows.map((item) => (
+          <article key={item.label} className={`analytics-billing-chip ${toneClasses[item.tone]}`}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <em>{Math.round((item.value / Math.max(total, 1)) * 100)}%</em>
+          </article>
+        ))}
+      </div>
+      <div className="analytics-billing-summary">
+        <DonutChart data={data} centerLabel="Billing" />
+      </div>
     </div>
   );
 }
@@ -743,20 +794,20 @@ function PhiBoundary({ rows }: { rows: AnalyticsPhiSignal[] }) {
   );
 }
 
-function OverviewPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
+function OverviewPanel({ dateRange, telemetry }: { dateRange: AnalyticsDateRange; telemetry: AnalyticsTelemetry }) {
   return (
     <div className="analytics-panel analytics-panel-overview">
       <KpiStrip items={telemetry.overview.kpis} />
       <ChartFrame
         icon={BarChart3}
-        title="30-Day Operational Forecast"
-        meta={telemetry.sampleNotice}
+        title={`${dateRange}-Day Operational Forecast`}
+        meta="Model-derived workload, risk, capacity, and course volume."
         change="Workload, capacity, and risk are projected together instead of as separate vanity trends."
         matters="The huddle can see whether risk is rising faster than staff capacity."
         inspect="Workflow, staffing, and billing-risk tabs."
         className="analytics-forecast-card"
       >
-        <ForecastChart telemetry={telemetry} />
+        <ForecastChart dateRange={dateRange} telemetry={telemetry} />
       </ChartFrame>
       <article className="analytics-card analytics-mix-card">
         <SectionTitle icon={PieChartIcon} title="Cohort Mix" meta="Diagnosis and chart-rounds phase distribution" />
@@ -953,10 +1004,12 @@ function BillingRiskPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetr
 
 function ActivePanel({
   activePanel,
+  dateRange,
   palette,
   telemetry,
 }: {
   activePanel: AnalyticsPanel;
+  dateRange: AnalyticsDateRange;
   palette: Palette;
   telemetry: AnalyticsTelemetry;
 }) {
@@ -965,13 +1018,14 @@ function ActivePanel({
   if (activePanel === 'documents') return <DocumentsPanel telemetry={telemetry} palette={palette} />;
   if (activePanel === 'staffing') return <StaffingPanel telemetry={telemetry} />;
   if (activePanel === 'billing-risk') return <BillingRiskPanel telemetry={telemetry} palette={palette} />;
-  return <OverviewPanel telemetry={telemetry} />;
+  return <OverviewPanel dateRange={dateRange} telemetry={telemetry} />;
 }
 
 export function AnalyticsCommandClient({ initialPanel, telemetry }: AnalyticsCommandClientProps) {
   const router = useRouter();
   const palette = usePalette();
   const [activePanel, setActivePanel] = useState<AnalyticsPanel>(initialPanel);
+  const [dateRange, setDateRange] = useState<AnalyticsDateRange>('30');
   const activeCopy = panelCopy[activePanel];
 
   const setPanel = (panel: AnalyticsPanel) => {
@@ -1003,19 +1057,12 @@ export function AnalyticsCommandClient({ initialPanel, telemetry }: AnalyticsCom
               </button>
             ))}
           </div>
-          <Button variant="secondary" disabled>
-            <AlertTriangle className="h-4 w-4" />
-            Prototype Model
-          </Button>
+          <AnalyticsRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
       </header>
 
       <div className="analytics-command-body" role="tabpanel" id={`analytics-panel-${activePanel}`} aria-labelledby={`analytics-tab-${activePanel}`}>
-        <div className="analytics-model-banner">
-          <span>Model as of {telemetry.asOfLabel}</span>
-          <p>{telemetry.sampleNotice}</p>
-        </div>
-        <ActivePanel activePanel={activePanel} telemetry={telemetry} palette={palette} />
+        <ActivePanel activePanel={activePanel} dateRange={dateRange} telemetry={telemetry} palette={palette} />
       </div>
     </section>
   );

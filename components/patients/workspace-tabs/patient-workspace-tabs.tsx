@@ -1094,8 +1094,11 @@ export function ImagingWorkspaceTab() {
 
 export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstance[] }) {
   const [page, setPage] = useState(1);
+  const readyForReview = documents.filter((doc) => doc.status === "READY_FOR_REVIEW").length;
   const completed = documents.filter((doc) => doc.signedAt).length;
   const uploaded = documents.filter((doc) => doc.uploadedToEcwAt).length;
+  const locked = documents.filter((doc) => doc.lockedAt).length;
+  const exceptions = documents.filter((doc) => doc.manualEditExceptionAt || doc.voidedAt).length;
   const pending = documents.length - completed;
   const totalPages = Math.max(1, Math.ceil(documents.length / documentsRowsPerPage));
   const visibleDocuments = useMemo(
@@ -1114,11 +1117,12 @@ export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstan
           <WorkspaceButton variant="primary" size="compact"><Upload className="h-4 w-4" /> Upload Document</WorkspaceButton>
         </div>
         <MetricGrid>
-          <MetricCard size="compact" label="Total Documents" value={86} detail="All time" tone="purple" icon={<FileText className="h-4 w-4" />} />
-          <MetricCard size="compact" label="Ready for Review" value={12} detail="Needs review" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Total Documents" value={documents.length} detail="Course records" tone="purple" icon={<FileText className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Ready for Review" value={readyForReview} detail="Needs review" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
           <MetricCard size="compact" label="Pending Signatures" value={pending} detail="Awaiting signatures" tone="orange" icon={<FileCheck2 className="h-4 w-4" />} />
-          <MetricCard size="compact" label="Completed" value={completed || 59} detail="Fully processed" tone="green" icon={<ShieldCheck className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Locked" value={locked} detail={`${completed} signed`} tone="green" icon={<ShieldCheck className="h-4 w-4" />} />
           <MetricCard size="compact" label="Uploaded" value={uploaded} detail="eCW" tone="blue" icon={<Upload className="h-4 w-4" />} />
+          <MetricCard size="compact" label="Exceptions" value={exceptions} detail="Manual or voided" tone="orange" icon={<Clock3 className="h-4 w-4" />} />
         </MetricGrid>
       </section>
       <FilterBar searchPlaceholder="Search documents..." filters={["Category", "Status", "Phase", "Uploader", "Date"]} />
@@ -1149,11 +1153,18 @@ export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstan
               <Pill key="cat" tone="blue" size="compact">{compactCategoryLabel(doc.category)}</Pill>,
               <Pill key="phase" tone="green" size="compact">On Treatment</Pill>,
               <WorkflowStatusPill key="status" status={doc.lockedAt ? "LOCKED" : doc.status} size="compact" label={compactDocStatusLabel(doc.status, Boolean(doc.lockedAt))} />,
-              <span key="version" className="font-bold">{`v${doc.version}.0`}</span>,
-              <TruncateText key="updated" title={doc.generatedAt ?? undefined}>{displayDate(doc.generatedAt)}</TruncateText>,
+              <div key="version" className="flex min-w-0 flex-col gap-1">
+                <span className="font-bold">{`v${doc.version}.0`}</span>
+                <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={doc.latestOutputStatus}>
+                  {doc.latestOutputStatus ?? "No output"}
+                </TruncateText>
+              </div>,
+              <TruncateText key="updated" title={doc.renderedAt ?? doc.generatedAt ?? undefined}>{displayDate(doc.renderedAt ?? doc.generatedAt)}</TruncateText>,
               <div key="ready" className="flex min-w-0 flex-col gap-1">
-                <Pill tone={doc.signedAt ? "green" : "orange"} size="compact">{doc.signedAt ? "Signed" : "Signature"}</Pill>
-                <Pill tone={doc.uploadedToEcwAt ? "green" : "blue"} size="compact">{doc.uploadedToEcwAt ? "eCW" : "Upload"}</Pill>
+                <Pill tone={doc.lockedAt ? "green" : "orange"} size="compact">{doc.lockedAt ? "Locked" : "Signature"}</Pill>
+                <Pill tone={doc.uploadedToEcwAt ? "green" : doc.manualEditExceptionAt || doc.voidedAt ? "orange" : "blue"} size="compact">
+                  {doc.uploadedToEcwAt ? "eCW" : doc.manualEditExceptionAt ? "Manual" : doc.voidedAt ? "Voided" : "Upload"}
+                </Pill>
               </div>,
               <ActionCell key="action" />
             ]

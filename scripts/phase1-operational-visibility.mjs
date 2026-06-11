@@ -8,7 +8,6 @@ const sourceRoots = ["app", "components"];
 const tableTags = new Set(["DataTable", "StaticDataTable", "CompactTable"]);
 
 const disabledButtonExpectations = {
-  "app/workflow/page.tsx": ["Export", "Customize"],
   "app/templates/page.tsx": ["Upload Template", "Create Template"],
   "app/billing/page.tsx": ["Export Billing Report", "Add Billing Item"],
   "app/imaging/page.tsx": ["Upload Imaging", "New Imaging Study"],
@@ -126,6 +125,11 @@ for (const [file, labels] of Object.entries(disabledButtonExpectations)) {
     assert.ok(button.disabled, `${file} "${label}" must be disabled until the workflow is wired`);
   }
 }
+
+assert.ok(
+  readFileSync(join(root, "app/workflow/page.tsx"), "utf8").includes("WorkflowCommandClient"),
+  "Workflow page must render the Phase 3 command client once workflow actions are wired"
+);
 
 assert.equal(
   readFileSync(join(root, "app/settings/page.tsx"), "utf8").includes("<button"),

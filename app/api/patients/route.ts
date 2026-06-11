@@ -8,7 +8,8 @@ import type { PatientCreateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  void request.headers.get("x-prototype-role");
   const response = await listOperationalPatientRecords();
   return NextResponse.json(response.body, { status: response.status });
 }

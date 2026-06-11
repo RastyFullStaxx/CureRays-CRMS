@@ -218,7 +218,11 @@ assert.equal(
   "global-page-data must expose tokenized patient labels only"
 );
 
-for (const clientEntry of ["components/dashboard/dashboard-telemetry-client.tsx"]) {
+for (const clientEntry of [
+  "components/dashboard/dashboard-telemetry-client.tsx",
+  "components/workflow/workflow-command-client.tsx",
+  "components/tasks/task-queue-client.tsx"
+]) {
   const source = read(clientEntry);
   assert.equal(
     source.includes("@/lib/clinical-store"),
@@ -233,8 +237,19 @@ for (const route of ["app/api/patients/[id]/route.ts", "app/api/igsrt/route.ts",
 }
 
 assert.ok(
-  read("app/api/workflow/route.ts").includes("getOperationalWorkflowSnapshot"),
+  /getOperationalWorkflowSnapshot|listWorkflowCommandSnapshot/.test(read("app/api/workflow/route.ts")),
   "Workflow API must return the tokenized operational snapshot"
 );
+
+for (const route of [
+  "app/api/tasks/route.ts",
+  "app/api/tasks/[taskId]/route.ts",
+  "app/api/workflow/courses/[courseId]/advance/route.ts",
+  "app/api/workflow/steps/[stepId]/route.ts"
+]) {
+  const source = read(route);
+  assert.equal(source.includes("@/lib/clinical-store"), false, `${route} must use workflow command services, not clinical-store directly`);
+  assert.ok(source.includes("workflow-command-service"), `${route} must route through the workflow command service`);
+}
 
 console.log("HIPAA guardrails passed");

@@ -1,24 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  confirmGeneratedDocumentEcwUploadLifecycle,
+  exportGeneratedDocumentLifecycle,
   readGeneratedDocumentLifecycle,
+  recordGeneratedDocumentManualEditExceptionLifecycle,
   renderGeneratedDocumentLifecycle,
-  signGeneratedDocumentLifecycle
+  signGeneratedDocumentLifecycle,
+  voidGeneratedDocumentOutputLifecycle
 } from "@/lib/server/document-lifecycle-service";
-import { phiAccessFromRequest } from "@/lib/server/phi-store";
-import type { GeneratedDocumentOutput } from "@/lib/types";
+import { phiAccessFromRequest, type PhiAccessContext } from "@/lib/server/phi-store";
+import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import type { DocumentLifecycleResult, GeneratedDocumentFormat } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function safeOutputFormat(value: unknown): GeneratedDocumentOutput["format"] {
+function safeOutputFormat(value: unknown): GeneratedDocumentFormat {
   return value === "DOCX" || value === "XLSX" ? value : "PDF";
 }
 
-function documentResponse(result: ReturnType<typeof readGeneratedDocumentLifecycle>) {
+function documentResponse(result: DocumentLifecycleResult) {
   if (result.blockedReason) {
-    return NextResponse.json({ message: result.blockedReason }, { status: 404 });
+    const status = result.document ? 409 : 404;
+    return NextResponse.json(result, { status });
   }
 
   return NextResponse.json(result);
+}
+
+function documentMutationAccessFromRequest(request: NextRequest, reason: string): PhiAccessContext | null {
+  const session = prototypeSessionFromRequest(request);
+  return session ? { role: session.role, reason } : null;
 }
 
 export function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -35,17 +46,30 @@ export function GET(request: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const access = phiAccessFromRequest(request, "Render or sign generated PHI document");
+  const body = await request.json();
+  const action = String(body.action ?? "render");
+  const access = documentMutationAccessFromRequest(request, `Generated document action: ${action}`);
+
   if (!access) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  const body = await request.json();
-
   try {
-    const result = body.action === "sign"
-      ? signGeneratedDocumentLifecycle(access, params.id)
-      : renderGeneratedDocumentLifecycle(access, params.id, safeOutputFormat(body.format));
+    const result =
+      action === "sign" || action === "signDocument"
+        ? signGeneratedDocumentLifecycle(access, params.id)
+        : action === "export"
+          ? exportGeneratedDocumentLifecycle(access, params.id)
+          : action === "confirmEcwUpload"
+            ? confirmGeneratedDocumentEcwUploadLifecycle(access, params.id, {
+                externalReference: body.externalReference,
+                reason: body.reason
+              })
+            : action === "voidOutput"
+              ? voidGeneratedDocumentOutputLifecycle(access, params.id, { reason: body.reason })
+              : action === "recordManualEditException"
+                ? recordGeneratedDocumentManualEditExceptionLifecycle(access, params.id, { reason: body.reason })
+                : renderGeneratedDocumentLifecycle(access, params.id, safeOutputFormat(body.format));
 
     return documentResponse(result);
   } catch {

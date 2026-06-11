@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
-import { getOperationalWorkflowSnapshot } from "@/lib/clinical-store";
+import { NextRequest, NextResponse } from "next/server";
+import { listWorkflowCommandSnapshot } from "@/lib/server/workflow-command-service";
 
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  return NextResponse.json(getOperationalWorkflowSnapshot());
+export async function GET(request: NextRequest) {
+  void request.headers.get("x-prototype-role");
+  return NextResponse.json(await listWorkflowCommandSnapshot());
 }

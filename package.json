@@ -9,10 +9,11 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "clean:generated": "node scripts/clean-generated-cache.mjs",
+    "build": "npm run clean:generated && NODE_OPTIONS=--require=./scripts/next-build-fs-retry.cjs next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --incremental false",
     "prisma:generate:ops": "prisma generate --schema prisma/ops-schema.prisma",
     "prisma:generate:phi": "prisma generate --schema prisma/phi-schema.prisma",
     "prisma:generate": "npm run prisma:generate:ops && npm run prisma:generate:phi",
@@ -21,12 +22,15 @@
     "test:phase0": "node scripts/phase0-guardrails.mjs",
     "test:phase1": "node scripts/phase1-operational-visibility.mjs",
     "test:phase2": "node scripts/phase2-patient-registration.mjs",
+    "test:phase3": "node scripts/phase3-workflow-engine.mjs",
+    "test:phase4": "node scripts/phase4-template-registry.mjs",
+    "test:phase5": "node scripts/phase5-document-lifecycle.mjs",
     "test:routes": "node scripts/route-smoke.mjs",
     "test:fraction-worksheet": "node scripts/fraction-worksheet-fixtures.mjs",
     "test:phase6": "node scripts/phase6-treatment-planning.mjs",
     "test:later-phases": "node scripts/later-phase-grounding.mjs",
     "test:hipaa": "node scripts/hipaa-guardrails.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run test:phase0 && npm run test:hipaa && TMPDIR=/tmp npm run test:fraction-worksheet && npm run test:phase6 && npm run test:later-phases && npm run test:routes && npm run test:phase1 && npm run test:phase2 && npm run build"
+    "verify": "npm run clean:generated && npm run typecheck && npm run lint && npm run test:phase0 && npm run test:hipaa && TMPDIR=/tmp npm run test:fraction-worksheet && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run test:later-phases && npm run test:routes && npm run test:phase1 && npm run test:phase2 && npm run test:phase3 && npm run build"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

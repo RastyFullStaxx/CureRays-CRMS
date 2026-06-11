@@ -59,11 +59,14 @@ Repository and docs reviewed:
 - `lib/mock-data.ts`
 - `lib/clinical-store.ts`
 - `lib/template-registry.ts`
+- `lib/template-registry-data.json`
 - `lib/module-data.ts`
 - `lib/services/**`
 - `lib/hipaa.ts`
 - `lib/server/phi-store.ts`
 - `lib/server/patient-registration-service.ts`
+- `lib/server/document-lifecycle-service.ts`
+- `lib/server/template-registry-verification.ts`
 - `lib/server/phase6-treatment-workflow-service.ts`
 - `prisma/schema.prisma`
 - `prisma/ops-schema.prisma`
@@ -71,6 +74,9 @@ Repository and docs reviewed:
 - `scripts/hipaa-guardrails.mjs`
 - `scripts/phase0-guardrails.mjs`
 - `scripts/phase2-patient-registration.mjs`
+- `scripts/phase3-workflow-engine.mjs`
+- `scripts/phase4-template-registry.mjs`
+- `scripts/phase5-document-lifecycle.mjs`
 - `scripts/phase6-treatment-planning.mjs`
 - `scripts/fraction-worksheet-fixtures.mjs`
 - `scripts/route-smoke.mjs`
@@ -83,13 +89,16 @@ Verification run on 2026-06-12:
 - `[x]` `npm run test:phase0` passed.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
+- `[x]` `npm run test:phase4` passed.
+- `[x]` `npm run test:phase5` passed.
 - `[x]` `npm run test:phase6` passed.
 - `[x]` `npm run test:later-phases` passed.
 - `[x]` `npm run test:routes` passed.
 - `[x]` `npm run test:phase1` passed.
 - `[x]` `npm run test:phase2` passed.
-- `[x]` `npm run build` passed.
-- `[x]` `npm run verify` passed.
+- `[x]` `npm run test:phase3` passed.
+- `[!]` Latest clean `npm run build` rerun compiled successfully, then failed during page-data collection with `.next/build-manifest.json` missing on the Windows-mounted workspace.
+- `[!]` Latest `npm run verify` rerun passed typecheck, lint, HIPAA, Phase 0/1/2/3/4/5/6/later-phase guardrails, route smoke, and fraction fixtures, then hit the same clean-build manifest issue.
 
 Current inventory:
 
@@ -102,11 +111,14 @@ Current inventory:
 - 3 later-phase server-only grounding helpers for workflow commands, document lifecycle, and closeout readiness.
 - 1 Phase 0 baseline guardrail in `scripts/phase0-guardrails.mjs`.
 - 1 Phase 2 patient registration guardrail in `scripts/phase2-patient-registration.mjs`.
+- 1 Phase 4 template registry guardrail in `scripts/phase4-template-registry.mjs`.
+- 1 Phase 5 document lifecycle guardrail in `scripts/phase5-document-lifecycle.mjs`.
 - 1 Phase 6 treatment planning/fraction worksheet guardrail in `scripts/phase6-treatment-planning.mjs`.
 - 1 later-phase grounding guardrail in `scripts/later-phase-grounding.mjs`.
 - 30 normalized local template files under `docs/2026_TEMPLATES`.
-- 31 `TemplateSource` records in `lib/template-registry.ts`: 16 active, 9 mapping-in-progress, 5 draft, 1 missing placeholder.
-- 25 `DocumentRequirement` records.
+- 31 `TemplateSource` records loaded from `lib/template-registry-data.json`: 22 active, 2 mapping-in-progress, 6 draft, 1 missing placeholder.
+- 25 `DocumentRequirement` records with Phase 4 metadata, reviewer roles, pilot scope, CPT relevance, and field-map links.
+- 25 `TemplateFieldMap` records plus 4 explicit deferral/future-placeholder records.
 - 4 workflow definitions: Universal active; Skin Cancer IGSRT, Arthritis, and Dupuytren's mapping-in-progress.
 - Mock data baseline: 6 patients, 6 treatment courses, 7 mock tasks, 8 mock generated documents, 3 mock fraction rows, plus additional clinical-store/task/template-derived state.
 
@@ -133,7 +145,7 @@ Current inventory:
 - `[~]` Patient registration: `POST /api/patients` and Add Patient UI are wired through a server-only registration service, but no persistent database transaction creates the patient/course/workflow/task/folder bundle.
 - `[~]` Patient record maintenance: `PATCH /api/patients/[id]` and Edit Patient UI are wired through the server-only registration service, but updates are in-memory only and there is no consent/history handling or persistent audit trail.
 - `[~]` Course/workflow automation: canonical steps and automation rules are documented; generated task/document helpers exist; full "create course -> create steps/tasks/docs/folders" automation is not implemented as durable backend logic.
-- `[~]` Template registry: local files are normalized and registry metadata exists; field-level mapping and live Drive sync are incomplete.
+- `[~]` Template registry: local files are normalized; Phase 4 pilot metadata, field maps, approval status, explicit deferrals, future placeholders, and source-hash checks exist. Live Drive sync and real generation remain later-phase work.
 - `[~]` Document lifecycle: pages and simulated render/sign/export state exist; no real DOCX/PPTX/XLSX/PDF generation, no eCW upload, no electronic signature integration, no immutable version store.
 - `[~]` Billing/audit: status pages and mock readiness checks exist; no payer/preauth workflow engine, real billing rules, or closeout enforcement.
 - `[~]` Security logs/audit logs: mock/tokenized event pages exist; immutable authenticated logging is not yet implemented.
@@ -349,9 +361,11 @@ Pre-mortem:
 
 ### Phase 3: Course Workflow Engine And Task Queues
 
-Current completion: 48%
+Current completion: 100% for prototype-seam scope; production persistence, real auth, immutable audit infrastructure, and external notification delivery remain later-phase work.
 
 Goal: make workflows and task queues the operational source of truth instead of static page data.
+
+Phase 3 is complete for de-identified pilot workflow operations. Workflow steps and task queues are now owned by a server-only command service with guarded mutations, role-gated prototype actions, tokenized DTOs, due-date/overdue derivation, explicit N/A rules, assignment/reassignment commands, task reopen/block/complete flows, and redacted audit events. The implementation intentionally uses the in-memory repository adapter by default with a Prisma-ready repository seam; deployed database-backed workflow persistence remains a Phase 8/production hardening requirement.
 
 What is already done:
 
@@ -365,21 +379,28 @@ What is already done:
 - `[x]` Task queues exist visually and through `taskService.listByQueue()`.
 - `[x]` Workflow definitions exist in `lib/template-registry.ts`.
 - `[x]` Server-only workflow command helper evaluates course advancement blockers and N/A reason requirements without mutating state.
+- `[x]` `lib/server/workflow-command-service.ts` owns workflow/task list, queue, transition, N/A, assignment, blocked, completed, reopen, and audit command behavior.
+- `[x]` `WorkflowTaskRepository` seam exists with default in-memory adapter and opt-in Prisma-ready adapter selected by `CURERAYS_WORKFLOW_REPOSITORY` / `CURERAYS_PERSISTENCE_MODE`.
+- `[x]` Workflow and task command APIs exist: `GET /api/workflow`, `POST /api/workflow/courses/[courseId]/advance`, `PATCH /api/workflow/steps/[stepId]`, `GET /api/tasks`, and `PATCH /api/tasks/[taskId]`.
+- `[x]` `/workflow` and `/tasks` now use command clients backed by tokenized command snapshots instead of disabled placeholder actions.
+- `[x]` Due-date rules by Carepath phase drive stored workflow rows and task overdue derivation.
+- `[x]` Removed Carepath steps initialize as N/A with system reasons; optional and required N/A logic is enforced by backend commands.
+- `[x]` Phase 3 guardrail validates workflow creation, transition blockers, successful advancement, N/A reason enforcement, overdue logic, role queues, task mutation flows, and redacted audit events.
 
 Remaining checklist:
 
-- `[ ]` Persist workflow steps and tasks.
-- `[ ]` Implement create-course workflow-definition selection.
-- `[ ]` Generate applicable workflow steps from `WorkflowDefinition.documentRequirementIds`.
-- `[ ]` Enforce optional/removed step logic with explicit N/A reason where relevant.
-- `[~]` Implement guarded workflow transitions. A server-only evaluation command exists; durable transition mutations and audit events are still not implemented.
-- `[ ]` Add due date calculation rules by phase/role/template.
-- `[ ]` Add task assignment and reassignment UI.
-- `[ ]` Add task completion, review, signature, blocked, overdue, N/A, and reopen flows.
-- `[ ]` Add role-specific queue views backed by authenticated user context.
-- `[ ]` Add notification/escalation rules.
-- `[ ]` Add audit events for workflow transitions and task mutations.
-- `[ ]` Add tests for workflow creation, transition guards, N/A reason enforcement, blockers, overdue logic, and role queues.
+- `[x]` Persist workflow steps and tasks for prototype runtime through stored in-memory rows and command-owned mutations; live OPS persistence remains behind the repository seam for later deployment.
+- `[x]` Implement create-course workflow-definition selection.
+- `[x]` Generate applicable workflow steps from `WorkflowDefinition.documentRequirementIds`.
+- `[x]` Enforce optional/removed step logic with explicit N/A reason where relevant.
+- `[x]` Implement guarded workflow transitions with blockers, mutation commands, optimistic phase checks, and redacted audit events.
+- `[x]` Add due date calculation rules by phase/role/template for prototype workflow timing.
+- `[x]` Add task assignment and reassignment UI.
+- `[x]` Add task completion, review, signature, blocked, overdue, N/A, and reopen flows.
+- `[x]` Add role-specific queue views backed by prototype authenticated user context.
+- `[x]` Add notification/escalation rules for prototype queues through blocked, overdue, signature, unassigned, and role-lane queue surfaces; external notification delivery remains later-phase work.
+- `[x]` Add audit events for workflow transitions and task mutations.
+- `[x]` Add tests for workflow creation, transition guards, N/A reason enforcement, blockers, overdue logic, and role queues.
 
 Pre-mortem:
 
@@ -389,32 +410,39 @@ Pre-mortem:
 
 ### Phase 4: Template Registry And Document Requirements
 
-Current completion: 62%
+Current completion: 100% for de-identified pilot scope; production document generation remains Phase 5.
 
 Goal: turn the Drive template inventory into app-readable, versioned, clinically approved document requirements.
+
+Phase 4 is complete for registry and workflow-readiness purposes. This does not mean document generation is production-ready: DOCX/PPTX/XLSX/PDF merge/export, live Drive sync, eCW upload, electronic signature integration, immutable output versioning, and production clinical sign-off remain Phase 5 and hardening work.
 
 What is already done:
 
 - `[x]` 30 local source files normalized under `docs/2026_TEMPLATES`.
 - `[x]` Normalization manifest includes original path, normalized path, diagnosis, workflow step, app category, status, SHA-256, and notes.
+- `[x]` `lib/template-registry-data.json` is the canonical structured metadata source for template sources, document requirements, workflow definitions, field maps, and placeholders.
+- `[x]` `lib/template-registry.ts` now acts as the typed loader/helper layer instead of hardcoding the registry arrays.
 - `[x]` `templateSources` includes 31 records, including active, draft, mapping-in-progress, and missing placeholder states.
-- `[x]` `documentRequirements` includes 25 records.
+- `[x]` `documentRequirements` includes 25 records with phase, role, reviewer role, diagnosis/protocol/body-region/laterality/modality applicability, required fields, output formats, CPT relevance, pilot scope, and generation-readiness metadata.
+- `[x]` `templateFieldMaps` includes 25 field-map records using existing form-section/field vocabulary.
 - `[x]` Universal, Skin Cancer IGSRT, Arthritis, and Dupuytren's workflow definitions exist.
-- `[x]` App pages can list templates and document rows.
+- `[x]` App pages can list templates, document rows, readiness, field-map status, source-hash status, approval status, and explicit placeholders.
 - `[x]` `applicableDocumentRequirements()` and related helpers exist.
 - `[x]` Later-phase guardrail verifies template source IDs, local source-file existence, workflow requirement references, and the expected missing billing pre-auth placeholder.
+- `[x]` Server-only source-hash verification compares recorded SHA-256 values against normalized local files.
+- `[x]` Phase 4 guardrail validates canonical JSON loading, uniqueness, hashes, requirement metadata, field-map coverage, approved deferrals/placeholders, workflow references, and applicability scenarios.
 
 Remaining checklist:
 
-- `[ ]` Complete field-level mapping for each active template.
-- `[ ]` Create a structured template metadata source that can be loaded without editing TypeScript for every registry change.
-- `[ ]` Add admin UI for template status, clinical approval, retirement, duplicate review, and missing template tracking.
-- `[ ]` Map every requirement to diagnosis, protocol, body region/site, laterality, modality, phase, responsible role, reviewer role, required fields, output formats, CPT relevance, and audit evidence.
-- `[ ]` Resolve all `MAPPING_IN_PROGRESS` statuses that are needed for pilot.
-- `[ ]` Resolve the `MISSING` billing pre-authorization mapping placeholder or explicitly defer it.
-- `[ ]` Decide whether draft Gynecomastia fraction log remains out-of-scope.
-- `[ ]` Add template versioning and source hash verification in the app.
-- `[ ]` Add tests for requirement applicability by diagnosis/protocol/body site/laterality.
+- `[x]` Complete field-level mapping for each pilot-relevant active/current template.
+- `[x]` Create a structured template metadata source that can be loaded without editing TypeScript for every registry change.
+- `[x]` Add admin UI for template status, clinical approval, retirement, duplicate review, and missing template tracking.
+- `[x]` Map every requirement to diagnosis, protocol, body region/site, laterality, modality, phase, responsible role, reviewer role, required fields, output formats, CPT relevance, and audit evidence.
+- `[x]` Resolve all `MAPPING_IN_PROGRESS` statuses that are needed for pilot. Remaining mapping-in-progress pre-auth sources are explicit deferrals and are not autocreated.
+- `[x]` Resolve the `MISSING` billing pre-authorization mapping placeholder or explicitly defer it. It is explicitly deferred, visible, non-autocreated, and non-generating.
+- `[x]` Decide whether draft Gynecomastia fraction log remains out-of-scope. It is cataloged as a future placeholder with no workflow requirement.
+- `[x]` Add template versioning and source hash verification in the app.
+- `[x]` Add tests for requirement applicability by diagnosis/protocol/body site/laterality.
 
 Pre-mortem:
 
@@ -424,9 +452,11 @@ Pre-mortem:
 
 ### Phase 5: Document Generation, Signatures, File Storage, Drive, And eCW
 
-Current completion: 28%
+Current completion: 100% for de-identified pilot lifecycle scope; production Drive/eCW/e-signature and BAA-covered storage integration remain blocked.
 
 Goal: generate, store, sign, export, upload, version, and audit patient/course documents.
+
+Phase 5 is complete for adapter-ready, app-owned document lifecycle in the de-identified pilot. It does not mean real Google Drive file operations, eCW upload integration, electronic signature integration, BAA-covered production storage, or live PHI document handling are ready.
 
 What is already done:
 
@@ -440,23 +470,34 @@ What is already done:
 - `[x]` `documentGenerationService.generateFromTemplate()` exists as a stub.
 - `[x]` Server-only document lifecycle helper owns generated-document read/render/sign command shape for the prototype adapter.
 - `[x]` `/api/generated-documents/[id]` now requires PHI access for reads and routes render/sign mutations through the document lifecycle helper.
+- `[x]` Server-only document lifecycle repository contract exists with an in-memory adapter and Prisma-ready boundary.
+- `[x]` Lifecycle API responses use tokenized document/output DTOs and omit generated `contentPreview`.
+- `[x]` Generated outputs use provider-neutral `APP_STORAGE` metadata and `app-storage://generated/...` references instead of fake `drive://` URLs.
+- `[x]` Lifecycle commands exist for read, render, export, sign, manual eCW upload confirmation, output voiding, and manual edit exception recording.
+- `[x]` Render/export are blocked when the linked template source is missing, draft, mapping-in-progress, or otherwise not active.
+- `[x]` Signatures require a rendered/export-ready output, lock the current output, and record signer metadata.
+- `[x]` Manual edit exceptions reopen review/signature state, increment output version state, and clear downstream eCW readiness.
+- `[x]` Manual eCW upload confirmation records external reference/reason metadata after signed locked evidence exists.
+- `[x]` `/api/igsrt` document actions delegate to the document lifecycle helper instead of calling raw store render/sign functions.
+- `[x]` Documents page and patient workspace document tab show output version/status, storage state, lock state, manual exceptions, and eCW confirmation metadata without rendering generated content previews.
+- `[x]` `scripts/phase5-document-lifecycle.mjs` verifies lifecycle commands, RBAC, versioning, locking, manual edit, eCW confirmation, API routing, storage references, and client-preview guardrails.
 
 Remaining checklist:
 
-- `[ ]` Pick production file storage provider and confirm HIPAA/BAA coverage.
-- `[ ]` Implement template merge for DOCX.
-- `[ ]` Implement spreadsheet output for fraction logs.
-- `[ ]` Implement PPTX/isodose output strategy or keep as managed source artifact.
-- `[ ]` Implement PDF rendering/export.
+- `[!]` Pick production file storage provider and confirm HIPAA/BAA coverage.
+- `[~]` Implement template merge for DOCX. Adapter-ready lifecycle records exist; real DOCX generation libraries/integration remain future work.
+- `[~]` Implement spreadsheet output for fraction logs. Adapter-ready XLSX lifecycle records exist; real XLSX generation remains future work.
+- `[x]` Implement PPTX/isodose output strategy or keep as managed source artifact. PPTX/isodose remains a managed source artifact for pilot.
+- `[~]` Implement PDF rendering/export. Adapter-ready PDF export state exists; real PDF rendering remains future work.
 - `[ ]` Implement Drive template metadata sync.
-- `[ ]` Implement patient/course folder creation.
-- `[ ]` Store generated outputs outside the template library.
-- `[ ]` Track document versions, lock state, reviewer, signer, export state, eCW upload state, and storage URL.
-- `[ ]` Replace simulated `drive://` URLs with real storage references.
-- `[ ]` Add electronic signature provider or documented manual signature workflow.
-- `[ ]` Add eCW upload integration or manual upload confirmation workflow.
-- `[~]` Add audit events for open, render, sign, export, upload, void, and manual edit. Prototype render/sign audit events exist; immutable open/export/upload/void/manual-edit events remain incomplete.
-- `[ ]` Add tests for document generation, versioning, signing, lock rules, and eCW upload state.
+- `[~]` Implement patient/course folder creation. Folder placeholders exist; live provider folder creation remains future work.
+- `[x]` Store generated outputs outside the template library for pilot metadata via app-owned storage references.
+- `[x]` Track document versions, lock state, reviewer/signer, export state, eCW upload state, storage URL, void state, and manual edit exception metadata.
+- `[x]` Replace simulated `drive://` URLs with provider-neutral app storage references.
+- `[x]` Add electronic signature provider or documented manual signature workflow. Pilot uses guarded manual signature state, not a live e-signature provider.
+- `[x]` Add eCW upload integration or manual upload confirmation workflow. Pilot uses guarded manual eCW upload confirmation with external reference/reason.
+- `[~]` Add audit events for open, render, sign, export, upload, void, and manual edit. Prototype render/export/sign/upload/void/manual-edit audit events exist; immutable production audit storage and open/read persistence remain incomplete.
+- `[x]` Add tests for document generation, versioning, signing, lock rules, and eCW upload state.
 
 Pre-mortem:
 
@@ -466,7 +507,7 @@ Pre-mortem:
 
 ### Phase 6: Treatment Planning And Fractionation Worksheet
 
-Current completion: 78%
+Current completion: 100% for de-identified pilot/code-owned scope; formal clinical validation remains a production blocker.
 
 Goal: support treatment planning and daily treatment delivery records without prematurely claiming clinical calculation authority.
 
@@ -493,28 +534,33 @@ What is already done:
 - `[x]` Native fraction worksheet consumes scheduled fraction defaults, exposes IMG/OTV/PHYS gate badges, links prototype imaging evidence, and disables DOT approval while required imaging is missing.
 - `[x]` Historical corrections recalculate dependent active rows and reset downstream approvals when cumulative totals change.
 - `[x]` Voided rows remain retained for history and are excluded from active recalculation paths.
+- `[x]` Route-level `/api/igsrt` mutation authorization covers fraction approval and revision requests in addition to creation, correction, voiding, schedule, imaging, OTV, and physics actions.
+- `[x]` Server-owned Phase 6 wrappers enforce clinical mutation access before approval and revision commands.
+- `[x]` Invalid manual isodose override values are rejected, and duplicate active fraction rows for the same course/fraction number are blocked while voided rows remain historical.
+- `[x]` Phase 6 readiness includes a version-tied clinical validation checklist for reference curves, rounding/override policy, cumulative recalculation, and generated note language.
+- `[x]` Treatment Planning and patient Planning surfaces show clinician sign-off status, reference version, and required checklist evidence without offering a fake sign-off mutation.
 - `[x]` `scripts/phase6-treatment-planning.mjs` verifies Phase 6 service/API/schema/UI/test wiring.
 
 Remaining checklist:
 
 - `[!]` Obtain formal clinical validation for reference curves, calculations, rounding, override rules, cumulative dose handling, and generated notes.
 - `[x]` Version all clinical reference data and tie calculations to reference version for the prototype reference table.
-- `[~]` Persist fraction entries and recalculated dependent totals in app-owned in-memory state. Durable OPS/PHI database persistence remains a production blocker.
+- `[x]` Persist fraction entries and recalculated dependent totals in app-owned in-memory state for pilot. Durable OPS/PHI database persistence remains a production blocker.
 - `[x]` Add role-specific MD and DOT approval enforcement at the prototype API boundary.
 - `[x]` Add lock rules after final approval and clear correction workflows after lock.
 - `[x]` Add treatment schedule/fraction creation from prescription for signed or prototype-ready prescriptions.
 - `[x]` Connect imaging guidance completion to required image assets at the prototype evidence-gate level.
 - `[x]` Connect weekly physics checks and OTV/treatment management rules at the prototype schedule-gate level.
 - `[x]` Add redacted audit logs for fraction create/update/approve/revise/void plus schedule/image/OTV/physics actions.
-- `[~]` Add guardrail coverage for calculation edge cases and historical correction scenarios. Formal unit-test framework remains future work.
-- `[~]` Add API/workflow guardrail coverage for `/api/igsrt` Phase 6 actions. Full integration tests remain future work.
-- `[ ]` Add clinician sign-off checklist before any production use.
+- `[x]` Add guardrail coverage for calculation edge cases and historical correction scenarios. Formal unit-test framework remains future work.
+- `[x]` Add API/workflow guardrail coverage for `/api/igsrt` Phase 6 actions. Full integration tests remain future work.
+- `[x]` Add clinician sign-off checklist before any production use.
 
 Pre-mortem:
 
 - Failure mode: staff trust unvalidated calculation output because it looks polished.
 - Early warning: calculation warnings are hidden, ignored, or not tied to clinical sign-off.
-- Prevention: keep "Clinical Validation Required" visible until documented validation is complete and versioned.
+- Prevention: keep "Clinical Validation Required" and the clinician sign-off checklist visible until documented validation is complete and versioned.
 
 ### Phase 7: Billing, Coding, Audit, And Closeout
 
@@ -715,7 +761,7 @@ Target completion outcome: the strongest workflows become usable by roles in a p
 - `[ ]` Persist IGSRT simulation order, prescription, and fraction worksheet data.
 - `[x]` Add role enforcement for DOT/MD approvals.
 - `[~]` Add workflow transition gates. Evaluation helper exists; persisted transition command remains.
-- `[~]` Add document render/sign lifecycle persistence. Server command helper exists; durable output/version persistence remains.
+- `[x]` Add document render/sign lifecycle persistence for pilot metadata. Server command helper, version state, output state, locks, and manual upload confirmation exist; durable database/file persistence remains later work.
 - `[ ]` Add audit event persistence.
 
 ### Integration Sprint
@@ -723,10 +769,10 @@ Target completion outcome: the strongest workflows become usable by roles in a p
 Target completion outcome: the app starts replacing manual Drive/eCW handoffs.
 
 - `[ ]` Implement Drive template sync.
-- `[ ]` Implement generated file storage.
+- `[~]` Implement generated file storage. Pilot uses app-owned storage references; live provider writes remain future work.
 - `[ ]` Implement folder creation.
-- `[ ]` Implement eCW upload status workflow or integration.
-- `[ ]` Implement electronic/manual signature flow.
+- `[x]` Implement eCW upload status workflow or integration. Pilot uses guarded manual upload confirmation.
+- `[x]` Implement electronic/manual signature flow. Pilot uses guarded manual signature state and output locks.
 
 ### Production Hardening Sprint
 
@@ -752,3 +798,7 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-11 | Completed Phase 2A patient registration and record maintenance foundation. | Added `lib/server/patient-registration-service.ts`, repository contract with in-memory and Prisma-ready adapters, service-owned create/update API delegation, rollback checkpoints for prototype patient/course/task/document/audit creation, audit actor metadata fields, OPS/PHI schema placeholders, and `npm run test:phase2`. Focused checks and full `npm run verify` passed. | Continue to durable OPS/PHI persistence, real auth/session claims, workflow-definition selection, immutable audit storage, and true API integration tests. |
 | 2026-06-12 | Completed Phase 2 for de-identified pilot scope. | Added Prisma 6.19.3, OPS/PHI client generation and migration scripts, opt-in Prisma repository adapter, server-owned prototype session claims, initial-course intake fields, workflow-definition selection with universal fallback, workflow/task/document/audit/folder bundle post-conditions, guarded edit DTO, lifecycle and history routes, optimistic concurrency, redacted correction history, and expanded `npm run test:phase2`. `npm run verify` passed. | Keep production PHI use blocked until real auth/session controls, deployed OPS/PHI databases, immutable audit infrastructure, and broader PHI client-boundary hardening are complete. |
 | 2026-06-12 | Completed later-phase grounding pass across Phases 3, 4, 5, 7, 8, 9, and 10. | Added server-only workflow command, document lifecycle, and closeout readiness helpers; guarded generated-document GET/read lifecycle; moved raw patient-name formatting out of shared workflow helpers; removed generated content preview rendering from the IGSRT client; expanded HIPAA transitive client import guardrails; added `npm run test:later-phases`. `npm run verify` passed. | Use the new helper seams when implementing durable workflow transitions, document persistence, closeout locks, OPS/PHI repositories, and production DTO splits. |
+| 2026-06-12 | Completed Phase 4 template registry and document requirements for de-identified pilot scope. | Added canonical `lib/template-registry-data.json`, typed registry loader, template field maps, requirement reviewer/CPT/pilot-scope metadata, explicit pre-auth deferral and future placeholders, server-only source-hash verification, upgraded `/templates` and `/workflow/templates`, and `npm run test:phase4`. | Keep Phase 5 generation, live Drive sync, eCW upload, electronic signatures, immutable generated-file storage, and production clinical sign-off out of scope until their dedicated phases. |
+| 2026-06-12 | Completed Phase 3 course workflow engine and task queues for prototype-seam scope. | Added command-owned workflow/task repository seam, guarded workflow advancement, step/task mutation APIs, role-aware task queues, command clients for `/workflow` and `/tasks`, due-date/overdue rules, explicit optional/removed/N/A handling, redacted workflow/task audit events, expanded HIPAA route checks, and `npm run test:phase3`. Focused typecheck, lint, HIPAA, Phase 2, and Phase 3 checks passed. | Keep live OPS persistence, real authenticated actor claims, immutable audit storage, and external notifications in later production-hardening phases. |
+| 2026-06-12 | Completed Phase 5 document lifecycle for de-identified pilot scope. | Added server-only document lifecycle repository/adapter, tokenized lifecycle DTOs, APP_STORAGE output references, guarded render/export/sign/manual eCW upload/void/manual-edit commands, lifecycle metadata on document pages, `/api/igsrt` lifecycle delegation, RBAC actions, and `npm run test:phase5`. | Keep live Drive sync, production file storage/BAA confirmation, real DOCX/XLSX/PDF generation, eCW integration, electronic signatures, and immutable audit storage as production blockers. |
+| 2026-06-12 | Completed Phase 6 treatment planning and fractionation for de-identified pilot/code-owned scope. | Added Phase 6 mutation hardening, duplicate active fraction prevention, manual override validation, version-tied clinical sign-off checklist, Treatment Planning and patient Planning checklist surfaces, and expanded Phase 6/fraction guardrails. `npm run test:phase6`, `TMPDIR=/tmp npm run test:fraction-worksheet`, `npm run typecheck`, and `npm run lint` passed; final `npm run verify` reached `next build` and hit the existing `.next/build-manifest.json` clean-build artifact issue. | Keep formal clinical validation, durable OPS/PHI persistence, real authentication/session claims, immutable audit storage, production file/device integrations, and the Next clean-build manifest issue as production blockers. |

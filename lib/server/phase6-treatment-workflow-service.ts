@@ -50,6 +50,7 @@ export function correctFractionRow(access: PhiAccessContext, data: Record<string
 }
 
 export function approveFractionRow(access: PhiAccessContext, data: Record<string, unknown>) {
+  requireClinicalMutation(access);
   return approveFractionLogEntry({
     courseId: String(data.courseId),
     id: String(data.id),
@@ -60,6 +61,7 @@ export function approveFractionRow(access: PhiAccessContext, data: Record<string
 }
 
 export function requestFractionRowRevision(access: PhiAccessContext, data: Record<string, unknown>) {
+  requireClinicalMutation(access);
   return requestFractionRevision({
     courseId: String(data.courseId),
     id: String(data.id),

@@ -228,7 +228,14 @@ export function lookupIsodoseToDotPercent(input: {
 export function calculateFractionWorksheetEntry(
   input: FractionWorksheetInput,
   priorEntries: FractionLogEntry[],
-  options: { existingId?: string; calculatedAt?: string } = {}
+  options: {
+    existingId?: string;
+    calculatedAt?: string;
+    firstEntryCumulativeDelta?: {
+      previousDoseCgy: number;
+      previousDoseToDotCgy: number;
+    };
+  } = {}
 ) {
   const sortedPriorEntries = priorEntries
     .filter((entry) => entry.id !== options.existingId)
@@ -241,12 +248,20 @@ export function calculateFractionWorksheetEntry(
   const dosePerFractionCgy = Number(input.dosePerFractionCgy ?? input.dosePerFraction ?? 0);
   const depthOfTargetMm = parseNumeric(input.depthOfTargetMm ?? input.depthOfTarget) ?? 0;
   const lookup = lookupIsodoseToDotPercent({ energyKv, fieldSizeCm, depthOfTargetMm });
+  const hasExplicitOverrideField =
+    input.isodoseToDotPercent !== undefined &&
+    input.isodoseToDotPercent !== null &&
+    String(input.isodoseToDotPercent).trim() !== "";
   const overridePercent = Number(input.isodoseToDotPercent ?? input.isodosePercent);
   const hasOverride = Number.isFinite(overridePercent) && overridePercent > 0 && overridePercent <= 100;
   const overrideReason = String(input.isodoseOverrideReason ?? "").trim();
   const warnings = [...lookup.warnings];
   const calculatedAt = options.calculatedAt ?? new Date().toISOString();
   const canRetainLegacyOverride = Boolean(input.id) && !input.calculationStatus && !overrideReason;
+
+  if (hasExplicitOverrideField && !hasOverride) {
+    throw new Error("Manual isodose override must be greater than 0 and no more than 100.");
+  }
 
   if (lookup.percent === null && !hasOverride) {
     throw new Error("Missing isodose lookup requires a manual isodose percent and override reason.");
@@ -270,13 +285,24 @@ export function calculateFractionWorksheetEntry(
   }
 
   const doseToDotCgy = roundToClinicalTenth(dosePerFractionCgy * (isodoseToDotPercent / 100));
+  const providedCumulativeDoseCgy = Number(input.cumulativeDoseCgy ?? input.cumulativeDose ?? dosePerFractionCgy);
+  const providedCumulativeDoseToDotCgy = Number(input.cumulativeDoseToDotCgy ?? input.cumulativeDoseToDepth ?? doseToDotCgy);
   const cumulativeDoseCgy = previousEntry
     ? roundToClinicalTenth((previousEntry.cumulativeDoseCgy ?? previousEntry.cumulativeDose ?? 0) + dosePerFractionCgy)
-    : roundToClinicalTenth(Number(input.cumulativeDoseCgy ?? input.cumulativeDose ?? dosePerFractionCgy));
+    : roundToClinicalTenth(
+        options.firstEntryCumulativeDelta
+          ? Math.max(0, providedCumulativeDoseCgy - options.firstEntryCumulativeDelta.previousDoseCgy + dosePerFractionCgy)
+          : providedCumulativeDoseCgy
+      );
   const cumulativeDoseToDotCgy = roundToClinicalTenth(
     previousEntry
       ? (previousEntry.cumulativeDoseToDotCgy ?? previousEntry.cumulativeDoseToDepth ?? 0) + doseToDotCgy
-      : Number(input.cumulativeDoseToDotCgy ?? input.cumulativeDoseToDepth ?? doseToDotCgy)
+      : options.firstEntryCumulativeDelta
+        ? Math.max(
+            0,
+            providedCumulativeDoseToDotCgy - options.firstEntryCumulativeDelta.previousDoseToDotCgy + doseToDotCgy
+          )
+        : providedCumulativeDoseToDotCgy
   );
   const calculationMeta: FractionWorksheetCalculationMeta = {
     referenceVersion: fractionWorksheetReferenceVersion,

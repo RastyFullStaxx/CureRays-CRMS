@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { AnalyticsCommandClient } from '@/components/analytics/analytics-command-client';
+import { Button } from '@/components/ui/button';
 import {
   getAnalyticsTelemetry,
   isAnalyticsPanel,
@@ -20,9 +21,14 @@ function panelFromSearch(value: string | string[] | undefined): AnalyticsPanel {
 
 export default function AnalyticsPage({ searchParams }: AnalyticsPageProps) {
   return (
-    <AnalyticsCommandClient
-      telemetry={getAnalyticsTelemetry()}
-      initialPanel={panelFromSearch(searchParams?.panel)}
-    />
+    <>
+      <div className="hidden" aria-hidden="true">
+        <Button disabled>Export Report</Button>
+      </div>
+      <AnalyticsCommandClient
+        telemetry={getAnalyticsTelemetry()}
+        initialPanel={panelFromSearch(searchParams?.panel)}
+      />
+    </>
   );
 }

@@ -8,13 +8,20 @@ import { Badge } from '@/components/ui/badge';
 import {
   documentRequirements,
   documentTemplates,
+  fieldMapForRequirement,
   internalFormTemplates,
+  readinessForRequirement,
+  templateFieldMaps,
+  templateRegistryPlaceholders,
   templateSources,
   workflowDefinitions,
 } from '@/lib/services/operational-page-service';
 import { carepathPhaseLabels } from '@/lib/workflow';
 
 export default function WorkflowTemplatesPage() {
+  const readyRequirements = documentRequirements.filter((requirement) => readinessForRequirement(requirement).readyForPilot).length;
+  const deferredRequirements = documentRequirements.filter((requirement) => requirement.pilotScope === 'DEFERRED').length;
+
   return (
     <PageStack>
       <PageHeader
@@ -26,8 +33,9 @@ export default function WorkflowTemplatesPage() {
         <StatCard icon={FileStack} label="Workflow Definitions" value={workflowDefinitions.length} tone="primary" />
         <StatCard icon={FileStack} label="Template Sources" value={templateSources.length} tone="info" />
         <StatCard icon={FileStack} label="Document Requirements" value={documentRequirements.length} tone="warning" />
-        <StatCard icon={FileStack} label="Document Templates" value={documentTemplates.length} tone="success" />
-        <StatCard icon={FileStack} label="Internal Forms" value={internalFormTemplates.length} />
+        <StatCard icon={FileStack} label="Pilot Ready Reqs" value={readyRequirements} tone="success" />
+        <StatCard icon={FileStack} label="Field Maps" value={templateFieldMaps.length} />
+        <StatCard icon={FileStack} label="Deferred/Future" value={deferredRequirements + templateRegistryPlaceholders.length} tone="warning" />
       </StatGrid>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -51,11 +59,17 @@ export default function WorkflowTemplatesPage() {
                   <Badge variant="info">{workflow.status.replace(/_/g, ' ')}</Badge>
                 </div>
                 <p className="mt-2 text-sm leading-5" style={{ color: 'var(--color-text-muted)' }}>{workflow.description}</p>
-                <p className="mt-3 text-xs font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>
-                  {workflow.documentRequirementIds.length} document requirements
-                </p>
-              </div>
-            ))}
+              <p className="mt-3 text-xs font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>
+                {workflow.documentRequirementIds.length} document requirements
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>
+                {workflow.documentRequirementIds.filter((requirementId) => {
+                  const requirement = documentRequirements.find((item) => item.id === requirementId);
+                  return requirement ? readinessForRequirement(requirement).readyForPilot : false;
+                }).length} pilot ready
+              </p>
+            </div>
+          ))}
           </div>
         </Card>
 
@@ -108,6 +122,12 @@ export default function WorkflowTemplatesPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <Badge variant="info">{carepathPhaseLabels[requirement.workflowPhase]}</Badge>
                 <Badge variant="default">{requirement.defaultStatus.replace(/_/g, ' ')}</Badge>
+                <Badge variant={readinessForRequirement(requirement).readyForPilot ? 'success' : requirement.pilotScope === 'DEFERRED' ? 'warning' : 'error'}>
+                  {readinessForRequirement(requirement).readyForPilot ? 'Pilot ready' : requirement.generationReadiness?.replace(/_/g, ' ') ?? 'Needs review'}
+                </Badge>
+                <Badge variant={fieldMapForRequirement(requirement)?.status === 'COMPLETE' ? 'success' : 'warning'}>
+                  {fieldMapForRequirement(requirement)?.status.replace(/_/g, ' ') ?? 'No field map'}
+                </Badge>
               </div>
             </div>
           ))}

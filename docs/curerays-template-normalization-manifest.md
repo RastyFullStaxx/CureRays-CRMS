@@ -2,6 +2,8 @@
 
 This manifest preserves the original uploaded client template paths after the in-place move from `docs/2026 TEMPLATES/` to `docs/2026_TEMPLATES/`. SHA-256 hashes were captured after normalization to verify that the move/rename pass did not alter file contents.
 
+Phase 4 implementation note: these hashes are now copied into `lib/template-registry-data.json` and verified by `lib/server/template-registry-verification.ts` plus `npm run test:phase4`. The JSON registry is the app-readable source for pilot template metadata, field maps, approval status, explicit pre-auth deferrals, and future placeholders.
+
 | Original path | Normalized path | Diagnosis | Workflow step | App category | Status | SHA-256 | Notes |
 |---|---|---|---|---|---|---|---|
 | `docs/2026 TEMPLATES/AVS PCP Template.docx` | `docs/2026_TEMPLATES/00_UNIVERSAL/AVS_PCP.Universal.Template.docx` | Universal | Post-treatment / closure | AVS / PCP communication | MAPPING_IN_PROGRESS | `0187d4e34464c0d7bbe505f75978a9fd84fdfad00b1dd83d8186073ae5bf1eaf` | Universal source retained; field mapping incomplete. |
