@@ -25,8 +25,8 @@ export default function TreatmentDeliveryPage() {
         title="Treatment Delivery"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype fixed demo date"><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Record Treatment</Button>
+            <Button variant="secondary" disabled><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
+            <Button disabled><Plus className="h-4 w-4" /> Record Treatment</Button>
           </>
         }
       />
@@ -51,7 +51,7 @@ export default function TreatmentDeliveryPage() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {activeFractions.length === 0 ? (
             <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
-              No treatments are available in the prototype queue.
+              No treatments are available in the queue.
             </div>
           ) : activeFractions.map((fraction) => (
             <div key={fraction.id} className="clinical-muted-surface p-4">

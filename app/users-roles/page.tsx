@@ -115,7 +115,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
       <PageHeader
         title="Users & Roles"
         subtitle="Manage system users, role assignments, and permission matrices"
-        actions={<Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Invite User</Button>}
+        actions={<Button disabled><Plus className="h-4 w-4" /> Invite User</Button>}
       />
 
       {active === 0 && (
@@ -143,7 +143,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
             ]}
             rows={userRows}
             empty="No users are available."
-            emptyDescription="User rows will appear after prototype identity records are configured."
+            emptyDescription="User rows will appear after identity records are configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search users by name, email, or role...', keys: ['name', 'email', 'role', 'location', 'status', 'mfa'] }}
             filters={[
@@ -173,7 +173,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
             ]}
             rows={roleRows}
             empty="No roles are available."
-            emptyDescription="Role rows will appear after the prototype RBAC matrix is configured."
+            emptyDescription="Role rows will appear after the RBAC matrix is configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search roles...', keys: ['name', 'description', 'status', 'updated'] }}
             filters={[
@@ -198,7 +198,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
             ]}
             rows={permissionTableRows}
             empty="No permission modules are available."
-            emptyDescription="Permission rows will appear after the prototype role matrix is configured."
+            emptyDescription="Permission rows will appear after the role matrix is configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search modules or permissions...', keys: ['module', 'description', ...permissionRoles] }}
             filters={[

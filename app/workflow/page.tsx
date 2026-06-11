@@ -26,8 +26,8 @@ export default function WorkflowPage() {
         subtitle="Manage clinical workflow steps and approvals"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><ClipboardList className="h-4 w-4" /> Export</Button>
-            <Button disabled title="Prototype placeholder"><Settings className="h-4 w-4" /> Customize</Button>
+            <Button variant="secondary" disabled><ClipboardList className="h-4 w-4" /> Export</Button>
+            <Button disabled><Settings className="h-4 w-4" /> Customize</Button>
           </>
         }
       />
@@ -68,7 +68,7 @@ export default function WorkflowPage() {
         ]}
         rows={steps}
         empty="No workflow steps are available."
-        emptyDescription="Workflow steps will appear after prototype courses initialize their carepath definitions."
+        emptyDescription="Workflow steps will appear after courses initialize their carepath definitions."
         pageSize={15}
         search={{
           placeholder: 'Search workflow steps, patients, courses, or blockers...',

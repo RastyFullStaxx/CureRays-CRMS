@@ -24,8 +24,8 @@ export default function BillingPage() {
         subtitle="Track planned codes, quantities, documentation, pre-auth status, and audit readiness"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><WalletCards className="h-4 w-4" /> Export Billing Report</Button>
-            <Button disabled title="Prototype placeholder"><WalletCards className="h-4 w-4" /> Add Billing Item</Button>
+            <Button variant="secondary" disabled><WalletCards className="h-4 w-4" /> Export Billing Report</Button>
+            <Button disabled><WalletCards className="h-4 w-4" /> Add Billing Item</Button>
           </>
         }
       />

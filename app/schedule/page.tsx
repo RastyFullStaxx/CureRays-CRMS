@@ -25,9 +25,9 @@ export default function SchedulePage() {
         subtitle="Appointment calendar and provider scheduling"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype fixed demo date"><CalendarDays className="h-4 w-4" /> Today</Button>
-            <Button variant="secondary" disabled title="Prototype fixed demo date">May 6, 2026</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Appointment</Button>
+            <Button variant="secondary" disabled><CalendarDays className="h-4 w-4" /> Today</Button>
+            <Button variant="secondary" disabled>May 6, 2026</Button>
+            <Button disabled><Plus className="h-4 w-4" /> New Appointment</Button>
           </>
         }
       />
@@ -48,7 +48,7 @@ export default function SchedulePage() {
           <div className="flex min-w-max gap-3">
             {filteredAppointments.length === 0 ? (
               <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
-                No appointments are available for the prototype schedule.
+                No appointments are available for the schedule.
               </div>
             ) : filteredAppointments.slice(0, 8).map((appointment) => (
               <div
@@ -71,12 +71,12 @@ export default function SchedulePage() {
         <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
           <h2 className="mb-3 text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>May 4 - May 10, 2026</h2>
           <p className="text-sm font-semibold text-[var(--color-text-muted)]">
-            Static prototype calendar view. Interactive schedule filtering remains part of the scheduling workflow backlog.
+            Calendar view. Interactive schedule filtering remains part of the scheduling workflow backlog.
           </p>
         </div>
         {gridAppointments.length === 0 ? (
           <div className="border-t p-8 text-center text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>
-            No calendar blocks are available for the prototype schedule.
+            No calendar blocks are available for the schedule.
           </div>
         ) : (
         <div className="grid grid-cols-[56px_repeat(7,minmax(120px,1fr))] overflow-hidden border-t" style={{ borderColor: 'var(--color-border-soft)' }}>

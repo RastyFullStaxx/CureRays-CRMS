@@ -26,7 +26,7 @@ export default function SecurityLogsPage() {
       <PageHeader
         title="Security Logs"
         subtitle="HIPAA-compliant audit trail for security events and access tracking"
-        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Logs</Button>}
+        actions={<Button variant="secondary" disabled><Download className="h-4 w-4" /> Export Logs</Button>}
       />
 
       <StatGrid>
@@ -50,7 +50,7 @@ export default function SecurityLogsPage() {
         ]}
         rows={rows}
         empty="No security events are available."
-        emptyDescription="Redacted security events will appear after prototype access or workflow actions run."
+        emptyDescription="Redacted security events will appear after access or workflow actions run."
         search={{ placeholder: 'Search security events by user, patient, action, or timestamp...', keys: ['timestamp', 'userName', 'patientRef', 'action', 'entityType', 'entityId'] }}
         filters={[
           { id: 'userName', label: 'User' },

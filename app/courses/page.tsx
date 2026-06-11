@@ -26,8 +26,8 @@ export default function CoursesPage() {
         subtitle="Manage treatment courses across all patients"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><CalendarDays className="h-4 w-4" /> Export</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Course</Button>
+            <Button variant="secondary" disabled><CalendarDays className="h-4 w-4" /> Export</Button>
+            <Button disabled><Plus className="h-4 w-4" /> New Course</Button>
           </>
         }
       />
@@ -82,7 +82,7 @@ export default function CoursesPage() {
         ]}
         rows={courses}
         empty="No treatment courses are available."
-        emptyDescription="Courses will appear after a prototype patient/course bundle is created."
+        emptyDescription="Courses will appear after a patient/course bundle is created."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, diagnosis, course, or next action...',

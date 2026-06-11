@@ -21,8 +21,8 @@ export default function ImagingPage() {
         subtitle="Manage imaging assets and required categories"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Upload Imaging</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Imaging Study</Button>
+            <Button variant="secondary" disabled><Upload className="h-4 w-4" /> Upload Imaging</Button>
+            <Button disabled><Plus className="h-4 w-4" /> New Imaging Study</Button>
           </>
         }
       />
@@ -60,7 +60,7 @@ export default function ImagingPage() {
         ]}
         rows={assets}
         empty="No imaging assets are available."
-        emptyDescription="Tagged imaging evidence will appear after mock assets are attached to a course."
+        emptyDescription="Tagged imaging evidence will appear after assets are attached to a course."
         pageSize={10}
         search={{
           placeholder: 'Search modality, category, phase, patient, uploader, or status...',

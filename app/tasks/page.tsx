@@ -27,8 +27,8 @@ export default function TasksPage() {
         subtitle="Track and manage clinical and administrative tasks"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><ClipboardCheck className="h-4 w-4" /> Export</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Add Task</Button>
+            <Button variant="secondary" disabled><ClipboardCheck className="h-4 w-4" /> Export</Button>
+            <Button disabled><Plus className="h-4 w-4" /> Add Task</Button>
           </>
         }
       />

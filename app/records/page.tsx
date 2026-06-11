@@ -59,7 +59,7 @@ export default function RecordsPage() {
         ]}
         rows={rows}
         empty="No master records are available."
-        emptyDescription="Tokenized operational records will appear after prototype patient records are created."
+        emptyDescription="Tokenized operational records will appear after patient records are created."
         search={{ placeholder: 'Search master records by name, MRN, diagnosis, or phase...', keys: ['name', 'mrn', 'diagnosis', 'phase', 'course', 'status'] }}
         filters={[
           { id: 'phase', label: 'Phase' },

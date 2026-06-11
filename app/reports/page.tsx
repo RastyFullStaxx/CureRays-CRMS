@@ -42,7 +42,7 @@ export default function ReportsPage() {
             No report cohort is available
           </h2>
           <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
-            Operational report charts will appear after prototype patient records are available.
+            Operational report charts will appear after patient records are available.
           </p>
         </Card>
       ) : (

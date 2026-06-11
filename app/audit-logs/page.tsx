@@ -26,7 +26,7 @@ export default function AuditLogsPage() {
       <PageHeader
         title="Audit Logs"
         subtitle="Track system events, document changes, and administrative actions"
-        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Logs</Button>}
+        actions={<Button variant="secondary" disabled><Download className="h-4 w-4" /> Export Logs</Button>}
       />
 
       <StatGrid>
@@ -50,7 +50,7 @@ export default function AuditLogsPage() {
         ]}
         rows={rows}
         empty="No audit events are available."
-        emptyDescription="Redacted audit events will appear after prototype workflow actions run."
+        emptyDescription="Redacted audit events will appear after workflow actions run."
         search={{ placeholder: 'Search user, patient, course, action, entity, or timestamp...', keys: ['timestamp', 'userName', 'patientRef', 'action', 'entityType', 'entityId'] }}
         filters={[
           { id: 'userName', label: 'User' },

@@ -279,7 +279,7 @@ export function FractionWorksheetPanel({
     setError(null);
     setMessage(null);
 
-    const prototypeRole =
+    const requestRole =
       action === "approveFraction" || action === "requestFractionRevision"
         ? data.approvalType === "DOT"
           ? "RTT"
@@ -291,7 +291,7 @@ export function FractionWorksheetPanel({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-curerays-role": prototypeRole
+          "x-curerays-role": requestRole
         },
         body: JSON.stringify({ action, data })
       });

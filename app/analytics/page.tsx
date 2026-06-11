@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
       <PageHeader
         title="Analytics"
         subtitle="Operational insights, workflow metrics, and audit readiness"
-        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Report</Button>}
+        actions={<Button variant="secondary" disabled><Download className="h-4 w-4" /> Export Report</Button>}
       />
       <StatGrid>
         <StatCard icon={UsersRound} label="Active Courses" value={treatmentCourses.length} sub="All locations" />

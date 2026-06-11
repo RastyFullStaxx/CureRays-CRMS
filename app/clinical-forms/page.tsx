@@ -25,7 +25,7 @@ export default function ClinicalFormsPage() {
         <PageHeader
           title="Clinical Forms"
           subtitle="Structured clinical documentation and form management"
-          actions={<Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Clinical Form</Button>}
+          actions={<Button disabled><Plus className="h-4 w-4" /> New Clinical Form</Button>}
         />
         <StatGrid>
           <StatCard icon={NotebookTabs} label="Drafts" value={documents.filter((document) => document.status === "NOT_STARTED").length || 8} sub="Structured forms" />
@@ -56,8 +56,8 @@ export default function ClinicalFormsPage() {
               { key: 'assignedStaff', label: 'Assigned Staff' },
               { key: 'actions', label: 'Actions', render: () => (
                 <div className="flex flex-wrap gap-1.5">
-                  <Button variant="secondary" size="sm" disabled title="Prototype placeholder"><Eye className="h-3.5 w-3.5" /> Open</Button>
-                  <Button variant="secondary" size="sm" disabled title="Prototype placeholder"><PenLine className="h-3.5 w-3.5" /> Edit Fields</Button>
+                  <Button variant="secondary" size="sm" disabled><Eye className="h-3.5 w-3.5" /> Open</Button>
+                  <Button variant="secondary" size="sm" disabled><PenLine className="h-3.5 w-3.5" /> Edit Fields</Button>
                 </div>
               )},
             ]}

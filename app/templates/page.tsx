@@ -22,8 +22,8 @@ export default function TemplatesPage() {
         subtitle="Manage document, workflow, and clinical form templates"
         actions={
           <>
-            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Upload Template</Button>
-            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Create Template</Button>
+            <Button variant="secondary" disabled><Upload className="h-4 w-4" /> Upload Template</Button>
+            <Button disabled><Plus className="h-4 w-4" /> Create Template</Button>
           </>
         }
       />

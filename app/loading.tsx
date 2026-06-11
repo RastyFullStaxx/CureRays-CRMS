@@ -7,10 +7,10 @@ export default function Loading() {
         <LoadingSpinner size="lg" />
         <div>
           <p className="font-heading text-base font-bold text-[var(--color-text)]">
-            Loading prototype workspace
+            Loading workspace
           </p>
           <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
-            Preparing operational demo data.
+            Preparing operational data.
           </p>
         </div>
       </div>

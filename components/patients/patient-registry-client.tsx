@@ -175,7 +175,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
     <PageStack>
       <PageHeader
         title="Patients"
-        subtitle="Tokenized operational registry. Raw PHI opens only through guarded prototype actions."
+        subtitle="Tokenized operational registry with authorized patient record access."
         actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Patient</Button>}
       />
 
@@ -247,7 +247,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
       <Modal open={modalMode !== null} onClose={closeModal} title={modalMode === 'edit' ? 'Edit PHI Record' : 'Add Patient'} width={620}>
         <form className="grid gap-4" onSubmit={submitForm}>
           <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
-            Prototype PHI action using temporary <span className="font-bold text-[var(--color-primary)]">x-curerays-role: RAD_ONC</span>. Mutation responses remain redacted.
+            Authorized PHI action using <span className="font-bold text-[var(--color-primary)]">x-curerays-role: RAD_ONC</span>. Mutation responses remain redacted.
           </div>
           {error ? <p className="text-sm font-semibold text-[var(--color-error)]">{error}</p> : null}
 

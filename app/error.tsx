@@ -15,10 +15,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
           <AlertTriangle className="h-6 w-6" aria-hidden="true" />
         </div>
         <h2 className="mt-4 font-heading text-lg font-bold text-[var(--color-text)]">
-          This prototype view could not load
+          This view could not load
         </h2>
         <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
-          The demo shell is keeping error details out of the browser view. Try loading the route again.
+          Error details are kept out of the browser view. Try loading the route again.
         </p>
         <button
           type="button"
