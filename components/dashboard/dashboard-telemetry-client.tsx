@@ -780,7 +780,7 @@ function TemplateCoverageStrip({ telemetry }: { telemetry: DashboardTelemetry })
           <article key={item.label} className="dashboard-template-row">
             <div>
               <strong>{item.label}</strong>
-              <span>{item.active}/{item.total} active</span>
+              <span>{item.active}/{item.total} Active</span>
             </div>
             <em aria-label={`${item.label} template coverage`}>
               <i className="is-active" style={{ width: `${active}%` }} />
@@ -807,7 +807,7 @@ function AuditReadinessRibbon({ telemetry }: { telemetry: DashboardTelemetry }) 
           <em>
             <i style={{ width: `${item.percent}%` }} />
           </em>
-          <p>{item.ready} ready · {item.notReady} open</p>
+          <p>{item.ready} Ready · {item.notReady} Open</p>
         </article>
       ))}
     </div>
@@ -830,7 +830,7 @@ function ClinicalSafetyScore({ telemetry }: { telemetry: DashboardTelemetry }) {
           <article key={component.label} data-tone={component.tone}>
             <span>{component.label}</span>
             <strong>{component.value}</strong>
-            <em>{component.points} pts</em>
+            <em>{component.points} Pts</em>
           </article>
         ))}
       </div>
@@ -860,12 +860,18 @@ function InterventionQueue({ telemetry }: { telemetry: DashboardTelemetry }) {
     <div className="dashboard-intervention-list">
       {telemetry.risk.interventions.map((item) => (
         <article key={item.id} data-tone={item.tone}>
-          <div>
-            <strong>{item.courseRef}</strong>
-            <span>{item.reasonCategory}</span>
+          <div className="dashboard-intervention-main">
+            <div>
+              <strong>{item.courseRef}</strong>
+              <span>{item.reasonCategory}</span>
+            </div>
+            <p>{item.action}</p>
           </div>
-          <p>{item.action}</p>
-          <em>{item.phase} · {item.owner} · {item.dueState}</em>
+          <div className="dashboard-intervention-meta">
+            <span>{item.phase}</span>
+            <span>{item.owner}</span>
+            <b>{item.dueState}</b>
+          </div>
         </article>
       ))}
     </div>
@@ -921,7 +927,7 @@ function CourseDistribution({ telemetry }: { telemetry: DashboardTelemetry }) {
         </ResponsiveContainer>
         <div className="dashboard-donut-center">
           <strong>{total}</strong>
-          <span>courses</span>
+          <span>Courses</span>
         </div>
       </div>
       <div className="dashboard-donut-legend">
@@ -1004,7 +1010,7 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
         <span><i className="is-review" />Review</span>
       </div>
       <div className="dashboard-provider-load">
-        <span className="dashboard-provider-load-title">Provider load</span>
+        <span className="dashboard-provider-load-title">Provider Load</span>
         {telemetry.providerLoad.map((provider) => (
           <div key={provider.provider}>
             <span>{provider.provider}</span>
@@ -1025,17 +1031,17 @@ function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
       <div className="dashboard-signal-load-panel">
         <div className="dashboard-signal-load-value">
           <strong>{telemetry.signal.loadPercent}%</strong>
-          <span>Carepath load</span>
+          <span>Carepath Load</span>
         </div>
         <p>{telemetry.signal.summary}</p>
       </div>
-      <div className="dashboard-signal-stage-grid" aria-label="Carepath stage load">
+      <div className="dashboard-signal-stage-grid" aria-label="Carepath Stage Load">
         {telemetry.signal.stages.map((stage) => (
           <article key={stage.id} className="dashboard-signal-stage-card" data-stage={stage.id}>
             <em>{stage.count}</em>
             <div>
               <b>{stage.label}</b>
-              <span>Active items</span>
+              <span>Active Items</span>
             </div>
           </article>
         ))}
@@ -1048,7 +1054,7 @@ function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-panel dashboard-panel-ops" role="tabpanel" id="dashboard-panel-ops" aria-labelledby="dashboard-tab-ops">
       <article className="dashboard-card dashboard-signal-card dashboard-ops-signal">
-        <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
+        <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized Patient-Course-Task Graph" />
         <div className="dashboard-signal-body">
           <div className="dashboard-signal-plot">
             <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
@@ -1061,15 +1067,15 @@ function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
       </div>
       <div className="dashboard-ops-secondary">
         <article className="dashboard-card dashboard-phase-card">
-          <SectionTitle icon={CheckCircle2} title="Course Distribution" meta="Upcoming / on treatment / post" />
+          <SectionTitle icon={CheckCircle2} title="Course Distribution" meta="Upcoming / On Treatment / Post" />
           <CourseDistribution telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-throughput-card">
-          <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions plus active load" />
+          <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions Plus Active Load" />
           <WeeklyThroughput telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-capacity-card">
-          <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-band density and provider pressure" />
+          <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-Band Density And Provider Pressure" />
           <CapacityMatrix telemetry={telemetry} />
         </article>
       </div>
@@ -1084,25 +1090,25 @@ function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; 
         <KpiStrip items={telemetry.carepath.metrics} />
       </div>
       <article className="dashboard-card dashboard-carepath-pulse-card">
-        <SectionTitle icon={Activity} title="Carepath Pulse" meta={`Handoff pressure as of ${telemetry.carepath.asOfLabel}`} />
+        <SectionTitle icon={Activity} title="Carepath Pulse" meta={`Handoff Pressure As Of ${telemetry.carepath.asOfLabel}`} />
         <CarepathPulseSankey telemetry={telemetry} palette={palette} />
       </article>
       <div className="dashboard-carepath-side">
         <article className="dashboard-card dashboard-runway-card">
-          <SectionTitle icon={GitBranch} title="Next Handoff Runway" meta="Top releases to move courses forward" />
+          <SectionTitle icon={GitBranch} title="Next Handoff Runway" meta="Top Releases To Move Courses Forward" />
           <HandoffRunway telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-template-card">
-          <SectionTitle icon={FileText} title="Template Coverage" meta="Active, draft, mapping, and missing states" />
+          <SectionTitle icon={FileText} title="Template Coverage" meta="Active, Draft, Mapping, And Missing States" />
           <TemplateCoverageStrip telemetry={telemetry} />
         </article>
       </div>
       <article className="dashboard-card dashboard-owner-heatmap-card">
-        <SectionTitle icon={UsersRound} title="Phase x Owner Pressure" meta="Open work by workflow lane and accountable role" />
+        <SectionTitle icon={UsersRound} title="Phase x Owner Pressure" meta="Open Work By Workflow Lane And Accountable Role" />
         <PhaseOwnerHeatmap telemetry={telemetry} palette={palette} />
       </article>
       <article className="dashboard-card dashboard-audit-card">
-        <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready evidence versus open evidence by phase" />
+        <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready Evidence Versus Open Evidence By Phase" />
         <AuditReadinessRibbon telemetry={telemetry} />
       </article>
     </div>
@@ -1113,27 +1119,27 @@ function RiskDashboard({ palette, telemetry }: { palette: DashboardPalette; tele
   return (
     <div className="dashboard-panel dashboard-panel-risk" role="tabpanel" id="dashboard-panel-risk" aria-labelledby="dashboard-tab-risk">
       <article className="dashboard-card dashboard-safety-score-card">
-        <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Explainable weighted risk components" />
+        <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Explainable Weighted Risk Components" />
         <ClinicalSafetyScore telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-risk-graph-card">
-        <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized course-to-risk-domain graph" />
+        <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized Course-To-Risk-Domain Graph" />
         <RiskConstellationGraph telemetry={telemetry} palette={palette} />
       </article>
       <article className="dashboard-card dashboard-intervention-card">
-        <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-priority clinical safety actions" />
+        <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-Priority Clinical Safety Actions" />
         <InterventionQueue telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-safety-matrix-card">
-        <SectionTitle icon={Activity} title="Safety Matrix" meta="Risk domains by carepath phase" />
+        <SectionTitle icon={Activity} title="Safety Matrix" meta="Risk Domains By Carepath Phase" />
         <SafetyMatrixHeatmap telemetry={telemetry} palette={palette} />
       </article>
       <article className="dashboard-card dashboard-fraction-watch-card">
-        <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / override exceptions only" />
+        <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / Override Exceptions Only" />
         <FractionApprovalWatch telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-phi-mini-card">
-        <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard payload assurance" />
+        <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard Payload Assurance" />
         <PhiAssuranceMini telemetry={telemetry} />
       </article>
     </div>
@@ -1148,10 +1154,10 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
     <section className="dashboard-command" data-active-panel={activePanel}>
       <header className="dashboard-command-header">
         <div>
-          <p className="clinical-label">CureRays command center</p>
+          <p className="clinical-label">CureRays Command Center</p>
           <h1>Clinical Operations</h1>
         </div>
-        <div className="dashboard-command-tabs" role="tablist" aria-label="Dashboard panes">
+        <div className="dashboard-command-tabs" role="tablist" aria-label="Dashboard Panes">
           {panelTabs.map((tab) => (
             <button
               key={tab.id}
