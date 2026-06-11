@@ -9,13 +9,11 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardList,
-  Database,
   FileText,
   GitBranch,
   LockKeyhole,
   Network,
   PenLine,
-  RadioTower,
   ShieldCheck,
   UsersRound,
 } from 'lucide-react';
@@ -74,15 +72,6 @@ const metricIcons: Record<DashboardMetric['icon'], LucideIcon> = {
   schedule: CalendarDays,
   tasks: ClipboardList,
   documents: FileText,
-};
-
-const phiIcons: Record<string, LucideIcon> = {
-  client: RadioTower,
-  api: GitBranch,
-  ops: Database,
-  redaction: ShieldCheck,
-  audit: Activity,
-  phi: LockKeyhole,
 };
 
 type DashboardPalette = {
@@ -897,39 +886,6 @@ function PhiAssuranceMini({ telemetry }: { telemetry: DashboardTelemetry }) {
   );
 }
 
-function CarepathSimulation({ telemetry }: { telemetry: DashboardTelemetry }) {
-  return (
-    <div className="dashboard-carepath-lanes" role="img" aria-label="Animated carepath lane simulation">
-      {telemetry.carepathLanes.map((lane, laneIndex) => (
-        <div key={lane.id} className="dashboard-carepath-lane" data-stage={lane.id}>
-          <div className="dashboard-carepath-lane-head">
-            <span>{lane.label}</span>
-            <strong>{lane.count}</strong>
-          </div>
-          <div className="dashboard-carepath-track" aria-label={`${lane.label} pressure ${lane.pressure}%`}>
-            <i className="dashboard-carepath-pressure" style={{ width: `${lane.pressure}%` }} />
-            {lane.tokens.map((token, tokenIndex) => (
-              <span
-                key={token.id}
-                className="dashboard-carepath-token"
-                data-tone={token.tone}
-                style={{
-                  '--token-offset': `${token.offset}%`,
-                  '--token-delay': `${(laneIndex * 0.62 + tokenIndex * 0.48).toFixed(2)}s`,
-                } as CSSProperties}
-              >
-                <i />
-                <b>{token.label}</b>
-              </span>
-            ))}
-          </div>
-          <em>{lane.handoff} handoffs</em>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function CourseDistribution({ telemetry }: { telemetry: DashboardTelemetry }) {
   const total = telemetry.courseDistribution.reduce((sum, item) => sum + item.value, 0);
 
@@ -1008,19 +964,6 @@ function WeeklyThroughput({ telemetry }: { telemetry: DashboardTelemetry }) {
   );
 }
 
-function AttentionQueue({ telemetry }: { telemetry: DashboardTelemetry }) {
-  return (
-    <div className="dashboard-attention-list">
-      {telemetry.attention.map((item) => (
-        <div key={item.label} className="dashboard-attention-row">
-          <span>{item.label}</span>
-          <strong style={{ color: item.color }}>{item.value}</strong>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
   const capacityTrend = useMemo(() => {
     return telemetry.capacityBands.map((band) => ({
@@ -1076,63 +1019,6 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
   );
 }
 
-function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
-  const { links, nodes } = telemetry.phiBoundary;
-  const nodesById = useMemo(() => {
-    return nodes.reduce<Record<string, (typeof nodes)[number]>>((current, node) => {
-      current[node.id] = node;
-      return current;
-    }, {});
-  }, [nodes]);
-
-  return (
-    <div className="dashboard-phi">
-      <svg viewBox="0 0 100 82" role="img" aria-label="PHI isolation graph">
-        {links.map((link) => {
-          const source = nodesById[link.source];
-          const target = nodesById[link.target];
-          if (!source || !target) {
-            return null;
-          }
-          const midX = (source.x + target.x) / 2;
-          const midY = (source.y + target.y) / 2;
-
-          return (
-            <g key={`${link.source}-${link.target}`}>
-              <line
-                x1={source.x}
-                y1={source.y}
-                x2={target.x}
-                y2={target.y}
-                className={link.isolated ? 'dashboard-phi-link is-isolated' : 'dashboard-phi-link'}
-              />
-              <text x={midX} y={midY - 1.5} className="dashboard-phi-link-label">{link.label}</text>
-            </g>
-          );
-        })}
-        {nodes.map((node, nodeIndex) => {
-          const Icon = phiIcons[node.id] ?? ShieldCheck;
-          return (
-            <g
-              key={node.id}
-              className="dashboard-phi-node"
-              data-tone={node.tone}
-              style={{ '--phi-delay': `${(nodeIndex * -0.48).toFixed(2)}s` } as CSSProperties}
-              transform={`translate(${node.x} ${node.y})`}
-            >
-              <circle r="5.4" />
-              <foreignObject x="-4" y="-4" width="8" height="8">
-                <div className="dashboard-phi-icon"><Icon size={10} /></div>
-              </foreignObject>
-              <text y="10.4" textAnchor="middle">{node.label}</text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
 function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-signal-overlay">
@@ -1158,8 +1044,105 @@ function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
   );
 }
 
+function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-panel dashboard-panel-ops" role="tabpanel" id="dashboard-panel-ops" aria-labelledby="dashboard-tab-ops">
+      <article className="dashboard-card dashboard-signal-card dashboard-ops-signal">
+        <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
+        <div className="dashboard-signal-body">
+          <div className="dashboard-signal-plot">
+            <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
+          </div>
+          <SignalLoad telemetry={telemetry} />
+        </div>
+      </article>
+      <div className="dashboard-metric-grid dashboard-ops-metrics">
+        {telemetry.metrics.map((metric) => <MetricTile key={metric.label} metric={metric} />)}
+      </div>
+      <div className="dashboard-ops-secondary">
+        <article className="dashboard-card dashboard-phase-card">
+          <SectionTitle icon={CheckCircle2} title="Course Distribution" meta="Upcoming / on treatment / post" />
+          <CourseDistribution telemetry={telemetry} />
+        </article>
+        <article className="dashboard-card dashboard-throughput-card">
+          <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions plus active load" />
+          <WeeklyThroughput telemetry={telemetry} />
+        </article>
+        <article className="dashboard-card dashboard-capacity-card">
+          <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-band density and provider pressure" />
+          <CapacityMatrix telemetry={telemetry} />
+        </article>
+      </div>
+    </div>
+  );
+}
+
+function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-panel dashboard-panel-carepath" role="tabpanel" id="dashboard-panel-flow" aria-labelledby="dashboard-tab-flow">
+      <div className="dashboard-carepath-metrics">
+        <KpiStrip items={telemetry.carepath.metrics} />
+      </div>
+      <article className="dashboard-card dashboard-carepath-pulse-card">
+        <SectionTitle icon={Activity} title="Carepath Pulse" meta={`Handoff pressure as of ${telemetry.carepath.asOfLabel}`} />
+        <CarepathPulseSankey telemetry={telemetry} palette={palette} />
+      </article>
+      <div className="dashboard-carepath-side">
+        <article className="dashboard-card dashboard-runway-card">
+          <SectionTitle icon={GitBranch} title="Next Handoff Runway" meta="Top releases to move courses forward" />
+          <HandoffRunway telemetry={telemetry} />
+        </article>
+        <article className="dashboard-card dashboard-template-card">
+          <SectionTitle icon={FileText} title="Template Coverage" meta="Active, draft, mapping, and missing states" />
+          <TemplateCoverageStrip telemetry={telemetry} />
+        </article>
+      </div>
+      <article className="dashboard-card dashboard-owner-heatmap-card">
+        <SectionTitle icon={UsersRound} title="Phase x Owner Pressure" meta="Open work by workflow lane and accountable role" />
+        <PhaseOwnerHeatmap telemetry={telemetry} palette={palette} />
+      </article>
+      <article className="dashboard-card dashboard-audit-card">
+        <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready evidence versus open evidence by phase" />
+        <AuditReadinessRibbon telemetry={telemetry} />
+      </article>
+    </div>
+  );
+}
+
+function RiskDashboard({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-panel dashboard-panel-risk" role="tabpanel" id="dashboard-panel-risk" aria-labelledby="dashboard-tab-risk">
+      <article className="dashboard-card dashboard-safety-score-card">
+        <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Explainable weighted risk components" />
+        <ClinicalSafetyScore telemetry={telemetry} />
+      </article>
+      <article className="dashboard-card dashboard-risk-graph-card">
+        <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized course-to-risk-domain graph" />
+        <RiskConstellationGraph telemetry={telemetry} palette={palette} />
+      </article>
+      <article className="dashboard-card dashboard-intervention-card">
+        <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-priority clinical safety actions" />
+        <InterventionQueue telemetry={telemetry} />
+      </article>
+      <article className="dashboard-card dashboard-safety-matrix-card">
+        <SectionTitle icon={Activity} title="Safety Matrix" meta="Risk domains by carepath phase" />
+        <SafetyMatrixHeatmap telemetry={telemetry} palette={palette} />
+      </article>
+      <article className="dashboard-card dashboard-fraction-watch-card">
+        <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / override exceptions only" />
+        <FractionApprovalWatch telemetry={telemetry} />
+      </article>
+      <article className="dashboard-card dashboard-phi-mini-card">
+        <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard payload assurance" />
+        <PhiAssuranceMini telemetry={telemetry} />
+      </article>
+    </div>
+  );
+}
+
 export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClientProps) {
   const [activePanel, setActivePanel] = useState<DashboardPanel>('ops');
+  const palette = useDashboardPalette();
 
   return (
     <section className="dashboard-command" data-active-panel={activePanel}>
@@ -1175,6 +1158,8 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
               type="button"
               role="tab"
               aria-selected={activePanel === tab.id}
+              id={`dashboard-tab-${tab.id}`}
+              aria-controls={`dashboard-panel-${tab.id}`}
               onClick={() => setActivePanel(tab.id)}
             >
               {tab.label}
@@ -1184,50 +1169,9 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
       </header>
 
       <div className="dashboard-command-grid">
-        <div className="dashboard-group dashboard-group-ops" data-panel="ops">
-          <article className="dashboard-card dashboard-signal-card">
-            <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
-            <div className="dashboard-signal-body">
-              <div className="dashboard-signal-plot">
-                <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
-              </div>
-              <SignalLoad telemetry={telemetry} />
-            </div>
-          </article>
-          <div className="dashboard-metric-grid">
-            {telemetry.metrics.map((metric) => <MetricTile key={metric.label} metric={metric} />)}
-          </div>
-        </div>
-
-        <div className="dashboard-group dashboard-group-flow" data-panel="flow">
-          <article className="dashboard-card dashboard-flow-card">
-            <SectionTitle icon={Activity} title="Carepath Flow Simulation" meta="Stage pressure and handoff volume" />
-            <CarepathSimulation telemetry={telemetry} />
-          </article>
-          <article className="dashboard-card dashboard-phase-card">
-            <SectionTitle icon={CheckCircle2} title="Course Distribution" meta="Upcoming / on treatment / post" />
-            <CourseDistribution telemetry={telemetry} />
-          </article>
-          <article className="dashboard-card dashboard-throughput-card">
-            <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions plus active load" />
-            <WeeklyThroughput telemetry={telemetry} />
-          </article>
-        </div>
-
-        <div className="dashboard-group dashboard-group-risk" data-panel="risk">
-          <article className="dashboard-card dashboard-attention-card">
-            <SectionTitle icon={AlertTriangle} title="Attention Queue" meta="Risk signals only" />
-            <AttentionQueue telemetry={telemetry} />
-          </article>
-          <article className="dashboard-card dashboard-capacity-card">
-            <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-band density and provider pressure" />
-            <CapacityMatrix telemetry={telemetry} />
-          </article>
-          <article className="dashboard-card dashboard-phi-card">
-            <SectionTitle icon={ShieldCheck} title="PHI Isolation Graph" meta="Zero-trust dashboard boundary" />
-            <PhiBoundaryGraph telemetry={telemetry} />
-          </article>
-        </div>
+        {activePanel === 'ops' ? <OperationsDashboard telemetry={telemetry} /> : null}
+        {activePanel === 'flow' ? <CarepathDashboard telemetry={telemetry} palette={palette} /> : null}
+        {activePanel === 'risk' ? <RiskDashboard telemetry={telemetry} palette={palette} /> : null}
       </div>
     </section>
   );

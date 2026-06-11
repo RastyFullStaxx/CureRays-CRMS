@@ -44,7 +44,6 @@ export function DashboardEChart({ ariaLabel, className, option }: DashboardEChar
 
     const chart = echarts.init(host, undefined, { renderer: 'canvas' });
     chartRef.current = chart;
-    chart.setOption(option, { notMerge: true });
 
     const observer = new ResizeObserver(() => {
       chart.resize();

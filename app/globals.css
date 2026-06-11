@@ -387,28 +387,108 @@ button, input, select, textarea {
 .dashboard-command-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(330px, 1.18fr) minmax(310px, 0.96fr) minmax(292px, 0.86fr);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
 }
 
-.dashboard-group {
+.dashboard-panel {
   display: grid;
   gap: 10px;
   min-height: 0;
   overflow: hidden;
 }
 
-.dashboard-group-ops {
+.dashboard-panel-ops {
+  grid-template-areas:
+    "signal side"
+    "metrics side";
+  grid-template-columns: minmax(0, 1.36fr) minmax(304px, 0.74fr);
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
-.dashboard-group-flow {
-  grid-template-rows: minmax(0, 1.05fr) minmax(0, 0.78fr) minmax(0, 0.64fr);
+.dashboard-ops-signal {
+  grid-area: signal;
 }
 
-.dashboard-group-risk {
-  grid-template-rows: minmax(0, 0.72fr) minmax(0, 1.02fr) minmax(0, 0.86fr);
+.dashboard-ops-metrics {
+  grid-area: metrics;
+}
+
+.dashboard-ops-secondary {
+  display: grid;
+  gap: 10px;
+  grid-area: side;
+  grid-template-rows: minmax(156px, 0.62fr) minmax(142px, 0.54fr) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-panel-carepath {
+  grid-template-areas:
+    "metrics metrics"
+    "pulse side"
+    "heat audit";
+  grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.82fr);
+  grid-template-rows: auto minmax(0, 1fr) minmax(176px, 0.56fr);
+}
+
+.dashboard-carepath-metrics {
+  grid-area: metrics;
+  min-width: 0;
+}
+
+.dashboard-carepath-pulse-card {
+  grid-area: pulse;
+}
+
+.dashboard-carepath-side {
+  display: grid;
+  gap: 10px;
+  grid-area: side;
+  grid-template-rows: minmax(0, 1fr) minmax(154px, 0.58fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-owner-heatmap-card {
+  grid-area: heat;
+}
+
+.dashboard-audit-card {
+  grid-area: audit;
+}
+
+.dashboard-panel-risk {
+  grid-template-areas:
+    "score graph queue"
+    "matrix fraction phi";
+  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 1.18fr) minmax(286px, 0.78fr);
+  grid-template-rows: minmax(0, 1fr) minmax(184px, 0.58fr);
+}
+
+.dashboard-safety-score-card {
+  grid-area: score;
+}
+
+.dashboard-risk-graph-card {
+  grid-area: graph;
+}
+
+.dashboard-intervention-card {
+  grid-area: queue;
+}
+
+.dashboard-safety-matrix-card {
+  grid-area: matrix;
+}
+
+.dashboard-fraction-watch-card {
+  grid-area: fraction;
+}
+
+.dashboard-phi-mini-card {
+  grid-area: phi;
 }
 
 .dashboard-card,
@@ -475,6 +555,402 @@ button, input, select, textarea {
   flex: 1;
   min-height: 0;
   width: 100%;
+}
+
+.dashboard-echart {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.dashboard-echart-sankey {
+  min-height: 320px;
+}
+
+.dashboard-echart-graph {
+  min-height: 300px;
+}
+
+.dashboard-kpi-strip {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-kpi-chip {
+  background:
+    linear-gradient(180deg, var(--color-surface-sheen-start), var(--color-surface-sheen-end)),
+    var(--color-card);
+  border: var(--border-container);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 5px;
+  min-height: 78px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px;
+  position: relative;
+}
+
+.dashboard-kpi-chip::before,
+.dashboard-runway-item::before,
+.dashboard-watch-list article::before,
+.dashboard-intervention-list article::before,
+.dashboard-phi-assurance article::before {
+  background: var(--color-primary);
+  border-radius: 999px;
+  content: "";
+  inset: 10px auto 10px 0;
+  position: absolute;
+  width: 3px;
+}
+
+.dashboard-kpi-chip[data-tone="success"]::before,
+.dashboard-runway-item[data-tone="success"]::before,
+.dashboard-watch-list article[data-tone="success"]::before,
+.dashboard-intervention-list article[data-tone="success"]::before,
+.dashboard-phi-assurance article[data-tone="success"]::before {
+  background: var(--color-success);
+}
+
+.dashboard-kpi-chip[data-tone="warning"]::before,
+.dashboard-runway-item[data-tone="warning"]::before,
+.dashboard-watch-list article[data-tone="warning"]::before,
+.dashboard-intervention-list article[data-tone="warning"]::before,
+.dashboard-phi-assurance article[data-tone="warning"]::before {
+  background: var(--color-warning);
+}
+
+.dashboard-kpi-chip[data-tone="error"]::before,
+.dashboard-runway-item[data-tone="error"]::before,
+.dashboard-watch-list article[data-tone="error"]::before,
+.dashboard-intervention-list article[data-tone="error"]::before,
+.dashboard-phi-assurance article[data-tone="error"]::before {
+  background: var(--color-error);
+}
+
+.dashboard-kpi-chip[data-tone="info"]::before,
+.dashboard-runway-item[data-tone="info"]::before,
+.dashboard-watch-list article[data-tone="info"]::before,
+.dashboard-intervention-list article[data-tone="info"]::before,
+.dashboard-phi-assurance article[data-tone="info"]::before {
+  background: var(--color-info);
+}
+
+.dashboard-kpi-chip span,
+.dashboard-kpi-chip em,
+.dashboard-runway-item p,
+.dashboard-runway-item em,
+.dashboard-runway-state,
+.dashboard-template-row span,
+.dashboard-audit-ribbon p,
+.dashboard-safety-score p,
+.dashboard-safety-components span,
+.dashboard-safety-components em,
+.dashboard-watch-list p,
+.dashboard-watch-list em,
+.dashboard-intervention-list p,
+.dashboard-intervention-list em,
+.dashboard-phi-assurance span,
+.dashboard-phi-assurance em {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+}
+
+.dashboard-kpi-chip strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: clamp(20px, 1.7vw, 28px);
+  line-height: 1;
+}
+
+.dashboard-runway-list,
+.dashboard-template-coverage,
+.dashboard-watch-list,
+.dashboard-intervention-list,
+.dashboard-phi-assurance {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dashboard-runway-item,
+.dashboard-watch-list article,
+.dashboard-intervention-list article,
+.dashboard-phi-assurance article {
+  background: color-mix(in srgb, var(--color-card-muted) 72%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.dashboard-runway-item {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(104px, 0.42fr);
+  min-height: 66px;
+  padding: 9px 10px 9px 13px;
+}
+
+.dashboard-runway-rank {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  display: inline-flex;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: var(--font-weight-bold);
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.dashboard-runway-item div,
+.dashboard-watch-list div,
+.dashboard-intervention-list div,
+.dashboard-template-row div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dashboard-runway-item strong,
+.dashboard-template-row strong,
+.dashboard-watch-list strong,
+.dashboard-intervention-list strong,
+.dashboard-phi-assurance strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-runway-item p,
+.dashboard-watch-list span,
+.dashboard-watch-list p,
+.dashboard-watch-list em,
+.dashboard-intervention-list span,
+.dashboard-intervention-list p,
+.dashboard-intervention-list em,
+.dashboard-phi-assurance em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-runway-state {
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+  min-width: 0;
+  text-align: right;
+}
+
+.dashboard-runway-state b {
+  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: 9px;
+  line-height: 1;
+  padding: 5px 7px;
+}
+
+.dashboard-template-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dashboard-template-row em {
+  background: var(--color-card-muted);
+  border-radius: 999px;
+  display: flex;
+  height: 11px;
+  overflow: hidden;
+}
+
+.dashboard-template-row i {
+  display: block;
+  height: 100%;
+}
+
+.dashboard-template-row .is-active {
+  background: var(--color-success);
+}
+
+.dashboard-template-row .is-mapping {
+  background: var(--color-info);
+}
+
+.dashboard-template-row .is-draft {
+  background: var(--color-warning);
+}
+
+.dashboard-template-row .is-missing {
+  background: var(--color-error);
+}
+
+.dashboard-audit-ribbon {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+  overflow: auto;
+}
+
+.dashboard-audit-ribbon article,
+.dashboard-safety-components article {
+  background: color-mix(in srgb, var(--color-card-muted) 72%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.dashboard-audit-ribbon div {
+  align-items: baseline;
+  display: flex;
+  gap: 7px;
+  min-width: 0;
+}
+
+.dashboard-audit-ribbon strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dashboard-audit-ribbon span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-audit-ribbon em {
+  background: var(--color-card);
+  border-radius: 999px;
+  display: block;
+  height: 7px;
+  overflow: hidden;
+}
+
+.dashboard-audit-ribbon i {
+  background: var(--color-success);
+  display: block;
+  height: 100%;
+}
+
+.dashboard-audit-ribbon article[data-tone="warning"] i {
+  background: var(--color-warning);
+}
+
+.dashboard-audit-ribbon article[data-tone="error"] i {
+  background: var(--color-error);
+}
+
+.dashboard-safety-score {
+  display: grid;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
+
+.dashboard-safety-ring {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at center, var(--color-card) 0 56%, transparent 57%),
+    conic-gradient(var(--color-success) 0 var(--score-angle), color-mix(in srgb, var(--color-error) 28%, var(--color-card-muted)) var(--score-angle) 360deg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-self: center;
+  max-height: 172px;
+  min-height: 132px;
+  width: min(100%, 172px);
+}
+
+.dashboard-safety-ring strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: clamp(38px, 4vw, 58px);
+  line-height: 0.9;
+}
+
+.dashboard-safety-ring span {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.dashboard-safety-components {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.dashboard-safety-components article {
+  gap: 3px;
+  padding: 8px;
+}
+
+.dashboard-safety-components strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dashboard-watch-list article,
+.dashboard-intervention-list article,
+.dashboard-phi-assurance article {
+  display: grid;
+  gap: 6px;
+  padding: 10px 10px 10px 13px;
+}
+
+.dashboard-watch-list article {
+  min-height: 70px;
+}
+
+.dashboard-intervention-list article {
+  min-height: 76px;
+}
+
+.dashboard-phi-assurance {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-phi-assurance article {
+  align-content: center;
+  min-height: 74px;
 }
 
 .dashboard-signal-card {
@@ -1144,18 +1620,44 @@ button, input, select, textarea {
 
 @media (max-width: 1100px) {
   .dashboard-command-grid {
-    grid-template-columns: minmax(0, 1fr);
     overflow: auto;
   }
 
-  .dashboard-group {
-    display: none;
+  .dashboard-panel,
+  .dashboard-panel-ops,
+  .dashboard-panel-carepath,
+  .dashboard-panel-risk {
+    grid-template-areas: none;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    overflow: visible;
   }
 
-  .dashboard-command[data-active-panel="ops"] .dashboard-group-ops,
-  .dashboard-command[data-active-panel="flow"] .dashboard-group-flow,
-  .dashboard-command[data-active-panel="risk"] .dashboard-group-risk {
-    display: grid;
+  .dashboard-ops-signal,
+  .dashboard-ops-metrics,
+  .dashboard-ops-secondary,
+  .dashboard-carepath-metrics,
+  .dashboard-carepath-pulse-card,
+  .dashboard-carepath-side,
+  .dashboard-owner-heatmap-card,
+  .dashboard-audit-card,
+  .dashboard-safety-score-card,
+  .dashboard-risk-graph-card,
+  .dashboard-intervention-card,
+  .dashboard-safety-matrix-card,
+  .dashboard-fraction-watch-card,
+  .dashboard-phi-mini-card {
+    grid-area: auto;
+  }
+
+  .dashboard-ops-secondary,
+  .dashboard-carepath-side {
+    grid-template-rows: none;
+    overflow: visible;
+  }
+
+  .dashboard-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1166,7 +1668,7 @@ button, input, select, textarea {
   }
 
   .dashboard-command-grid {
-    min-height: 680px;
+    min-height: 0;
     overflow: visible;
   }
 
@@ -1181,15 +1683,19 @@ button, input, select, textarea {
     padding: 0 6px;
   }
 
-  .dashboard-group-ops,
-  .dashboard-group-flow,
-  .dashboard-group-risk {
-    grid-template-rows: minmax(260px, 1fr) minmax(180px, auto) minmax(180px, auto);
-    min-height: 680px;
+  .dashboard-panel {
+    min-height: 0;
   }
 
   .dashboard-metric-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-kpi-strip,
+  .dashboard-safety-components,
+  .dashboard-audit-ribbon,
+  .dashboard-phi-assurance {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dashboard-metric {
@@ -1243,13 +1749,19 @@ button, input, select, textarea {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .dashboard-carepath-lane {
-    gap: 7px;
-    grid-template-columns: minmax(68px, 0.38fr) minmax(0, 1fr);
+  .dashboard-echart-sankey,
+  .dashboard-echart-graph {
+    min-height: 260px;
   }
 
-  .dashboard-carepath-lane em {
-    display: none;
+  .dashboard-runway-item {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .dashboard-runway-state {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
   }
 
   .dashboard-capacity {
