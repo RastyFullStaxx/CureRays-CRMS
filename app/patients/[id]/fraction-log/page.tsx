@@ -29,7 +29,7 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
   const nextReview = entries.find((entry) => !entry.mdApproval || !entry.dotApproval);
 
   return (
-    <PageStack>
+    <PageStack className="overflow-hidden">
       <PageHeader
         title="Fraction Log"
         subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')} | ${course.protocolName}`}
@@ -47,12 +47,14 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
         <StatCard icon={CheckCircle2} label="Next Review" value={nextReview ? `Fx ${nextReview.fractionNumber}` : 'Complete'} sub={nextReview?.date ?? 'No open approvals'} tone={nextReview ? 'warning' : 'success'} />
       </StatGrid>
 
-      <FractionWorksheetPanel
-        initialEntries={entries}
-        course={course}
-        phases={prescription?.phases ?? []}
-        title="Native Fractionation Worksheet"
-      />
+      <div className="scrollbar-soft min-h-0 flex-1 overflow-y-auto pr-1">
+        <FractionWorksheetPanel
+          initialEntries={entries}
+          course={course}
+          phases={prescription?.phases ?? []}
+          title="Native Fractionation Worksheet"
+        />
+      </div>
     </PageStack>
   );
 }

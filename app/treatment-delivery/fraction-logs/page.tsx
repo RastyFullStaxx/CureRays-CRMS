@@ -15,7 +15,8 @@ export default function TreatmentDeliveryFractionLogsPage() {
 
   return (
     <PageStack>
-      <PageHeader title="Fraction Logs" actions={<TreatmentDeliveryTabs active="fraction-logs" />} />
+      <PageHeader title="Treatment Delivery" />
+      <TreatmentDeliveryTabs active="fraction-logs" />
 
       <StatGrid>
         <StatCard icon={FileSpreadsheet} label="Active Rows" value={rows.length} tone="primary" />
