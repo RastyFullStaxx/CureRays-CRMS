@@ -142,6 +142,43 @@ function protocolForDiagnosis(category: DiagnosisCategory) {
   };
 }
 
+export type PatientMutationAuditContext = {
+  userId: string;
+  userName: string;
+  role: PrototypeAccessRole;
+  sessionId: string;
+  ipAddress: string;
+  deviceId: string;
+  reason: string;
+};
+
+function patientAuditContext(
+  context: Partial<PatientMutationAuditContext> | undefined,
+  fallbackReason: string
+): PatientMutationAuditContext {
+  return {
+    userId: textInput(context?.userId) || "PROTOTYPE-SYSTEM",
+    userName: textInput(context?.userName) || "Prototype System",
+    role: context?.role ?? "SYSTEM",
+    sessionId: textInput(context?.sessionId) || "prototype-session",
+    ipAddress: textInput(context?.ipAddress) || "prototype-ip",
+    deviceId: textInput(context?.deviceId) || "prototype-device",
+    reason: textInput(context?.reason) || fallbackReason
+  };
+}
+
+function patientAuditFields(context: PatientMutationAuditContext) {
+  return {
+    userId: context.userId,
+    userName: context.userName,
+    role: context.role,
+    sessionId: context.sessionId,
+    ipAddress: context.ipAddress,
+    deviceId: context.deviceId,
+    reason: context.reason
+  };
+}
+
 function patientMutationPayload(patient: Patient, auditEvent: AuditEvent, course?: TreatmentCourse) {
   return {
     data: toOperationalPatient(patient),
@@ -704,7 +741,17 @@ export function validatePatientUpdateInput(
   return { valid: errors.length === 0, errors };
 }
 
-export function createPatient(input: PatientCreateInput) {
+export function createPatient(
+  input: PatientCreateInput,
+  auditContextInput?: Partial<PatientMutationAuditContext>
+) {
+  const checkpoint = {
+    patients: patients.length,
+    treatmentCourses: treatmentCourses.length,
+    generatedDocuments: generatedDocuments.length,
+    carepathTasks: carepathTasks.length,
+    auditEvents: auditEvents.length
+  };
   const timestamp = nowIso();
   const diagnosisCategory = diagnosisCategoryInput(input.diagnosisCategory);
   const patientNumber = nextPatientNumber();
@@ -750,66 +797,109 @@ export function createPatient(input: PatientCreateInput) {
     treatmentType: protocol.treatmentType,
     notes: "Prototype course bundle created with initial workflow documents and tasks."
   };
-  patients.push(patient);
-  treatmentCourses.push(course);
-  ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
-  ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
-  const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Workflow API",
-    action: "Patient created",
-    entityType: "PATIENT",
-    entityId: patient.id,
-    previousValue: "None",
-    newValue: PHI_REDACTED,
-    reason: "Structured CRUD record created inside CureRays CWS."
-  });
-  return patientMutationPayload(patient, auditEvent, course);
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Structured CRUD record created inside CureRays CWS."
+  );
+
+  try {
+    patients.push(patient);
+    treatmentCourses.push(course);
+    ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
+    ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
+    const auditEvent = addAuditEvent({
+      ...patientAuditFields(auditContext),
+      patientId: patient.id,
+      action: "Patient created",
+      entityType: "PATIENT",
+      entityId: patient.id,
+      previousValue: "None",
+      newValue: PHI_REDACTED
+    });
+    const payload = patientMutationPayload(patient, auditEvent, course);
+    const hasDocuments = generatedDocuments.some((document) => document.courseId === course.id);
+    const hasTasks = carepathTasks.some((task) => task.courseId === course.id);
+
+    if (!payload.course || !payload.auditEvent.redacted || !hasDocuments || !hasTasks) {
+      throw new Error("Patient registration bundle post-condition failed.");
+    }
+
+    return payload;
+  } catch (error) {
+    patients.length = checkpoint.patients;
+    treatmentCourses.length = checkpoint.treatmentCourses;
+    generatedDocuments.length = checkpoint.generatedDocuments;
+    carepathTasks.length = checkpoint.carepathTasks;
+    auditEvents.length = checkpoint.auditEvents;
+    throw error;
+  }
 }
 
-export function updatePatient(patientRefOrId: string, input: PatientUpdateInput) {
+export function updatePatient(
+  patientRefOrId: string,
+  input: PatientUpdateInput,
+  auditContextInput?: Partial<PatientMutationAuditContext>
+) {
   const patientIndex = resolvePatientIndex(patientRefOrId);
   const patient = patients[patientIndex];
   if (!patient) {
     return null;
   }
 
+  const previousPatient = clone(patient);
   const previousValue = PHI_REDACTED;
   const nextDiagnosisCategory = input.diagnosisCategory
     ? diagnosisCategoryInput(input.diagnosisCategory)
     : patient.diagnosisCategory;
-  Object.assign(patient, {
-    firstName: input.firstName === undefined ? patient.firstName : textInput(input.firstName),
-    lastName: input.lastName === undefined ? patient.lastName : textInput(input.lastName),
-    mrn: input.mrn === undefined ? patient.mrn : textInput(input.mrn),
-    diagnosis: input.diagnosis === undefined ? patient.diagnosis : textInput(input.diagnosis),
-    diagnosisCategory: nextDiagnosisCategory,
-    location: input.location === undefined ? patient.location : textInput(input.location),
-    physician: input.physician === undefined ? patient.physician : textInput(input.physician),
-    chartRoundsPhase: input.chartRoundsPhase ?? patient.chartRoundsPhase,
-    status: input.status ?? patient.status,
-    assignedStaff: input.assignedStaff === undefined ? patient.assignedStaff : textInput(input.assignedStaff),
-    notes: input.notes === undefined ? patient.notes : textInput(input.notes),
-    nextAction: input.nextAction === undefined ? patient.nextAction : textInput(input.nextAction),
-    lastUpdatedAt: nowIso()
-  });
   const course = treatmentCourses.find((item) => item.id === patient.activeCourseId);
-  if (course) {
-    course.diagnosis = patient.diagnosis;
-    course.diagnosisCategory = patient.diagnosisCategory;
-    course.chartRoundsPhase = patient.chartRoundsPhase;
+  const previousCourse = course ? clone(course) : null;
+  const auditCheckpoint = auditEvents.length;
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Patient workflow state updated through the API."
+  );
+
+  try {
+    Object.assign(patient, {
+      firstName: input.firstName === undefined ? patient.firstName : textInput(input.firstName),
+      lastName: input.lastName === undefined ? patient.lastName : textInput(input.lastName),
+      mrn: input.mrn === undefined ? patient.mrn : textInput(input.mrn),
+      diagnosis: input.diagnosis === undefined ? patient.diagnosis : textInput(input.diagnosis),
+      diagnosisCategory: nextDiagnosisCategory,
+      location: input.location === undefined ? patient.location : textInput(input.location),
+      physician: input.physician === undefined ? patient.physician : textInput(input.physician),
+      chartRoundsPhase: input.chartRoundsPhase ?? patient.chartRoundsPhase,
+      status: input.status ?? patient.status,
+      assignedStaff: input.assignedStaff === undefined ? patient.assignedStaff : textInput(input.assignedStaff),
+      notes: input.notes === undefined ? patient.notes : textInput(input.notes),
+      nextAction: input.nextAction === undefined ? patient.nextAction : textInput(input.nextAction),
+      lastUpdatedAt: nowIso()
+    });
+
+    if (course) {
+      course.diagnosis = patient.diagnosis;
+      course.diagnosisCategory = patient.diagnosisCategory;
+      course.chartRoundsPhase = patient.chartRoundsPhase;
+    }
+
+    const auditEvent = addAuditEvent({
+      ...patientAuditFields(auditContext),
+      patientId: patient.id,
+      action: "Patient updated",
+      entityType: "PATIENT",
+      entityId: patient.id,
+      previousValue,
+      newValue: PHI_REDACTED
+    });
+    return patientMutationPayload(patient, auditEvent, course);
+  } catch (error) {
+    Object.assign(patient, previousPatient);
+    if (course && previousCourse) {
+      Object.assign(course, previousCourse);
+    }
+    auditEvents.length = auditCheckpoint;
+    throw error;
   }
-  const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Workflow API",
-    action: "Patient updated",
-    entityType: "PATIENT",
-    entityId: patient.id,
-    previousValue,
-    newValue: PHI_REDACTED,
-    reason: "Patient workflow state updated through the API."
-  });
-  return patientMutationPayload(patient, auditEvent, course);
 }
 
 export function updateSimulationOrder(courseId: string, input: Partial<SimulationOrder>) {

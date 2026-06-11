@@ -199,6 +199,10 @@ model PhiAuditEvent {
   patient       PatientPhi? @relation(fields: [patientId], references: [id])
   userId        String
   userName      String
+  role          String?
+  sessionId     String?
+  ipAddress     String?
+  deviceId      String?
   action        String
   entityType    String
   entityId      String

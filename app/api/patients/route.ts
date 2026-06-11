@@ -1,30 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPatient, operationalPatients, validatePatientCreateInput } from "@/lib/clinical-store";
-import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
+import {
+  listOperationalPatientRecords,
+  patientMutationContextFromRequest,
+  registerPatient
+} from "@/lib/server/patient-registration-service";
+import type { PatientCreateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export function GET() {
-  return NextResponse.json({ patients: operationalPatients() });
+  const response = listOperationalPatientRecords();
+  return NextResponse.json(response.body, { status: response.status });
 }
 
 export async function POST(request: NextRequest) {
-  const access = phiAccessFromRequest(request, "Create patient PHI record");
-  if (!access) {
+  const context = patientMutationContextFromRequest(request, "phi:create", "Create patient PHI record");
+  if (!context) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  try {
-    requirePhiAction(access, "phi:create");
-  } catch {
-    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
-  }
+  const body = (await request.json()) as Partial<PatientCreateInput>;
+  const response = registerPatient(body, context);
 
-  const body = await request.json();
-  const validation = validatePatientCreateInput(body);
-  if (!validation.valid) {
-    return NextResponse.json({ message: "Patient validation failed", errors: validation.errors }, { status: 400 });
-  }
-
-  return NextResponse.json(createPatient(body), { status: 201 });
+  return NextResponse.json(response.body, { status: response.status });
 }

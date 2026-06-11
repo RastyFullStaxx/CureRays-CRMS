@@ -808,6 +808,10 @@ export type AuditEvent = {
   patientId?: string;
   userId: string;
   userName: string;
+  role?: PrototypeAccessRole;
+  sessionId?: string;
+  ipAddress?: string;
+  deviceId?: string;
   action: string;
   entityType:
     | "PATIENT"

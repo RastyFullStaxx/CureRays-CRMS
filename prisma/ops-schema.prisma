@@ -200,6 +200,10 @@ model OperationalAuditEvent {
   patientRef    String?
   userId        String
   userName      String
+  role          String?
+  sessionId     String?
+  ipAddress     String?
+  deviceId      String?
   action        String
   entityType    String
   entityId      String

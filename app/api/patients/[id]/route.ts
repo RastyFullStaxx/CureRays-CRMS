@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updatePatient, validatePatientUpdateInput } from "@/lib/clinical-store";
-import { findPatientPhi, phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
+import {
+  patientMutationContextFromRequest,
+  updatePatientRecord
+} from "@/lib/server/patient-registration-service";
+import { findPatientPhi, phiAccessFromRequest } from "@/lib/server/phi-store";
+import type { PatientUpdateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -20,28 +24,13 @@ export function GET(request: NextRequest, { params }: { params: { id: string } }
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const access = phiAccessFromRequest(request, "Update patient PHI record");
-  if (!access) {
+  const context = patientMutationContextFromRequest(request, "phi:update", "Update patient PHI record");
+  if (!context) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  try {
-    requirePhiAction(access, "phi:update");
-  } catch {
-    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
-  }
+  const body = (await request.json()) as Partial<PatientUpdateInput>;
+  const response = updatePatientRecord(params.id, body, context);
 
-  const body = await request.json();
-  const validation = validatePatientUpdateInput(params.id, body);
-  if (!validation.valid) {
-    return NextResponse.json({ message: "Patient validation failed", errors: validation.errors }, { status: 400 });
-  }
-
-  const result = updatePatient(params.id, body);
-
-  if (!result) {
-    return NextResponse.json({ message: "Patient not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(result);
+  return NextResponse.json(response.body, { status: response.status });
 }
