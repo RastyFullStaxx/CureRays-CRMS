@@ -4,6 +4,7 @@ import {
   getIgsrtWorkspace,
   renderGeneratedDocument,
   signGeneratedDocument,
+  updateFractionLogEntry,
   updatePrescription,
   updateSimulationOrder
 } from "@/lib/clinical-store";
@@ -58,7 +59,28 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   if (body.action === "addFraction") {
-    return NextResponse.json(addFractionLogEntry(body.data), { status: 201 });
+    try {
+      return NextResponse.json(addFractionLogEntry(body.data), { status: 201 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Fraction worksheet validation failed" },
+        { status: 400 }
+      );
+    }
+  }
+
+  if (body.action === "updateFraction") {
+    try {
+      const result = updateFractionLogEntry(body.data);
+      return result
+        ? NextResponse.json(result)
+        : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Fraction worksheet validation failed" },
+        { status: 400 }
+      );
+    }
   }
 
   if (body.action === "renderDocument") {

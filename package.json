@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:fraction-worksheet": "node scripts/fraction-worksheet-fixtures.mjs",
     "test:hipaa": "node scripts/hipaa-guardrails.mjs"
   },
   "dependencies": {

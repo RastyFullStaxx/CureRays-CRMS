@@ -48,6 +48,10 @@ import {
   templateSources,
   workflowDefinitions
 } from "@/lib/template-registry";
+import {
+  calculateFractionWorksheetEntry,
+  recalculateFractionWorksheetEntries
+} from "@/lib/services/fraction-worksheet-service";
 
 export {
   documentRequirements,
@@ -701,37 +705,38 @@ export function updatePrescription(courseId: string, input: Partial<Prescription
   return { data: getIgsrtWorkspace(courseId), auditEvent };
 }
 
+function replaceCourseFractionEntries(courseId: string, entries: FractionLogEntry[]) {
+  for (let index = fractionLogEntries.length - 1; index >= 0; index -= 1) {
+    if (fractionLogEntries[index].courseId === courseId) {
+      fractionLogEntries.splice(index, 1);
+    }
+  }
+  fractionLogEntries.push(...entries);
+  fractionLogEntries.sort((a, b) => a.courseId.localeCompare(b.courseId) || a.fractionNumber - b.fractionNumber);
+}
+
+function recalculateCourseFractionEntries(courseId: string) {
+  const entries = courseFractions(courseId, fractionLogEntries);
+  replaceCourseFractionEntries(courseId, recalculateFractionWorksheetEntries(entries));
+}
+
 export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseId: string }) {
   const courseEntries = courseFractions(input.courseId, fractionLogEntries).sort((a, b) => a.fractionNumber - b.fractionNumber);
   const previousEntry = courseEntries.at(-1);
-  const fractionNumber = Number(input.fractionNumber ?? (previousEntry ? previousEntry.fractionNumber + 1 : 1));
-  const dosePerFraction = Number(input.dosePerFraction ?? 0);
-  const isodosePercent = Number(input.isodosePercent ?? 0);
-  const doseToDepth = Math.round(dosePerFraction * (isodosePercent / 100));
-  const cumulativeDose = (previousEntry?.cumulativeDose ?? 0) + dosePerFraction;
-  const cumulativeDoseToDepth = (previousEntry?.cumulativeDoseToDepth ?? 0) + doseToDepth;
-
-  const entry: FractionLogEntry = {
-    id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(fractionLogEntries.length + 1).padStart(2, "0")}`,
-    courseId: input.courseId,
-    fractionNumber,
-    date: input.date ?? todayIsoDate(),
-    phase: input.phase ?? "Phase I",
-    energy: input.energy ?? "50 kV",
-    ssd: input.ssd ?? "15 cm",
-    dosePerFraction,
-    cumulativeDose,
-    technicianInitials: input.technicianInitials ?? "NR",
-    mdApproval: compactBoolean(input.mdApproval),
-    dotApproval: compactBoolean(input.dotApproval),
-    depthOfTarget: input.depthOfTarget ?? "4.0 mm",
-    isodosePercent,
-    doseToDepth,
-    cumulativeDoseToDepth,
-    notes: input.notes ?? "Created from structured CureRays fraction log."
-  };
-
+  const nextFractionNumber = previousEntry ? previousEntry.fractionNumber + 1 : 1;
+  const entry = calculateFractionWorksheetEntry(
+    {
+      ...input,
+      id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(nextFractionNumber).padStart(2, "0")}`,
+      fractionNumber: input.fractionNumber ?? nextFractionNumber,
+      date: input.date ?? todayIsoDate(),
+      mdApproval: compactBoolean(input.mdApproval),
+      dotApproval: compactBoolean(input.dotApproval)
+    },
+    courseEntries
+  );
   fractionLogEntries.push(entry);
+  recalculateCourseFractionEntries(input.courseId);
   const auditEvent = addAuditEvent({
     userId: "SYSTEM",
     userName: "Workflow API",
@@ -741,6 +746,42 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
     previousValue: "None",
     newValue: PHI_REDACTED,
     reason: "Daily IGSRT treatment entry saved and dose totals recalculated."
+  });
+  return { data: getIgsrtWorkspace(input.courseId), auditEvent };
+}
+
+export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { courseId: string; id: string }) {
+  const entryIndex = fractionLogEntries.findIndex((entry) => entry.id === input.id && entry.courseId === input.courseId);
+  if (entryIndex < 0) {
+    return null;
+  }
+
+  const previousValue = PHI_REDACTED;
+  const existingEntry = fractionLogEntries[entryIndex];
+  const courseEntries = courseFractions(input.courseId, fractionLogEntries).sort((a, b) => a.fractionNumber - b.fractionNumber);
+  const updatedEntry = calculateFractionWorksheetEntry(
+    {
+      ...existingEntry,
+      ...input,
+      mdApproval:
+        input.mdApproval === undefined ? existingEntry.mdApproval : compactBoolean(input.mdApproval),
+      dotApproval:
+        input.dotApproval === undefined ? existingEntry.dotApproval : compactBoolean(input.dotApproval)
+    },
+    courseEntries,
+    { existingId: existingEntry.id }
+  );
+  Object.assign(existingEntry, updatedEntry);
+  recalculateCourseFractionEntries(input.courseId);
+  const auditEvent = addAuditEvent({
+    userId: "SYSTEM",
+    userName: "Workflow API",
+    action: "Fraction worksheet entry updated",
+    entityType: "FRACTION_LOG",
+    entityId: input.id,
+    previousValue,
+    newValue: PHI_REDACTED,
+    reason: "Native fractionation worksheet row updated and dependent dose totals recalculated."
   });
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
@@ -795,9 +836,11 @@ function renderContent(document: GeneratedDocument) {
       `Course: ${course.protocolName}`,
       `Fractions logged: ${fractions.length}`,
       `Current fraction: ${course.currentFraction}/${course.totalFractions}`,
-      `Cumulative dose: ${lastFraction?.cumulativeDose ?? 0} cGy`,
-      `Cumulative dose to DOT: ${lastFraction?.cumulativeDoseToDepth ?? 0} cGy`,
-      `Open approvals: ${fractions.filter((entry) => !entry.mdApproval || !entry.dotApproval).length}`
+      `Cumulative dose: ${lastFraction?.cumulativeDoseCgy ?? lastFraction?.cumulativeDose ?? 0} cGy`,
+      `Cumulative dose to DOT: ${lastFraction?.cumulativeDoseToDotCgy ?? lastFraction?.cumulativeDoseToDepth ?? 0} cGy`,
+      `Open approvals: ${fractions.filter((entry) => !entry.mdApproval || !entry.dotApproval).length}`,
+      `Clinical validation: Required before production clinical use`,
+      `Latest Isodose Note: ${lastFraction?.isodoseNote ?? "No isodose note generated"}`
     ].join("\n");
   }
 

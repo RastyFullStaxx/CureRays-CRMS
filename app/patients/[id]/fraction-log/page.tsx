@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import { CalendarDays, CheckCircle2, ClipboardCheck, Radiation } from 'lucide-react';
-import { FractionLogTable } from '@/components/fraction-log-table';
+import { FractionWorksheetPanel } from '@/components/fraction-worksheet-panel';
 import { PageHeader } from '@/components/shared/page-header';
 import { PageStack } from '@/components/shared/page-stack';
 import { StatCard } from '@/components/shared/stat-card';
 import { StatGrid } from '@/components/shared/stat-grid';
-import { fractionLogEntries, treatmentCourses } from '@/lib/clinical-store';
+import { fractionLogEntries, prescriptions, treatmentCourses } from '@/lib/clinical-store';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseFractions, patientActiveCourse } from '@/lib/workflow';
 
@@ -23,8 +23,9 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
   }
 
   const entries = courseFractions(course.id, fractionLogEntries);
+  const prescription = prescriptions.find((item) => item.courseId === course.id);
   const approved = entries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
-  const cumulativeDose = entries.at(-1)?.cumulativeDose ?? 0;
+  const cumulativeDose = entries.at(-1)?.cumulativeDoseCgy ?? entries.at(-1)?.cumulativeDose ?? 0;
   const nextReview = entries.find((entry) => !entry.mdApproval || !entry.dotApproval);
 
   return (
@@ -46,7 +47,12 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
         <StatCard icon={CheckCircle2} label="Next Review" value={nextReview ? `Fx ${nextReview.fractionNumber}` : 'Complete'} sub={nextReview?.date ?? 'No open approvals'} tone={nextReview ? 'warning' : 'success'} />
       </StatGrid>
 
-      <FractionLogTable entries={entries} />
+      <FractionWorksheetPanel
+        initialEntries={entries}
+        course={course}
+        phases={prescription?.phases ?? []}
+        title="Native Fractionation Worksheet"
+      />
     </PageStack>
   );
 }

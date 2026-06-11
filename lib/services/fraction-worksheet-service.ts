@@ -112,6 +112,10 @@ export function normalizeFieldSizeCm(value: string | number | undefined) {
     return String(value).trim();
   }
 
+  if (numeric === 10) {
+    return "10 cm";
+  }
+
   return `${numeric.toFixed(1)} cm`;
 }
 
@@ -217,11 +221,16 @@ export function calculateFractionWorksheetEntry(
 
   const isManualOverride = lookup.percent === null || (hasOverride && Math.abs(overridePercent - (lookup.percent ?? overridePercent)) > 0.05);
   const isodoseToDotPercent = isManualOverride ? overridePercent : lookup.percent ?? overridePercent;
-  if (isManualOverride && !overrideReason) {
+  const canRetainLegacyOverride = Boolean(input.id) && !input.calculationStatus && !overrideReason && lookup.percent !== null;
+  if (isManualOverride && !overrideReason && !canRetainLegacyOverride) {
     throw new Error("Manual isodose override requires an override reason.");
   }
   if (isManualOverride) {
-    warnings.push("Manual isodose override used instead of normalized workbook lookup.");
+    warnings.push(
+      canRetainLegacyOverride
+        ? "Legacy worksheet isodose value retained; physicist validation recommended."
+        : "Manual isodose override used instead of normalized workbook lookup."
+    );
   }
 
   const doseToDotCgy = roundToClinicalTenth(dosePerFractionCgy * (isodoseToDotPercent / 100));
@@ -273,7 +282,7 @@ export function calculateFractionWorksheetEntry(
     cumulativeDoseToDotCgy,
     treatmentSetupComments: input.treatmentSetupComments ?? input.notes ?? "",
     isodoseOverrideReason: isManualOverride ? overrideReason : "",
-    calculationStatus: isManualOverride ? "MANUAL_OVERRIDE" : "AUTO_LOOKUP",
+    calculationStatus: isManualOverride ? (canRetainLegacyOverride ? "LEGACY_IMPORTED" : "MANUAL_OVERRIDE") : "AUTO_LOOKUP",
     calculationMeta,
     notes: input.notes ?? input.treatmentSetupComments ?? "Structured worksheet entry from CureRays CRMS.",
     isodoseNote: ""

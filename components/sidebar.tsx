@@ -20,8 +20,6 @@ import {
   LineChart,
   UserCog,
   Settings,
-  Sun,
-  Moon,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -93,7 +91,6 @@ const NAV_SECTIONS = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('curerays_sidebar_collapsed');
@@ -102,139 +99,48 @@ export function Sidebar() {
     }
   }, []);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('curerays_darkmode');
-    const isDark = stored !== null
-      ? stored === 'true'
-      : document.documentElement.classList.contains('dark');
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle('dark', isDark);
-  }, []);
-
-  const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    localStorage.setItem('curerays_darkmode', next.toString());
-    document.documentElement.classList.toggle('dark', next);
-  };
-
   const toggleCollapse = () => {
-    setCollapsed(!collapsed);
-    localStorage.setItem('curerays_sidebar_collapsed', (!collapsed).toString());
+    setCollapsed((current) => {
+      const next = !current;
+      localStorage.setItem('curerays_sidebar_collapsed', next.toString());
+      return next;
+    });
   };
 
   return (
     <aside
-      className="flex flex-col h-screen"
-      style={{
-        width: collapsed ? 'var(--width-sidebar-collapsed)' : 'var(--width-sidebar)',
-        background: 'var(--color-card)',
-        borderRight: '1px solid var(--color-border)',
-        boxShadow: 'var(--shadow-card)',
-        transition: 'width 200ms ease',
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
+      className="sidebar-shell"
+      data-collapsed={collapsed ? 'true' : 'false'}
     >
-      {/* Header Area */}
-      <div
-        className="flex items-center"
-        style={{
-          height: 'var(--height-header)',
-          padding: collapsed ? '0 3px' : '0 16px',
-          borderBottom: '1px solid var(--color-border)',
-          justifyContent: collapsed ? 'center' : 'space-between',
-        }}
-      >
-        {/* Logo + Title */}
-        {!collapsed && (
-          <div className="flex items-center" style={{ overflow: 'hidden', whiteSpace: 'nowrap', minWidth: 0 }}>
-            <Image
-              src="/System_Logo.svg"
-              alt="CureRays"
-              width={28}
-              height={28}
-              style={{ flexShrink: 0 }}
-            />
-            <span
-              style={{
-                marginLeft: '10px',
-                fontWeight: 'var(--font-weight-bold)',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'var(--font-size-body)',
-                color: 'var(--color-text)',
-              }}
-            >
-              CureRays
-            </span>
-          </div>
-        )}
-
-        {/* Controls: Dark mode toggle + Collapse button */}
-        <div className="flex items-center" style={{ gap: collapsed ? 2 : 4, flexShrink: 0 }}>
-          <button
-            onClick={toggleDarkMode}
-            className="flex items-center justify-center"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--radius-md)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-muted)',
-            }}
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            data-tooltip={collapsed ? (darkMode ? 'Light mode' : 'Dark mode') : undefined}
-          >
-            {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button
-            onClick={toggleCollapse}
-            className="flex items-center justify-center"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 'var(--radius-md)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-muted)',
-            }}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          </button>
+      <div className="sidebar-header">
+        <div className="sidebar-brand" aria-hidden={collapsed}>
+          <Image
+            src="/System_Logo.svg"
+            alt="CureRays"
+            width={28}
+            height={28}
+            className="sidebar-brand-mark"
+          />
+          <span className="sidebar-brand-name">CureRays</span>
         </div>
+
+        <button
+          type="button"
+          onClick={toggleCollapse}
+          className="sidebar-toggle"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+        </button>
       </div>
 
-      {/* Nav Sections */}
-      <nav
-        className="flex-1"
-        style={{
-          padding: collapsed ? '8px 0' : '8px 12px',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-        }}
-      >
+      <nav className="sidebar-nav scrollbar-soft" aria-label="Primary navigation">
         {NAV_SECTIONS.map((section) => (
-          <div key={section.key} style={{ marginBottom: '8px' }}>
-            {!collapsed && (
-              <div
-                style={{
-                  padding: '0 10px 6px',
-                  fontSize: 'var(--font-size-label)',
-                  fontFamily: 'var(--font-body)',
-                  fontWeight: 'var(--font-weight-bold)',
-                  color: 'var(--color-text-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {section.label}
-              </div>
-            )}
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: collapsed ? 'flex' : undefined, flexDirection: collapsed ? 'column' : undefined, alignItems: collapsed ? 'center' : undefined }}>
+          <div key={section.key} className="sidebar-section">
+            <div className="sidebar-section-label" aria-hidden={collapsed}>
+              {section.label}
+            </div>
+            <ul className="sidebar-nav-list">
               {section.items.map((item) => (
                 <NavItem
                   key={item.key}
@@ -250,69 +156,19 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Account Row */}
-      <div
-        className="flex items-center"
-        style={{
-          height: 'var(--height-header)',
-          padding: collapsed ? '0 12px' : '0 16px',
-          borderTop: '1px solid var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          className="flex items-center"
-          style={{
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            width: '100%',
-            minWidth: 0,
-          }}
-        >
-          <div
-            className="flex items-center justify-center"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              background: 'var(--color-primary)',
-              color: 'var(--color-primary-foreground)',
-              fontSize: 'var(--font-size-small)',
-              fontWeight: 'var(--font-weight-bold)',
-              flexShrink: 0,
-            }}
-          >
+      <div className="sidebar-account">
+        <div className="sidebar-account-inner">
+          <div className="sidebar-account-avatar">
             SJ
           </div>
-          {!collapsed && (
-            <div style={{ marginLeft: '10px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-small)',
-                  fontFamily: 'var(--font-body)',
-                  fontWeight: 'var(--font-weight-semibold)',
-                  color: 'var(--color-text)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                Dr. Sarah Johnson
-              </div>
-              <div
-                style={{
-                  fontSize: 'var(--font-size-caption)',
-                  fontFamily: 'var(--font-body)',
-                  color: 'var(--color-text-muted)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                Physician
-              </div>
+          <div className="sidebar-account-copy" aria-hidden={collapsed}>
+            <div className="sidebar-account-name">
+              Dr. Sarah Johnson
             </div>
-          )}
+            <div className="sidebar-account-role">
+              Physician
+            </div>
+          </div>
         </div>
       </div>
     </aside>

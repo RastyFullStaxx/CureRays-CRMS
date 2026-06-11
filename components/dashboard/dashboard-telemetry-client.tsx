@@ -510,7 +510,7 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
     <div className="dashboard-capacity">
       <div className="dashboard-capacity-chart" role="img" aria-label="Capacity pressure line chart">
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={150} initialDimension={{ width: 380, height: 170 }}>
-          <ComposedChart data={capacityTrend} margin={{ top: 10, right: 8, bottom: 0, left: -24 }}>
+          <ComposedChart data={capacityTrend} margin={{ top: 8, right: 6, bottom: -4, left: -28 }}>
             <CartesianGrid stroke="var(--color-border-soft)" strokeDasharray="3 3" />
             <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
             <YAxis hide domain={[0, 'dataMax + 2']} />
@@ -530,8 +530,8 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
         </ResponsiveContainer>
       </div>
       <div className="dashboard-capacity-legend">
-        <span><i className="is-treatment" />Treatment</span>
-        <span><i className="is-simulation" />Simulation</span>
+        <span><i className="is-treatment" />Tx</span>
+        <span><i className="is-simulation" />Sim</span>
         <span><i className="is-review" />Review</span>
       </div>
       <div className="dashboard-provider-load">
@@ -584,10 +584,16 @@ function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
             </g>
           );
         })}
-        {nodes.map((node) => {
+        {nodes.map((node, nodeIndex) => {
           const Icon = phiIcons[node.id] ?? ShieldCheck;
           return (
-            <g key={node.id} className="dashboard-phi-node" data-tone={node.tone} transform={`translate(${node.x} ${node.y})`}>
+            <g
+              key={node.id}
+              className="dashboard-phi-node"
+              data-tone={node.tone}
+              style={{ '--phi-delay': `${(nodeIndex * -0.48).toFixed(2)}s` } as CSSProperties}
+              transform={`translate(${node.x} ${node.y})`}
+            >
               <circle r="5.4" />
               <foreignObject x="-4" y="-4" width="8" height="8">
                 <div className="dashboard-phi-icon"><Icon size={10} /></div>
