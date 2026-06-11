@@ -2,7 +2,9 @@
 
 This file maps the current Google Drive template library into the structure the CureRays Clinical Workflow System should use. The Drive files are historical/manual workflow artifacts; the app should treat them as template sources and generated-document references, not as the workflow state itself.
 
-Current source folder: `2026 TEMPLATES`
+Current normalized source folder: `docs/2026_TEMPLATES`
+
+Original uploaded folder: `docs/2026 TEMPLATES`
 
 Drive folder ID: `1o2QbI-hgBI9yOx7BnK0YakkCX9admhCm`
 
@@ -12,10 +14,10 @@ The database remains the source of truth for patient/course workflow state, docu
 
 Do not manually move patients between folders, tabs, or files to represent status. Patient phase and workflow status must be stored as course/workflow state in the app.
 
-## Recommended Top-Level Drive Structure
+## Implemented Local Template Structure
 
 ```text
-2026_TEMPLATES/
+docs/2026_TEMPLATES/
   00_UNIVERSAL/
   01_SKIN_CANCER_IGSRT/
     00_CAREPATH_PREAUTH_AUDIT/
@@ -35,7 +37,12 @@ Do not manually move patients between folders, tabs, or files to represent statu
     12_FRACTIONATION_LOG/
     US_MAPPING/
   90_ON_GOING_REVISION/
+  99_DUPLICATE_REVIEW/
 ```
+
+## Normalization Manifest
+
+See `docs/curerays-template-normalization-manifest.md` for the full move manifest with original path, normalized path, diagnosis, workflow step, app category, status, SHA-256 hash, and draft/duplicate notes.
 
 ## Recommended Naming Convention
 
@@ -54,7 +61,7 @@ Use normalized placeholders:
 - Correct spelling to `ARTHRITIS`; several current templates say `ARTHITIS`.
 - Remove `Copy of` from production templates once validated.
 
-## Existing Folder Inventory and Target Names
+## Original Folder Inventory and Normalized Names
 
 ### Root of `2026 TEMPLATES`
 
@@ -65,7 +72,7 @@ Use normalized placeholders:
 | `Copy of 0. 2026 CarepathPreAuthAudit.SKIN.lesion#.SkinCancer30fx.DDMMYY.LastName.FirstName.docx` | `01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/` | `00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.30fx.LesionNumber.DDMMYY.LastName.FirstName.docx` | Carepath / pre-auth / audit | Remove `Copy of` after clinical approval. |
 | `Copy of 0. 2026 CarepathPreAuthAudit.SKIN.lesion#.SkinCancer20fx.DDMMYY.LastName.FirstName.docx` | `01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/` | `00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.20fx.LesionNumber.DDMMYY.LastName.FirstName.docx` | Carepath / pre-auth / audit | Remove `Copy of` after clinical approval. |
 | `Copy of 9. IGSRT Isodose Curves.ANATOMICREGION.laterality.SKIN CANCER.DDMMYY.LastName.FirstName.pptx` | `01_SKIN_CANCER_IGSRT/09_ISODOSE_CURVES/` | `09_Isodose_Curves.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx` | Isodose / treatment planning | Root-level copy should move under Skin Cancer. |
-| `Joint Mapping.HAND.LATERALITY.ARTHRITIS.MM_DD_YY.LastName,FirstName.docx` | `02_ARTHRITIS/HAND/` | `01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx` | Mapping / simulation prep | Root-level duplicate should move under Arthritis / Hand or be retired. |
+| `Joint Mapping.HAND.LATERALITY.ARTHRITIS.MM_DD_YY.LastName,FirstName.docx` | `99_DUPLICATE_REVIEW/` | `Duplicate_01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx` | Mapping / simulation prep | Root-level duplicate is isolated for manual replacement review. |
 | `9. IGSRT Isodose Curves.ANATOMICREGION.laterality.DUPUYTRENS.DDMMYY.LastName.FirstName.pptx` | `03_DUPUYTRENS/09_ISODOSE_CURVES/` | `09_Isodose_Curves.DUPUYTRENS.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx` | Isodose / treatment planning | Root-level file should move under Dupuytren's. |
 
 ### Skin Cancer / IGSRT
@@ -142,15 +149,13 @@ Recommended folder: `90_ON_GOING_REVISION`
 
 ## Registry Status Values
 
-Use these values in the app's future template registry:
+Use these values in the app template registry:
 
-- `active`: production source template that should appear in the app.
-- `mapped_partial`: source template is understood enough for workflow tracking but not full generation.
-- `mapped_full`: fields and generation logic are implemented.
-- `draft`: not production-ready.
-- `retired`: retained for history only.
-- `missing`: expected template is not currently present.
-- `duplicate_review`: possible duplicate that needs admin decision.
+- `ACTIVE`: production source template that should appear in active workflow coverage.
+- `MAPPING_IN_PROGRESS`: source template is understood enough for workflow tracking but not full generation.
+- `DRAFT`: not production-ready or retained only for revision/duplicate review.
+- `RETIRED`: retained for history only.
+- `MISSING`: expected template is not currently present.
 
 ## Suggested App Mapping
 

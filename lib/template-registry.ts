@@ -15,8 +15,8 @@ import { completedDocumentStatuses, orderedCarepathPhases } from "@/lib/workflow
 export const templateSources: TemplateSource[] = [
   {
     id: "SRC-INTAKE",
-    name: "Intake Form Template",
-    sourceFileName: "Intake Form Template_08APR2025.docx",
+    name: "Universal Intake Form",
+    sourceFileName: "docs/2026_TEMPLATES/00_UNIVERSAL/Intake_Form.Universal.08APR2025.Template.docx",
     driveFileId: "1-lEfDuDmGyndX2zXDbtcyZoYRJXBEcnq",
     driveUrl: "https://docs.google.com/document/d/1-lEfDuDmGyndX2zXDbtcyZoYRJXBEcnq/edit",
     mimeType: "DOCX",
@@ -26,8 +26,8 @@ export const templateSources: TemplateSource[] = [
   },
   {
     id: "SRC-AVS-PCP",
-    name: "AVS PCP Template",
-    sourceFileName: "AVS PCP Template.docx",
+    name: "Universal AVS PCP Template",
+    sourceFileName: "docs/2026_TEMPLATES/00_UNIVERSAL/AVS_PCP.Universal.Template.docx",
     driveFileId: "1TxQzo7u2LAJ-VxDMlYU-3Nzxcr1qtXJf",
     driveUrl: "https://docs.google.com/document/d/1TxQzo7u2LAJ-VxDMlYU-3Nzxcr1qtXJf/edit",
     mimeType: "DOCX",
@@ -38,7 +38,8 @@ export const templateSources: TemplateSource[] = [
   {
     id: "SRC-SKIN-CAREPATH-PREAUTH-20",
     name: "Skin Cancer Carepath PreAuth Audit - 20fx",
-    sourceFileName: "Copy of 0. 2026 CarepathPreAuthAudit.SKIN.lesion#.SkinCancer20fx.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.20fx.LesionNumber.DDMMYY.LastName.FirstName.docx",
     driveFileId: "1bTY3iGIw367tB5NgmbAwPplv3OUChA7L",
     driveUrl: "https://docs.google.com/document/d/1bTY3iGIw367tB5NgmbAwPplv3OUChA7L/edit",
     mimeType: "DOCX",
@@ -46,9 +47,19 @@ export const templateSources: TemplateSource[] = [
     notes: "Billing pre-auth and audit mapping are not final."
   },
   {
+    id: "SRC-SKIN-CAREPATH-PREAUTH-30",
+    name: "Skin Cancer Carepath PreAuth Audit - 30fx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.30fx.LesionNumber.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "MAPPING_IN_PROGRESS",
+    notes: "30 fraction pre-auth/audit variant retained separately from the 20fx workflow source."
+  },
+  {
     id: "SRC-SKIN-IGSRT-SIM",
     name: "Skin Cancer IGSRT Simulation Order",
-    sourceFileName: "2. CTP_SIM_IGSRTorder.LOCATION.laterality.SKIN.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/02_SIMULATION_AND_CTP_ORDER/02_SIM_CTP_IGSRT_Order.SKIN_CANCER.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
     driveFileId: "1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX",
     driveUrl: "https://docs.google.com/document/d/1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX/edit",
     mimeType: "DOCX",
@@ -58,7 +69,8 @@ export const templateSources: TemplateSource[] = [
   {
     id: "SRC-SKIN-IGSRT-RX",
     name: "Skin Cancer IGSRT Prescription",
-    sourceFileName: "7. Prescription.LOCATION.laterality.SCC_BCC.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/07_PRESCRIPTION/07_Prescription.SKIN_CANCER.SCC_BCC.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
     driveFileId: "1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi",
     driveUrl: "https://docs.google.com/document/d/1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi/edit",
     mimeType: "DOCX",
@@ -68,7 +80,8 @@ export const templateSources: TemplateSource[] = [
   {
     id: "SRC-SKIN-IGSRT-FXLOG",
     name: "Skin Cancer IGSRT Fraction Log",
-    sourceFileName: "12. FX Log.SITE.laterality.SKIN.DDMMYY.LastName.First Name.xlsx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/12_FRACTIONATION_LOG/12_Fractionation_Log.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
     driveFileId: "1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ",
     driveUrl: "https://docs.google.com/spreadsheets/d/1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ/edit",
     mimeType: "XLSX",
@@ -78,7 +91,8 @@ export const templateSources: TemplateSource[] = [
   {
     id: "SRC-SKIN-IGSRT-ISO",
     name: "Skin Cancer IGSRT Isodose Curves",
-    sourceFileName: "Copy of 9. IGSRT Isodose Curves.ANATOMICREGION.laterality.SKIN CANCER.DDMMYY.LastName.FirstName.pptx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/09_ISODOSE_CURVES/09_Isodose_Curves.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx",
     driveFileId: "17wIN9r2QXhZ6o-dIM1FGgXf-CQNXE3jn",
     driveUrl: "https://docs.google.com/presentation/d/17wIN9r2QXhZ6o-dIM1FGgXf-CQNXE3jn/edit",
     mimeType: "PPTX",
@@ -86,31 +100,195 @@ export const templateSources: TemplateSource[] = [
     notes: "Tracked as registry metadata until output rules are mapped."
   },
   {
+    id: "SRC-SKIN-API-RX",
+    name: "Skin Cancer IGSRT Prescription API Mapping Draft",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/90_API_IN_PROCESS/API_07_Prescription.SKIN_CANCER.SCC_BCC.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "MAPPING_IN_PROGRESS",
+    notes: "API in-process file; not used as the production prescription source."
+  },
+  {
     id: "SRC-ARTHRITIS-HAND-MAP",
     name: "Arthritis Hand Joint Mapping",
-    sourceFileName: "Joint Mapping.HAND.LATERALITY.ARTHRITIS.MM_DD_YY.LastName,FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx",
     driveFileId: "13qRFW6VF8fJCuUW4O7qSHX3WtjDCQ7ta",
     driveUrl: "https://docs.google.com/document/d/13qRFW6VF8fJCuUW4O7qSHX3WtjDCQ7ta/edit",
     mimeType: "DOCX",
-    status: "MAPPING_IN_PROGRESS"
+    status: "MAPPING_IN_PROGRESS",
+    notes: "Production source retained as mapping-in-progress until structured field generation is complete."
+  },
+  {
+    id: "SRC-ARTHRITIS-HAND-SIM",
+    name: "Arthritis Hand SIM CTP IGRT",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/02_SIM_CTP_IGRT.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-HAND-RX",
+    name: "Arthritis Hand Prescription",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/07_Prescription.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-HAND-FXLOG",
+    name: "Arthritis Hand Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/HAND/12_Fractionation_Log.ARTHRITIS.HAND.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-FOOT-MAP",
+    name: "Arthritis Foot Joint Mapping",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/01_Joint_Mapping.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "MAPPING_IN_PROGRESS",
+    notes: "Production source retained as mapping-in-progress until structured field generation is complete."
+  },
+  {
+    id: "SRC-ARTHRITIS-FOOT-SIM",
+    name: "Arthritis Foot SIM CTP IGRT",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/02_SIM_CTP_IGRT.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-FOOT-RX",
+    name: "Arthritis Foot Prescription",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/07_Prescription.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-FOOT-FXLOG",
+    name: "Arthritis Foot Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/12_Fractionation_Log.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-KNEE-SIM",
+    name: "Arthritis Knee SIM CTP IGRT",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/02_SIM_CTP_IGRT.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
   },
   {
     id: "SRC-ARTHRITIS-KNEE-RX",
     name: "Arthritis Knee Prescription",
-    sourceFileName: "7. Prescription.KNEE.laterality.ARTHRITIS.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/07_Prescription.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
     driveFileId: "1mV6QHLk8blVk31zxDhQMXXJFDljJSJl9",
     driveUrl: "https://docs.google.com/document/d/1mV6QHLk8blVk31zxDhQMXXJFDljJSJl9/edit",
     mimeType: "DOCX",
-    status: "MAPPING_IN_PROGRESS"
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-ARTHRITIS-KNEE-FXLOG",
+    name: "Arthritis Knee Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/12_Fractionation_Log.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "ACTIVE"
   },
   {
     id: "SRC-DUPUYTRENS-SIM",
     name: "Dupuytren's SIM CTP IGRT",
-    sourceFileName: "2. SIM_CTP_IGRT.LOCATION.laterality.DUPUYTREN_S.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/03_DUPUYTRENS/02_SIMULATION_AND_CTP_ORDER/02_SIM_CTP_IGRT.DUPUYTRENS.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
     driveFileId: "1R2FClgrgied8AUX1SrEv1T2sykF_2XUx",
     driveUrl: "https://docs.google.com/document/d/1R2FClgrgied8AUX1SrEv1T2sykF_2XUx/edit",
     mimeType: "DOCX",
-    status: "MAPPING_IN_PROGRESS"
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-DUPUYTRENS-RX",
+    name: "Dupuytren's Prescription",
+    sourceFileName:
+      "docs/2026_TEMPLATES/03_DUPUYTRENS/07_PRESCRIPTION/07_Prescription.DUPUYTRENS.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-DUPUYTRENS-FXLOG",
+    name: "Dupuytren's Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/03_DUPUYTRENS/12_FRACTIONATION_LOG/12_Fractionation_Log.DUPUYTRENS.HAND.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-DUPUYTRENS-US-MAP",
+    name: "Dupuytren's US Mapping",
+    sourceFileName:
+      "docs/2026_TEMPLATES/03_DUPUYTRENS/US_MAPPING/01_US_Mapping.DUPUYTRENS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "ACTIVE"
+  },
+  {
+    id: "SRC-DUPUYTRENS-ISO",
+    name: "Dupuytren's Isodose Curves",
+    sourceFileName:
+      "docs/2026_TEMPLATES/03_DUPUYTRENS/09_ISODOSE_CURVES/09_Isodose_Curves.DUPUYTRENS.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.pptx",
+    mimeType: "PPTX",
+    status: "MAPPING_IN_PROGRESS",
+    notes: "Planning support source tracked until isodose generation rules are mapped."
+  },
+  {
+    id: "SRC-DRAFT-ARTHRITIS-SITE-FXLOG",
+    name: "Draft Arthritis Site Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_12_Fractionation_Log.ARTHRITIS.SITE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "DRAFT",
+    notes: "On-going revision file; excluded from active workflow requirements."
+  },
+  {
+    id: "SRC-DRAFT-COPY-ARTHRITIS-SITE-FXLOG",
+    name: "Draft Copy Arthritis Site Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.ARTHRITIS.SITE.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "DRAFT",
+    notes: "Copy retained for revision traceability."
+  },
+  {
+    id: "SRC-DRAFT-COPY-ARTHRITIS-REGION-FXLOG",
+    name: "Draft Copy Arthritis Anatomic Region Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.ARTHRITIS.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "DRAFT",
+    notes: "Generic anatomic-region draft retained for revision traceability."
+  },
+  {
+    id: "SRC-DRAFT-COPY-GYNECOMASTIA-FXLOG",
+    name: "Draft Copy Gynecomastia Fraction Log",
+    sourceFileName:
+      "docs/2026_TEMPLATES/90_ON_GOING_REVISION/Draft_Copy_12_Fractionation_Log.GYNECOMASTIA.BREAST.LATERALITY.DDMMYYYY.LastName.FirstName.xlsx",
+    mimeType: "XLSX",
+    status: "DRAFT",
+    notes: "Possible future protocol; no active CureRays workflow coverage yet."
+  },
+  {
+    id: "SRC-DUPLICATE-ARTHRITIS-HAND-MAP",
+    name: "Duplicate Review Arthritis Hand Joint Mapping",
+    sourceFileName:
+      "docs/2026_TEMPLATES/99_DUPLICATE_REVIEW/Duplicate_01_Joint_Mapping.ARTHRITIS.HAND.LATERALITY.MMDDYY.LastName.FirstName.docx",
+    mimeType: "DOCX",
+    status: "DRAFT",
+    notes: "Root-level duplicate candidate; kept out of active mapping until manual/hash review confirms replacement."
   },
   {
     id: "SRC-BILLING-PREAUTH-MISSING",
@@ -166,14 +344,14 @@ export const documentRequirements: DocumentRequirement[] = [
     auditSteps: ["AVS reviewed", "Communication status confirmed"]
   },
   {
-    id: "REQ-SKIN-PREAUTH",
-    name: "Carepath PreAuth Note",
+    id: "REQ-SKIN-PREAUTH-20FX",
+    name: "Carepath PreAuth Audit - 20fx",
     workflowPhase: "CONSULTATION",
     responsibleParty: "ADMIN",
     applicability: {
       diagnosis: "SKIN_CANCER",
       protocol: "IGSRT",
-      requiredWhen: "Needed when payer authorization and audit evidence are required."
+      requiredWhen: "Use for 20 fraction IGSRT courses when payer authorization and audit evidence are required."
     },
     templateSourceId: "SRC-SKIN-CAREPATH-PREAUTH-20",
     defaultStatus: "MISSING_FIELDS",
@@ -181,7 +359,27 @@ export const documentRequirements: DocumentRequirement[] = [
     requiredFields: ["diagnosis", "authorization outcome", "payer requirements"],
     outputFormats: ["DOCX", "PDF"],
     cptCode: "N/A",
-    createsTask: false
+    createsTask: false,
+    autoCreate: false
+  },
+  {
+    id: "REQ-SKIN-PREAUTH-30FX",
+    name: "Carepath PreAuth Audit - 30fx",
+    workflowPhase: "CONSULTATION",
+    responsibleParty: "ADMIN",
+    applicability: {
+      diagnosis: "SKIN_CANCER",
+      protocol: "IGSRT",
+      requiredWhen: "Use for 30 fraction IGSRT courses when payer authorization and audit evidence are required."
+    },
+    templateSourceId: "SRC-SKIN-CAREPATH-PREAUTH-30",
+    defaultStatus: "MISSING_FIELDS",
+    requiredAction: "Map 30fx billing pre-auth requirements before treating this as fully automated",
+    requiredFields: ["diagnosis", "authorization outcome", "payer requirements", "fraction count"],
+    outputFormats: ["DOCX", "PDF"],
+    cptCode: "N/A",
+    createsTask: false,
+    autoCreate: false
   },
   {
     id: "REQ-SKIN-IGSRT-SIM",
@@ -268,14 +466,14 @@ export const documentRequirements: DocumentRequirement[] = [
     createsTask: false
   },
   {
-    id: "REQ-ARTHRITIS-MAPPING",
-    name: "Arthritis X-ray Mapping Note",
+    id: "REQ-ARTHRITIS-HAND-MAPPING",
+    name: "Arthritis Hand Joint Mapping",
     workflowPhase: "CHART_PREP",
     responsibleParty: "MA",
     applicability: {
       diagnosis: "ARTHRITIS",
-      protocol: "Joint mapping",
-      bodyRegion: "HAND/KNEE/FOOT",
+      protocol: "Joint",
+      bodyRegion: "HAND",
       requiredWhen: "Before simulation or planning review."
     },
     templateSourceId: "SRC-ARTHRITIS-HAND-MAP",
@@ -288,6 +486,229 @@ export const documentRequirements: DocumentRequirement[] = [
     taskNumber: "ARTH-01",
     timing: "Before simulation",
     auditSteps: ["Mapping fields complete", "Provider review"]
+  },
+  {
+    id: "REQ-ARTHRITIS-FOOT-MAPPING",
+    name: "Arthritis Foot Joint Mapping",
+    workflowPhase: "CHART_PREP",
+    responsibleParty: "MA",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "FOOT",
+      requiredWhen: "Before simulation or planning review."
+    },
+    templateSourceId: "SRC-ARTHRITIS-FOOT-MAP",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Capture joint scores and field design decision",
+    requiredFields: ["joint space narrowing", "osteophyte", "sclerosis", "overall grade"],
+    outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Foot joint mapping assessment",
+    taskNumber: "ARTH-FOOT-01",
+    timing: "Before simulation",
+    auditSteps: ["Mapping fields complete", "Provider review"]
+  },
+  {
+    id: "REQ-ARTHRITIS-HAND-SIM",
+    name: "Arthritis Hand SIM / CTP / IGRT Order",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "HAND",
+      requiredWhen: "Before treatment planning."
+    },
+    templateSourceId: "SRC-ARTHRITIS-HAND-SIM",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Complete hand simulation order and route for Rad Onc signature",
+    requiredFields: ["joint site", "laterality", "field design", "setup details"],
+    outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Complete hand simulation order",
+    taskNumber: "ARTH-HAND-02",
+    timing: "Before first treatment",
+    auditSteps: ["Simulation order complete", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-FOOT-SIM",
+    name: "Arthritis Foot SIM / CTP / IGRT Order",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "FOOT",
+      requiredWhen: "Before treatment planning."
+    },
+    templateSourceId: "SRC-ARTHRITIS-FOOT-SIM",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Complete foot simulation order and route for Rad Onc signature",
+    requiredFields: ["joint site", "laterality", "field design", "setup details"],
+    outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Complete foot simulation order",
+    taskNumber: "ARTH-FOOT-02",
+    timing: "Before first treatment",
+    auditSteps: ["Simulation order complete", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-KNEE-SIM",
+    name: "Arthritis Knee SIM / CTP / IGRT Order",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "KNEE",
+      requiredWhen: "Before treatment planning."
+    },
+    templateSourceId: "SRC-ARTHRITIS-KNEE-SIM",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Complete knee simulation order and route for Rad Onc signature",
+    requiredFields: ["joint site", "laterality", "field design", "setup details"],
+    outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Complete knee simulation order",
+    taskNumber: "ARTH-KNEE-02",
+    timing: "Before first treatment",
+    auditSteps: ["Simulation order complete", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-HAND-RX",
+    name: "Arthritis Hand Prescription",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "HAND",
+      requiredWhen: "Before treatment continuation."
+    },
+    templateSourceId: "SRC-ARTHRITIS-HAND-RX",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Verify hand prescription parameters and route for signature",
+    requiredFields: ["joint site", "laterality", "dose", "energy", "applicator"],
+    outputFormats: ["DOCX", "PDF"],
+    cptCode: "77300",
+    createsTask: true,
+    taskTitle: "Review hand prescription",
+    taskNumber: "ARTH-HAND-03",
+    timing: "Before treatment continuation",
+    auditSteps: ["Prescription review", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-FOOT-RX",
+    name: "Arthritis Foot Prescription",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "FOOT",
+      requiredWhen: "Before treatment continuation."
+    },
+    templateSourceId: "SRC-ARTHRITIS-FOOT-RX",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Verify foot prescription parameters and route for signature",
+    requiredFields: ["joint site", "laterality", "dose", "energy", "applicator"],
+    outputFormats: ["DOCX", "PDF"],
+    cptCode: "77300",
+    createsTask: true,
+    taskTitle: "Review foot prescription",
+    taskNumber: "ARTH-FOOT-03",
+    timing: "Before treatment continuation",
+    auditSteps: ["Prescription review", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-KNEE-RX",
+    name: "Arthritis Knee Prescription",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "KNEE",
+      requiredWhen: "Before treatment continuation."
+    },
+    templateSourceId: "SRC-ARTHRITIS-KNEE-RX",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Verify knee prescription parameters and route for signature",
+    requiredFields: ["joint site", "laterality", "dose", "energy", "applicator"],
+    outputFormats: ["DOCX", "PDF"],
+    cptCode: "77300",
+    createsTask: true,
+    taskTitle: "Review knee prescription",
+    taskNumber: "ARTH-KNEE-03",
+    timing: "Before treatment continuation",
+    auditSteps: ["Prescription review", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-ARTHRITIS-HAND-FXLOG",
+    name: "Arthritis Hand Fraction Log",
+    workflowPhase: "ON_TREATMENT",
+    responsibleParty: "RTT",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "HAND",
+      requiredWhen: "Daily during treatment."
+    },
+    templateSourceId: "SRC-ARTHRITIS-HAND-FXLOG",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Maintain hand treatment entries and reconcile approvals",
+    requiredFields: ["fraction", "date", "dose", "joint site", "therapist", "approval"],
+    outputFormats: ["XLSX", "PDF"],
+    createsTask: true,
+    taskTitle: "Reconcile hand fraction log",
+    taskNumber: "ARTH-HAND-04",
+    timing: "Daily during treatment",
+    auditSteps: ["Daily treatment log", "Treatment approval"]
+  },
+  {
+    id: "REQ-ARTHRITIS-FOOT-FXLOG",
+    name: "Arthritis Foot Fraction Log",
+    workflowPhase: "ON_TREATMENT",
+    responsibleParty: "RTT",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "FOOT",
+      requiredWhen: "Daily during treatment."
+    },
+    templateSourceId: "SRC-ARTHRITIS-FOOT-FXLOG",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Maintain foot treatment entries and reconcile approvals",
+    requiredFields: ["fraction", "date", "dose", "joint site", "therapist", "approval"],
+    outputFormats: ["XLSX", "PDF"],
+    createsTask: true,
+    taskTitle: "Reconcile foot fraction log",
+    taskNumber: "ARTH-FOOT-04",
+    timing: "Daily during treatment",
+    auditSteps: ["Daily treatment log", "Treatment approval"]
+  },
+  {
+    id: "REQ-ARTHRITIS-KNEE-FXLOG",
+    name: "Arthritis Knee Fraction Log",
+    workflowPhase: "ON_TREATMENT",
+    responsibleParty: "RTT",
+    applicability: {
+      diagnosis: "ARTHRITIS",
+      protocol: "Joint",
+      bodyRegion: "KNEE",
+      requiredWhen: "Daily during treatment."
+    },
+    templateSourceId: "SRC-ARTHRITIS-KNEE-FXLOG",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Maintain knee treatment entries and reconcile approvals",
+    requiredFields: ["fraction", "date", "dose", "joint site", "therapist", "approval"],
+    outputFormats: ["XLSX", "PDF"],
+    createsTask: true,
+    taskTitle: "Reconcile knee fraction log",
+    taskNumber: "ARTH-KNEE-04",
+    timing: "Daily during treatment",
+    auditSteps: ["Daily treatment log", "Treatment approval"]
   },
   {
     id: "REQ-DUPUYTRENS-SIM",
@@ -304,6 +725,93 @@ export const documentRequirements: DocumentRequirement[] = [
     requiredAction: "Map Dupuytren's simulation fields before automation",
     requiredFields: ["location", "laterality", "field design", "setup details"],
     outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Complete Dupuytren's simulation order",
+    taskNumber: "DUP-01",
+    timing: "Before first treatment",
+    auditSteps: ["Simulation order complete", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-DUPUYTRENS-US-MAPPING",
+    name: "Dupuytren's US Mapping",
+    workflowPhase: "CHART_PREP",
+    responsibleParty: "MA",
+    applicability: {
+      diagnosis: "DUPUYTRENS",
+      protocol: "Dupuytren's",
+      bodyRegion: "HAND",
+      requiredWhen: "Before planning field definition."
+    },
+    templateSourceId: "SRC-DUPUYTRENS-US-MAP",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Capture US mapping and route for provider planning review",
+    requiredFields: ["hand site", "laterality", "cord/nodule mapping", "field limits"],
+    outputFormats: ["DOCX", "PDF"],
+    createsTask: true,
+    taskTitle: "Complete Dupuytren's US mapping",
+    taskNumber: "DUP-02",
+    timing: "Before simulation",
+    auditSteps: ["US mapping complete", "Provider review"]
+  },
+  {
+    id: "REQ-DUPUYTRENS-RX",
+    name: "Dupuytren's Prescription",
+    workflowPhase: "PLANNING",
+    responsibleParty: "RAD_ONC",
+    applicability: {
+      diagnosis: "DUPUYTRENS",
+      protocol: "Dupuytren's",
+      requiredWhen: "Before treatment continuation."
+    },
+    templateSourceId: "SRC-DUPUYTRENS-RX",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Verify prescription parameters and route for signature",
+    requiredFields: ["location", "laterality", "dose", "energy", "applicator"],
+    outputFormats: ["DOCX", "PDF"],
+    cptCode: "77300",
+    createsTask: true,
+    taskTitle: "Review Dupuytren's prescription",
+    taskNumber: "DUP-03",
+    timing: "Before treatment continuation",
+    auditSteps: ["Prescription review", "Rad Onc signature"]
+  },
+  {
+    id: "REQ-DUPUYTRENS-FXLOG",
+    name: "Dupuytren's Fraction Log",
+    workflowPhase: "ON_TREATMENT",
+    responsibleParty: "RTT",
+    applicability: {
+      diagnosis: "DUPUYTRENS",
+      protocol: "Dupuytren's",
+      requiredWhen: "Daily during treatment."
+    },
+    templateSourceId: "SRC-DUPUYTRENS-FXLOG",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Maintain treatment entries and reconcile approvals",
+    requiredFields: ["fraction", "date", "dose", "hand site", "therapist", "approval"],
+    outputFormats: ["XLSX", "PDF"],
+    createsTask: true,
+    taskTitle: "Reconcile Dupuytren's fraction log",
+    taskNumber: "DUP-04",
+    timing: "Daily during treatment",
+    auditSteps: ["Daily treatment log", "Treatment approval"]
+  },
+  {
+    id: "REQ-DUPUYTRENS-ISO",
+    name: "Dupuytren's Isodose Curve Support",
+    workflowPhase: "PLANNING",
+    responsibleParty: "PHYSICIST",
+    applicability: {
+      diagnosis: "DUPUYTRENS",
+      protocol: "Dupuytren's",
+      requiredWhen: "When isodose support is needed for treatment planning."
+    },
+    templateSourceId: "SRC-DUPUYTRENS-ISO",
+    defaultStatus: "PENDING_NEEDED",
+    requiredAction: "Confirm isodose support requirements and mapping status",
+    requiredFields: ["energy", "applicator", "depth of target", "isodose percentage"],
+    outputFormats: ["PPTX", "PDF"],
+    cptCode: "77300",
     createsTask: false
   },
   {
@@ -345,7 +853,8 @@ export const workflowDefinitions: WorkflowDefinition[] = [
     phases: orderedCarepathPhases,
     documentRequirementIds: [
       "REQ-INTAKE",
-      "REQ-SKIN-PREAUTH",
+      "REQ-SKIN-PREAUTH-20FX",
+      "REQ-SKIN-PREAUTH-30FX",
       "REQ-SKIN-IGSRT-SIM",
       "REQ-SKIN-IGSRT-RX",
       "REQ-SKIN-IGSRT-FXLOG",
@@ -361,7 +870,21 @@ export const workflowDefinitions: WorkflowDefinition[] = [
     protocol: "Joint mapping",
     description: "Arthritis tracking by body region while template details continue to be mapped.",
     phases: orderedCarepathPhases,
-    documentRequirementIds: ["REQ-INTAKE", "REQ-ARTHRITIS-MAPPING", "REQ-AVS-PCP"],
+    documentRequirementIds: [
+      "REQ-INTAKE",
+      "REQ-ARTHRITIS-HAND-MAPPING",
+      "REQ-ARTHRITIS-FOOT-MAPPING",
+      "REQ-ARTHRITIS-HAND-SIM",
+      "REQ-ARTHRITIS-FOOT-SIM",
+      "REQ-ARTHRITIS-KNEE-SIM",
+      "REQ-ARTHRITIS-HAND-RX",
+      "REQ-ARTHRITIS-FOOT-RX",
+      "REQ-ARTHRITIS-KNEE-RX",
+      "REQ-ARTHRITIS-HAND-FXLOG",
+      "REQ-ARTHRITIS-FOOT-FXLOG",
+      "REQ-ARTHRITIS-KNEE-FXLOG",
+      "REQ-AVS-PCP"
+    ],
     status: "MAPPING_IN_PROGRESS"
   },
   {
@@ -371,7 +894,15 @@ export const workflowDefinitions: WorkflowDefinition[] = [
     protocol: "Dupuytren's",
     description: "Dupuytren's tracking with simulation, prescription, fraction log, and mapping still evolving.",
     phases: orderedCarepathPhases,
-    documentRequirementIds: ["REQ-INTAKE", "REQ-DUPUYTRENS-SIM", "REQ-AVS-PCP"],
+    documentRequirementIds: [
+      "REQ-INTAKE",
+      "REQ-DUPUYTRENS-US-MAPPING",
+      "REQ-DUPUYTRENS-SIM",
+      "REQ-DUPUYTRENS-RX",
+      "REQ-DUPUYTRENS-FXLOG",
+      "REQ-DUPUYTRENS-ISO",
+      "REQ-AVS-PCP"
+    ],
     status: "MAPPING_IN_PROGRESS"
   }
 ];
@@ -399,7 +930,8 @@ export const internalFormTemplates: InternalFormTemplate[] = [
     protocol: "IGSRT",
     sourceDriveFileId: "1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX",
     sourceDriveUrl: "https://docs.google.com/document/d/1WSCh-g-IeOdnkRAE-Q1e2axt0FF7c3aX/edit",
-    sourceFileName: "2. CTP_SIM_IGSRTorder.LOCATION.laterality.SKIN.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/02_SIMULATION_AND_CTP_ORDER/02_SIM_CTP_IGSRT_Order.SKIN_CANCER.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
     outputFormats: ["DOCX", "PDF"],
     sections: [
       {
@@ -431,7 +963,8 @@ export const internalFormTemplates: InternalFormTemplate[] = [
     protocol: "IGSRT",
     sourceDriveFileId: "1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi",
     sourceDriveUrl: "https://docs.google.com/document/d/1w07yZnotK_sEDcirUFwnEXhZyFSvv4bi/edit",
-    sourceFileName: "7. Prescription.LOCATION.laterality.SCC_BCC.DDMMYY.LastName.FirstName.docx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/07_PRESCRIPTION/07_Prescription.SKIN_CANCER.SCC_BCC.LOCATION.LATERALITY.DDMMYY.LastName.FirstName.docx",
     outputFormats: ["DOCX", "PDF"],
     sections: [
       {
@@ -455,7 +988,8 @@ export const internalFormTemplates: InternalFormTemplate[] = [
     protocol: "IGSRT",
     sourceDriveFileId: "1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ",
     sourceDriveUrl: "https://docs.google.com/spreadsheets/d/1tFlY8IzDbhxUCRyWFzh-VDSwn0HxIsyJ/edit",
-    sourceFileName: "12. FX Log.SITE.laterality.SKIN.DDMMYY.LastName.First Name.xlsx",
+    sourceFileName:
+      "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/12_FRACTIONATION_LOG/12_Fractionation_Log.SKIN_CANCER.IGSRT.ANATOMIC_REGION.LATERALITY.DDMMYY.LastName.FirstName.xlsx",
     outputFormats: ["XLSX", "PDF"],
     sections: [
       {
@@ -489,6 +1023,23 @@ function protocolMatches(requirementProtocol: string | undefined, course: Treatm
   return normalizedCourse.includes(normalizedRequirement.toLowerCase()) || normalizedRequirement === "universal";
 }
 
+function bodyRegionMatches(requirementBodyRegion: string | undefined, course: TreatmentCourse) {
+  if (!requirementBodyRegion) {
+    return true;
+  }
+
+  const normalizedRequirement = requirementBodyRegion.toLowerCase();
+  const normalizedCourse = `${course.diagnosis} ${course.protocolName} ${course.treatmentType} ${course.applicator ?? ""} ${course.targetDepth ?? ""}`.toLowerCase();
+  const aliases: Record<string, string[]> = {
+    hand: ["hand", "thumb", "finger", "palm", "wrist"],
+    foot: ["foot", "toe", "ankle"],
+    knee: ["knee"]
+  };
+  const matchTerms = aliases[normalizedRequirement] ?? [normalizedRequirement];
+
+  return matchTerms.some((term) => normalizedCourse.includes(term));
+}
+
 export function documentRequirementAppliesToCourse(
   requirement: DocumentRequirement,
   patient: Patient,
@@ -500,7 +1051,8 @@ export function documentRequirementAppliesToCourse(
 
   return (
     requirement.applicability.diagnosis === patient.diagnosisCategory &&
-    protocolMatches(requirement.applicability.protocol, course)
+    protocolMatches(requirement.applicability.protocol, course) &&
+    bodyRegionMatches(requirement.applicability.bodyRegion, course)
   );
 }
 
