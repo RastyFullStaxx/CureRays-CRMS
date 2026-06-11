@@ -35,6 +35,7 @@ import {
   CartesianGrid,
   Cell,
   ComposedChart,
+  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -97,9 +98,9 @@ function signalColor(group: DashboardSignalNode['group']) {
 }
 
 const stageAnchors: Record<DashboardSignalStageId, { x: number; y: number }> = {
-  'chart-prep': { x: 0.34, y: 0.42 },
-  planning: { x: 0.48, y: 0.3 },
-  delivery: { x: 0.64, y: 0.43 },
+  'chart-prep': { x: 0.36, y: 0.5 },
+  planning: { x: 0.48, y: 0.36 },
+  delivery: { x: 0.64, y: 0.5 },
   closeout: { x: 0.52, y: 0.66 },
 };
 
@@ -110,19 +111,19 @@ function anchorForNode(node: DashboardSignalNode) {
   }
 
   if (node.group === 'patient') {
-    return { x: stage.x - 0.12, y: stage.y + 0.04 };
+    return { x: stage.x - 0.08, y: stage.y + 0.03 };
   }
 
   if (node.group === 'course') {
-    return { x: stage.x + 0.1, y: stage.y + 0.02 };
+    return { x: stage.x + 0.08, y: stage.y + 0.02 };
   }
 
   if (node.group === 'document') {
-    return { x: Math.min(0.78, stage.x + 0.2), y: stage.y + 0.08 };
+    return { x: Math.min(0.72, stage.x + 0.14), y: stage.y + 0.08 };
   }
 
   if (node.group === 'risk' || node.group === 'task') {
-    return { x: Math.min(0.76, stage.x + 0.16), y: Math.max(0.24, stage.y - 0.14) };
+    return { x: Math.min(0.7, stage.x + 0.12), y: Math.max(0.3, stage.y - 0.12) };
   }
 
   return stage;
@@ -162,13 +163,17 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
     let width = 1;
     let height = 1;
     let animationFrame = 0;
+    const initialRect = canvas.getBoundingClientRect();
+    width = Math.max(1, initialRect.width || canvas.clientWidth || 560);
+    height = Math.max(1, initialRect.height || canvas.clientHeight || 300);
     const simulationNodes: SignalSimulationNode[] = nodes.map((node, index) => ({
       ...node,
       phaseSeed: index * 1.47,
-      x: 140 + (index % 6) * 32,
-      y: 92 + (index % 5) * 26,
+      x: anchorForNode(node).x * width + Math.cos(index * 1.7) * 24,
+      y: anchorForNode(node).y * height + Math.sin(index * 1.7) * 24,
     }));
     const simulationLinks: SignalSimulationLink[] = links.map((link) => ({ ...link }));
+    const centerForce = forceCenter<SignalSimulationNode>(width / 2, height / 2).strength(0.18);
     const simulation = forceSimulation<SignalSimulationNode>(simulationNodes)
       .force(
         'link',
@@ -177,17 +182,18 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
           .distance((link) => 28 + Math.max(1, 9 - link.value) * 5)
           .strength(0.36),
       )
-      .force('charge', forceManyBody<SignalSimulationNode>().strength((node) => (node.group === 'stage' ? -120 : -54)))
+      .force('charge', forceManyBody<SignalSimulationNode>().strength((node) => (node.group === 'stage' ? -92 : -36)))
       .force('collide', forceCollide<SignalSimulationNode>((node) => nodeRadius(node) + 9).strength(0.72))
-      .force('center', forceCenter<SignalSimulationNode>(width / 2, height / 2).strength(0.05))
-      .force('x', forceX<SignalSimulationNode>((node) => anchorForNode(node).x * width).strength((node) => (node.group === 'stage' ? 0.34 : 0.12)))
-      .force('y', forceY<SignalSimulationNode>((node) => anchorForNode(node).y * height).strength((node) => (node.group === 'stage' ? 0.34 : 0.12)));
+      .force('center', centerForce)
+      .force('x', forceX<SignalSimulationNode>((node) => anchorForNode(node).x * width).strength((node) => (node.group === 'stage' ? 0.42 : 0.18)))
+      .force('y', forceY<SignalSimulationNode>((node) => anchorForNode(node).y * height).strength((node) => (node.group === 'stage' ? 0.42 : 0.18)));
 
     const draw = (time = 0) => {
       const rect = canvas.getBoundingClientRect();
       const scale = window.devicePixelRatio || 1;
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
+      width = Math.max(1, rect.width || canvas.clientWidth || width);
+      height = Math.max(1, rect.height || canvas.clientHeight || height);
+      centerForce.x(width / 2).y(height / 2);
 
       if (canvas.width !== Math.floor(width * scale) || canvas.height !== Math.floor(height * scale)) {
         canvas.width = Math.floor(width * scale);
@@ -215,20 +221,29 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
       simulationNodes.forEach((node) => {
         const radius = nodeRadius(node);
         const labelReserve = node.group === 'stage' || node.group === 'task' || node.group === 'document' || node.group === 'risk' ? 28 : 10;
-        const drift = reduceMotion
+        const anchor = anchorForNode(node);
+        const anchorX = anchor.x * width;
+        const anchorY = anchor.y * height;
+        const orbitRadius = reduceMotion
           ? 0
           : node.group === 'stage'
-            ? 1.4
+            ? 7
             : node.group === 'patient'
-              ? 5.2
+              ? 18
               : node.group === 'course'
-                ? 4
-                : 2.8;
+                ? 15
+                : 11;
+        const orbitSpeed = node.group === 'stage' ? 2100 : node.group === 'patient' ? 1350 : 1650;
+        const orbitAngle = time / orbitSpeed + node.phaseSeed;
         node.x = Math.min(Math.max(node.x ?? 0, radius + 12), width - radius - 12);
         node.y = Math.min(Math.max(node.y ?? 0, radius + 12), height - radius - labelReserve);
+        const orbitX = Math.cos(orbitAngle) * orbitRadius;
+        const orbitY = Math.sin(orbitAngle) * orbitRadius;
+        const tetherX = ((node.x ?? anchorX) * 0.68) + (anchorX * 0.32);
+        const tetherY = ((node.y ?? anchorY) * 0.68) + (anchorY * 0.32);
         renderPositions.set(node.id, {
-          x: Math.min(Math.max((node.x ?? 0) + Math.sin(time / 850 + node.phaseSeed) * drift, radius + 12), width - radius - 12),
-          y: Math.min(Math.max((node.y ?? 0) + Math.cos(time / 980 + node.phaseSeed) * drift, radius + 12), height - radius - labelReserve),
+          x: Math.min(Math.max(tetherX + orbitX, radius + 12), width - radius - 12),
+          y: Math.min(Math.max(tetherY + orbitY, radius + 12), height - radius - labelReserve),
         });
       });
 
@@ -481,31 +496,43 @@ function AttentionQueue({ telemetry }: { telemetry: DashboardTelemetry }) {
 }
 
 function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const capacityTrend = useMemo(() => {
+    return telemetry.capacityBands.map((band) => ({
+      label: band.label,
+      treatment: band.treatment,
+      simulation: band.simulation,
+      review: band.review,
+      pressure: Math.min(100, Math.round((band.total / Math.max(band.capacity, 1)) * 100)),
+    }));
+  }, [telemetry.capacityBands]);
+
   return (
     <div className="dashboard-capacity">
-      <div className="dashboard-capacity-grid">
-        {telemetry.capacityBands.map((band) => {
-          const pressure = Math.min(100, Math.round((band.total / Math.max(band.capacity, 1)) * 100));
-          const treatment = Math.round((band.treatment / Math.max(band.total, 1)) * 100);
-          const simulation = Math.round((band.simulation / Math.max(band.total, 1)) * 100);
-          const review = Math.max(0, 100 - treatment - simulation);
-
-          return (
-            <div key={band.label} className="dashboard-capacity-band">
-              <div className="dashboard-capacity-band-head">
-                <span>{band.label}</span>
-                <strong>{pressure}%</strong>
-              </div>
-              <div className="dashboard-capacity-track" aria-label={`${band.label} capacity ${pressure}%`}>
-                <div className="dashboard-capacity-stack" style={{ width: `${pressure}%` }}>
-                  <i className="is-treatment" style={{ width: `${treatment}%` }} />
-                  <i className="is-simulation" style={{ width: `${simulation}%` }} />
-                  <i className="is-review" style={{ width: `${review}%` }} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="dashboard-capacity-chart" role="img" aria-label="Capacity pressure line chart">
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={150} initialDimension={{ width: 380, height: 170 }}>
+          <ComposedChart data={capacityTrend} margin={{ top: 10, right: 8, bottom: 0, left: -24 }}>
+            <CartesianGrid stroke="var(--color-border-soft)" strokeDasharray="3 3" />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
+            <YAxis hide domain={[0, 'dataMax + 2']} />
+            <Tooltip
+              cursor={{ stroke: 'var(--color-border)', strokeDasharray: '3 3' }}
+              contentStyle={{
+                background: 'var(--color-card)',
+                border: 'var(--border-container)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-text)',
+              }}
+            />
+            <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-success)" fillOpacity={0.16} stroke="var(--color-success)" strokeWidth={2} dot={false} />
+            <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-info)" fillOpacity={0.12} stroke="var(--color-info)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="review" name="Review" stroke="var(--color-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)', strokeWidth: 2 }} activeDot={{ r: 4 }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="dashboard-capacity-legend">
+        <span><i className="is-treatment" />Treatment</span>
+        <span><i className="is-simulation" />Simulation</span>
+        <span><i className="is-review" />Review</span>
       </div>
       <div className="dashboard-provider-load">
         <span className="dashboard-provider-load-title">Provider load</span>
@@ -627,8 +654,8 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
             <div className="dashboard-signal-body">
               <div className="dashboard-signal-plot">
                 <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
-                <SignalLoad telemetry={telemetry} />
               </div>
+              <SignalLoad telemetry={telemetry} />
             </div>
           </article>
           <div className="dashboard-metric-grid">
