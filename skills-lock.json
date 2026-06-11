@@ -25,6 +25,12 @@
       "skillPath": "skills/healthcare-phi-compliance/SKILL.md",
       "computedHash": "80e20cc8522f061acb861f0b68316f1a2ef508e76d40c6902f7b7e2b555b2428"
     },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "5d9444ffe5c240f2d20081c42c547112e1b8c372375a14e4c98df4d94bde11e1"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",
