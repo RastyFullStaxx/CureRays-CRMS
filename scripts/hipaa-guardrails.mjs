@@ -29,6 +29,7 @@ assert.equal(
 
 const operationalPages = [
   "app/page.tsx",
+  "app/dashboard/page.tsx",
   "app/records/page.tsx",
   "app/upcoming/page.tsx",
   "app/on-treatment/page.tsx",
@@ -43,6 +44,15 @@ for (const page of operationalPages) {
     /import\s+\{[^}]*\bpatients\b[^}]*\}\s+from\s+"@\/lib\/clinical-store"/s.test(source),
     false,
     `${page} must use operationalPatients(), not PHI-bearing patients`
+  );
+}
+
+for (const clientEntry of ["components/dashboard/dashboard-telemetry-client.tsx"]) {
+  const source = read(clientEntry);
+  assert.equal(
+    source.includes("@/lib/clinical-store"),
+    false,
+    `${clientEntry} must receive tokenized telemetry props, not import clinical-store`
   );
 }
 

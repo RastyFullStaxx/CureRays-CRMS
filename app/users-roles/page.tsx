@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { Children, type ReactNode } from 'react';
 import { Plus, UserCog, ShieldCheck, UsersRound } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -16,6 +17,24 @@ function AccessIcon({ level }: { level: string }) {
   if (level === 'view') return <Badge variant="default">View</Badge>;
   if (level === 'none') return <Badge variant="error">None</Badge>;
   return <span style={{ color: 'var(--color-text-muted)' }}>-</span>;
+}
+
+function StableStatGrid({ children }: { children: ReactNode }) {
+  const items = Children.toArray(children);
+  const placeholders = Array.from({ length: Math.max(0, 4 - items.length) });
+
+  return (
+    <StatGrid min="184px">
+      {items}
+      {placeholders.map((_, index) => (
+        <div
+          key={`stat-placeholder-${index}`}
+          aria-hidden="true"
+          style={{ minHeight: 68, visibility: 'hidden' }}
+        />
+      ))}
+    </StatGrid>
+  );
 }
 
 export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?: string } }) {
@@ -100,12 +119,12 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
 
       {active === 0 && (
         <>
-          <StatGrid>
+          <StableStatGrid>
             <StatCard icon={UsersRound} label="Total Users" value={32} tone="primary" />
             <StatCard icon={UsersRound} label="Active" value={26} sub="81%" tone="success" />
             <StatCard icon={ShieldCheck} label="Roles" value={adminRoles.length} tone="warning" />
             <StatCard icon={UserCog} label="Locations" value={2} />
-          </StatGrid>
+          </StableStatGrid>
           <DataTable
             keyField="email"
             columns={[
@@ -136,10 +155,10 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
 
       {active === 1 && (
         <>
-          <StatGrid>
+          <StableStatGrid>
             <StatCard icon={ShieldCheck} label="Total Roles" value={adminRoles.length} tone="primary" />
             <StatCard icon={ShieldCheck} label="Active Roles" value={adminRoles.filter((r) => r.status === 'Active').length} tone="success" />
-          </StatGrid>
+          </StableStatGrid>
           <DataTable
             keyField="name"
             columns={[
@@ -161,10 +180,10 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
 
       {active === 2 && (
         <>
-          <StatGrid>
+          <StableStatGrid>
             <StatCard icon={ShieldCheck} label="Permission Modules" value={permissionRows.length} tone="primary" />
             <StatCard icon={UserCog} label="Role Columns" value={permissionRoles.length} tone="info" />
-          </StatGrid>
+          </StableStatGrid>
           <DataTable
             keyField="module"
             columns={[

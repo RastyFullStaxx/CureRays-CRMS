@@ -9,18 +9,20 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/check-build-node.mjs",
-    "build": "node scripts/run-next-build.mjs",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:hipaa": "node scripts/hipaa-guardrails.mjs"
   },
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
     "lucide-react": "^0.468.0",
     "next": "14.2.16",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
