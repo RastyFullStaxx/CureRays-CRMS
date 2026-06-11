@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   addFractionLogEntry,
+  approveFractionLogEntry,
   getIgsrtWorkspace,
+  requestFractionRevision,
   renderGeneratedDocument,
   signGeneratedDocument,
   updateFractionLogEntry,
   updatePrescription,
-  updateSimulationOrder
+  updateSimulationOrder,
+  voidFractionLogEntry
 } from "@/lib/clinical-store";
 import { phiAccessFromRequest } from "@/lib/server/phi-store";
 
@@ -78,6 +81,48 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction worksheet validation failed" },
+        { status: 400 }
+      );
+    }
+  }
+
+  if (body.action === "approveFraction") {
+    try {
+      const result = approveFractionLogEntry(body.data);
+      return result
+        ? NextResponse.json(result)
+        : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Fraction approval failed" },
+        { status: 400 }
+      );
+    }
+  }
+
+  if (body.action === "requestFractionRevision") {
+    try {
+      const result = requestFractionRevision(body.data);
+      return result
+        ? NextResponse.json(result)
+        : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Fraction revision request failed" },
+        { status: 400 }
+      );
+    }
+  }
+
+  if (body.action === "voidFraction") {
+    try {
+      const result = voidFractionLogEntry(body.data);
+      return result
+        ? NextResponse.json(result)
+        : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Fraction void failed" },
         { status: 400 }
       );
     }

@@ -20,6 +20,8 @@ import {
   LineChart,
   UserCog,
   Settings,
+  Sun,
+  Moon,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -91,6 +93,7 @@ const NAV_SECTIONS = [
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('curerays_sidebar_collapsed');
@@ -98,6 +101,22 @@ export function Sidebar() {
       setCollapsed(stored === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('curerays_darkmode');
+    const isDark = stored !== null
+      ? stored === 'true'
+      : document.documentElement.classList.contains('dark');
+    setDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
+  }, []);
+
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem('curerays_darkmode', next.toString());
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   const toggleCollapse = () => {
     setCollapsed((current) => {
@@ -124,14 +143,26 @@ export function Sidebar() {
           <span className="sidebar-brand-name">CureRays</span>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleCollapse}
-          className="sidebar-toggle"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
+        <div className="sidebar-header-controls">
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              className="sidebar-toggle"
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={toggleCollapse}
+            className="sidebar-toggle"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        </div>
       </div>
 
       <nav className="sidebar-nav scrollbar-soft" aria-label="Primary navigation">

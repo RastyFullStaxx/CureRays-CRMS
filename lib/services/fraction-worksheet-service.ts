@@ -1,4 +1,5 @@
 import type {
+  FractionLogStatus,
   FractionLogEntry,
   FractionWorksheetApprovalState,
   FractionWorksheetCalculationMeta,
@@ -154,6 +155,39 @@ export function roundToClinicalTenth(value: number) {
   return Math.round(value * 10) / 10;
 }
 
+export function isVoidedFractionEntry(entry: Pick<FractionLogEntry, "status" | "voidedAt">) {
+  return entry.status === "VOIDED" || Boolean(entry.voidedAt);
+}
+
+export function deriveFractionLogStatus(
+  entry: Pick<
+    FractionLogEntry,
+    "status" | "mdApproval" | "dotApproval" | "mdApprovalState" | "dotApprovalState" | "revisionReason" | "voidedAt"
+  >
+): FractionLogStatus {
+  if (entry.status === "VOIDED" || entry.voidedAt) {
+    return "VOIDED";
+  }
+
+  if (
+    entry.mdApprovalState === "REVISION_NEEDED" ||
+    entry.dotApprovalState === "REVISION_NEEDED" ||
+    Boolean(entry.revisionReason)
+  ) {
+    return "REVISION_NEEDED";
+  }
+
+  if (entry.mdApproval && entry.dotApproval) {
+    return "APPROVED";
+  }
+
+  if (!entry.mdApproval || !entry.dotApproval) {
+    return "NEEDS_REVIEW";
+  }
+
+  return "RECORDED";
+}
+
 export function lookupIsodoseToDotPercent(input: {
   energyKv: number;
   fieldSizeCm: string;
@@ -210,18 +244,18 @@ export function calculateFractionWorksheetEntry(
   const overrideReason = String(input.isodoseOverrideReason ?? "").trim();
   const warnings = [...lookup.warnings];
   const calculatedAt = options.calculatedAt ?? new Date().toISOString();
+  const canRetainLegacyOverride = Boolean(input.id) && !input.calculationStatus && !overrideReason;
 
   if (lookup.percent === null && !hasOverride) {
     throw new Error("Missing isodose lookup requires a manual isodose percent and override reason.");
   }
 
-  if (lookup.percent === null && hasOverride && !overrideReason) {
+  if (lookup.percent === null && hasOverride && !overrideReason && !canRetainLegacyOverride) {
     throw new Error("Manual isodose override requires an override reason.");
   }
 
   const isManualOverride = lookup.percent === null || (hasOverride && Math.abs(overridePercent - (lookup.percent ?? overridePercent)) > 0.05);
   const isodoseToDotPercent = isManualOverride ? overridePercent : lookup.percent ?? overridePercent;
-  const canRetainLegacyOverride = Boolean(input.id) && !input.calculationStatus && !overrideReason && lookup.percent !== null;
   if (isManualOverride && !overrideReason && !canRetainLegacyOverride) {
     throw new Error("Manual isodose override requires an override reason.");
   }
@@ -251,10 +285,24 @@ export function calculateFractionWorksheetEntry(
     clinicalValidationRequired: true,
     warnings
   };
+  const mdApproval = input.mdApprovalState ? approvalStateToBoolean(input.mdApprovalState) : compactBoolean(input.mdApproval);
+  const dotApproval = input.dotApprovalState ? approvalStateToBoolean(input.dotApprovalState) : compactBoolean(input.dotApproval);
+  const mdApprovalState = input.mdApprovalState ?? booleanToApprovalState(mdApproval);
+  const dotApprovalState = input.dotApprovalState ?? booleanToApprovalState(dotApproval);
+  const status = deriveFractionLogStatus({
+    status: input.status ?? "RECORDED",
+    mdApproval,
+    dotApproval,
+    mdApprovalState,
+    dotApprovalState,
+    revisionReason: input.revisionReason,
+    voidedAt: input.voidedAt
+  });
   const entry: FractionLogEntry = {
     id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(fractionNumber).padStart(2, "0")}`,
     courseId: input.courseId,
     fractionNumber,
+    status,
     date: input.date || new Date().toISOString().slice(0, 10),
     phase: input.phase || "Phase I",
     energy: `${energyKv} kV`,
@@ -268,10 +316,14 @@ export function calculateFractionWorksheetEntry(
     cumulativeDose: cumulativeDoseCgy,
     cumulativeDoseCgy,
     technicianInitials: input.technicianInitials || "NR",
-    mdApproval: input.mdApprovalState ? approvalStateToBoolean(input.mdApprovalState) : compactBoolean(input.mdApproval),
-    mdApprovalState: input.mdApprovalState ?? booleanToApprovalState(compactBoolean(input.mdApproval)),
-    dotApproval: input.dotApprovalState ? approvalStateToBoolean(input.dotApprovalState) : compactBoolean(input.dotApproval),
-    dotApprovalState: input.dotApprovalState ?? booleanToApprovalState(compactBoolean(input.dotApproval)),
+    mdApproval,
+    mdApprovalState,
+    mdApprovedAt: input.mdApprovedAt,
+    mdApprovedByUserId: input.mdApprovedByUserId,
+    dotApproval,
+    dotApprovalState,
+    dotApprovedAt: input.dotApprovedAt,
+    dotApprovedByUserId: input.dotApprovedByUserId,
     depthOfTarget: `${depthOfTargetMm.toFixed(1)} mm`,
     depthOfTargetMm,
     isodosePercent: isodoseToDotPercent,
@@ -285,7 +337,17 @@ export function calculateFractionWorksheetEntry(
     calculationStatus: isManualOverride ? (canRetainLegacyOverride ? "LEGACY_IMPORTED" : "MANUAL_OVERRIDE") : "AUTO_LOOKUP",
     calculationMeta,
     notes: input.notes ?? input.treatmentSetupComments ?? "Structured worksheet entry from CureRays CRMS.",
-    isodoseNote: ""
+    isodoseNote: "",
+    revisionApprovalType: input.revisionApprovalType,
+    revisionReason: input.revisionReason,
+    revisionRequestedAt: input.revisionRequestedAt,
+    revisionRequestedByUserId: input.revisionRequestedByUserId,
+    voidReason: input.voidReason,
+    voidedAt: input.voidedAt,
+    voidedByUserId: input.voidedByUserId,
+    correctionReason: input.correctionReason,
+    correctedAt: input.correctedAt,
+    correctedByUserId: input.correctedByUserId
   };
 
   entry.isodoseNote = buildIsodoseNote(entry, previousEntry, getPhaseCompletedCount(entry.phase, sortedPriorEntries, fractionNumber));
@@ -293,11 +355,20 @@ export function calculateFractionWorksheetEntry(
 }
 
 export function recalculateFractionWorksheetEntries(entries: FractionLogEntry[]) {
-  return entries
+  const recalculatedActiveEntries: FractionLogEntry[] = [];
+
+  return [...entries]
     .sort((a, b) => a.fractionNumber - b.fractionNumber)
-    .reduce<FractionLogEntry[]>((recalculated, entry) => {
-      recalculated.push(calculateFractionWorksheetEntry(entry, recalculated, { existingId: entry.id }));
-      return recalculated;
+    .reduce<FractionLogEntry[]>((recalculatedEntries, entry) => {
+      if (isVoidedFractionEntry(entry)) {
+        recalculatedEntries.push({ ...entry, status: "VOIDED" });
+        return recalculatedEntries;
+      }
+
+      const recalculatedEntry = calculateFractionWorksheetEntry(entry, recalculatedActiveEntries, { existingId: entry.id });
+      recalculatedActiveEntries.push(recalculatedEntry);
+      recalculatedEntries.push(recalculatedEntry);
+      return recalculatedEntries;
     }, []);
 }
 
@@ -330,16 +401,18 @@ export function buildPhaseSummaries(
 }
 
 export function buildBillingRows(entries: FractionLogEntry[]): FractionWorksheetBillingRow[] {
-  return entries.map((entry) => ({
-    id: `BILL-${entry.id}`,
-    fractionNumber: entry.fractionNumber,
-    date: entry.date,
-    phase: entry.phase,
-    activity: "SRT",
-    cptCode: "77439",
-    reviewer: entry.mdApproval ? "MD approved" : "MD review needed",
-    status: entry.mdApproval && entry.dotApproval ? "Ready" : "Needs review"
-  }));
+  return entries
+    .filter((entry) => !isVoidedFractionEntry(entry))
+    .map((entry) => ({
+      id: `BILL-${entry.id}`,
+      fractionNumber: entry.fractionNumber,
+      date: entry.date,
+      phase: entry.phase,
+      activity: "SRT",
+      cptCode: "77439",
+      reviewer: entry.mdApproval ? "MD approved" : "MD review needed",
+      status: entry.mdApproval && entry.dotApproval ? "Ready" : "Needs review"
+    }));
 }
 
 export function buildIsodoseNote(entry: FractionLogEntry, previousEntry?: FractionLogEntry, phaseCompletedCount = 1) {

@@ -605,6 +605,10 @@ export type FractionWorksheetCalculationStatus = "AUTO_LOOKUP" | "MANUAL_OVERRID
 
 export type FractionWorksheetApprovalState = "PENDING" | "APPROVED" | "REVISION_NEEDED";
 
+export type FractionLogStatus = "RECORDED" | "NEEDS_REVIEW" | "REVISION_NEEDED" | "APPROVED" | "VOIDED";
+
+export type FractionApprovalType = "MD" | "DOT";
+
 export type FractionWorksheetCalculationMeta = {
   sourceTemplate: string;
   sourceTabs: string[];
@@ -619,6 +623,7 @@ export type FractionLogEntry = {
   id: string;
   courseId: string;
   fractionNumber: number;
+  status: FractionLogStatus;
   date: string;
   phase: string;
   energy: string;
@@ -634,8 +639,12 @@ export type FractionLogEntry = {
   technicianInitials: string;
   mdApproval: boolean;
   mdApprovalState?: FractionWorksheetApprovalState;
+  mdApprovedAt?: string;
+  mdApprovedByUserId?: string;
   dotApproval: boolean;
   dotApprovalState?: FractionWorksheetApprovalState;
+  dotApprovedAt?: string;
+  dotApprovedByUserId?: string;
   depthOfTarget: string;
   depthOfTargetMm?: number;
   isodosePercent: number;
@@ -649,6 +658,16 @@ export type FractionLogEntry = {
   calculationStatus?: FractionWorksheetCalculationStatus;
   calculationMeta?: FractionWorksheetCalculationMeta;
   isodoseNote?: string;
+  revisionApprovalType?: FractionApprovalType;
+  revisionReason?: string;
+  revisionRequestedAt?: string;
+  revisionRequestedByUserId?: string;
+  voidReason?: string;
+  voidedAt?: string;
+  voidedByUserId?: string;
+  correctionReason?: string;
+  correctedAt?: string;
+  correctedByUserId?: string;
   notes: string;
 };
 

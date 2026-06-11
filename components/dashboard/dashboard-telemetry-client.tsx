@@ -610,18 +610,22 @@ function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
 function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-signal-overlay">
-      <div className="dashboard-signal-core">
-        <span>Carepath load</span>
-        <strong>{telemetry.signal.loadPercent}%</strong>
+      <div className="dashboard-signal-load-panel">
+        <div className="dashboard-signal-load-value">
+          <strong>{telemetry.signal.loadPercent}%</strong>
+          <span>Carepath load</span>
+        </div>
         <p>{telemetry.signal.summary}</p>
       </div>
-      <div className="dashboard-signal-stage-chips" aria-label="Carepath stage load">
+      <div className="dashboard-signal-stage-grid" aria-label="Carepath stage load">
         {telemetry.signal.stages.map((stage) => (
-          <span key={stage.id} data-stage={stage.id}>
-            <i style={{ width: `${stage.pressure}%` }} />
-            <b>{stage.label}</b>
+          <article key={stage.id} className="dashboard-signal-stage-card" data-stage={stage.id}>
             <em>{stage.count}</em>
-          </span>
+            <div>
+              <b>{stage.label}</b>
+              <span>Active items</span>
+            </div>
+          </article>
         ))}
       </div>
     </div>

@@ -16,6 +16,7 @@ import type {
   AuditEvent,
   BillingCode,
   CarepathTask,
+  FractionApprovalType,
   FractionLogEntry,
   GeneratedDocument,
   GeneratedDocumentOutput,
@@ -50,6 +51,8 @@ import {
 } from "@/lib/template-registry";
 import {
   calculateFractionWorksheetEntry,
+  deriveFractionLogStatus,
+  isVoidedFractionEntry,
   recalculateFractionWorksheetEntries
 } from "@/lib/services/fraction-worksheet-service";
 
@@ -75,6 +78,10 @@ function todayIsoDate() {
 
 function compactBoolean(value: unknown) {
   return value === true || value === "true" || value === "on";
+}
+
+function activeFractionEntries(entries: FractionLogEntry[]) {
+  return entries.filter((entry) => !isVoidedFractionEntry(entry));
 }
 
 export const patients: Patient[] = clone(mockPatients);
@@ -407,9 +414,12 @@ function recalculateWorkflowState() {
   ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
 
   treatmentCourses.forEach((course) => {
-    const courseEntries = courseFractions(course.id, fractionLogEntries);
-    if (courseEntries.length > 0) {
-      course.currentFraction = Math.max(...courseEntries.map((entry) => entry.fractionNumber));
+    const allCourseEntries = courseFractions(course.id, fractionLogEntries);
+    const courseEntries = activeFractionEntries(allCourseEntries);
+    if (allCourseEntries.length > 0) {
+      course.currentFraction = courseEntries.length > 0
+        ? Math.max(...courseEntries.map((entry) => entry.fractionNumber))
+        : 0;
     }
   });
 
@@ -468,7 +478,7 @@ function recalculateWorkflowState() {
   });
 
   treatmentCourses.forEach((course) => {
-    const courseEntries = courseFractions(course.id, fractionLogEntries);
+    const courseEntries = activeFractionEntries(courseFractions(course.id, fractionLogEntries));
     const fractionLogDocument = findGeneratedDocument(
       course.id,
       ["REQ-SKIN-IGSRT-FXLOG", "TPL-IGSRT-FXLOG"],
@@ -479,7 +489,7 @@ function recalculateWorkflowState() {
       return;
     }
 
-    const missingApprovals = courseEntries.filter((entry) => !entry.mdApproval || !entry.dotApproval).length;
+    const missingApprovals = courseEntries.filter((entry) => entry.status !== "APPROVED").length;
     if (fractionLogDocument.signedAt) {
       applyGeneratedDocumentRecord(
         fractionLogDocument,
@@ -721,7 +731,9 @@ function recalculateCourseFractionEntries(courseId: string) {
 }
 
 export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseId: string }) {
-  const courseEntries = courseFractions(input.courseId, fractionLogEntries).sort((a, b) => a.fractionNumber - b.fractionNumber);
+  const courseEntries = activeFractionEntries(courseFractions(input.courseId, fractionLogEntries)).sort(
+    (a, b) => a.fractionNumber - b.fractionNumber
+  );
   const previousEntry = courseEntries.at(-1);
   const nextFractionNumber = previousEntry ? previousEntry.fractionNumber + 1 : 1;
   const entry = calculateFractionWorksheetEntry(
@@ -730,8 +742,11 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
       id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(nextFractionNumber).padStart(2, "0")}`,
       fractionNumber: input.fractionNumber ?? nextFractionNumber,
       date: input.date ?? todayIsoDate(),
+      status: input.status ?? "NEEDS_REVIEW",
       mdApproval: compactBoolean(input.mdApproval),
-      dotApproval: compactBoolean(input.dotApproval)
+      mdApprovalState: input.mdApprovalState ?? "PENDING",
+      dotApproval: compactBoolean(input.dotApproval),
+      dotApprovalState: input.dotApprovalState ?? "PENDING"
     },
     courseEntries
   );
@@ -758,15 +773,51 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
 
   const previousValue = PHI_REDACTED;
   const existingEntry = fractionLogEntries[entryIndex];
-  const courseEntries = courseFractions(input.courseId, fractionLogEntries).sort((a, b) => a.fractionNumber - b.fractionNumber);
+  if (isVoidedFractionEntry(existingEntry)) {
+    throw new Error("Voided fraction rows cannot be edited.");
+  }
+
+  const courseEntries = activeFractionEntries(courseFractions(input.courseId, fractionLogEntries)).sort(
+    (a, b) => a.fractionNumber - b.fractionNumber
+  );
+  const latestActiveFractionNumber = Math.max(...courseEntries.map((entry) => entry.fractionNumber));
+  const isHistoricalCorrection =
+    existingEntry.status === "APPROVED" || existingEntry.fractionNumber < latestActiveFractionNumber;
+  const correctionReason = String(input.correctionReason ?? "").trim();
+
+  if (isHistoricalCorrection && !correctionReason) {
+    throw new Error("Historical fraction correction requires a correction reason.");
+  }
+
+  const approvalReset: Partial<FractionLogEntry> = correctionReason
+    ? {
+        mdApproval: false,
+        mdApprovalState: "PENDING" as const,
+        mdApprovedAt: undefined,
+        mdApprovedByUserId: undefined,
+        dotApproval: false,
+        dotApprovalState: "PENDING" as const,
+        dotApprovedAt: undefined,
+        dotApprovedByUserId: undefined,
+        revisionApprovalType: undefined,
+        revisionReason: undefined,
+        revisionRequestedAt: undefined,
+        revisionRequestedByUserId: undefined,
+        status: "NEEDS_REVIEW" as const,
+        correctionReason,
+        correctedAt: nowIso(),
+        correctedByUserId: input.correctedByUserId ?? "SYSTEM"
+      }
+    : {};
   const updatedEntry = calculateFractionWorksheetEntry(
     {
       ...existingEntry,
       ...input,
+      ...approvalReset,
       mdApproval:
-        input.mdApproval === undefined ? existingEntry.mdApproval : compactBoolean(input.mdApproval),
+        approvalReset.mdApproval ?? (input.mdApproval === undefined ? existingEntry.mdApproval : compactBoolean(input.mdApproval)),
       dotApproval:
-        input.dotApproval === undefined ? existingEntry.dotApproval : compactBoolean(input.dotApproval)
+        approvalReset.dotApproval ?? (input.dotApproval === undefined ? existingEntry.dotApproval : compactBoolean(input.dotApproval))
     },
     courseEntries,
     { existingId: existingEntry.id }
@@ -786,12 +837,154 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
+function normalizeApprovalType(value: unknown): FractionApprovalType {
+  return value === "DOT" ? "DOT" : "MD";
+}
+
+export function approveFractionLogEntry(input: {
+  courseId: string;
+  id: string;
+  approvalType: FractionApprovalType;
+  userId?: string;
+}) {
+  const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
+  if (!entry) {
+    return null;
+  }
+  if (isVoidedFractionEntry(entry)) {
+    throw new Error("Voided fraction rows cannot be approved.");
+  }
+
+  const approvalType = normalizeApprovalType(input.approvalType);
+  const approvedAt = nowIso();
+  const approvedByUserId = input.userId ?? "SYSTEM";
+
+  if (approvalType === "MD") {
+    entry.mdApproval = true;
+    entry.mdApprovalState = "APPROVED";
+    entry.mdApprovedAt = approvedAt;
+    entry.mdApprovedByUserId = approvedByUserId;
+  } else {
+    entry.dotApproval = true;
+    entry.dotApprovalState = "APPROVED";
+    entry.dotApprovedAt = approvedAt;
+    entry.dotApprovedByUserId = approvedByUserId;
+  }
+
+  if (entry.revisionApprovalType === approvalType) {
+    entry.revisionApprovalType = undefined;
+    entry.revisionReason = undefined;
+    entry.revisionRequestedAt = undefined;
+    entry.revisionRequestedByUserId = undefined;
+  }
+
+  entry.status = deriveFractionLogStatus(entry);
+  recalculateCourseFractionEntries(input.courseId);
+  const auditEvent = addAuditEvent({
+    userId: approvedByUserId,
+    userName: "Workflow API",
+    action: `${approvalType} fraction approval recorded`,
+    entityType: "FRACTION_LOG",
+    entityId: input.id,
+    previousValue: PHI_REDACTED,
+    newValue: PHI_REDACTED,
+    reason: "Role-based fraction review completed inside CureRays CWS."
+  });
+  return { data: getIgsrtWorkspace(input.courseId), auditEvent };
+}
+
+export function requestFractionRevision(input: {
+  courseId: string;
+  id: string;
+  approvalType: FractionApprovalType;
+  reason: string;
+  userId?: string;
+}) {
+  const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
+  if (!entry) {
+    return null;
+  }
+  if (isVoidedFractionEntry(entry)) {
+    throw new Error("Voided fraction rows cannot be marked for revision.");
+  }
+
+  const reason = input.reason.trim();
+  if (!reason) {
+    throw new Error("Revision request requires a reason.");
+  }
+
+  const approvalType = normalizeApprovalType(input.approvalType);
+  if (approvalType === "MD") {
+    entry.mdApproval = false;
+    entry.mdApprovalState = "REVISION_NEEDED";
+    entry.mdApprovedAt = undefined;
+    entry.mdApprovedByUserId = undefined;
+  } else {
+    entry.dotApproval = false;
+    entry.dotApprovalState = "REVISION_NEEDED";
+    entry.dotApprovedAt = undefined;
+    entry.dotApprovedByUserId = undefined;
+  }
+
+  entry.status = "REVISION_NEEDED";
+  entry.revisionApprovalType = approvalType;
+  entry.revisionReason = reason;
+  entry.revisionRequestedAt = nowIso();
+  entry.revisionRequestedByUserId = input.userId ?? "SYSTEM";
+  recalculateCourseFractionEntries(input.courseId);
+  const auditEvent = addAuditEvent({
+    userId: input.userId ?? "SYSTEM",
+    userName: "Workflow API",
+    action: `${approvalType} fraction revision requested`,
+    entityType: "FRACTION_LOG",
+    entityId: input.id,
+    previousValue: PHI_REDACTED,
+    newValue: PHI_REDACTED,
+    reason: "Role-based fraction review requested a documented correction."
+  });
+  return { data: getIgsrtWorkspace(input.courseId), auditEvent };
+}
+
+export function voidFractionLogEntry(input: {
+  courseId: string;
+  id: string;
+  reason: string;
+  userId?: string;
+}) {
+  const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
+  if (!entry) {
+    return null;
+  }
+
+  const reason = input.reason.trim();
+  if (!reason) {
+    throw new Error("Voiding a fraction row requires a reason.");
+  }
+
+  entry.status = "VOIDED";
+  entry.voidReason = reason;
+  entry.voidedAt = nowIso();
+  entry.voidedByUserId = input.userId ?? "SYSTEM";
+  recalculateCourseFractionEntries(input.courseId);
+  const auditEvent = addAuditEvent({
+    userId: input.userId ?? "SYSTEM",
+    userName: "Workflow API",
+    action: "Fraction row voided",
+    entityType: "FRACTION_LOG",
+    entityId: input.id,
+    previousValue: PHI_REDACTED,
+    newValue: PHI_REDACTED,
+    reason: "Clinical fraction row was voided and retained for audit."
+  });
+  return { data: getIgsrtWorkspace(input.courseId), auditEvent };
+}
+
 function renderContent(document: GeneratedDocument) {
   const patient = patients.find((item) => item.id === document.patientId);
   const course = treatmentCourses.find((item) => item.id === document.courseId);
   const order = getSimulationOrder(document.courseId);
   const prescription = getPrescription(document.courseId);
-  const fractions = courseFractions(document.courseId, fractionLogEntries);
+  const fractions = activeFractionEntries(courseFractions(document.courseId, fractionLogEntries));
 
   if (!patient || !course) {
     return "Document could not be rendered because the linked patient or course is missing.";
