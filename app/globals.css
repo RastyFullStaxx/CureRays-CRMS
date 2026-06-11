@@ -475,16 +475,17 @@ button, input, select, textarea {
 }
 
 .dashboard-signal-canvas {
+  height: 100%;
   inset: 0;
   position: absolute;
+  width: 100%;
   z-index: 0;
 }
 
 .dashboard-signal-body {
   display: grid;
   flex: 1;
-  gap: 14px;
-  grid-template-rows: minmax(220px, 1fr) auto;
+  grid-template-rows: minmax(330px, 1fr);
   min-height: 0;
 }
 
@@ -499,22 +500,46 @@ button, input, select, textarea {
   position: relative;
 }
 
+.dashboard-signal-plot::after {
+  background:
+    linear-gradient(90deg, transparent 0 48%, color-mix(in srgb, var(--color-primary) 12%, transparent) 49% 51%, transparent 52%),
+    linear-gradient(0deg, transparent 0 48%, color-mix(in srgb, var(--color-primary) 10%, transparent) 49% 51%, transparent 52%);
+  content: '';
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.dashboard-signal-overlay {
+  align-items: center;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  inset: 16px;
+  justify-items: center;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
 .dashboard-signal-core {
-  align-self: center;
   aspect-ratio: 1;
   background:
     radial-gradient(circle, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent 72%),
-    color-mix(in srgb, var(--color-card) 82%, transparent);
+    color-mix(in srgb, var(--color-card) 90%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
   border-radius: 999px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-card) 62%, transparent);
+  box-shadow:
+    0 18px 52px color-mix(in srgb, var(--color-primary) 16%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-card) 62%, transparent);
   display: grid;
-  min-height: 132px;
-  min-width: 132px;
+  min-height: 124px;
+  min-width: 124px;
   padding: 18px;
   place-items: center;
   text-align: center;
-  width: min(42%, 206px);
+  width: clamp(132px, 30%, 190px);
 }
 
 .dashboard-signal-core span,
@@ -534,6 +559,49 @@ button, input, select, textarea {
 
 .dashboard-signal-core p {
   max-width: 150px;
+}
+
+.dashboard-signal-stage-chips {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 540px);
+}
+
+.dashboard-signal-stage-chips span {
+  background: color-mix(in srgb, var(--color-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 7px;
+}
+
+.dashboard-signal-stage-chips i {
+  background: var(--color-primary);
+  border-radius: 999px;
+  display: block;
+  height: 4px;
+  min-width: 12px;
+}
+
+.dashboard-signal-stage-chips b,
+.dashboard-signal-stage-chips em {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-signal-stage-chips em {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
 }
 
 .dashboard-metric-grid {
@@ -581,20 +649,130 @@ button, input, select, textarea {
   width: 72px;
 }
 
-.dashboard-sankey-shell {
-  min-height: 168px;
+.dashboard-carepath-lanes {
+  align-content: center;
+  display: grid;
+  flex: 1;
+  gap: 12px;
+  min-height: 210px;
 }
 
-.dashboard-sankey-node {
-  fill: var(--color-primary);
-  opacity: 0.88;
+.dashboard-carepath-lane {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(78px, 0.42fr) minmax(0, 1fr) minmax(64px, 0.3fr);
+  min-width: 0;
 }
 
-.dashboard-sankey-label {
-  fill: var(--color-text);
-  font-family: var(--font-body);
-  font-size: 11px;
+.dashboard-carepath-lane-head {
+  min-width: 0;
+}
+
+.dashboard-carepath-lane-head span,
+.dashboard-carepath-lane em {
+  color: var(--color-text-muted);
+  display: block;
+  font-size: 10px;
+  font-style: normal;
   font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-carepath-lane-head strong {
+  color: var(--color-text);
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 1;
+  margin-top: 3px;
+}
+
+.dashboard-carepath-track {
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-border-soft) 68%, transparent) 0 18px,
+    color-mix(in srgb, var(--color-border-soft) 28%, transparent) 18px 20px
+  );
+  border-radius: 999px;
+  height: 22px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dashboard-carepath-pressure {
+  background: linear-gradient(90deg, var(--color-accent), var(--color-success), var(--color-primary));
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 18px;
+  opacity: 0.78;
+}
+
+.dashboard-carepath-token {
+  align-items: center;
+  animation: dashboard-carepath-token 7s linear infinite;
+  animation-delay: var(--token-delay);
+  display: inline-flex;
+  gap: 4px;
+  left: var(--token-offset);
+  max-width: 86px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.dashboard-carepath-token i {
+  background: var(--color-primary);
+  border: 2px solid var(--color-card);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 42%, transparent);
+  flex-shrink: 0;
+  height: 10px;
+  width: 10px;
+}
+
+.dashboard-carepath-token b {
+  color: var(--color-text);
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 var(--color-card);
+  white-space: nowrap;
+}
+
+.dashboard-carepath-token[data-tone="success"] i {
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-success) 42%, transparent);
+}
+
+.dashboard-carepath-token[data-tone="warning"] i {
+  background: var(--color-warning);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-warning) 42%, transparent);
+}
+
+.dashboard-carepath-token[data-tone="info"] i {
+  background: var(--color-info);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-info) 42%, transparent);
+}
+
+@keyframes dashboard-carepath-token {
+  0%,
+  100% {
+    left: var(--token-offset);
+    transform: translate(-50%, -50%);
+  }
+
+  50% {
+    left: calc(var(--token-offset) + 28%);
+    transform: translate(-50%, -50%);
+  }
 }
 
 .dashboard-donut-wrap {
@@ -819,10 +997,10 @@ button, input, select, textarea {
 }
 
 .dashboard-phi {
-  display: grid;
+  align-items: center;
+  display: flex;
   flex: 1;
-  gap: 8px;
-  grid-template-rows: minmax(150px, 1fr) auto;
+  justify-content: center;
   min-height: 0;
   overflow: hidden;
 }
@@ -830,8 +1008,8 @@ button, input, select, textarea {
 .dashboard-phi svg {
   align-self: center;
   height: 100%;
-  max-height: 178px;
-  min-height: 150px;
+  max-height: 230px;
+  min-height: 184px;
   overflow: visible;
   width: 100%;
 }
@@ -890,14 +1068,6 @@ button, input, select, textarea {
   font-family: var(--font-body);
   font-size: 3.2px;
   font-weight: var(--font-weight-bold);
-}
-
-.dashboard-phi p {
-  color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.38;
-  min-height: 0;
 }
 
 @media (max-width: 1100px) {
@@ -972,11 +1142,28 @@ button, input, select, textarea {
   }
 
   .dashboard-signal-body {
-    grid-template-rows: minmax(190px, 1fr) auto;
+    grid-template-rows: minmax(240px, 1fr);
   }
 
   .dashboard-signal-plot {
-    min-height: 190px;
+    min-height: 240px;
+  }
+
+  .dashboard-signal-overlay {
+    inset: 10px;
+  }
+
+  .dashboard-signal-stage-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-carepath-lane {
+    gap: 7px;
+    grid-template-columns: minmax(68px, 0.38fr) minmax(0, 1fr);
+  }
+
+  .dashboard-carepath-lane em {
+    display: none;
   }
 
   .dashboard-donut-wrap {
@@ -987,6 +1174,8 @@ button, input, select, textarea {
 
 @media (prefers-reduced-motion: reduce) {
   .dashboard-command * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

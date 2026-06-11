@@ -20,11 +20,15 @@ export type DashboardMetric = {
   trend: number[];
 };
 
+export type DashboardSignalStageId = 'chart-prep' | 'planning' | 'delivery' | 'closeout';
+
 export type DashboardSignalNode = {
   id: string;
   label: string;
-  group: 'patient' | 'course' | 'task' | 'document' | 'risk';
+  group: 'patient' | 'course' | 'stage' | 'task' | 'document' | 'risk';
   value: number;
+  stage?: DashboardSignalStageId;
+  detail?: string;
 };
 
 export type DashboardSignalLink = {
@@ -33,9 +37,27 @@ export type DashboardSignalLink = {
   value: number;
 };
 
-export type CarepathFlowDatum = {
-  nodes: Array<{ name: string }>;
-  links: Array<{ source: number; target: number; value: number }>;
+export type DashboardSignalStageSummary = {
+  id: DashboardSignalStageId;
+  label: string;
+  count: number;
+  pressure: number;
+};
+
+export type CarepathLaneToken = {
+  id: string;
+  label: string;
+  offset: number;
+  tone: 'primary' | 'success' | 'warning' | 'info';
+};
+
+export type CarepathLaneDatum = {
+  id: DashboardSignalStageId;
+  label: string;
+  count: number;
+  pressure: number;
+  handoff: number;
+  tokens: CarepathLaneToken[];
 };
 
 export type CourseDistributionDatum = {
@@ -92,10 +114,11 @@ export type DashboardTelemetry = {
   signal: {
     nodes: DashboardSignalNode[];
     links: DashboardSignalLink[];
+    stages: DashboardSignalStageSummary[];
     loadPercent: number;
     summary: string;
   };
-  carepath: CarepathFlowDatum;
+  carepathLanes: CarepathLaneDatum[];
   courseDistribution: CourseDistributionDatum[];
   throughput: ThroughputDatum[];
   attention: AttentionDatum[];
@@ -104,15 +127,32 @@ export type DashboardTelemetry = {
   phiBoundary: {
     nodes: PhiGraphNode[];
     links: PhiGraphLink[];
-    assurance: string;
   };
 };
 
 const completedTaskStatuses = ['COMPLETED', 'SIGNED', 'CLOSED', 'UPLOADED', 'NOT_APPLICABLE'];
 const readyDocumentStatuses = ['SIGNED', 'EXPORTED', 'UPLOADED'];
+const stageLabels: Record<DashboardSignalStageId, string> = {
+  'chart-prep': 'Chart Prep',
+  planning: 'Planning',
+  delivery: 'Delivery',
+  closeout: 'Closeout',
+};
 
 function countTasksByPhase(phases: CarepathWorkflowPhase[]) {
   return carepathTasks.filter((task) => phases.includes(task.workflowPhase)).length;
+}
+
+function courseStage(phase: 'UPCOMING' | 'ON_TREATMENT' | 'POST'): DashboardSignalStageId {
+  if (phase === 'ON_TREATMENT') {
+    return 'delivery';
+  }
+
+  if (phase === 'POST') {
+    return 'closeout';
+  }
+
+  return 'chart-prep';
 }
 
 function appointmentHour(time: string) {
@@ -197,37 +237,91 @@ export function getDashboardTelemetry(): DashboardTelemetry {
   const planningLoad = Math.max(1, countTasksByPhase(['PLANNING']));
   const deliveryLoad = Math.max(1, active + countTasksByPhase(['ON_TREATMENT']));
   const closeoutLoad = Math.max(1, post + countTasksByPhase(['POST_TX', 'AUDIT', 'CLOSED']));
+  const stageIds: DashboardSignalStageId[] = ['chart-prep', 'planning', 'delivery', 'closeout'];
+  const stageLoads: Record<DashboardSignalStageId, number> = {
+    'chart-prep': prepLoad,
+    planning: planningLoad,
+    delivery: deliveryLoad,
+    closeout: closeoutLoad,
+  };
+  const maxStageLoad = Math.max(...Object.values(stageLoads), 1);
+  const signalStages = stageIds.map<DashboardSignalStageSummary>((stageId) => ({
+    id: stageId,
+    label: stageLabels[stageId],
+    count: stageLoads[stageId],
+    pressure: Math.max(8, Math.round((stageLoads[stageId] / maxStageLoad) * 100)),
+  }));
+  const stageNodes = signalStages.map<DashboardSignalNode>((stage) => ({
+    id: `stage-${stage.id}`,
+    label: stage.label,
+    group: 'stage',
+    stage: stage.id,
+    value: stage.count,
+    detail: `${stage.count} active items`,
+  }));
   const courseNodes = courses.slice(0, 8).map<DashboardSignalNode>((course) => ({
     id: course.courseRef,
     label: course.courseRef,
     group: 'course',
+    stage: courseStage(course.chartRoundsPhase),
     value: Math.max(2, course.currentFraction),
+    detail: `${course.currentFraction}/${course.totalFractions} fx`,
   }));
-  const phaseNodes: DashboardSignalNode[] = [
-    { id: 'phase-chart-prep', label: 'Chart prep', group: 'task', value: prepLoad },
-    { id: 'phase-planning', label: 'Planning', group: 'task', value: planningLoad },
-    { id: 'phase-delivery', label: 'Delivery', group: 'task', value: deliveryLoad },
-    { id: 'phase-closeout', label: 'Closeout', group: 'task', value: closeoutLoad },
-    { id: 'document-signature', label: 'Signature queue', group: 'document', value: signatureQueue },
-    { id: 'risk-attention', label: 'Risk attention', group: 'risk', value: highFlags + blockedTasks },
+  const satelliteNodes: DashboardSignalNode[] = [
+    { id: 'task-blocked', label: 'Blocked work', group: 'task', stage: 'planning', value: Math.max(1, blockedTasks), detail: `${blockedTasks} blocked` },
+    { id: 'document-signature', label: 'Signature queue', group: 'document', stage: 'closeout', value: signatureQueue, detail: `${signatureQueue} pending` },
+    { id: 'risk-attention', label: 'Risk attention', group: 'risk', stage: 'planning', value: highFlags + blockedTasks, detail: `${highFlags} high flags` },
   ];
   const patientNodes = patients.slice(0, 8).map<DashboardSignalNode>((patient) => ({
     id: patient.patientRef,
     label: patient.patientRef,
     group: 'patient',
+    stage: courseStage(patient.chartRoundsPhase),
     value: patient.flags.length + 2,
+    detail: stageLabels[courseStage(patient.chartRoundsPhase)],
   }));
   const links: DashboardSignalLink[] = courses.slice(0, 8).flatMap((course) => {
-    const phaseTarget = course.chartRoundsPhase === 'UPCOMING'
-      ? 'phase-chart-prep'
-      : course.chartRoundsPhase === 'ON_TREATMENT'
-        ? 'phase-delivery'
-        : 'phase-closeout';
+    const stageId = courseStage(course.chartRoundsPhase);
 
     return [
       { source: course.patientRef, target: course.courseRef, value: 2 },
-      { source: course.courseRef, target: phaseTarget, value: Math.max(1, course.currentFraction) },
+      { source: course.courseRef, target: `stage-${stageId}`, value: Math.max(1, course.currentFraction) },
     ];
+  });
+  const laneTone: Record<DashboardSignalStageId, CarepathLaneToken['tone']> = {
+    'chart-prep': 'info',
+    planning: 'warning',
+    delivery: 'success',
+    closeout: 'primary',
+  };
+  const carepathLanes = stageIds.map<CarepathLaneDatum>((stageId, stageIndex) => {
+    const stageCourses = courses.filter((course) => courseStage(course.chartRoundsPhase) === stageId).slice(0, 3);
+    const nextStageId = stageIds[stageIndex + 1];
+    const fallbackTokens = Array.from({ length: Math.min(3, Math.max(1, Math.ceil(stageLoads[stageId] / Math.max(maxStageLoad, 1) * 3))) }, (_, index) => ({
+      id: `${stageId}-queue-${index + 1}`,
+      label: `Q${index + 1}`,
+      offset: (index * 23 + stageIndex * 11) % 62,
+      tone: laneTone[stageId],
+    }));
+    const tokens = stageCourses.length > 0
+      ? stageCourses.map((course, index) => ({
+        id: course.courseRef,
+        label: course.courseRef,
+        offset: (index * 19 + stageIndex * 13) % 64,
+        tone: laneTone[stageId],
+      }))
+      : fallbackTokens;
+
+    return {
+      id: stageId,
+      label: stageLabels[stageId],
+      count: stageLoads[stageId],
+      pressure: Math.max(8, Math.round((stageLoads[stageId] / maxStageLoad) * 100)),
+      handoff: nextStageId
+        ? Math.max(1, Math.round((stageLoads[stageId] + stageLoads[nextStageId]) / 2))
+        : Math.max(1, readyDocuments),
+      tokens,
+    };
   });
 
   return {
@@ -238,31 +332,22 @@ export function getDashboardTelemetry(): DashboardTelemetry {
       { label: 'Documents ready', value: readyDocuments, detail: `${signatureQueue} signatures`, icon: 'documents', trend: [5, 9, 11, 10, 14, readyDocuments] },
     ],
     signal: {
-      nodes: [...patientNodes, ...courseNodes, ...phaseNodes],
+      nodes: [...stageNodes, ...patientNodes, ...courseNodes, ...satelliteNodes],
       links: [
         ...links,
-        { source: 'phase-chart-prep', target: 'phase-planning', value: prepLoad },
-        { source: 'phase-planning', target: 'phase-delivery', value: planningLoad },
-        { source: 'phase-delivery', target: 'document-signature', value: signatureQueue },
-        { source: 'document-signature', target: 'phase-closeout', value: Math.max(1, readyDocuments) },
-        { source: 'risk-attention', target: 'phase-planning', value: Math.max(1, highFlags) },
+        { source: 'stage-chart-prep', target: 'stage-planning', value: prepLoad },
+        { source: 'stage-planning', target: 'stage-delivery', value: planningLoad },
+        { source: 'stage-delivery', target: 'stage-closeout', value: deliveryLoad },
+        { source: 'task-blocked', target: 'stage-planning', value: Math.max(1, blockedTasks) },
+        { source: 'stage-delivery', target: 'document-signature', value: Math.max(1, signatureQueue) },
+        { source: 'document-signature', target: 'stage-closeout', value: Math.max(1, readyDocuments) },
+        { source: 'risk-attention', target: 'stage-planning', value: Math.max(1, highFlags) },
       ],
+      stages: signalStages,
       loadPercent,
       summary: `${highFlags} high-priority flags, ${blockedTasks} blocked tasks, ${signatureQueue} signatures`,
     },
-    carepath: {
-      nodes: [
-        { name: 'Chart Prep' },
-        { name: 'Planning' },
-        { name: 'Delivery' },
-        { name: 'Closeout' },
-      ],
-      links: [
-        { source: 0, target: 1, value: prepLoad },
-        { source: 1, target: 2, value: Math.max(1, Math.round((prepLoad + planningLoad) / 2)) },
-        { source: 2, target: 3, value: Math.max(1, Math.round((deliveryLoad + closeoutLoad) / 2)) },
-      ],
-    },
+    carepathLanes,
     courseDistribution: [
       { name: 'Upcoming', value: upcoming, color: 'var(--color-info)' },
       { name: 'On Tx', value: active, color: 'var(--color-success)' },
@@ -302,7 +387,6 @@ export function getDashboardTelemetry(): DashboardTelemetry {
         { source: 'api', target: 'audit', label: 'append' },
         { source: 'ops', target: 'phi', label: 'no client route', isolated: true },
       ],
-      assurance: 'Client telemetry receives operational references only; patient identifiers remain behind the PHI vault boundary.',
     },
   };
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -19,6 +20,8 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
+  forceCenter,
+  forceCollide,
   forceLink,
   forceManyBody,
   forceSimulation,
@@ -35,17 +38,16 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
-  Sankey,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
-import type { SankeyNodeProps } from 'recharts';
 import type {
   DashboardMetric,
   DashboardPanel,
   DashboardSignalLink,
   DashboardSignalNode,
+  DashboardSignalStageId,
   DashboardTelemetry,
 } from '@/lib/services/dashboard-telemetry-service';
 
@@ -53,7 +55,9 @@ type DashboardTelemetryClientProps = {
   telemetry: DashboardTelemetry;
 };
 
-type SignalSimulationNode = DashboardSignalNode & SimulationNodeDatum;
+type SignalSimulationNode = DashboardSignalNode & SimulationNodeDatum & {
+  phaseSeed: number;
+};
 type SignalSimulationLink = DashboardSignalLink & SimulationLinkDatum<SignalSimulationNode>;
 
 const panelTabs: Array<{ id: DashboardPanel; label: string }> = [
@@ -86,27 +90,62 @@ function cssVar(name: string, fallback: string) {
 function signalColor(group: DashboardSignalNode['group']) {
   if (group === 'risk') return 'var(--color-error)';
   if (group === 'document') return 'var(--color-info)';
+  if (group === 'stage') return 'var(--color-primary)';
   if (group === 'task') return 'var(--color-accent)';
   if (group === 'course') return 'var(--color-success)';
   return 'var(--color-primary)';
 }
 
-function signalTargetX(group: DashboardSignalNode['group']) {
-  if (group === 'patient') return 0.14;
-  if (group === 'course') return 0.34;
-  if (group === 'task') return 0.56;
-  if (group === 'document') return 0.78;
-  return 0.88;
-}
+const stageAnchors: Record<DashboardSignalStageId, { x: number; y: number }> = {
+  'chart-prep': { x: 0.34, y: 0.42 },
+  planning: { x: 0.48, y: 0.3 },
+  delivery: { x: 0.64, y: 0.43 },
+  closeout: { x: 0.52, y: 0.66 },
+};
 
-function signalTargetY(group: DashboardSignalNode['group'], index: number) {
-  if (group === 'risk') return 0.24;
-  if (group === 'document') return 0.62;
-  return 0.18 + ((index * 19) % 54) / 100;
+function anchorForNode(node: DashboardSignalNode) {
+  const stage = node.stage ? stageAnchors[node.stage] : undefined;
+  if (!stage) {
+    return { x: 0.5, y: 0.5 };
+  }
+
+  if (node.group === 'patient') {
+    return { x: stage.x - 0.12, y: stage.y + 0.04 };
+  }
+
+  if (node.group === 'course') {
+    return { x: stage.x + 0.1, y: stage.y + 0.02 };
+  }
+
+  if (node.group === 'document') {
+    return { x: Math.min(0.78, stage.x + 0.2), y: stage.y + 0.08 };
+  }
+
+  if (node.group === 'risk' || node.group === 'task') {
+    return { x: Math.min(0.76, stage.x + 0.16), y: Math.max(0.24, stage.y - 0.14) };
+  }
+
+  return stage;
 }
 
 function resolvedNode(value: string | number | SignalSimulationNode | undefined) {
   return typeof value === 'object' && value !== null ? value : undefined;
+}
+
+function nodeRadius(node: DashboardSignalNode) {
+  if (node.group === 'stage') {
+    return Math.max(8, Math.min(15, 7 + node.value * 0.35));
+  }
+
+  if (node.group === 'patient') {
+    return Math.max(4.5, Math.min(8.5, 4 + node.value * 0.4));
+  }
+
+  if (node.group === 'course') {
+    return Math.max(4.5, Math.min(10, 4 + node.value * 0.18));
+  }
+
+  return Math.max(5, Math.min(10, 4 + node.value * 0.35));
 }
 
 function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: DashboardSignalLink[] }) {
@@ -122,10 +161,12 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let width = 1;
     let height = 1;
+    let animationFrame = 0;
     const simulationNodes: SignalSimulationNode[] = nodes.map((node, index) => ({
       ...node,
-      x: 40 + (index % 8) * 36,
-      y: 40 + (index % 5) * 34,
+      phaseSeed: index * 1.47,
+      x: 140 + (index % 6) * 32,
+      y: 92 + (index % 5) * 26,
     }));
     const simulationLinks: SignalSimulationLink[] = links.map((link) => ({ ...link }));
     const simulation = forceSimulation<SignalSimulationNode>(simulationNodes)
@@ -133,14 +174,16 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
         'link',
         forceLink<SignalSimulationNode, SignalSimulationLink>(simulationLinks)
           .id((node) => node.id)
-          .distance((link) => 34 + Math.max(1, 8 - link.value) * 7)
-          .strength(0.42),
+          .distance((link) => 28 + Math.max(1, 9 - link.value) * 5)
+          .strength(0.36),
       )
-      .force('charge', forceManyBody<SignalSimulationNode>().strength(-72))
-      .force('x', forceX<SignalSimulationNode>((node) => signalTargetX(node.group) * width).strength(0.16))
-      .force('y', forceY<SignalSimulationNode>((node, index) => signalTargetY(node.group, index) * height).strength(0.12));
+      .force('charge', forceManyBody<SignalSimulationNode>().strength((node) => (node.group === 'stage' ? -120 : -54)))
+      .force('collide', forceCollide<SignalSimulationNode>((node) => nodeRadius(node) + 9).strength(0.72))
+      .force('center', forceCenter<SignalSimulationNode>(width / 2, height / 2).strength(0.05))
+      .force('x', forceX<SignalSimulationNode>((node) => anchorForNode(node).x * width).strength((node) => (node.group === 'stage' ? 0.34 : 0.12)))
+      .force('y', forceY<SignalSimulationNode>((node) => anchorForNode(node).y * height).strength((node) => (node.group === 'stage' ? 0.34 : 0.12)));
 
-    const draw = () => {
+    const draw = (time = 0) => {
       const rect = canvas.getBoundingClientRect();
       const scale = window.devicePixelRatio || 1;
       width = Math.max(1, rect.width);
@@ -167,49 +210,68 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
       context.fillRect(0, 0, width, height);
       context.restore();
 
+      const renderPositions = new Map<string, { x: number; y: number }>();
+
       simulationNodes.forEach((node) => {
-        const radius = Math.max(3.5, Math.min(12, 3 + node.value * 0.45));
-        const labelReserve = node.group === 'task' || node.group === 'document' || node.group === 'risk' ? 28 : 10;
+        const radius = nodeRadius(node);
+        const labelReserve = node.group === 'stage' || node.group === 'task' || node.group === 'document' || node.group === 'risk' ? 28 : 10;
+        const drift = reduceMotion
+          ? 0
+          : node.group === 'stage'
+            ? 1.4
+            : node.group === 'patient'
+              ? 5.2
+              : node.group === 'course'
+                ? 4
+                : 2.8;
         node.x = Math.min(Math.max(node.x ?? 0, radius + 12), width - radius - 12);
         node.y = Math.min(Math.max(node.y ?? 0, radius + 12), height - radius - labelReserve);
+        renderPositions.set(node.id, {
+          x: Math.min(Math.max((node.x ?? 0) + Math.sin(time / 850 + node.phaseSeed) * drift, radius + 12), width - radius - 12),
+          y: Math.min(Math.max((node.y ?? 0) + Math.cos(time / 980 + node.phaseSeed) * drift, radius + 12), height - radius - labelReserve),
+        });
       });
 
       simulationLinks.forEach((link) => {
         const source = resolvedNode(link.source);
         const target = resolvedNode(link.target);
-        if (!source?.x || !source.y || !target?.x || !target.y) {
+        const sourcePosition = source ? renderPositions.get(source.id) : undefined;
+        const targetPosition = target ? renderPositions.get(target.id) : undefined;
+        if (!sourcePosition || !targetPosition) {
           return;
         }
 
         context.beginPath();
-        context.moveTo(source.x, source.y);
-        context.lineTo(target.x, target.y);
+        context.moveTo(sourcePosition.x, sourcePosition.y);
+        context.lineTo(targetPosition.x, targetPosition.y);
         context.strokeStyle = primary;
-        context.globalAlpha = Math.min(0.42, 0.1 + link.value / 40);
-        context.lineWidth = Math.max(1, Math.min(4, link.value / 6));
+        context.globalAlpha = Math.min(0.38, 0.1 + link.value / 42);
+        context.lineWidth = Math.max(1, Math.min(3.5, link.value / 7));
         context.stroke();
       });
 
       context.globalAlpha = 1;
       simulationNodes.forEach((node) => {
-        const x = node.x ?? 0;
-        const y = node.y ?? 0;
-        const radius = Math.max(3.5, Math.min(12, 3 + node.value * 0.45));
+        const position = renderPositions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
+        const x = position.x;
+        const y = position.y;
+        const radius = nodeRadius(node);
         const color = cssVar(signalColor(node.group).replace('var(', '').replace(')', ''), primary);
+        const pulse = reduceMotion ? 0 : (Math.sin(time / 620 + node.phaseSeed) + 1) / 2;
 
         context.beginPath();
-        context.arc(x, y, radius + 7, 0, Math.PI * 2);
+        context.arc(x, y, radius + 6 + pulse * 4, 0, Math.PI * 2);
         context.fillStyle = color;
-        context.globalAlpha = 0.1;
+        context.globalAlpha = node.group === 'stage' ? 0.16 : 0.08 + pulse * 0.08;
         context.fill();
 
         context.beginPath();
         context.arc(x, y, radius, 0, Math.PI * 2);
         context.fillStyle = color;
-        context.globalAlpha = 0.9;
+        context.globalAlpha = node.group === 'stage' ? 0.96 : 0.82;
         context.fill();
 
-        if (node.group === 'task' || node.group === 'document' || node.group === 'risk') {
+        if (node.group === 'stage' || node.group === 'task' || node.group === 'document' || node.group === 'risk') {
           context.globalAlpha = 0.9;
           context.fillStyle = text;
           context.font = `700 10px ${cssVar('--font-body', 'Inter, sans-serif')}`;
@@ -225,13 +287,22 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
     } else {
       simulation.on('tick', draw);
       simulation.alpha(0.9).restart();
+      const animate = (time: number) => {
+        draw(time);
+        animationFrame = window.requestAnimationFrame(animate);
+      };
+      animationFrame = window.requestAnimationFrame(animate);
     }
 
-    window.addEventListener('resize', draw);
+    const handleResize = () => draw();
+    window.addEventListener('resize', handleResize);
 
     return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
       simulation.stop();
-      window.removeEventListener('resize', draw);
+      window.removeEventListener('resize', handleResize);
     };
   }, [links, nodes]);
 
@@ -285,53 +356,35 @@ function SectionTitle({ icon: Icon, title, meta }: { icon: LucideIcon; title: st
   );
 }
 
-function CarepathNode(props: SankeyNodeProps) {
-  const label = typeof props.payload.name === 'string' ? props.payload.name : `Stage ${props.index + 1}`;
-  const labelX = props.x + props.width + 8;
-  const labelY = props.y + props.height / 2 + 4;
-
-  return (
-    <g>
-      <rect
-        x={props.x}
-        y={props.y}
-        width={props.width}
-        height={props.height}
-        rx={4}
-        className="dashboard-sankey-node"
-      />
-      <text x={labelX} y={labelY} className="dashboard-sankey-label">
-        {label}
-      </text>
-    </g>
-  );
-}
-
 function CarepathSimulation({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
-    <div className="dashboard-chart-shell dashboard-sankey-shell">
-      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={168} initialDimension={{ width: 460, height: 220 }}>
-        <Sankey
-          data={telemetry.carepath}
-          dataKey="value"
-          nameKey="name"
-          node={CarepathNode}
-          nodePadding={26}
-          nodeWidth={12}
-          iterations={72}
-          margin={{ top: 12, right: 78, bottom: 12, left: 10 }}
-          link={{ stroke: 'var(--color-primary)', strokeOpacity: 0.24 }}
-        >
-          <Tooltip
-            contentStyle={{
-              background: 'var(--color-card)',
-              border: 'var(--border-container)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--color-text)',
-            }}
-          />
-        </Sankey>
-      </ResponsiveContainer>
+    <div className="dashboard-carepath-lanes" role="img" aria-label="Animated carepath lane simulation">
+      {telemetry.carepathLanes.map((lane, laneIndex) => (
+        <div key={lane.id} className="dashboard-carepath-lane" data-stage={lane.id}>
+          <div className="dashboard-carepath-lane-head">
+            <span>{lane.label}</span>
+            <strong>{lane.count}</strong>
+          </div>
+          <div className="dashboard-carepath-track" aria-label={`${lane.label} pressure ${lane.pressure}%`}>
+            <i className="dashboard-carepath-pressure" style={{ width: `${lane.pressure}%` }} />
+            {lane.tokens.map((token, tokenIndex) => (
+              <span
+                key={token.id}
+                className="dashboard-carepath-token"
+                data-tone={token.tone}
+                style={{
+                  '--token-offset': `${token.offset}%`,
+                  '--token-delay': `${(laneIndex * 0.62 + tokenIndex * 0.48).toFixed(2)}s`,
+                } as CSSProperties}
+              >
+                <i />
+                <b>{token.label}</b>
+              </span>
+            ))}
+          </div>
+          <em>{lane.handoff} handoffs</em>
+        </div>
+      ))}
     </div>
   );
 }
@@ -471,7 +524,7 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
 }
 
 function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
-  const { links, nodes, assurance } = telemetry.phiBoundary;
+  const { links, nodes } = telemetry.phiBoundary;
   const nodesById = useMemo(() => {
     return nodes.reduce<Record<string, (typeof nodes)[number]>>((current, node) => {
       current[node.id] = node;
@@ -481,7 +534,7 @@ function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
 
   return (
     <div className="dashboard-phi">
-      <svg viewBox="0 0 100 88" role="img" aria-label="PHI isolation graph">
+      <svg viewBox="0 0 100 82" role="img" aria-label="PHI isolation graph">
         {links.map((link) => {
           const source = nodesById[link.source];
           const target = nodesById[link.target];
@@ -517,17 +570,27 @@ function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
           );
         })}
       </svg>
-      <p>{assurance}</p>
     </div>
   );
 }
 
 function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
-    <div className="dashboard-signal-core">
-      <span>Carepath load</span>
-      <strong>{telemetry.signal.loadPercent}%</strong>
-      <p>{telemetry.signal.summary}</p>
+    <div className="dashboard-signal-overlay">
+      <div className="dashboard-signal-core">
+        <span>Carepath load</span>
+        <strong>{telemetry.signal.loadPercent}%</strong>
+        <p>{telemetry.signal.summary}</p>
+      </div>
+      <div className="dashboard-signal-stage-chips" aria-label="Carepath stage load">
+        {telemetry.signal.stages.map((stage) => (
+          <span key={stage.id} data-stage={stage.id}>
+            <i style={{ width: `${stage.pressure}%` }} />
+            <b>{stage.label}</b>
+            <em>{stage.count}</em>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -564,8 +627,8 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
             <div className="dashboard-signal-body">
               <div className="dashboard-signal-plot">
                 <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
+                <SignalLoad telemetry={telemetry} />
               </div>
-              <SignalLoad telemetry={telemetry} />
             </div>
           </article>
           <div className="dashboard-metric-grid">
