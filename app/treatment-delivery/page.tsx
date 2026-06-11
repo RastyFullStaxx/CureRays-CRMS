@@ -10,6 +10,7 @@ import { FilterField } from '@/components/shared/filter-strip';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
 import { mapTone } from "@/lib/status-utils";
 
@@ -39,31 +40,49 @@ export default function TreatmentDeliveryPage() {
         <StatCard icon={UsersRound} label="OTV Due" value={3} sub="Patients" tone="warning" />
         <StatCard icon={ShieldCheck} label="Physics Check Due" value={2} sub="Patients" tone="info" />
       </StatGrid>
-      <div
-        className="rounded-[var(--radius-lg)] p-4"
-        style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
-      >
-        <h2 className="mb-4 text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>
-          Today&apos;s Treatment Queue ({activeFractions.length})
-        </h2>
+      <Card>
+        <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="font-heading text-base font-bold text-[var(--color-text)]">
+              Today&apos;s Treatment Queue ({activeFractions.length})
+            </h2>
+            <p className="text-sm font-semibold text-[var(--color-text-muted)]">Record delivery, review alerts, and reconcile fraction approvals.</p>
+          </div>
+          <Badge variant="primary">Live queue</Badge>
+        </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {activeFractions.map((fraction) => (
-            <div key={fraction.id} className="rounded-lg border p-4" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-card)', boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}>
-              <p className="truncate text-sm font-bold" style={{ color: 'var(--color-text)' }}>
-                {patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === fraction.courseId)?.patientId ?? "")}
-              </p>
-              <p className="mt-1 text-xs font-bold" style={{ color: 'var(--color-primary)' }}>{fraction.courseId.replace("COURSE-", "C")}</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
-                <span>Fraction <b className="block" style={{ color: 'var(--color-text)' }}>{fraction.fractionNumber}</b></span>
-                <span>Phase <b className="block" style={{ color: 'var(--color-text)' }}>{fraction.phase}</b></span>
-                <span>Dose <b className="block" style={{ color: 'var(--color-text)' }}>{fraction.plannedDose} cGy</b></span>
-                <span>Total <b className="block" style={{ color: 'var(--color-text)' }}>{fraction.cumulativeDose} cGy</b></span>
+            <div key={fraction.id} className="clinical-muted-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-[var(--color-text)]">
+                    {patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === fraction.courseId)?.patientId ?? "")}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-[var(--color-primary)]">{fraction.courseId.replace("COURSE-", "C")}</p>
+                </div>
+                <Badge variant={mapTone(statusTone(fraction.status))}>{statusLabel(fraction.status)}</Badge>
               </div>
-              <div className="mt-4"><Badge variant={mapTone(statusTone(fraction.status)) as any}>{statusLabel(fraction.status)}</Badge></div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
+                <span>Fraction <b className="block text-[var(--color-text)]">{fraction.fractionNumber}</b></span>
+                <span>Phase <b className="block text-[var(--color-text)]">{fraction.phase}</b></span>
+                <span>Dose <b className="block text-[var(--color-text)]">{fraction.plannedDose} cGy</b></span>
+                <span>Total <b className="block text-[var(--color-text)]">{fraction.cumulativeDose} cGy</b></span>
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]">
+                <div
+                  className="h-full rounded-full bg-[var(--color-primary)]"
+                  style={{
+                    width: `${Math.min(
+                      Math.round((fraction.fractionNumber / (moduleSnapshot.treatmentCourses.find((course) => course.id === fraction.courseId)?.totalFractions ?? 20)) * 100),
+                      100,
+                    )}%`,
+                  }}
+                />
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
       <DataTable
         columns={[
           { key: 'patient', label: 'Patient', render: (row) => (
@@ -81,7 +100,7 @@ export default function TreatmentDeliveryPage() {
           { key: 'room', label: 'Room' },
           { key: 'therapist', label: 'Therapist', render: (row) => row.therapistId ?? "Unassigned" },
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'alerts', label: 'Alerts', render: (row) => (
             (row._index as number) % 3 === 0 ? <Badge variant="warning">OTV</Badge> : "-"

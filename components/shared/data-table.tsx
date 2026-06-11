@@ -50,22 +50,20 @@ export function DataTable({
   const isEmpty = !loading && paginated.length === 0;
 
   return (
-    <div className={`flex flex-col flex-1 min-h-0 ${className}`} style={{ gap: 'var(--space-2)' }}>
+    <div className={`flex min-h-0 flex-1 flex-col ${className}`} style={{ gap: '10px' }}>
       <div
-        className="flex flex-col flex-1 min-h-0 w-full overflow-hidden bg-[var(--color-card)]"
+        className="clinical-surface flex min-h-0 w-full flex-1 flex-col overflow-hidden"
         style={{
-          borderRadius: 'var(--radius-md)',
-          border: 'var(--border-container)',
-          boxShadow: 'var(--shadow-card)',
+          borderRadius: 'var(--radius-lg)',
         }}
       >
         {toolbar && (
           <div
             className="shrink-0"
             style={{
-              padding: 'var(--space-2)',
-              borderBottom: 'var(--border-container)',
-              background: 'var(--color-card)',
+              padding: '12px',
+              borderBottom: '1px solid var(--color-border-soft)',
+              background: 'var(--color-bg-elevated)',
             }}
           >
             {toolbar}
@@ -85,7 +83,7 @@ export function DataTable({
               <tr
                 style={{
                   height: 'var(--height-table-header)',
-                  borderBottom: 'var(--border-table-header)',
+                  borderBottom: '1px solid var(--color-border-soft)',
                 }}
               >
                 {columns.map((col) => (
@@ -94,9 +92,9 @@ export function DataTable({
                     className="text-left font-semibold whitespace-nowrap"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      paddingLeft: 'var(--space-2)',
-                      paddingRight: 'var(--space-2)',
+                      fontSize: '11px',
+                      paddingLeft: '14px',
+                      paddingRight: '14px',
                       width: col.width,
                       color: 'var(--color-text-muted)',
                       textTransform: 'uppercase',
@@ -118,7 +116,7 @@ export function DataTable({
                     className={[
                       'last:border-b-0',
                       'transition-colors duration-100',
-                      onRowClick ? 'cursor-pointer hover:bg-black/[0.025]' : '',
+                      onRowClick ? 'cursor-pointer hover:bg-[var(--color-table-row-hover)]' : 'hover:bg-[var(--color-table-row-hover)]',
                     ].join(' ')}
                     style={{
                       height: 'var(--height-table-row)',
@@ -132,8 +130,8 @@ export function DataTable({
                         key={col.key}
                         style={{
                           fontSize: 'var(--font-size-small)',
-                          paddingLeft: 'var(--space-2)',
-                          paddingRight: 'var(--space-2)',
+                          paddingLeft: '14px',
+                          paddingRight: '14px',
                         }}
                       >
                         <div className="min-w-0 overflow-hidden">
@@ -169,7 +167,7 @@ export function DataTable({
 
       {showPagination && (
         <div
-          className="flex items-center justify-between shrink-0"
+            className="flex items-center justify-between shrink-0"
           style={{ paddingLeft: 'var(--space-1)', paddingRight: 'var(--space-1)' }}
         >
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}>
@@ -179,7 +177,8 @@ export function DataTable({
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
+              className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
               style={{ borderRadius: 'var(--radius-md)' }}
             >
               <ChevronLeft size={16} />
@@ -190,7 +189,8 @@ export function DataTable({
             <button
               disabled={page === totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
+              className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
               style={{ borderRadius: 'var(--radius-md)' }}
             >
               <ChevronRight size={16} />

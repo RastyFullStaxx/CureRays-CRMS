@@ -2,7 +2,7 @@
  * Maps data-layer tone strings to Badge/StatusBadge variant values.
  * Used across pages to keep status color mapping consistent.
  */
-export function mapTone(t: string) {
+export function mapTone(t: string): "default" | "success" | "warning" | "error" | "info" | "primary" {
   if (t === "green" || t === "emerald") return "success";
   if (t === "orange") return "warning";
   if (t === "red") return "error";

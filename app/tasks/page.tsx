@@ -73,7 +73,7 @@ export default function TasksPage() {
           )},
           { key: 'dueDate', label: 'Due Date' },
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
         ]}
         rows={tasks.slice(0, 8).map((task) => ({

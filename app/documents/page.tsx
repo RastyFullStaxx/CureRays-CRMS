@@ -54,7 +54,7 @@ export default function DocumentsPage() {
             <Badge variant="info">{phaseLabel(row.category)}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'version', label: 'Version', render: (row) => `v${row.version}` },
           { key: 'updated', label: 'Updated', render: (row) => row.generatedAt ?? "Pending" },

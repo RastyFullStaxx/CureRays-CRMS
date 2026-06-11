@@ -55,13 +55,13 @@ export default function TreatmentPlanningPage() {
           { key: 'fractions', label: 'Fractions', render: (row) => row.totalFractions ?? "Pending" },
           { key: 'coverage', label: 'Coverage', render: (row) => row.percentDepthDose ? `${row.percentDepthDose}%` : "Pending" },
           { key: 'physics', label: 'Physics', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.physicistReviewStatus)) as any}>{statusLabel(row.physicistReviewStatus)}</Badge>
+            <Badge variant={mapTone(statusTone(row.physicistReviewStatus))}>{statusLabel(row.physicistReviewStatus)}</Badge>
           )},
           { key: 'radOnc', label: 'Rad Onc', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.radOncSignatureStatus)) as any}>{statusLabel(row.radOncSignatureStatus)}</Badge>
+            <Badge variant={mapTone(statusTone(row.radOncSignatureStatus))}>{statusLabel(row.radOncSignatureStatus)}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS")) as any}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
+            <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS"))}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
           )},
         ]}
         rows={plans.map((plan) => ({

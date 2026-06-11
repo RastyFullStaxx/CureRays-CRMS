@@ -49,7 +49,7 @@ export default function ClinicalFormsPage() {
             <Badge variant="info">{row.phase}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'lastUpdated', label: 'Last Updated', render: (row) => row.generatedAt ?? "Pending" },
           { key: 'assignedStaff', label: 'Assigned Staff' },

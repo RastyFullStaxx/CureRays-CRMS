@@ -1,45 +1,27 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import {
+  Activity,
   AlertTriangle,
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
-  ChevronDown,
-  ChevronRight,
   ClipboardList,
+  FileCheck2,
   FileText,
   Image as ImageIcon,
-  MoreVertical,
   NotebookTabs,
-  Printer,
   Radiation,
+  Route,
   ShieldCheck,
-  Upload,
-  WalletCards
-} from "lucide-react";
-import { AuditChecklist } from "@/components/audit-checklist";
-import { AuditTimeline } from "@/components/audit-timeline";
-import { DataTable } from "@/components/data-table";
-import { DocumentList } from "@/components/document-list";
-import { FieldList } from "@/components/layout/page-layout";
-import { SectionCard } from "@/components/section-card";
-import { TaskList } from "@/components/task-list";
-import { WorkflowStepTable } from "@/components/workflow-step-table";
-import {
-  AuditWorkspaceTab,
-  BillingWorkspaceTab,
-  CarepathWorkspaceTab,
-  ClinicalWorkspaceTab,
-  DocumentsWorkspaceTab,
-  ImagingWorkspaceTab,
-  NotesWorkspaceTab,
-  TasksWorkspaceTab,
-  TreatmentWorkspaceTab,
-  WorkspaceTabRail
-} from "@/components/patients/workspace-tabs/patient-workspace-tabs";
+  WalletCards,
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { DataTable } from '@/components/shared/data-table';
 import type {
   AuditCheck,
   AuditEvent,
@@ -55,11 +37,30 @@ import type {
   TreatmentCourse,
   TreatmentFraction,
   TreatmentPlan,
-  WorkflowStep
-} from "@/lib/types";
-import { auditReadinessScore, carepathProgress, cn, documentProgress, formatDate, patientName } from "@/lib/workflow";
+  WorkflowStep,
+} from '@/lib/types';
+import {
+  auditReadinessScore,
+  carepathPhaseLabels,
+  carepathProgress,
+  cn,
+  documentProgress,
+  formatDate,
+  patientName,
+  responsiblePartyLabels,
+} from '@/lib/workflow';
 
-type WorkspaceTab = "overview" | "carepath" | "clinical" | "treatment" | "imaging" | "documents" | "tasks" | "billing" | "notes" | "audit";
+type WorkspaceTab =
+  | 'command'
+  | 'workflow'
+  | 'tasks'
+  | 'clinical'
+  | 'planning'
+  | 'imaging'
+  | 'documents'
+  | 'fractions'
+  | 'billing-audit'
+  | 'activity';
 
 type PatientWorkspaceProps = {
   patient: Patient;
@@ -80,48 +81,65 @@ type PatientWorkspaceProps = {
 };
 
 const tabs: Array<{ id: WorkspaceTab; label: string; icon: typeof ClipboardList }> = [
-  { id: "overview", label: "Overview", icon: ClipboardList },
-  { id: "carepath", label: "Carepath", icon: ShieldCheck },
-  { id: "clinical", label: "Clinical", icon: NotebookTabs },
-  { id: "treatment", label: "Treatment", icon: Radiation },
-  { id: "imaging", label: "Imaging", icon: ImageIcon },
-  { id: "documents", label: "Documents", icon: FileText },
-  { id: "tasks", label: "Tasks", icon: ClipboardList },
-  { id: "billing", label: "Billing", icon: WalletCards },
-  { id: "notes", label: "Notes", icon: NotebookTabs },
-  { id: "audit", label: "Audit", icon: ShieldCheck }
+  { id: 'command', label: 'Command', icon: Activity },
+  { id: 'workflow', label: 'Workflow', icon: Route },
+  { id: 'tasks', label: 'Tasks', icon: ClipboardList },
+  { id: 'clinical', label: 'Clinical', icon: NotebookTabs },
+  { id: 'planning', label: 'Planning', icon: Radiation },
+  { id: 'imaging', label: 'Imaging', icon: ImageIcon },
+  { id: 'documents', label: 'Documents', icon: FileText },
+  { id: 'fractions', label: 'Fractions', icon: CalendarDays },
+  { id: 'billing-audit', label: 'Billing / Audit', icon: WalletCards },
+  { id: 'activity', label: 'Activity', icon: ShieldCheck },
 ];
 
-const carePathStages = [
-  { label: "Consult", detail: "Ready" },
-  { label: "Mapping / Sim", detail: "Complete" },
-  { label: "Planning / QA", detail: "Complete" },
-  { label: "On Treatment", detail: "Current" },
-  { label: "Post Treatment", detail: "Pending" },
-  { label: "Follow-Up", detail: "Pending" }
-];
+const phaseOrder = ['Consult', 'Chart Prep', 'Simulation', 'Planning', 'On Tx', 'Post', 'Audit'];
 
-const imageChecklist = [
-  "Inked Target",
-  "Shielded Nozzle View",
-  "Side Nozzle View",
-  "US image at Sim",
-  "Lesion without ink",
-  "Lesion inked at border",
-  "Dermoscopy",
-  "Phase I margin",
-  "Phase II margin",
-  "All margins",
-  "Isodose overlay"
-];
+function statusVariant(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'ACTIVE', 'CLOSED'].includes(status)) return 'success';
+  if (['BLOCKED', 'OVERDUE', 'MISSING_FIELDS', 'ON_HOLD'].includes(status)) return 'error';
+  if (['READY_FOR_REVIEW', 'NEEDS_REVIEW', 'PENDING', 'IN_PROGRESS'].includes(status)) return 'warning';
+  if (['UPCOMING', 'NOT_STARTED'].includes(status)) return 'info';
+  return 'default';
+}
 
-const fakePatientDetails = [
-  { label: "Phone", value: "(530) 555-0198" },
-  { label: "Email", value: "patient.10321@example.com" },
-  { label: "Address", value: "123 Ridgeview Dr." },
-  { label: "Preferred Contact", value: "Phone" },
-  { label: "Emergency Contact", value: "Maria S. (530) 555-0170" }
-];
+function titleCase(value: string) {
+  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function ProgressLine({ value }: { value: number }) {
+  return (
+    <div className="h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]">
+      <div
+        className="h-full rounded-full bg-[var(--color-primary)]"
+        style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+      />
+    </div>
+  );
+}
+
+function Metric({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
+  return (
+    <div className="clinical-muted-surface min-w-0 p-3">
+      <p className="clinical-label truncate">{label}</p>
+      <p className="mt-1 truncate font-heading text-xl font-bold leading-none text-[var(--color-text)]">{value}</p>
+      {detail ? <p className="mt-1 truncate text-xs font-semibold text-[var(--color-text-muted)]">{detail}</p> : null}
+    </div>
+  );
+}
+
+function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h2 className="font-heading text-base font-bold text-[var(--color-text)]">{title}</h2>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  );
+}
+
+function ApprovalBadge({ approved, label }: { approved: boolean; label: string }) {
+  return <Badge variant={approved ? 'success' : 'warning'}>{label}</Badge>;
+}
 
 export function PatientWorkspace({
   patient,
@@ -138,73 +156,377 @@ export function PatientWorkspace({
   treatmentFractions,
   images,
   auditChecks,
-  auditEvents
+  auditEvents,
 }: PatientWorkspaceProps) {
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>("overview");
-  const urgentTasks = tasks.filter((task) => task.priority === "URGENT" || task.priority === "HIGH" || task.status === "READY_FOR_REVIEW");
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>('command');
   const currentPlan = treatmentPlans[0];
-  const readiness = auditReadinessScore(carepathTasks, generatedDocuments, fractionEntries);
   const carepath = carepathProgress(carepathTasks);
   const docs = documentProgress(generatedDocuments);
-  const fractionPercent = Math.round((course.currentFraction / course.totalFractions) * 100);
-  const signedDocuments = documents.filter((document) => document.signedAt).length;
-  const pendingDocuments = documents.filter((document) => !document.signedAt).length;
-  const blockedSteps = workflowSteps.filter((step) => step.status === "BLOCKED" || step.blockers.length);
+  const readiness = auditReadinessScore(carepathTasks, generatedDocuments, fractionEntries);
+  const completedFractions = fractionEntries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
+  const currentFraction = Math.max(course.currentFraction, completedFractions);
+  const fractionPercent = Math.round((currentFraction / Math.max(course.totalFractions, 1)) * 100);
+  const cumulativeDose = fractionEntries.at(-1)?.cumulativeDose ?? treatmentFractions.at(-1)?.cumulativeDose ?? 0;
+  const urgentTasks = tasks.filter((task) => ['URGENT', 'HIGH'].includes(task.priority) || task.status === 'READY_FOR_REVIEW');
+  const blockedSteps = workflowSteps.filter((step) => step.status === 'BLOCKED' || step.blockers.length > 0);
+  const unsignedDocs = documents.filter((document) => !document.signedAt);
+  const openChecks = auditChecks.filter((check) => !['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED'].includes(check.status));
 
-  const activeContent = useMemo(() => {
-    switch (activeTab) {
-      case "carepath":
-        return <CarepathWorkspaceTab steps={workflowSteps} />;
-      case "clinical":
-        return <ClinicalWorkspaceTab patient={patient} />;
-      case "treatment":
-        return <TreatmentWorkspaceTab course={course} plan={currentPlan} fractions={treatmentFractions} />;
-      case "imaging":
-        return <ImagingWorkspaceTab />;
-      case "documents":
-        return <DocumentsWorkspaceTab documents={documents} />;
-      case "tasks":
-        return <TasksWorkspaceTab tasks={tasks} />;
-      case "billing":
-        return <BillingWorkspaceTab />;
-      case "notes":
-        return <NotesWorkspaceTab />;
-      case "audit":
-        return <AuditWorkspaceTab checks={auditChecks} events={auditEvents} readiness={readiness} />;
-      case "overview":
-      default:
-        return (
-          <OverviewTab
-            patient={patient}
-            course={course}
-            domainCourse={domainCourse}
-            plan={currentPlan}
-            urgentTasks={urgentTasks}
-            fractionPercent={fractionPercent}
-          />
-        );
+  const tabContent = useMemo(() => {
+    if (activeTab === 'workflow') {
+      return (
+        <DataTable
+          keyField="id"
+          pageSize={0}
+          columns={[
+            { key: 'step', label: 'Step', render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.step}</span> },
+            { key: 'phase', label: 'Phase', render: (row) => <Badge variant="primary">{row.phase}</Badge> },
+            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+            { key: 'role', label: 'Owner' },
+            { key: 'due', label: 'Due / Trigger' },
+            { key: 'signature', label: 'Signature', render: (row) => row.signature ? <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Required'}</Badge> : '-' },
+            { key: 'blocker', label: 'Blocker', render: (row) => row.blocker || '-' },
+          ]}
+          rows={workflowSteps.map((step) => ({
+            id: step.id,
+            step: `${step.stepNumber}. ${step.stepName}`,
+            phase: carepathPhaseLabels[step.phase],
+            status: step.status,
+            role: responsiblePartyLabels[step.responsibleRole],
+            due: step.dueDate ?? step.triggerEvent,
+            signature: step.requiresSignature,
+            signed: Boolean(step.signedAt),
+            blocker: step.blockers[0],
+          }))}
+        />
+      );
     }
+
+    if (activeTab === 'tasks') {
+      return (
+        <DataTable
+          keyField="id"
+          pageSize={0}
+          columns={[
+            { key: 'title', label: 'Task', render: (row) => <span className="font-bold">{row.title}</span> },
+            { key: 'priority', label: 'Priority', render: (row) => <Badge variant={row.priority === 'URGENT' ? 'error' : row.priority === 'HIGH' ? 'warning' : 'default'}>{row.priority}</Badge> },
+            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+            { key: 'owner', label: 'Owner' },
+            { key: 'due', label: 'Due' },
+            { key: 'description', label: 'Action', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.description}</span> },
+          ]}
+          rows={tasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            priority: task.priority,
+            status: task.status,
+            owner: task.assignedUserId ?? responsiblePartyLabels[task.assignedRole],
+            due: task.dueDate ? formatDate(task.dueDate) : 'No due date',
+            description: task.description,
+          }))}
+        />
+      );
+    }
+
+    if (activeTab === 'clinical') {
+      return (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {clinicalFormTemplates.map((template) => (
+            <Card key={template.id} compact>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="clinical-label">{template.diagnosisType}</p>
+                  <h3 className="mt-1 truncate font-heading text-base font-bold text-[var(--color-text)]">{template.name}</h3>
+                </div>
+                <Badge variant={template.active ? 'success' : 'default'}>{template.active ? 'Active' : 'Inactive'}</Badge>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {template.schema.slice(0, 3).map((section) => (
+                  <div key={section.id} className="clinical-muted-surface flex items-center justify-between gap-3 px-3 py-2">
+                    <span className="truncate text-sm font-semibold text-[var(--color-text)]">{section.title}</span>
+                    <span className="text-xs font-bold text-[var(--color-text-muted)]">{section.fields.length} fields</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    if (activeTab === 'planning') {
+      return (
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <Card>
+            <SectionTitle title="Treatment Plan" />
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Metric label="Site" value={currentPlan?.site ?? course.diagnosis} />
+              <Metric label="Energy" value={currentPlan?.energy ?? course.energy ?? 'Pending'} />
+              <Metric label="Applicator" value={currentPlan?.applicatorSize ?? course.applicator ?? 'Pending'} />
+              <Metric label="Coverage" value={currentPlan?.percentDepthDose ? `${currentPlan.percentDepthDose}%` : 'Pending'} />
+              <Metric label="Dose / Fx" value={currentPlan?.dosePerFraction ?? course.dose ?? 'Pending'} />
+              <Metric label="Fractions" value={currentPlan?.totalFractions ?? course.totalFractions} />
+              <Metric label="Target Depth" value={currentPlan?.depthOfInvasion ?? course.targetDepth ?? 'Pending'} />
+              <Metric label="Plan Lock" value={currentPlan?.lockedAt ? 'Locked' : 'Open'} />
+            </div>
+          </Card>
+          <Card>
+            <SectionTitle title="Reviews" />
+            <div className="space-y-3">
+              <div className="clinical-muted-surface p-3">
+                <p className="clinical-label">Physics</p>
+                <Badge variant={statusVariant(currentPlan?.physicistReviewStatus ?? 'PENDING')}>{titleCase(currentPlan?.physicistReviewStatus ?? 'PENDING')}</Badge>
+              </div>
+              <div className="clinical-muted-surface p-3">
+                <p className="clinical-label">Rad Onc</p>
+                <Badge variant={statusVariant(currentPlan?.radOncSignatureStatus ?? 'PENDING')}>{titleCase(currentPlan?.radOncSignatureStatus ?? 'PENDING')}</Badge>
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    if (activeTab === 'imaging') {
+      return (
+        <DataTable
+          keyField="id"
+          pageSize={0}
+          columns={[
+            { key: 'category', label: 'Image / Evidence', render: (row) => <span className="font-bold">{row.category}</span> },
+            { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.phase)}</Badge> },
+            { key: 'uploaded', label: 'Uploaded' },
+            { key: 'uploader', label: 'Uploaded By' },
+            { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
+          ]}
+          rows={images.map((image) => ({
+            id: image.id,
+            category: image.category,
+            phase: image.phase,
+            uploaded: image.uploadedAt ? formatDate(image.uploadedAt) : 'Pending',
+            uploader: image.uploadedByUserId ?? 'Unassigned',
+            notes: image.notes ?? 'No notes',
+          }))}
+        />
+      );
+    }
+
+    if (activeTab === 'documents') {
+      return (
+        <DataTable
+          keyField="id"
+          pageSize={0}
+          columns={[
+            { key: 'title', label: 'Document', render: (row) => <span className="font-bold">{row.title}</span> },
+            { key: 'category', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.category)}</Badge> },
+            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+            { key: 'version', label: 'Version' },
+            { key: 'signed', label: 'Signature', render: (row) => <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Pending'}</Badge> },
+            { key: 'updated', label: 'Updated' },
+          ]}
+          rows={documents.map((document) => ({
+            id: document.id,
+            title: document.title,
+            category: document.category,
+            status: document.status,
+            version: `v${document.version}`,
+            signed: Boolean(document.signedAt),
+            updated: document.generatedAt ? formatDate(document.generatedAt) : 'Pending',
+          }))}
+        />
+      );
+    }
+
+    if (activeTab === 'fractions') {
+      return <FractionWorkspace entries={fractionEntries} course={course} />;
+    }
+
+    if (activeTab === 'billing-audit') {
+      return (
+        <div className="grid gap-4 xl:grid-cols-2">
+          <Card>
+            <SectionTitle title="Audit Checks" />
+            <div className="space-y-2">
+              {auditChecks.map((check) => (
+                <div key={check.id} className="clinical-muted-surface flex items-center justify-between gap-3 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-[var(--color-text)]">{check.label}</p>
+                    <p className="text-xs font-semibold text-[var(--color-text-muted)]">{check.category}</p>
+                  </div>
+                  <Badge variant={statusVariant(check.status)}>{titleCase(check.status)}</Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card>
+            <SectionTitle title="Closeout Readiness" />
+            <div className="space-y-4">
+              <Metric label="Readiness" value={`${readiness}%`} detail="Tasks, documents, fractions" />
+              <ProgressLine value={readiness} />
+              <div className="grid grid-cols-2 gap-3">
+                <Metric label="Unsigned Docs" value={unsignedDocs.length} />
+                <Metric label="Open Checks" value={openChecks.length} />
+              </div>
+            </div>
+          </Card>
+        </div>
+      );
+    }
+
+    if (activeTab === 'activity') {
+      return (
+        <div className="space-y-3">
+          {auditEvents.slice(0, 12).map((event) => (
+            <Card key={event.id} compact>
+              <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)_160px] md:items-center">
+                <div>
+                  <p className="clinical-label">{event.timestamp}</p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{event.userName}</p>
+                </div>
+                <p className="min-w-0 text-sm font-semibold text-[var(--color-text)]">{event.action}</p>
+                <Badge variant="primary">{event.entityType}</Badge>
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Card>
+          <SectionTitle title="Today's Action Board" />
+          <div className="grid gap-3 md:grid-cols-2">
+            {urgentTasks.slice(0, 6).map((task) => (
+              <div key={task.id} className="clinical-muted-surface p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-[var(--color-text)]">{task.title}</p>
+                    <p className="mt-1 line-clamp-2 text-xs font-semibold text-[var(--color-text-muted)]">{task.description}</p>
+                  </div>
+                  <Badge variant={task.priority === 'URGENT' ? 'error' : 'warning'}>{task.priority}</Badge>
+                </div>
+              </div>
+            ))}
+            {urgentTasks.length === 0 ? (
+              <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+                No urgent course tasks.
+              </div>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card>
+          <SectionTitle title="Readiness" />
+          <div className="space-y-4">
+            <div>
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-[var(--color-text-muted)]">
+                <span>Carepath</span>
+                <span>{carepath.percent}%</span>
+              </div>
+              <ProgressLine value={carepath.percent} />
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-[var(--color-text-muted)]">
+                <span>Documents</span>
+                <span>{docs.percent}%</span>
+              </div>
+              <ProgressLine value={docs.percent} />
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-[var(--color-text-muted)]">
+                <span>Fractions</span>
+                <span>{fractionPercent}%</span>
+              </div>
+              <ProgressLine value={fractionPercent} />
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
   }, [
     activeTab,
     auditChecks,
     auditEvents,
+    carepath.percent,
+    clinicalFormTemplates,
     course,
     currentPlan,
+    docs.percent,
     documents,
-    domainCourse,
+    fractionEntries,
     fractionPercent,
-    patient,
+    images,
+    openChecks.length,
     readiness,
     tasks,
-    treatmentFractions,
+    unsignedDocs.length,
     urgentTasks,
-    workflowSteps
+    workflowSteps,
   ]);
 
   return (
-    <div className="space-y-4 bg-white">
-      <WorkspaceHeader patient={patient} course={course} domainCourse={domainCourse} />
-      <nav className="scrollbar-soft flex gap-1 overflow-x-auto border-b border-[#D8E4F5]" aria-label="Patient workspace tabs">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <Card className="sticky top-0 z-20 p-0">
+        <div className="border-b border-[var(--color-border-soft)] p-4">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <Link href="/patients" className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Patients
+              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate font-heading text-2xl font-bold text-[var(--color-text)]">{patientName(patient)}</h1>
+                <Badge variant={statusVariant(patient.status)}>{titleCase(patient.status)}</Badge>
+                <Badge variant="primary">PHI controlled</Badge>
+              </div>
+              <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
+                MRN {patient.mrn} · {patient.diagnosisSummary ?? patient.diagnosis} · {patient.location}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/patients/${patient.id}/carepath`}><Button variant="secondary">Carepath</Button></Link>
+              <Link href={`/patients/${patient.id}/documents`}><Button variant="secondary">Documents</Button></Link>
+              <Link href={`/patients/${patient.id}/fraction-log`}><Button>Fraction Log</Button></Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
+          <Metric label="Course" value={domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'C')} detail={course.protocolName} />
+          <Metric label="Phase" value={titleCase(course.chartRoundsPhase)} detail={domainCourse ? titleCase(domainCourse.currentPhase) : undefined} />
+          <Metric label="Fractions" value={`${currentFraction}/${course.totalFractions}`} detail={`${fractionPercent}% complete`} />
+          <Metric label="Cumulative Dose" value={`${cumulativeDose} cGy`} detail="Logged dose" />
+          <Metric label="Carepath" value={`${carepath.percent}%`} detail={`${carepath.completed}/${carepath.total} items`} />
+          <Metric label="Documents" value={`${docs.percent}%`} detail={`${unsignedDocs.length} unsigned`} />
+          <Metric label="Audit" value={`${readiness}%`} detail={`${blockedSteps.length + openChecks.length} blockers`} />
+        </div>
+
+        <div className="border-t border-[var(--color-border-soft)] px-3 py-3">
+          <div className="grid gap-2 md:grid-cols-7">
+            {phaseOrder.map((phase, index) => {
+              const activeIndex = course.chartRoundsPhase === 'UPCOMING' ? 2 : course.chartRoundsPhase === 'ON_TREATMENT' ? 4 : 5;
+              const isDone = index < activeIndex;
+              const isActive = index === activeIndex;
+              return (
+                <div key={phase} className="min-w-0">
+                  <div
+                    className={cn(
+                      'h-1.5 rounded-full',
+                      isDone ? 'bg-[var(--color-success)]' : isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border-soft)]',
+                    )}
+                  />
+                  <p className={cn('mt-1 truncate text-[11px] font-bold', isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]')}>
+                    {phase}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Card>
+
+      <div className="scrollbar-soft flex shrink-0 gap-1 overflow-x-auto border-b border-[var(--color-border-soft)] pb-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -213,10 +535,10 @@ export function PatientWorkspace({
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "inline-flex min-w-fit items-center gap-2 border-b-2 px-3 py-3 text-sm font-bold transition",
+                'clinical-focus inline-flex h-10 min-w-fit items-center gap-2 rounded-[var(--radius-md)] px-3 text-sm font-bold transition',
                 activeTab === tab.id
-                  ? "border-[#0033A0] text-[#0033A0]"
-                  : "border-transparent text-[#3D5A80] hover:text-[#0033A0]"
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)]',
               )}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
@@ -224,485 +546,141 @@ export function PatientWorkspace({
             </button>
           );
         })}
-      </nav>
-
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0">{activeContent}</div>
-        <aside className="min-w-0 space-y-4">
-          {activeTab === "overview" ? (
-            <ContextRail
-              activeTab={activeTab}
-              patient={patient}
-              course={course}
-              urgentTasks={urgentTasks}
-              readiness={readiness}
-              carepathPercent={carepath.percent}
-              documentPercent={docs.percent}
-              blockedSteps={blockedSteps.length}
-              pendingDocuments={pendingDocuments}
-              plan={currentPlan}
-            />
-          ) : (
-            <WorkspaceTabRail
-              activeTab={activeTab}
-              course={course}
-              patient={patient}
-              tasks={tasks}
-              documents={documents}
-              checks={auditChecks}
-              readiness={readiness}
-            />
-          )}
-        </aside>
-      </section>
-    </div>
-  );
-}
-
-function WorkspaceHeader({ patient, course, domainCourse }: { patient: Patient; course: TreatmentCourse; domainCourse?: Course }) {
-  return (
-    <section className="space-y-4 border-b border-[#D8E4F5] pb-4">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div className="min-w-0">
-          <Link href="/patients" className="inline-flex items-center gap-2 text-sm font-bold text-[#0033A0]">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to Patients
-          </Link>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-[#061A55]">{patientName(patient)}</h1>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-500/15">
-              {patient.status.replaceAll("_", " ")}
-            </span>
-            <span className="rounded-full bg-[#EAF1FF] px-3 py-1 text-xs font-bold text-[#0033A0] ring-1 ring-[#0033A0]/15">
-              PHI-minimized
-            </span>
-          </div>
-          <p className="mt-2 text-sm font-semibold text-[#3D5A80]">
-            MRN {patient.mrn} · {patient.sex ?? "Sex not entered"} · DOB {patient.dob ?? "Not entered"}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="rounded-xl border border-[#D8E4F5] bg-white px-3 py-2 text-sm font-bold text-[#0033A0]">
-            <Printer className="mr-2 inline h-4 w-4" aria-hidden="true" />
-            Print
-          </button>
-          <button type="button" className="rounded-xl border border-[#D8E4F5] bg-white px-3 py-2 text-sm font-bold text-[#0033A0]">
-            <Upload className="mr-2 inline h-4 w-4" aria-hidden="true" />
-            Export
-          </button>
-          <button type="button" className="rounded-xl bg-[#0033A0] px-3 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(0,51,160,0.18)]">
-            + Create Task
-          </button>
-          <button type="button" className="grid h-10 w-10 place-items-center rounded-xl border border-[#D8E4F5] text-[#0033A0]">
-            <MoreVertical className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
       </div>
-      <div className="grid gap-2 rounded-2xl border border-[#D8E4F5] bg-white p-3 shadow-[0_8px_24px_rgba(0,51,160,0.08)] md:grid-cols-3 xl:grid-cols-6">
-        <Meta label="Diagnosis" value={patient.diagnosis} sub="ICD-10: C44.301" />
-        <Meta label="Site" value={patient.location} />
-        <Meta label="Physician" value={patient.physician} />
-        <Meta label="Course" value={domainCourse?.courseNumber ?? course.id} />
-        <Meta label="Phase" value={course.chartRoundsPhase.replaceAll("_", " ")} />
-        <Meta label="Protocol" value={course.protocolName} />
-      </div>
-    </section>
-  );
-}
 
-function OverviewTab({
-  patient,
-  course,
-  domainCourse,
-  plan,
-  urgentTasks,
-  fractionPercent
-}: {
-  patient: Patient;
-  course: TreatmentCourse;
-  domainCourse?: Course;
-  plan?: TreatmentPlan;
-  urgentTasks: Task[];
-  fractionPercent: number;
-}) {
-  return (
-    <div className="space-y-4">
-      <CarePathProgress course={course} />
-      <section className="grid gap-4 xl:grid-cols-3">
-        <SectionCard title="Treatment Summary" description="Current prescription and course state.">
-          <FieldList
-            items={[
-              { label: "Technique", value: course.treatmentModality },
-              { label: "Energy", value: course.energy ?? plan?.energy ?? "50 kV" },
-              { label: "Applicator", value: course.applicator ?? plan?.applicatorSize ?? "2.5 cm" },
-              { label: "Prescription", value: course.dose ?? "50 Gy in 20 fractions" },
-              { label: "Phase I", value: `${course.currentFraction} / ${course.totalFractions} fx completed` },
-              { label: "End Date", value: formatDate(course.endDate) },
-              { label: "Treating MD", value: patient.physician }
-            ]}
-          />
-          <button type="button" className="mt-4 flex w-full items-center justify-between rounded-xl border border-[#D8E4F5] px-3 py-2 text-sm font-bold text-[#0033A0]">
-            View full treatment plan
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </SectionCard>
-        <SectionCard title="Recent Activity" description="Latest operational events.">
-          <ActivityList />
-        </SectionCard>
-        <SectionCard title="Key Metrics" description="Treatment progress snapshot.">
-          <FieldList
-            items={[
-              { label: "Total Dose Delivered", value: `${fractionPercent}%` },
-              { label: "Fractions Completed", value: `${course.currentFraction} / ${course.totalFractions}` },
-              { label: "Missed Treatments", value: 0 },
-              { label: "Treatment Breaks", value: 0 },
-              { label: "Next Fraction", value: "Tomorrow, 9:00 AM" },
-              { label: "Weekday", value: "Mon-Fri" }
-            ]}
-          />
-        </SectionCard>
-      </section>
-      <SectionCard title="Upcoming Schedule" description="Next treatment and follow-up timing.">
-        <DataTable
-          compact
-          minWidth="980px"
-          columns={[{ header: "Date" }, { header: "Time" }, { header: "Type" }, { header: "Description" }, { header: "Provider" }, { header: "Location" }, { header: "Status" }]}
-          rows={[13, 14, 15].map((fraction, index) => ({
-            id: `upcoming-${fraction}`,
-            cells: [
-              `May ${16 + index}, 2026`,
-              "9:00 AM",
-              "Treatment",
-              `Fraction ${fraction} of ${course.totalFractions}`,
-              patient.assignedStaff,
-              domainCourse?.location ?? course.treatmentModality,
-              "Scheduled"
-            ]
-          }))}
+      <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0">{tabContent}</div>
+        <ContextRail
+          urgentTasks={urgentTasks.length}
+          blockedSteps={blockedSteps.length}
+          unsignedDocs={unsignedDocs.length}
+          openChecks={openChecks.length}
+          readiness={readiness}
+          nextAction={patient.nextAction}
         />
-      </SectionCard>
+      </section>
     </div>
   );
 }
 
-function CarepathTab({ steps, blockedSteps }: { steps: WorkflowStep[]; blockedSteps: number }) {
-  const completed = steps.filter((step) => ["COMPLETED", "SIGNED", "UPLOADED"].includes(step.status)).length;
-  const review = steps.filter((step) => step.status === "READY_FOR_REVIEW").length;
-  const signature = steps.filter((step) => step.requiresSignature && !step.signedAt).length;
+function FractionWorkspace({ entries, course }: { entries: FractionLogEntry[]; course: TreatmentCourse }) {
+  const complete = entries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
+  const next = entries.find((entry) => !entry.mdApproval || !entry.dotApproval);
+  const cumulativeDose = entries.at(-1)?.cumulativeDose ?? 0;
+  const phaseOne = entries.filter((entry) => entry.phase.toLowerCase().includes('phase i')).length;
+  const phaseTwo = entries.length - phaseOne;
+
   return (
     <div className="space-y-4">
-      <MetricStrip
-        metrics={[
-          ["Completed Steps", completed],
-          ["Pending Steps", steps.length - completed],
-          ["Ready for Review", review],
-          ["Blocked", blockedSteps],
-          ["Signatures Needed", signature]
+      <Card>
+        <SectionTitle title="Fractionation Record" />
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <Metric label="Completed" value={`${complete}/${course.totalFractions}`} detail="MD + DOT approved" />
+          <Metric label="Cumulative Dose" value={`${cumulativeDose} cGy`} detail="Delivered dose" />
+          <Metric label="Phase I" value={phaseOne} detail={course.phaseOne ?? 'Protocol phase'} />
+          <Metric label="Phase II" value={phaseTwo} detail={course.phaseTwo ?? 'Boost / closeout'} />
+          <Metric label="Next Due" value={next ? `Fx ${next.fractionNumber}` : 'Complete'} detail={next ? formatDate(next.date) : 'All logged'} />
+        </div>
+        <div className="mt-4">
+          <ProgressLine value={Math.round((complete / Math.max(course.totalFractions, 1)) * 100)} />
+        </div>
+      </Card>
+
+      <DataTable
+        keyField="id"
+        pageSize={0}
+        columns={[
+          { key: 'fraction', label: 'Fx' },
+          { key: 'date', label: 'Date' },
+          { key: 'phase', label: 'Phase' },
+          { key: 'energy', label: 'Energy' },
+          { key: 'ssd', label: 'SSD / Applicator' },
+          { key: 'dose', label: 'Dose' },
+          { key: 'cumulative', label: 'Cumulative' },
+          { key: 'depth', label: 'Depth' },
+          { key: 'isodose', label: 'Isodose' },
+          { key: 'approvals', label: 'Approvals', render: (row) => (
+            <div className="flex flex-wrap gap-1">
+              <ApprovalBadge approved={row.md} label="MD" />
+              <ApprovalBadge approved={row.dot} label="DOT" />
+            </div>
+          ) },
+          { key: 'review', label: 'Review', render: (row) => <Badge variant={row.md && row.dot ? 'success' : 'warning'}>{row.md && row.dot ? 'Complete' : 'Needs Review'}</Badge> },
+          { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
         ]}
+        rows={entries.map((entry) => ({
+          id: entry.id,
+          fraction: entry.fractionNumber,
+          date: formatDate(entry.date),
+          phase: entry.phase,
+          energy: entry.energy,
+          ssd: entry.ssd,
+          dose: `${entry.dosePerFraction} cGy`,
+          cumulative: `${entry.cumulativeDose} cGy`,
+          depth: entry.depthOfTarget,
+          isodose: `${entry.isodosePercent}%`,
+          md: entry.mdApproval,
+          dot: entry.dotApproval,
+          notes: entry.notes,
+        }))}
       />
-      <SectionCard title="Carepath Workflow" description="Rows 0-14 for this active course. Row detail drawer is the future action surface.">
-        <WorkflowStepTable steps={steps} />
-      </SectionCard>
-    </div>
-  );
-}
-
-function ClinicalTab({ templates }: { templates: ClinicalFormTemplate[] }) {
-  return (
-    <div className="space-y-4">
-      <MetricStrip metrics={[["Draft Forms", 2], ["Ready for Review", 1], ["Signed Forms", 4], ["Missing Fields", 3]]} />
-      <section className="grid gap-4 lg:grid-cols-2">
-        {templates.map((template) => (
-          <SectionCard key={template.id} title={template.name} description={`${template.diagnosisType} · ${template.schema.length} sections`}>
-            <FieldList
-              items={[
-                { label: "Status", value: template.active ? "Active" : "Inactive" },
-                { label: "Completion", value: "Draft" },
-                { label: "Last Updated", value: "Pending form response" },
-                { label: "Actions", value: "Open / Generate Note" }
-              ]}
-            />
-          </SectionCard>
-        ))}
-      </section>
-    </div>
-  );
-}
-
-function TreatmentTab({ course, plan, fractions }: { course: TreatmentCourse; plan?: TreatmentPlan; fractions: TreatmentFraction[] }) {
-  return (
-    <div className="space-y-4">
-      <section className="grid gap-4 xl:grid-cols-4">
-        <SectionCard title="Current Plan" description="Prescription summary.">
-          <FieldList items={[{ label: "Energy", value: plan?.energy ?? course.energy ?? "Pending" }, { label: "Applicator", value: plan?.applicatorSize ?? course.applicator ?? "Pending" }, { label: "DOI", value: plan?.depthOfInvasion ?? course.targetDepth ?? "Pending" }]} />
-        </SectionCard>
-        <SectionCard title="Dose Calculator" description="Dose-depth summary.">
-          <FieldList items={[{ label: "PDD", value: plan?.percentDepthDose ? `${plan.percentDepthDose}%` : "Pending" }, { label: "Dose to Depth", value: plan?.doseToDepth ?? "Pending" }, { label: "Coverage", value: plan?.coverage ?? "Pending" }]} />
-        </SectionCard>
-        <SectionCard title="Fraction Progress" description="Delivery state.">
-          <FieldList items={[{ label: "Completed", value: `${course.currentFraction}/${course.totalFractions}` }, { label: "Cumulative", value: `${Math.round((course.currentFraction / course.totalFractions) * 100)}%` }, { label: "Next", value: "Tomorrow" }]} />
-        </SectionCard>
-        <SectionCard title="Physics Review" description="Review and signature.">
-          <FieldList items={[{ label: "Physics", value: plan?.physicistReviewStatus.replaceAll("_", " ") ?? "Pending" }, { label: "Rad Onc", value: plan?.radOncSignatureStatus.replaceAll("_", " ") ?? "Pending" }, { label: "Document", value: "Generate Rx" }]} />
-        </SectionCard>
-      </section>
-      <SectionCard title="Recent Fractions" description="Compact preview only.">
-        <DataTable
-          compact
-          minWidth="980px"
-          columns={[{ header: "Fx" }, { header: "Date" }, { header: "Planned" }, { header: "Delivered" }, { header: "Cumulative" }, { header: "Energy" }, { header: "IG" }, { header: "Status" }]}
-          rows={fractions.slice(0, 8).map((fraction) => ({
-            id: fraction.id,
-            cells: [fraction.fractionNumber, fraction.treatmentDate, fraction.plannedDose, fraction.deliveredDose ?? "Held", fraction.cumulativeDose, fraction.energy ?? "Pending", fraction.imageGuidanceCompleted ? "Complete" : "Pending", fraction.status.replaceAll("_", " ")]
-          }))}
-        />
-      </SectionCard>
-    </div>
-  );
-}
-
-function ImagingTab({ images }: { images: ImagingAsset[] }) {
-  return (
-    <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-      <SectionCard title="Required Image Checklist" description="IGSRT course image requirements.">
-        <DataTable compact columns={[{ header: "Image" }, { header: "Status" }]} rows={imageChecklist.map((item) => ({ id: item, cells: [item, images.some((image) => image.category === item) ? "Present" : "Missing"] }))} />
-      </SectionCard>
-      <SectionCard title="Image Gallery" description="Course-specific image assets.">
-        <DataTable compact columns={[{ header: "Category" }, { header: "Phase" }, { header: "Uploaded" }, { header: "Notes" }]} rows={images.map((image) => ({ id: image.id, cells: [image.category, image.phase.replaceAll("_", " "), image.uploadedAt ?? "Pending", image.notes ?? ""] }))} />
-      </SectionCard>
-    </section>
-  );
-}
-
-function DocumentsTab({ documents, signed, pending }: { documents: DocumentInstance[]; signed: number; pending: number }) {
-  return (
-    <div className="space-y-4">
-      <MetricStrip metrics={[["Pending Signature", pending], ["Ready for Review", pending], ["Signed", signed], ["Uploaded to eCW", documents.filter((doc) => doc.uploadedToEcwAt).length]]} />
-      <SectionCard title="Generated Documents" description="Patient/course generated documents and signature state.">
-        <DocumentList documents={documents} />
-      </SectionCard>
-    </div>
-  );
-}
-
-function TasksTab({ tasks }: { tasks: Task[] }) {
-  return (
-    <div className="space-y-4">
-      <MetricStrip metrics={[["Open Tasks", tasks.length], ["Due Today", tasks.filter((task) => task.dueDate).length], ["Overdue", tasks.filter((task) => task.status === "OVERDUE").length], ["Signatures Needed", tasks.filter((task) => task.type === "SIGN_DOCUMENT").length]]} />
-      <SectionCard title="Patient Work Queue" description="Course-specific tasks only.">
-        <TaskList tasks={tasks} />
-      </SectionCard>
-    </div>
-  );
-}
-
-function BillingTab({ courseId, auditChecks, documents }: { courseId: string; auditChecks: AuditCheck[]; documents: DocumentInstance[] }) {
-  return (
-    <div className="space-y-4">
-      <MetricStrip metrics={[["Readiness", "78%"], ["Missing Docs", documents.filter((doc) => !doc.signedAt).length], ["Preauth", "Pending"], ["Billing Complete", auditChecks.some((check) => check.label.toLowerCase().includes("billing")) ? "Review" : "Pending"]]} />
-      <SectionCard title="Billing Evidence" description="Course-specific billing readiness placeholders.">
-        <DataTable
-          compact
-          minWidth="980px"
-          columns={[{ header: "Code" }, { header: "Description" }, { header: "Planned" }, { header: "Completed" }, { header: "Billed" }, { header: "Required Document" }, { header: "Status" }]}
-          rows={["77280", "77300", "77436"].map((code, index) => ({
-            id: `${courseId}-${code}`,
-            cells: [code, "Course documentation evidence", index + 1, index, 0, documents[index]?.title ?? "Pending", index ? "Review" : "Ready"]
-          }))}
-        />
-      </SectionCard>
-    </div>
-  );
-}
-
-function NotesTab({ patient, auditEvents }: { patient: Patient; auditEvents: AuditEvent[] }) {
-  return (
-    <div className="space-y-4">
-      <SectionCard title="Add Note" description="Operational note composer placeholder.">
-        <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] p-4 text-sm font-semibold text-[#3D5A80]">Write an operational note...</div>
-      </SectionCard>
-      <SectionCard title="Notes" description="Operational summaries only.">
-        <p className="text-sm font-semibold leading-6 text-[#3D5A80]">{patient.notes}</p>
-      </SectionCard>
-      <SectionCard title="Activity-Linked Notes" description="Recent note-adjacent activity.">
-        <DataTable compact columns={[{ header: "Time" }, { header: "Action" }, { header: "Entity" }]} rows={auditEvents.slice(0, 5).map((event) => ({ id: event.id, cells: [event.timestamp, event.action, event.entityType.replaceAll("_", " ")] }))} />
-      </SectionCard>
-    </div>
-  );
-}
-
-function AuditTab({ checks, events, readiness }: { checks: AuditCheck[]; events: AuditEvent[]; readiness: number }) {
-  return (
-    <div className="space-y-4">
-      <MetricStrip metrics={[["Audit Readiness", `${readiness}%`], ["Checks", checks.length], ["Blockers", checks.filter((check) => ["BLOCKED", "OVERDUE"].includes(check.status)).length], ["Final Sign", "Pending"]]} />
-      <SectionCard title="Audit Checklist" description="Final closeout validation.">
-        <AuditChecklist checks={checks} />
-      </SectionCard>
-      <AuditTimeline events={events} />
     </div>
   );
 }
 
 function ContextRail({
-  activeTab,
-  patient,
-  course,
   urgentTasks,
-  readiness,
-  carepathPercent,
-  documentPercent,
   blockedSteps,
-  pendingDocuments,
-  plan
+  unsignedDocs,
+  openChecks,
+  readiness,
+  nextAction,
 }: {
-  activeTab: WorkspaceTab;
-  patient: Patient;
-  course: TreatmentCourse;
-  urgentTasks: Task[];
-  readiness: number;
-  carepathPercent: number;
-  documentPercent: number;
+  urgentTasks: number;
   blockedSteps: number;
-  pendingDocuments: number;
-  plan?: TreatmentPlan;
+  unsignedDocs: number;
+  openChecks: number;
+  readiness: number;
+  nextAction: string;
 }) {
-  if (activeTab === "carepath") {
-    return (
-      <>
-        <RailCard title="Workflow Summary" items={[["Progress", `${carepathPercent}%`], ["Blocked", blockedSteps], ["Current", course.chartRoundsPhase.replaceAll("_", " ")]]} />
-        <RailCard title="Signature Queue" items={[["Pending Docs", pendingDocuments], ["Next Action", patient.nextAction]]} warning />
-      </>
-    );
-  }
-  if (activeTab === "treatment") {
-    return (
-      <>
-        <RailCard title="Plan Summary" items={[["Energy", plan?.energy ?? course.energy ?? "Pending"], ["Applicator", plan?.applicatorSize ?? course.applicator ?? "Pending"], ["Fractions", `${course.currentFraction}/${course.totalFractions}`]]} />
-        <RailCard title="Next Fraction" items={[["When", "Tomorrow, 9:00 AM"], ["Location", "Main Campus"], ["IG", "Required"]]} />
-      </>
-    );
-  }
-  if (activeTab === "documents") {
-    return <RailCard title="Signature Summary" items={[["Pending", pendingDocuments], ["Document Progress", `${documentPercent}%`], ["eCW", "Review uploads"]]} warning={pendingDocuments > 0} />;
-  }
-  if (activeTab === "audit") {
-    return <RailCard title="Audit Readiness" items={[["Score", `${readiness}%`], ["Final Blockers", blockedSteps + pendingDocuments], ["Closeout", "Pending"]]} warning />;
-  }
-  if (activeTab !== "overview") {
-    return <RailCard title="Tab Actions" items={[["Patient", patient.id], ["Course", course.id], ["Next Action", patient.nextAction]]} />;
-  }
-  return (
-    <>
-      <SectionCard title="Open Tasks" description="Top urgent work.">
-        <div className="space-y-3">
-          {(urgentTasks.length ? urgentTasks : []).slice(0, 3).map((task) => (
-            <div key={task.id} className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] p-3">
-              <p className="text-sm font-bold text-[#061A55]">{task.title}</p>
-              <p className="mt-1 text-xs font-semibold text-[#FF6620]">{task.priority} · {task.dueDate ?? "Due soon"}</p>
-            </div>
-          ))}
-          <button type="button" className="text-sm font-bold text-[#0033A0]">View all</button>
-        </div>
-      </SectionCard>
-      <SectionCard title="Patient Details" description="Fake contact placeholders.">
-        <FieldList items={fakePatientDetails} />
-      </SectionCard>
-      <SectionCard title="Flags & Alerts" description="Operational warnings.">
-        <div className="space-y-3">
-          <AlertRow text="Allergy: Adhesive tape" />
-          <AlertRow text={patient.checklist.followUpScheduled ? "Follow-up scheduled" : "Needs follow-up scheduled"} />
-          {patient.flags.map((flag) => <AlertRow key={flag.id} text={flag.summary} />)}
-        </div>
-      </SectionCard>
-    </>
-  );
-}
+  const signals = [
+    { label: 'Urgent tasks', value: urgentTasks, icon: AlertTriangle, variant: urgentTasks ? 'warning' : 'success' },
+    { label: 'Blocked steps', value: blockedSteps, icon: Route, variant: blockedSteps ? 'error' : 'success' },
+    { label: 'Unsigned docs', value: unsignedDocs, icon: FileCheck2, variant: unsignedDocs ? 'warning' : 'success' },
+    { label: 'Open audit checks', value: openChecks, icon: ShieldCheck, variant: openChecks ? 'warning' : 'success' },
+  ] as const;
 
-function CarePathProgress({ course }: { course: TreatmentCourse }) {
   return (
-    <SectionCard title="Care Path Progress" description={`Phase I: ${course.dose ?? "50 Gy in 20 fx"}`}>
-      <div className="scrollbar-soft overflow-x-auto">
-        <ol className="flex min-w-[780px] items-center justify-between gap-2">
-          {carePathStages.map((stage, index) => {
-            const isDone = index < 3;
-            const isCurrent = index === 3;
+    <aside className="min-w-0 space-y-4">
+      <Card>
+        <SectionTitle title="Course Signals" />
+        <div className="space-y-2">
+          {signals.map((signal) => {
+            const Icon = signal.icon;
             return (
-              <li key={stage.label} className="flex flex-1 flex-col items-center text-center">
-                <span className={cn("grid h-8 w-8 place-items-center rounded-full text-sm font-bold ring-4", isCurrent ? "bg-[#0033A0] text-white ring-[#EAF1FF]" : isDone ? "bg-emerald-500 text-white ring-emerald-50" : "bg-[#E7EEF8] text-white ring-[#F8FBFF]")}>
-                  {isDone ? "✓" : isCurrent ? "•" : "×"}
+              <div key={signal.label} className="clinical-muted-surface flex items-center justify-between gap-3 px-3 py-2">
+                <span className="flex min-w-0 items-center gap-2">
+                  <Icon className="h-4 w-4 shrink-0 text-[var(--color-primary)]" aria-hidden="true" />
+                  <span className="truncate text-sm font-bold text-[var(--color-text)]">{signal.label}</span>
                 </span>
-                <span className="mt-2 text-xs font-bold text-[#061A55]">{stage.label}</span>
-                <span className="mt-1 text-xs font-semibold text-[#3D5A80]">{isCurrent ? `${course.currentFraction} of ${course.totalFractions} fx` : stage.detail}</span>
-              </li>
+                <Badge variant={signal.variant}>{signal.value}</Badge>
+              </div>
             );
           })}
-        </ol>
-      </div>
-    </SectionCard>
-  );
-}
-
-function MetricStrip({ metrics }: { metrics: Array<[string, string | number]> }) {
-  return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {metrics.map(([label, value]) => (
-        <div key={label} className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
-          <p className="text-xs font-bold uppercase tracking-wide text-[#3D5A80]">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-[#061A55]">{value}</p>
         </div>
-      ))}
-    </section>
-  );
-}
+      </Card>
 
-function ActivityList() {
-  const rows = [
-    ["Treatment session completed", "Today, 9:15 AM"],
-    ["US image guidance reviewed", "Today, 9:10 AM"],
-    ["Physician OTV note signed", "Yesterday"],
-    ["Plan QA passed", "Aug 21"],
-    ["Simulation completed", "Aug 19"]
-  ];
-  return (
-    <div className="space-y-3">
-      {rows.map(([title, time], index) => (
-        <div key={title} className="flex gap-3">
-          <span className={cn("mt-0.5 grid h-8 w-8 place-items-center rounded-lg", index % 2 ? "bg-[#FFF0E8] text-[#FF6620]" : "bg-[#EAF1FF] text-[#0033A0]")}>
-            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div>
-            <p className="text-sm font-bold text-[#061A55]">{title}</p>
-            <p className="text-xs font-semibold text-[#3D5A80]">{time}</p>
+      <Card>
+        <SectionTitle title="Next Action" />
+        <p className="text-sm font-semibold leading-6 text-[var(--color-text)]">{nextAction}</p>
+        <div className="mt-4">
+          <div className="mb-2 flex items-center justify-between text-xs font-bold text-[var(--color-text-muted)]">
+            <span>Closeout readiness</span>
+            <span>{readiness}%</span>
           </div>
+          <ProgressLine value={readiness} />
         </div>
-      ))}
-    </div>
-  );
-}
-
-function RailCard({ title, items, warning = false }: { title: string; items: Array<[string, string | number]>; warning?: boolean }) {
-  return (
-    <SectionCard title={title} description={warning ? "Needs attention" : "Context"}>
-      <FieldList items={items.map(([label, value]) => ({ label, value, tone: warning && label !== "Score" ? "warning" : "default" }))} />
-    </SectionCard>
-  );
-}
-
-function AlertRow({ text }: { text: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-xl bg-[#FFF8F4] p-3 text-sm font-semibold text-[#061A55]">
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#FF6620]" aria-hidden="true" />
-      {text}
-    </div>
-  );
-}
-
-function Meta({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="min-w-0 rounded-xl px-2 py-1">
-      <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>{label}</p>
-      <p className="mt-0.5 truncate text-[13px] font-bold leading-5 text-[#061A55]" title={value}>{value}</p>
-      {sub ? <p className="mt-0.5 truncate text-[11px] font-semibold leading-4 text-[#3D5A80]" title={sub}>{sub}</p> : null}
-    </div>
+      </Card>
+    </aside>
   );
 }

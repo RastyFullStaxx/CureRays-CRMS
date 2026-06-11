@@ -1,12 +1,10 @@
 import { notFound } from 'next/navigation';
-import { CalendarDays } from 'lucide-react';
-import { PageStack } from '@/components/shared/page-stack';
+import { CalendarDays, CheckCircle2, ClipboardCheck, Radiation } from 'lucide-react';
+import { FractionLogTable } from '@/components/fraction-log-table';
 import { PageHeader } from '@/components/shared/page-header';
-import { DataTable } from '@/components/shared/data-table';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { PageStack } from '@/components/shared/page-stack';
+import { StatCard } from '@/components/shared/stat-card';
+import { StatGrid } from '@/components/shared/stat-grid';
 import { fractionLogEntries, treatmentCourses } from '@/lib/clinical-store';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseFractions, patientActiveCourse } from '@/lib/workflow';
@@ -25,48 +23,30 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
   }
 
   const entries = courseFractions(course.id, fractionLogEntries);
+  const approved = entries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
+  const cumulativeDose = entries.at(-1)?.cumulativeDose ?? 0;
+  const nextReview = entries.find((entry) => !entry.mdApproval || !entry.dotApproval);
 
   return (
     <PageStack>
       <PageHeader
         title="Fraction Log"
-        subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')}`}
+        subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')} | ${course.protocolName}`}
         breadcrumb={[
           { label: 'Patients', href: '/patients' },
-          { label: patient.firstName + ' ' + patient.lastName, href: `/patients/${patient.id}` },
+          { label: `${patient.firstName} ${patient.lastName}`, href: `/patients/${patient.id}` },
           { label: 'Fraction Log', href: `/patients/${patient.id}/fraction-log` },
         ]}
       />
 
-      <DataTable
-        keyField="id"
-        columns={[
-          { key: 'fraction', label: 'Fraction #' },
-          { key: 'date', label: 'Date' },
-          { key: 'site', label: 'Treatment Site' },
-          { key: 'dose', label: 'Dose (Gy)' },
-          { key: 'status', label: 'Status' },
-          { key: 'notes', label: 'Notes' },
-        ]}
-        rows={entries.map((entry, index) => ({
-          id: entry.id,
-          fraction: `${index + 1}`,
-          date: entry.date ?? '—',
-          site: entry.phase ?? '—',
-          dose: entry.dosePerFraction ?? '—',
-          status: entry.mdApproval && entry.dotApproval ? 'APPROVED' : entry.mdApproval ? 'MD APPROVED' : 'PENDING',
-          notes: entry.notes ?? '—',
-        }))}
-        toolbar={
-          <FilterStrip>
-            <FilterField grow>
-              <Input placeholder="Search fraction log entries..." />
-            </FilterField>
-            <FilterField><Input placeholder="Date Range" /></FilterField>
-            <FilterField><Input placeholder="Status" /></FilterField>
-          </FilterStrip>
-        }
-      />
+      <StatGrid>
+        <StatCard icon={Radiation} label="Approved Fractions" value={`${approved}/${course.totalFractions}`} sub="MD + DOT complete" tone="success" />
+        <StatCard icon={CalendarDays} label="Current Fraction" value={Math.max(course.currentFraction, approved)} sub="Course progress" tone="primary" />
+        <StatCard icon={ClipboardCheck} label="Cumulative Dose" value={`${cumulativeDose} cGy`} sub="Latest logged" tone="info" />
+        <StatCard icon={CheckCircle2} label="Next Review" value={nextReview ? `Fx ${nextReview.fractionNumber}` : 'Complete'} sub={nextReview?.date ?? 'No open approvals'} tone={nextReview ? 'warning' : 'success'} />
+      </StatGrid>
+
+      <FractionLogTable entries={entries} />
     </PageStack>
   );
 }

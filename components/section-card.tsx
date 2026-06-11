@@ -10,11 +10,11 @@ export function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <section className="glass-panel rounded-glass p-5">
+    <section className="clinical-surface p-5">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-curerays-dark-plum">{title}</h3>
+        <h3 className="font-heading text-lg font-bold text-[var(--color-text)]">{title}</h3>
         {description ? (
-          <p className="mt-1 text-sm text-curerays-indigo">{description}</p>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)]">{description}</p>
         ) : null}
       </div>
       {children}

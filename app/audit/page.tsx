@@ -76,7 +76,7 @@ export default function AuditPage() {
             (row._index as number) % 2 ? "Needed" : "Scheduled"
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
         ]}
         rows={courses.map((course, index) => ({

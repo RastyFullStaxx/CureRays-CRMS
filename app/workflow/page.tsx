@@ -49,10 +49,10 @@ export default function WorkflowPage() {
             <span className="block truncate">{patientLabel(moduleSnapshot.treatmentCourses.find((course) => course.id === row.courseId)?.patientId ?? "")} / {row.courseId.replace("COURSE-", "C")}</span>
           )},
           { key: 'phase', label: 'Phase', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.phase)) as any}>{phaseLabel(row.phase)}</Badge>
+            <Badge variant={mapTone(statusTone(row.phase))}>{phaseLabel(row.phase)}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'role', label: 'Role', render: (row) => responsiblePartyName(row.responsibleRole) },
           { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? responsiblePartyName(row.responsibleRole) },

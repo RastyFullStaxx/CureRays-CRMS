@@ -19,14 +19,14 @@ type PageHeaderProps = {
 export function PageHeader({ title, subtitle, actions, breadcrumb = [], className = '' }: PageHeaderProps) {
   return (
     <div
-      className={`flex flex-col items-stretch justify-between gap-2 sm:flex-row sm:items-start ${className}`}
-      style={{ marginBottom: '8px' }}
+      className={`flex shrink-0 flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-start ${className}`}
+      style={{ marginBottom: '2px' }}
     >
       <div className="min-w-0">
         {breadcrumb.length > 0 && (
           <div
             className="flex flex-wrap items-center"
-            style={{ gap: '4px', marginBottom: '4px', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}
+            style={{ gap: '4px', marginBottom: '6px', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}
           >
             {breadcrumb.map((crumb, i) => (
               <span key={i} className="flex items-center" style={{ gap: '4px' }}>
@@ -52,7 +52,7 @@ export function PageHeader({ title, subtitle, actions, breadcrumb = [], classNam
         )}
 
         <h1
-          className="font-heading font-bold text-[var(--color-text)] truncate"
+          className="truncate font-heading font-bold text-[var(--color-text)]"
           style={{ fontSize: 'var(--font-size-heading)', lineHeight: 'var(--line-height-tight)', margin: 0 }}
         >
           {title}
@@ -61,7 +61,7 @@ export function PageHeader({ title, subtitle, actions, breadcrumb = [], classNam
         {subtitle && (
           <p
             className="text-[var(--color-text-muted)]"
-            style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', marginTop: 2 }}
+            style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', marginTop: 3, maxWidth: 920 }}
           >
             {subtitle}
           </p>

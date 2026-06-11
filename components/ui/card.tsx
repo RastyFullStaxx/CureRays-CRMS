@@ -12,12 +12,9 @@ export function Card<T extends ElementType = 'div'>({ children, className = '', 
   const Tag = (as ?? 'div') as ElementType;
   return (
     <Tag
-      className={`bg-[var(--color-card)] ${className}`}
+      className={`clinical-surface ${className}`}
       style={{
-        padding: compact ? 'var(--space-2)' : 'var(--space-card)',
-        border: 'var(--border-container)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: 'var(--shadow-card)',
+        padding: compact ? '14px' : 'var(--space-card)',
         ...style,
       }}
       {...rest}

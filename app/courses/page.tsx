@@ -65,10 +65,10 @@ export default function CoursesPage() {
             <span className="block truncate">{row.physicianId ?? "Unassigned"}</span>
           )},
           { key: 'phase', label: 'Phase', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.currentPhase)) as any}>{phaseLabel(row.currentPhase)}</Badge>
+            <Badge variant={mapTone(statusTone(row.currentPhase))}>{phaseLabel(row.currentPhase)}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status)) as any}>{statusLabel(row.status)}</Badge>
+            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'startDate', label: 'Start Date', render: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : "-" },
           { key: 'endDate', label: 'End Date', render: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : "-" },

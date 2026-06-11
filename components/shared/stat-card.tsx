@@ -36,15 +36,16 @@ export function StatCard({ icon, label, value, sub, tone = 'default', color, cla
   }
 
   return (
-    <Card compact className={className}>
+    <Card compact className={`overflow-hidden ${className}`}>
       <div className="flex h-full items-center gap-3">
         {iconNode && (
           <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center"
+            className="flex h-10 w-10 shrink-0 items-center justify-center ring-1"
             style={{
               borderRadius: 'var(--radius-md)',
-              background: 'color-mix(in srgb, var(--color-primary) 9%, var(--color-card))',
+              background: `color-mix(in srgb, ${toneColor} 10%, var(--color-card))`,
               color: toneColor === 'var(--color-text)' ? 'var(--color-primary)' : toneColor,
+              boxShadow: 'inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent)',
             }}
           >
             {iconNode}
@@ -59,7 +60,7 @@ export function StatCard({ icon, label, value, sub, tone = 'default', color, cla
           </div>
           <div
             className="truncate font-heading font-bold"
-            style={{ marginTop: 5, fontSize: 21, lineHeight: 1.1, color: toneColor }}
+            style={{ marginTop: 5, fontSize: 21, lineHeight: 1.1, color: 'var(--color-text)' }}
           >
             {value}
           </div>

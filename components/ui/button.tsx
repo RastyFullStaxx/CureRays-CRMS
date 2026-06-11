@@ -8,10 +8,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClasses = {
-  primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]',
-  secondary: 'border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-primary)] hover:bg-[var(--color-hover)]',
-  ghost: 'text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)]',
-  danger: 'bg-[var(--color-error)] text-white hover:bg-red-600',
+  primary: 'border border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_22px_-18px_var(--color-primary)] hover:bg-[var(--color-primary-dark)]',
+  secondary: 'border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-primary)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary-soft)]',
+  ghost: 'border border-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)]',
+  danger: 'border border-[var(--color-error)] bg-[var(--color-error)] text-white hover:brightness-95',
 };
 
 const sizeClasses = {
@@ -23,7 +23,7 @@ export function Button({ variant = 'primary', size = 'default', className, child
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-semibold rounded-[var(--radius-md)] transition-colors duration-0',
+        'clinical-focus inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-semibold transition',
         variantClasses[variant],
         sizeClasses[size],
         className

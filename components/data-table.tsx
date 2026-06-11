@@ -23,18 +23,18 @@ export function DataTable({
   minWidth?: string;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-white/70 bg-white/52">
+    <div className="clinical-surface overflow-x-auto">
       <table
         className="w-full border-collapse"
         style={minWidth ? { minWidth } : undefined}
       >
         <thead>
-          <tr className="bg-white/42 text-left text-xs font-bold uppercase text-curerays-indigo">
+          <tr className="text-left text-[11px] font-bold uppercase text-[var(--color-text-muted)]" style={{ background: 'var(--color-table-header-bg)' }}>
             {columns.map((col) => (
               <th
                 key={col.header}
                 scope="col"
-                className={compact ? 'px-3 py-2' : 'px-5 py-3'}
+                className={compact ? 'px-3 py-2' : 'px-4 py-3'}
                 style={col.width ? { width: col.width } : undefined}
               >
                 {col.header}
@@ -42,13 +42,13 @@ export function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/70">
+        <tbody className="divide-y divide-[var(--color-border-soft)]">
           {rows.map((row) => (
-            <tr key={row.id} className="bg-white/28 transition hover:bg-white/58">
+            <tr key={row.id} className="bg-[var(--color-card)] transition hover:bg-[var(--color-table-row-hover)]">
               {row.cells.map((cell, index) => (
                 <td
                   key={`${row.id}-${index}`}
-                  className={`${compact ? 'px-3 py-2' : 'px-5 py-4'} align-top text-sm font-semibold text-curerays-dark-plum`}
+                  className={`${compact ? 'px-3 py-2' : 'px-4 py-3'} align-top text-sm font-semibold text-[var(--color-text)]`}
                 >
                   {cell}
                 </td>
@@ -59,7 +59,7 @@ export function DataTable({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-5 py-8 text-center text-sm text-curerays-indigo"
+                className="px-5 py-8 text-center text-sm text-[var(--color-text-muted)]"
               >
                 No records found.
               </td>

@@ -28,7 +28,7 @@ export function FilterField({ children, grow = false, width = 168, className = '
     <div
       className={className}
       style={{
-        flex: grow ? '1 1 260px' : `0 1 ${width}px`,
+        flex: grow ? '1 1 280px' : `0 1 ${width}px`,
         minWidth: grow ? 220 : Math.min(width, 180),
       }}
     >
