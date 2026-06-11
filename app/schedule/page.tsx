@@ -11,6 +11,7 @@ import { FilterField } from '@/components/shared/filter-strip';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { moduleSnapshot } from "@/lib/global-page-data";
 import { createFacetOptions } from '@/lib/table-filters';
 
@@ -66,6 +67,29 @@ export default function SchedulePage() {
         <StatCard icon={Clock3} label="Simulations" value={simulations} sub="Mapping/sim" tone="warning" />
         <StatCard icon={UsersRound} label="Providers" value={4} sub="On schedule" tone="primary" />
       </StatGrid>
+      <div
+        className="rounded-[var(--radius-lg)] p-4"
+        style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>Upcoming Appointments (Next 7 Days)</h2>
+        </div>
+        <ScrollArea axis="x" className="-mx-1 px-1 pb-1">
+          <div className="flex min-w-max gap-3">
+            {filteredAppointments.slice(0, 8).map((appointment) => (
+              <div
+                key={appointment.id}
+                className="min-w-[190px] rounded-[var(--radius-md)] border p-3"
+                style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}
+              >
+                <p className="text-[11px] font-bold" style={{ color: 'var(--color-primary)' }}>{appointment.time}</p>
+                <p className="mt-2 truncate text-xs font-bold" style={{ color: 'var(--color-text)' }}>{appointment.patientName}</p>
+                <p className="truncate text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>{appointment.title}</p>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
       <div
         className="rounded-[var(--radius-lg)] overflow-hidden"
         style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
@@ -123,23 +147,6 @@ export default function SchedulePage() {
                   </div>
                 );
               })}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div
-        className="rounded-[var(--radius-lg)] p-4"
-        style={{ background: 'var(--color-card)', border: 'var(--border-container)', boxShadow: 'var(--shadow-card)' }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>Upcoming Appointments (Next 7 Days)</h2>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-          {filteredAppointments.slice(0, 6).map((appointment) => (
-            <div key={appointment.id} className="rounded-lg border p-3" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
-              <p className="text-[11px] font-bold" style={{ color: 'var(--color-primary)' }}>{appointment.time}</p>
-              <p className="mt-2 truncate text-xs font-bold" style={{ color: 'var(--color-text)' }}>{appointment.patientName}</p>
-              <p className="truncate text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>{appointment.title}</p>
             </div>
           ))}
         </div>

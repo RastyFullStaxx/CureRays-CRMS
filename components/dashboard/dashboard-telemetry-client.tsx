@@ -100,9 +100,9 @@ function signalTargetX(group: DashboardSignalNode['group']) {
 }
 
 function signalTargetY(group: DashboardSignalNode['group'], index: number) {
-  if (group === 'risk') return 0.3;
-  if (group === 'document') return 0.68;
-  return 0.22 + ((index * 19) % 55) / 100;
+  if (group === 'risk') return 0.24;
+  if (group === 'document') return 0.62;
+  return 0.18 + ((index * 19) % 54) / 100;
 }
 
 function resolvedNode(value: string | number | SignalSimulationNode | undefined) {
@@ -167,6 +167,13 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
       context.fillRect(0, 0, width, height);
       context.restore();
 
+      simulationNodes.forEach((node) => {
+        const radius = Math.max(3.5, Math.min(12, 3 + node.value * 0.45));
+        const labelReserve = node.group === 'task' || node.group === 'document' || node.group === 'risk' ? 28 : 10;
+        node.x = Math.min(Math.max(node.x ?? 0, radius + 12), width - radius - 12);
+        node.y = Math.min(Math.max(node.y ?? 0, radius + 12), height - radius - labelReserve);
+      });
+
       simulationLinks.forEach((link) => {
         const source = resolvedNode(link.source);
         const target = resolvedNode(link.target);
@@ -205,7 +212,7 @@ function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: Da
         if (node.group === 'task' || node.group === 'document' || node.group === 'risk') {
           context.globalAlpha = 0.9;
           context.fillStyle = text;
-          context.font = '700 10px var(--font-body)';
+          context.font = `700 10px ${cssVar('--font-body', 'Inter, sans-serif')}`;
           context.textAlign = 'center';
           context.fillText(node.label, x, y + radius + 14);
         }
@@ -303,7 +310,7 @@ function CarepathNode(props: SankeyNodeProps) {
 function CarepathSimulation({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-chart-shell dashboard-sankey-shell">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={168} initialDimension={{ width: 460, height: 220 }}>
         <Sankey
           data={telemetry.carepath}
           dataKey="value"
@@ -335,7 +342,7 @@ function CourseDistribution({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-donut-wrap">
       <div className="dashboard-donut-chart" role="img" aria-label="Course distribution donut chart">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={128} minHeight={128} initialDimension={{ width: 176, height: 176 }}>
           <PieChart>
             <Pie
               data={telemetry.courseDistribution}
@@ -385,7 +392,7 @@ function CourseDistribution({ telemetry }: { telemetry: DashboardTelemetry }) {
 function WeeklyThroughput({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-chart-shell dashboard-throughput-shell">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={126} initialDimension={{ width: 460, height: 150 }}>
         <ComposedChart data={telemetry.throughput} margin={{ top: 18, right: 4, bottom: 0, left: -28 }}>
           <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
           <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
@@ -448,6 +455,7 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
         })}
       </div>
       <div className="dashboard-provider-load">
+        <span className="dashboard-provider-load-title">Provider load</span>
         {telemetry.providerLoad.map((provider) => (
           <div key={provider.provider}>
             <span>{provider.provider}</span>
@@ -473,7 +481,7 @@ function PhiBoundaryGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
 
   return (
     <div className="dashboard-phi">
-      <svg viewBox="0 0 100 74" role="img" aria-label="PHI isolation graph">
+      <svg viewBox="0 0 100 88" role="img" aria-label="PHI isolation graph">
         {links.map((link) => {
           const source = nodesById[link.source];
           const target = nodesById[link.target];
@@ -552,9 +560,11 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
       <div className="dashboard-command-grid">
         <div className="dashboard-group dashboard-group-ops" data-panel="ops">
           <article className="dashboard-card dashboard-signal-card">
-            <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
-            <div className="dashboard-signal-content">
-              <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
+            <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
+            <div className="dashboard-signal-body">
+              <div className="dashboard-signal-plot">
+                <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
+              </div>
               <SignalLoad telemetry={telemetry} />
             </div>
           </article>

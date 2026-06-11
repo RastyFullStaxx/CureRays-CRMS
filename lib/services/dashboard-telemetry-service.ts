@@ -287,11 +287,11 @@ export function getDashboardTelemetry(): DashboardTelemetry {
     providerLoad: buildProviderLoad(),
     phiBoundary: {
       nodes: [
-        { id: 'client', label: 'Dashboard client', detail: 'Tokenized telemetry only', x: 12, y: 44, tone: 'primary' },
-        { id: 'api', label: 'Operational API', detail: 'Server derivation layer', x: 34, y: 24, tone: 'info' },
-        { id: 'ops', label: 'OPS DB', detail: 'Course/task refs', x: 58, y: 24, tone: 'success' },
-        { id: 'redaction', label: 'Redaction gate', detail: 'PHI keys stripped', x: 46, y: 64, tone: 'warning' },
-        { id: 'audit', label: 'Audit stream', detail: `${auditEvents.length} events today`, x: 72, y: 64, tone: 'info' },
+        { id: 'client', label: 'Dashboard client', detail: 'Tokenized telemetry only', x: 12, y: 42, tone: 'primary' },
+        { id: 'api', label: 'Operational API', detail: 'Server derivation layer', x: 34, y: 22, tone: 'info' },
+        { id: 'ops', label: 'OPS DB', detail: 'Course/task refs', x: 58, y: 22, tone: 'success' },
+        { id: 'redaction', label: 'Redaction gate', detail: 'PHI keys stripped', x: 44, y: 56, tone: 'warning' },
+        { id: 'audit', label: 'Audit stream', detail: `${auditEvents.length} events today`, x: 70, y: 56, tone: 'info' },
         { id: 'phi', label: 'PHI vault', detail: 'Identifiers isolated', x: 88, y: 34, tone: 'error' },
       ],
       links: [

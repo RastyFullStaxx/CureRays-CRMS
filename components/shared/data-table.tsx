@@ -241,7 +241,7 @@ export function DataTable<T extends object>({
         )}
 
         <div
-          className="flex-1 min-h-0 w-full overflow-x-auto"
+          className="scrollbar-soft flex-1 min-h-0 w-full overflow-x-auto"
           style={{
             overflowY: isEmpty || loading ? 'hidden' : 'auto',
             display: 'flex',
