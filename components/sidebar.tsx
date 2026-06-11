@@ -242,7 +242,7 @@ export function Sidebar() {
                   href={item.href}
                   icon={item.icon}
                   label={item.label}
-                  pathname={pathname}
+                  pathname={pathname ?? ''}
                   collapsed={collapsed}
                 />
               ))}

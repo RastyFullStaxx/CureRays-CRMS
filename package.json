@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "description": "CureRays Clinical Workflow System frontend.",
+  "engines": {
+    "node": ">=18.17 <21",
+    "npm": ">=9"
+  },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (major >= 21) { console.error('Unsupported Node.js ' + process.version + '. CureRays CRMS uses Next 14.2.16 and supports Node >=18.17 <21 for reliable Windows builds. Use nvm install 20.11.1 && nvm use 20.11.1, then remove .next and rebuild.'); process.exit(1); }\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
