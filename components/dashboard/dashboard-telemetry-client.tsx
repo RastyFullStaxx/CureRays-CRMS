@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
+import type { EChartsCoreOption } from 'echarts/core';
 import {
   Activity,
   AlertTriangle,
@@ -51,6 +52,7 @@ import type {
   DashboardSignalStageId,
   DashboardTelemetry,
 } from '@/lib/services/dashboard-telemetry-service';
+import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 
 type DashboardTelemetryClientProps = {
   telemetry: DashboardTelemetry;
@@ -83,9 +85,85 @@ const phiIcons: Record<string, LucideIcon> = {
   phi: LockKeyhole,
 };
 
+type DashboardPalette = {
+  primary: string;
+  accent: string;
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
+  text: string;
+  muted: string;
+  border: string;
+  softBorder: string;
+  card: string;
+  cardMuted: string;
+};
+
+const defaultPalette: DashboardPalette = {
+  primary: 'CanvasText',
+  accent: 'Highlight',
+  success: 'CanvasText',
+  warning: 'CanvasText',
+  error: 'CanvasText',
+  info: 'Highlight',
+  text: 'CanvasText',
+  muted: 'GrayText',
+  border: 'GrayText',
+  softBorder: 'GrayText',
+  card: 'Canvas',
+  cardMuted: 'Canvas',
+};
+
 function cssVar(name: string, fallback: string) {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
+}
+
+function readDashboardPalette(): DashboardPalette {
+  return {
+    primary: cssVar('--color-primary', defaultPalette.primary),
+    accent: cssVar('--color-accent', defaultPalette.accent),
+    success: cssVar('--color-success', defaultPalette.success),
+    warning: cssVar('--color-warning', defaultPalette.warning),
+    error: cssVar('--color-error', defaultPalette.error),
+    info: cssVar('--color-info', defaultPalette.info),
+    text: cssVar('--color-text', defaultPalette.text),
+    muted: cssVar('--color-text-muted', defaultPalette.muted),
+    border: cssVar('--color-border', defaultPalette.border),
+    softBorder: cssVar('--color-border-soft', defaultPalette.softBorder),
+    card: cssVar('--color-card', defaultPalette.card),
+    cardMuted: cssVar('--color-card-muted', defaultPalette.cardMuted),
+  };
+}
+
+function useDashboardPalette() {
+  const [palette, setPalette] = useState<DashboardPalette>(defaultPalette);
+
+  useEffect(() => {
+    const update = () => setPalette(readDashboardPalette());
+    update();
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('storage', update);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('storage', update);
+    };
+  }, []);
+
+  return palette;
+}
+
+function toneColor(tone: string, palette: DashboardPalette) {
+  if (tone === 'error') return palette.error;
+  if (tone === 'warning') return palette.warning;
+  if (tone === 'success') return palette.success;
+  if (tone === 'info') return palette.info;
+  if (tone === 'neutral') return palette.muted;
+  return palette.primary;
 }
 
 function signalColor(group: DashboardSignalNode['group']) {
@@ -367,6 +445,454 @@ function SectionTitle({ icon: Icon, title, meta }: { icon: LucideIcon; title: st
         <h2>{title}</h2>
         <p>{meta}</p>
       </div>
+    </div>
+  );
+}
+
+function KpiStrip({ items }: { items: DashboardTelemetry['carepath']['metrics'] }) {
+  return (
+    <div className="dashboard-kpi-strip">
+      {items.map((item) => (
+        <article key={item.label} className="dashboard-kpi-chip" data-tone={item.tone}>
+          <span>{item.label}</span>
+          <strong>{item.value}</strong>
+          <em>{item.detail}</em>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
+  return {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      renderMode: 'richText',
+      borderColor: palette.border,
+      backgroundColor: palette.card,
+      textStyle: { color: palette.text, fontFamily: 'Inter' },
+    },
+    series: [
+      {
+        type: 'sankey',
+        data: telemetry.carepath.sankey.nodes.map((node) => ({
+          name: node.name,
+          value: node.count,
+          itemStyle: {
+            color: toneColor(node.tone, palette),
+            borderColor: palette.card,
+            borderWidth: 1,
+          },
+          label: {
+            color: palette.text,
+            fontSize: 11,
+            fontWeight: 700,
+          },
+        })),
+        links: telemetry.carepath.sankey.links.map((link) => ({
+          source: link.source,
+          target: link.target,
+          value: link.value,
+          lineStyle: {
+            color: toneColor(link.tone, palette),
+            opacity: link.tone === 'success' ? 0.22 : 0.38,
+            curveness: 0.55,
+          },
+        })),
+        nodeAlign: 'justify',
+        nodeGap: 14,
+        nodeWidth: 12,
+        draggable: false,
+        layoutIterations: 36,
+        emphasis: {
+          focus: 'adjacency',
+        },
+        lineStyle: {
+          color: 'gradient',
+          opacity: 0.32,
+          curveness: 0.55,
+        },
+      },
+    ],
+  };
+}
+
+function phaseOwnerHeatmapOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
+  const cells = telemetry.carepath.phaseOwnerHeatmap.cells;
+  const max = Math.max(...cells.map((cell) => cell.value + cell.blocked * 2 + cell.needsReview), 1);
+
+  return {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      renderMode: 'richText',
+      borderColor: palette.border,
+      backgroundColor: palette.card,
+      textStyle: { color: palette.text, fontFamily: 'Inter' },
+      formatter: (params: { data?: [number, number, number, number, number, string, string] }) => {
+        const data = params.data;
+        if (!data) {
+          return '';
+        }
+        return `${data[5]}\n${data[6]}\nOpen ${data[2]} · Blocked ${data[3]} · Review ${data[4]}`;
+      },
+    },
+    grid: { top: 14, right: 12, bottom: 54, left: 92 },
+    xAxis: {
+      type: 'category',
+      data: telemetry.carepath.phaseOwnerHeatmap.phases,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 28 },
+    },
+    yAxis: {
+      type: 'category',
+      data: telemetry.carepath.phaseOwnerHeatmap.owners,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700 },
+    },
+    visualMap: {
+      show: false,
+      min: 0,
+      max,
+      inRange: {
+        color: [palette.cardMuted, palette.info, palette.warning, palette.error],
+      },
+    },
+    series: [
+      {
+        type: 'heatmap',
+        data: cells.map((cell) => [
+          cell.phaseIndex,
+          cell.ownerIndex,
+          cell.value,
+          cell.blocked + cell.overdue,
+          cell.needsReview,
+          cell.phaseLabel,
+          cell.ownerLabel,
+        ]),
+        label: {
+          show: true,
+          formatter: (params: { data?: [number, number, number] }) => {
+            const data = params.data;
+            return data && data[2] > 0 ? `${data[2]}` : '';
+          },
+          color: palette.text,
+          fontSize: 10,
+          fontWeight: 800,
+        },
+        itemStyle: {
+          borderColor: palette.card,
+          borderWidth: 3,
+          borderRadius: 6,
+        },
+      },
+    ],
+  };
+}
+
+function safetyMatrixOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
+  const cells = telemetry.risk.safetyMatrix.cells;
+  const max = Math.max(...cells.map((cell) => cell.value), 1);
+
+  return {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      renderMode: 'richText',
+      borderColor: palette.border,
+      backgroundColor: palette.card,
+      textStyle: { color: palette.text, fontFamily: 'Inter' },
+      formatter: (params: { data?: [number, number, number, string, string] }) => {
+        const data = params.data;
+        if (!data) {
+          return '';
+        }
+        return `${data[3]}\n${data[4]}\nUnresolved risk ${data[2]}`;
+      },
+    },
+    grid: { top: 14, right: 10, bottom: 46, left: 104 },
+    xAxis: {
+      type: 'category',
+      data: telemetry.risk.safetyMatrix.phases,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 28 },
+    },
+    yAxis: {
+      type: 'category',
+      data: telemetry.risk.safetyMatrix.domains,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700 },
+    },
+    visualMap: {
+      show: false,
+      min: 0,
+      max,
+      inRange: {
+        color: [palette.cardMuted, palette.info, palette.warning, palette.error],
+      },
+    },
+    series: [
+      {
+        type: 'heatmap',
+        data: cells.map((cell) => [
+          cell.phaseIndex,
+          cell.domainIndex,
+          cell.value,
+          cell.domain,
+          cell.phaseLabel,
+        ]),
+        label: {
+          show: true,
+          formatter: (params: { data?: [number, number, number] }) => {
+            const data = params.data;
+            return data && data[2] > 0 ? `${data[2]}` : '';
+          },
+          color: palette.text,
+          fontSize: 10,
+          fontWeight: 800,
+        },
+        itemStyle: {
+          borderColor: palette.card,
+          borderWidth: 3,
+          borderRadius: 6,
+        },
+      },
+    ],
+  };
+}
+
+function riskGraphOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
+  return {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item',
+      renderMode: 'richText',
+      borderColor: palette.border,
+      backgroundColor: palette.card,
+      textStyle: { color: palette.text, fontFamily: 'Inter' },
+    },
+    legend: {
+      show: false,
+    },
+    series: [
+      {
+        type: 'graph',
+        layout: 'force',
+        roam: false,
+        draggable: false,
+        categories: [
+          { name: 'domain' },
+          { name: 'course' },
+        ],
+        data: telemetry.risk.riskGraph.nodes.map((node) => ({
+          id: node.id,
+          name: node.name,
+          value: node.value,
+          category: node.category,
+          symbolSize: node.category === 'domain'
+            ? Math.max(26, Math.min(58, 28 + node.value * 4))
+            : Math.max(18, Math.min(42, 16 + node.value * 1.6)),
+          itemStyle: {
+            color: toneColor(node.tone, palette),
+            borderColor: palette.card,
+            borderWidth: 1,
+          },
+          label: {
+            show: true,
+            color: palette.text,
+            fontSize: node.category === 'domain' ? 10 : 9,
+            fontWeight: node.category === 'domain' ? 800 : 700,
+          },
+        })),
+        links: telemetry.risk.riskGraph.links.map((link) => ({
+          source: link.source,
+          target: link.target,
+          value: link.value,
+          lineStyle: {
+            color: toneColor(link.tone, palette),
+            opacity: 0.34,
+            width: Math.max(1, Math.min(5, link.value / 3)),
+            curveness: 0.16,
+          },
+        })),
+        force: {
+          repulsion: 210,
+          edgeLength: [52, 110],
+          gravity: 0.08,
+        },
+        emphasis: {
+          focus: 'adjacency',
+          lineStyle: {
+            opacity: 0.72,
+          },
+        },
+      },
+    ],
+  };
+}
+
+function CarepathPulseSankey({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  const option = useMemo(() => carepathSankeyOption(telemetry, palette), [palette, telemetry]);
+
+  return <DashboardEChart className="dashboard-echart dashboard-echart-sankey" option={option} ariaLabel="Carepath pulse sankey" />;
+}
+
+function PhaseOwnerHeatmap({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  const option = useMemo(() => phaseOwnerHeatmapOption(telemetry, palette), [palette, telemetry]);
+
+  return <DashboardEChart className="dashboard-echart" option={option} ariaLabel="Carepath phase by owner heatmap" />;
+}
+
+function SafetyMatrixHeatmap({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  const option = useMemo(() => safetyMatrixOption(telemetry, palette), [palette, telemetry]);
+
+  return <DashboardEChart className="dashboard-echart" option={option} ariaLabel="Clinical safety matrix heatmap" />;
+}
+
+function RiskConstellationGraph({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+  const option = useMemo(() => riskGraphOption(telemetry, palette), [palette, telemetry]);
+
+  return <DashboardEChart className="dashboard-echart dashboard-echart-graph" option={option} ariaLabel="Risk constellation graph" />;
+}
+
+function HandoffRunway({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-runway-list">
+      {telemetry.carepath.handoffs.map((item, index) => (
+        <article key={item.id} className="dashboard-runway-item" data-tone={item.tone}>
+          <span className="dashboard-runway-rank">{index + 1}</span>
+          <div>
+            <strong>{item.courseRef}</strong>
+            <p>{item.title}</p>
+            <em>{item.phase} · {item.owner}</em>
+          </div>
+          <span className="dashboard-runway-state">{item.reasonCategory}<b>{item.dueState}</b></span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function TemplateCoverageStrip({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-template-coverage">
+      {telemetry.carepath.templateCoverage.map((item) => {
+        const active = Math.round((item.active / Math.max(item.total, 1)) * 100);
+        const mapping = Math.round((item.mapping / Math.max(item.total, 1)) * 100);
+        const draft = Math.round((item.draft / Math.max(item.total, 1)) * 100);
+        const missing = Math.max(0, 100 - active - mapping - draft);
+
+        return (
+          <article key={item.label} className="dashboard-template-row">
+            <div>
+              <strong>{item.label}</strong>
+              <span>{item.active}/{item.total} active</span>
+            </div>
+            <em aria-label={`${item.label} template coverage`}>
+              <i className="is-active" style={{ width: `${active}%` }} />
+              <i className="is-mapping" style={{ width: `${mapping}%` }} />
+              <i className="is-draft" style={{ width: `${draft}%` }} />
+              <i className="is-missing" style={{ width: `${missing}%` }} />
+            </em>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function AuditReadinessRibbon({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-audit-ribbon">
+      {telemetry.carepath.auditReadiness.map((item) => (
+        <article key={item.phase} data-tone={item.blockers > 0 ? 'error' : item.notReady > 0 ? 'warning' : 'success'}>
+          <div>
+            <strong>{item.percent}%</strong>
+            <span>{item.label}</span>
+          </div>
+          <em>
+            <i style={{ width: `${item.percent}%` }} />
+          </em>
+          <p>{item.ready} ready · {item.notReady} open</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ClinicalSafetyScore({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-safety-score">
+      <div
+        className="dashboard-safety-ring"
+        style={{ '--score-angle': `${telemetry.risk.safetyScore.score * 3.6}deg` } as CSSProperties}
+      >
+        <strong>{telemetry.risk.safetyScore.score}</strong>
+        <span>{telemetry.risk.safetyScore.label}</span>
+      </div>
+      <p>{telemetry.risk.safetyScore.detail}</p>
+      <div className="dashboard-safety-components">
+        {telemetry.risk.safetyScore.components.map((component) => (
+          <article key={component.label} data-tone={component.tone}>
+            <span>{component.label}</span>
+            <strong>{component.value}</strong>
+            <em>{component.points} pts</em>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FractionApprovalWatch({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-watch-list">
+      {telemetry.risk.fractionWatch.map((item) => (
+        <article key={item.id} data-tone={item.tone}>
+          <div>
+            <strong>{item.courseRef} · {item.fraction}</strong>
+            <span>{item.issue}</span>
+          </div>
+          <p>{item.approvalState}</p>
+          <em>{item.calculation}</em>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function InterventionQueue({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-intervention-list">
+      {telemetry.risk.interventions.map((item) => (
+        <article key={item.id} data-tone={item.tone}>
+          <div>
+            <strong>{item.courseRef}</strong>
+            <span>{item.reasonCategory}</span>
+          </div>
+          <p>{item.action}</p>
+          <em>{item.phase} · {item.owner} · {item.dueState}</em>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function PhiAssuranceMini({ telemetry }: { telemetry: DashboardTelemetry }) {
+  return (
+    <div className="dashboard-phi-assurance">
+      {telemetry.risk.phiAssurance.map((item) => (
+        <article key={item.label} data-tone={item.tone}>
+          <span>{item.label}</span>
+          <strong>{item.value}</strong>
+          <em>{item.detail}</em>
+        </article>
+      ))}
     </div>
   );
 }

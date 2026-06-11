@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
-  Table2,
   Undo2,
   XCircle
 } from "lucide-react";
@@ -427,15 +426,12 @@ export function FractionWorksheetPanel({
               </span>
               <div className="min-w-0">
                 <h3 className="font-heading text-lg font-bold text-[var(--color-text)]">{title}</h3>
-                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
-                  Record the next treatment, preview DOT calculations, then route only exceptions and approvals.
-                </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="warning">
                 <AlertTriangle className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
-                Clinical validation required
+                Clinical Validation
               </Badge>
               <Badge variant={approvedCount === sortedActiveEntries.length && sortedActiveEntries.length > 0 ? "success" : "primary"}>
                 {approvedCount}/{sortedActiveEntries.length} approved
@@ -458,7 +454,7 @@ export function FractionWorksheetPanel({
           ) : null}
         </div>
 
-        <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+        <div className="grid gap-4 p-4">
           <form className="grid gap-4" onSubmit={addFraction}>
             <div>
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -469,11 +465,11 @@ export function FractionWorksheetPanel({
                   </h4>
                 </div>
                 <Badge variant={preview.error ? "warning" : "success"}>
-                  {preview.error ? "Needs attention" : "Calculation ready"}
+                  {preview.error ? "Needs Attention" : "Ready"}
                 </Badge>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-9">
                 <label className="grid gap-1">
                   <span className={labelClass}>Fx</span>
                   <Input
@@ -531,7 +527,7 @@ export function FractionWorksheetPanel({
                   />
                 </label>
                 <label className="grid gap-1">
-                  <span className={labelClass}>DOT Depth</span>
+                  <span className={labelClass}>DOT</span>
                   <Input
                     type="number"
                     step="0.1"
@@ -556,25 +552,21 @@ export function FractionWorksheetPanel({
                 </label>
               </div>
 
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <label className="grid gap-1">
-                  <span className={labelClass}>Setup Comments</span>
-                  <Input
-                    value={draft.treatmentSetupComments}
-                    onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
-                    placeholder="Optional setup or image-guidance note"
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Notes</span>
-                  <Input value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
-                </label>
-              </div>
-
               {showAdvancedEntry ? (
-                <div className="mt-3 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-3">
+                <div className="mt-3 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-2 xl:grid-cols-5">
+                  <label className="grid gap-1 xl:col-span-2">
+                    <span className={labelClass}>Setup Comments</span>
+                    <Input
+                      value={draft.treatmentSetupComments}
+                      onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
+                    />
+                  </label>
+                  <label className="grid gap-1 xl:col-span-2">
+                    <span className={labelClass}>Notes</span>
+                    <Input value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
+                  </label>
                   <label className="grid gap-1">
-                    <span className={labelClass}>Treatment Time</span>
+                    <span className={labelClass}>Time</span>
                     <Input
                       type="number"
                       step="0.1"
@@ -599,7 +591,6 @@ export function FractionWorksheetPanel({
                     <Input
                       value={draft.isodoseOverrideReason}
                       onChange={(event) => updateDraft("isodoseOverrideReason", event.target.value)}
-                      placeholder="Required for manual override"
                     />
                   </label>
                 </div>
@@ -612,40 +603,35 @@ export function FractionWorksheetPanel({
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => setShowAdvancedEntry((current) => !current)}>
                   <Calculator className="h-4 w-4" aria-hidden="true" />
-                  {showAdvancedEntry ? "Hide Advanced" : "Advanced"}
+                  {showAdvancedEntry ? "Hide Advanced" : "Advanced Fields"}
                 </Button>
               </div>
             </div>
           </form>
 
-          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className={labelClass}>Calculation Preview</p>
-                <h4 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
-                  {preview.error ? "Resolve before saving" : `Fx ${preview.entry?.fractionNumber} ready`}
-                </h4>
-              </div>
+          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className={labelClass}>Live Calculation</p>
               <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "success" : "warning"}>
                 {(preview.entry?.calculationStatus ?? "pending").replaceAll("_", " ")}
               </Badge>
             </div>
 
             {preview.error ? (
-              <div className="mt-4 rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] p-3 text-sm font-semibold text-[var(--color-error)]">
+              <div className="mt-3 rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] p-3 text-sm font-semibold text-[var(--color-error)]">
                 {preview.error}
               </div>
             ) : (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <PreviewMetric label="Isodose at DOT" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
-                <PreviewMetric label="Dose to DOT" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
-                <PreviewMetric label="Cumulative Dose" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
+                <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
                 <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
+                <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
               </div>
             )}
 
             {compactWarnings(preview.entry ?? undefined).length ? (
-              <div className="mt-4 grid gap-2">
+              <div className="mt-3 grid gap-2">
                 {compactWarnings(preview.entry ?? undefined).map((warning) => (
                   <div key={warning} className="flex gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
@@ -654,22 +640,6 @@ export function FractionWorksheetPanel({
                 ))}
               </div>
             ) : null}
-
-            <div className="mt-4 grid gap-2">
-              {phaseSummaries.map((phase) => (
-                <div key={phase.phaseName} className="grid grid-cols-[minmax(88px,1fr)_auto] gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--color-text)]">{phase.phaseName}</p>
-                    <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
-                      {phase.dosePerFractionCgy} cGy/fx, {phase.ssdCm} cm SSD, {phase.fieldSizeCm}
-                    </p>
-                  </div>
-                  <Badge variant={phase.completedFractions >= phase.plannedFractions && phase.plannedFractions > 0 ? "success" : "default"}>
-                    {phase.completedFractions}/{phase.plannedFractions} fx
-                  </Badge>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </Card>
@@ -842,8 +812,7 @@ export function FractionWorksheetPanel({
       <Card className="min-h-[420px]">
         <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <p className={labelClass}>Fraction History</p>
-            <h3 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">Readable treatment record</h3>
+            <h3 className="font-heading text-lg font-bold text-[var(--color-text)]">Fraction History</h3>
           </div>
           <FilterStrip>
             <Button type="button" size="sm" variant={advancedPanel === "note" ? "primary" : "secondary"} onClick={() => setAdvancedPanel("note")}>
@@ -962,11 +931,11 @@ export function FractionWorksheetPanel({
                   <PreviewMetric label="Cumulative DOT" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
                 </div>
                 <p className="mt-4 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 text-sm font-semibold leading-7 text-[var(--color-text)]">
-                  {selectedEntry.isodoseNote ?? "No isodose note generated yet. Recalculate this row to generate the native CRMS note."}
-                </p>
-              </>
-            ) : (
-              <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">Select a fraction from history to preview the note.</p>
+                {selectedEntry.isodoseNote ?? "No isodose note."}
+              </p>
+            </>
+          ) : (
+              <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">No fraction selected.</p>
             )}
           </div>
         ) : null}

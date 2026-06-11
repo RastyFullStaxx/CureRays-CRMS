@@ -8,6 +8,7 @@ import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { TreatmentDeliveryTabs } from '@/components/treatment-delivery/treatment-delivery-tabs';
 import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
 import { mapTone } from "@/lib/status-utils";
 
@@ -21,7 +22,6 @@ export default function TreatmentDeliveryPage() {
     <PageStack>
       <PageHeader
         title="Treatment Delivery"
-        subtitle="Daily treatment queue and fraction recording"
         actions={
           <>
             <Button variant="secondary"><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
@@ -29,6 +29,7 @@ export default function TreatmentDeliveryPage() {
           </>
         }
       />
+      <TreatmentDeliveryTabs active="queue" />
       <StatGrid>
         <StatCard icon={Activity} label="Today's Treatments" value={fractions.length} sub="Scheduled" />
         <StatCard icon={Clock3} label="In Progress" value={activeFractions.length - completed} sub="Active queue" tone="warning" />
@@ -43,7 +44,6 @@ export default function TreatmentDeliveryPage() {
             <h2 className="font-heading text-base font-bold text-[var(--color-text)]">
               Today&apos;s Treatment Queue ({activeFractions.length})
             </h2>
-            <p className="text-sm font-semibold text-[var(--color-text-muted)]">Record delivery, review alerts, and reconcile fraction approvals.</p>
           </div>
           <Badge variant="primary">Live queue</Badge>
         </div>
