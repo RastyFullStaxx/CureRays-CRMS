@@ -44,7 +44,7 @@ export function Modal({ open, onClose, title, children, width = 480 }: ModalProp
         style={{
           width,
           maxWidth: '90vw',
-          maxHeight: '85vh',
+          maxHeight: '95vh',
           borderRadius: 'var(--radius-lg)',
           border: 'var(--border-container)',
           boxShadow: 'var(--shadow-card)',

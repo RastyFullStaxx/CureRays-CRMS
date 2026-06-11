@@ -302,13 +302,13 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
       />
 
       <Modal open={modalMode !== null} onClose={closeModal} title={modalMode === 'edit' ? 'Edit PHI Record' : 'Add Patient'} width={620}>
-        <form className="grid gap-4" onSubmit={submitForm}>
+        <form className="grid gap-3" onSubmit={submitForm}>
           <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
             Prototype PHI action uses server-owned session claims. Mutation responses and correction history stay redacted.
           </div>
           {error ? <p className="text-sm font-semibold text-[var(--color-error)]">{error}</p> : null}
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2">
             <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
               First name
               <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} required />
@@ -371,7 +371,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
             </label>
           </div>
 
-          <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 sm:grid-cols-3">
+          <div className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 sm:grid-cols-3">
             <p className="text-xs font-bold uppercase text-[var(--color-text-muted)] sm:col-span-3">Initial course</p>
             <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
               Protocol
