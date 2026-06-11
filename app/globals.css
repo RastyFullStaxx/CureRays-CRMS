@@ -2441,8 +2441,64 @@ button, input, select, textarea {
   padding: 3px;
 }
 
-.analytics-command-tabs::-webkit-scrollbar {
-  height: 0;
+.analytics-command-body,
+.analytics-command-tabs,
+.analytics-insight-list,
+.analytics-queue-list,
+.analytics-progress-list,
+.analytics-template-list,
+.analytics-provider-list,
+.analytics-phi-grid {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+.analytics-command-body::-webkit-scrollbar,
+.analytics-command-tabs::-webkit-scrollbar,
+.analytics-insight-list::-webkit-scrollbar,
+.analytics-queue-list::-webkit-scrollbar,
+.analytics-progress-list::-webkit-scrollbar,
+.analytics-template-list::-webkit-scrollbar,
+.analytics-provider-list::-webkit-scrollbar,
+.analytics-phi-grid::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+
+.analytics-command-body::-webkit-scrollbar-track,
+.analytics-command-tabs::-webkit-scrollbar-track,
+.analytics-insight-list::-webkit-scrollbar-track,
+.analytics-queue-list::-webkit-scrollbar-track,
+.analytics-progress-list::-webkit-scrollbar-track,
+.analytics-template-list::-webkit-scrollbar-track,
+.analytics-provider-list::-webkit-scrollbar-track,
+.analytics-phi-grid::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.analytics-command-body::-webkit-scrollbar-thumb,
+.analytics-command-tabs::-webkit-scrollbar-thumb,
+.analytics-insight-list::-webkit-scrollbar-thumb,
+.analytics-queue-list::-webkit-scrollbar-thumb,
+.analytics-progress-list::-webkit-scrollbar-thumb,
+.analytics-template-list::-webkit-scrollbar-thumb,
+.analytics-provider-list::-webkit-scrollbar-thumb,
+.analytics-phi-grid::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.analytics-command-body::-webkit-scrollbar-thumb:hover,
+.analytics-command-tabs::-webkit-scrollbar-thumb:hover,
+.analytics-insight-list::-webkit-scrollbar-thumb:hover,
+.analytics-queue-list::-webkit-scrollbar-thumb:hover,
+.analytics-progress-list::-webkit-scrollbar-thumb:hover,
+.analytics-template-list::-webkit-scrollbar-thumb:hover,
+.analytics-provider-list::-webkit-scrollbar-thumb:hover,
+.analytics-phi-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .analytics-command-tabs button {
