@@ -3,7 +3,7 @@ import { FileText } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from '@/components/shared/data-table';
-import { generatedDocuments, treatmentCourses } from '@/lib/clinical-store';
+import { generatedDocuments, treatmentCourses } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, patientActiveCourse } from '@/lib/workflow';
 
@@ -52,6 +52,8 @@ export default function PatientDocumentsPage({ params }: { params: { id: string 
           { key: 'updatedAt', label: 'Last Updated' },
         ]}
         rows={rows}
+        empty="No documents are available for this patient course."
+        emptyDescription="Course documents will appear after document requirements are generated."
         search={{ placeholder: 'Search documents by name, category, or status...', keys: ['name', 'category', 'status', 'assignedTo'] }}
         filters={[
           { id: 'category', label: 'Category' },

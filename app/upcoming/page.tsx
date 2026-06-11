@@ -9,7 +9,7 @@ import {
   generatedDocuments,
   operationalPatients,
   operationalTreatmentCourses,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 
 export default function UpcomingPage() {
   const patients = operationalPatients();
@@ -53,6 +53,8 @@ export default function UpcomingPage() {
           { key: 'status', label: 'Status' },
         ]}
         rows={rows}
+        empty="No upcoming patients are available."
+        emptyDescription="Patients will appear here after their chart-rounds phase is set to upcoming."
         search={{ placeholder: 'Search upcoming patients by name, MRN, or diagnosis...', keys: ['name', 'mrn', 'diagnosis', 'course', 'status'] }}
         filters={[
           { id: 'diagnosis', label: 'Diagnosis' },

@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { AlertTriangle, CheckCircle2, FileWarning, PenLine, PlayCircle, ShieldCheck, Upload } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function AuditPage() {
@@ -80,6 +81,8 @@ export default function AuditPage() {
           ...course,
           _index: index,
         }))}
+        empty="No courses are available for audit."
+        emptyDescription="Audit readiness rows will appear after treatment courses are initialized."
         pageSize={10}
         search={{
           placeholder: 'Search course, patient, diagnosis, blocker, document, or audit check...',

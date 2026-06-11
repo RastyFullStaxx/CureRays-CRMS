@@ -9,7 +9,7 @@ import {
   generatedDocuments,
   operationalPatients,
   operationalTreatmentCourses,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 
 export default function PostPage() {
   const patients = operationalPatients();
@@ -53,6 +53,8 @@ export default function PostPage() {
           { key: 'status', label: 'Status' },
         ]}
         rows={rows}
+        empty="No post-treatment patients are available."
+        emptyDescription="Patients will appear here after their chart-rounds phase moves to post-treatment."
         search={{ placeholder: 'Search post-treatment patients by name, MRN, or diagnosis...', keys: ['name', 'mrn', 'diagnosis', 'course', 'status'] }}
         filters={[
           { id: 'diagnosis', label: 'Diagnosis' },

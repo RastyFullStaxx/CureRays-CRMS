@@ -1,7 +1,7 @@
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { FractionWorksheetPanel } from '@/components/fraction-worksheet-panel';
-import { getIgsrtWorkspace } from '@/lib/clinical-store';
+import { getIgsrtWorkspace } from '@/lib/services/operational-page-service';
 
 export default function IgsrtWorkflowPage() {
   const workspace = getIgsrtWorkspace('COURSE-2401');

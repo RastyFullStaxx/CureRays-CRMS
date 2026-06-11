@@ -9,7 +9,7 @@ import {
   generatedDocuments,
   operationalPatients,
   operationalTreatmentCourses,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 
 export default function OnTreatmentPage() {
   const patients = operationalPatients();
@@ -53,6 +53,8 @@ export default function OnTreatmentPage() {
           { key: 'status', label: 'Status' },
         ]}
         rows={rows}
+        empty="No active treatment patients are available."
+        emptyDescription="Patients will appear here after their chart-rounds phase moves to on-treatment."
         search={{ placeholder: 'Search on-treatment patients by name, MRN, or diagnosis...', keys: ['name', 'mrn', 'diagnosis', 'course', 'status'] }}
         filters={[
           { id: 'diagnosis', label: 'Diagnosis' },

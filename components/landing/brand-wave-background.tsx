@@ -47,7 +47,7 @@ export function BrandWaveBackground() {
       >
         <path
           d="M-90 394 C 135 270 324 300 530 382 C 765 474 980 410 1165 286 C 1340 170 1502 150 1690 190 L1690 520 L-90 520 Z"
-          fill="#7DA0CA"
+          fill="var(--color-text-muted)"
           opacity="0.22"
         />
         <path
@@ -99,7 +99,7 @@ export function BrandWaveBackground() {
       <div
         className="absolute right-[-14%] top-[18%] h-[56%] w-[48%] rounded-full border border-[var(--color-primary)]/[0.05]"
         style={{
-          border: "1px solid rgba(0, 51, 160, 0.05)",
+          border: "1px solid color-mix(in srgb, var(--color-primary) 5%, transparent)",
           borderRadius: "9999px",
           height: "56%",
           position: "absolute",

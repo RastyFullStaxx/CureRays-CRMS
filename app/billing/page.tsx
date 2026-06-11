@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { WalletCards } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { billingItems } from "@/lib/module-data";
+import { billingItems } from "@/lib/services/operational-page-service";
 
 export default function BillingPage() {
   const totalItems = billingItems.length;
@@ -23,8 +24,8 @@ export default function BillingPage() {
         subtitle="Track planned codes, quantities, documentation, pre-auth status, and audit readiness"
         actions={
           <>
-            <Button variant="secondary"><WalletCards className="h-4 w-4" /> Export Billing Report</Button>
-            <Button><WalletCards className="h-4 w-4" /> Add Billing Item</Button>
+            <Button variant="secondary" disabled title="Prototype placeholder"><WalletCards className="h-4 w-4" /> Export Billing Report</Button>
+            <Button disabled title="Prototype placeholder"><WalletCards className="h-4 w-4" /> Add Billing Item</Button>
           </>
         }
       />
@@ -66,6 +67,8 @@ export default function BillingPage() {
           ) : "-"},
         ]}
         rows={billingItems}
+        empty="No billing items are available."
+        emptyDescription="Billing evidence rows will appear after course charges or fraction evidence are generated."
         pageSize={10}
         search={{ placeholder: 'Search code, patient ID, course, document, or billing note...', keys: ['code', 'description', 'linkedDocumentId', 'notes', 'status'] }}
         filters={[

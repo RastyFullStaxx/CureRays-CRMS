@@ -1,52 +1,22 @@
-'use client';
+export const dynamic = 'force-dynamic';
 
-import { useMemo, useState } from 'react';
 import { CalendarDays, CheckCircle2, Clock3, Plus, UsersRound } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { moduleSnapshot } from "@/lib/global-page-data";
-import { createFacetOptions } from '@/lib/table-filters';
+import { moduleSnapshot } from "@/lib/services/operational-page-service";
 
 export default function SchedulePage() {
   const appointments = moduleSnapshot.appointments;
-  const [query, setQuery] = useState('');
-  const [timeFilter, setTimeFilter] = useState('');
-  const [siteFilter, setSiteFilter] = useState('');
-  const [providerFilter, setProviderFilter] = useState('');
   const treatments = appointments.filter((appointment) => appointment.appointmentType === "TREATMENT_FRACTION").length;
   const simulations = appointments.filter((appointment) => appointment.appointmentType === "SIMULATION" || appointment.appointmentType === "MAPPING").length;
   const days = ["Mon 5/4", "Tue 5/5", "Wed 5/6", "Thu 5/7", "Fri 5/8", "Sat 5/9", "Sun 5/10"];
   const hours = ["7 AM", "9 AM", "11 AM", "1 PM", "3 PM", "5 PM"];
-  const timeOptions = createFacetOptions(appointments, (appointment) => appointment.time);
-  const siteOptions = createFacetOptions(appointments, (appointment) => appointment.location);
-  const providerOptions = createFacetOptions(appointments, (appointment) => appointment.staff);
-  const filteredAppointments = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return appointments.filter((appointment) => {
-      const text = [
-        appointment.title,
-        appointment.displayLabel,
-        appointment.time,
-        appointment.location,
-        appointment.staff,
-        appointment.appointmentType,
-      ].join(' ').toLowerCase();
-
-      return (!normalizedQuery || text.includes(normalizedQuery))
-        && (!timeFilter || appointment.time === timeFilter)
-        && (!siteFilter || appointment.location === siteFilter)
-        && (!providerFilter || appointment.staff === providerFilter);
-    });
-  }, [appointments, providerFilter, query, siteFilter, timeFilter]);
-  const gridAppointments = filteredAppointments;
+  const filteredAppointments = appointments;
+  const gridAppointments = appointments;
 
   return (
     <PageStack>
@@ -55,8 +25,8 @@ export default function SchedulePage() {
         subtitle="Appointment calendar and provider scheduling"
         actions={
           <>
-            <Button variant="secondary"><CalendarDays className="h-4 w-4" /> Today</Button>
-            <Button variant="secondary">May 6, 2026</Button>
+            <Button variant="secondary" disabled title="Prototype fixed demo date"><CalendarDays className="h-4 w-4" /> Today</Button>
+            <Button variant="secondary" disabled title="Prototype fixed demo date">May 6, 2026</Button>
             <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Appointment</Button>
           </>
         }
@@ -76,7 +46,11 @@ export default function SchedulePage() {
         </div>
         <ScrollArea axis="x" className="-mx-1 px-1 pb-1">
           <div className="flex min-w-max gap-3">
-            {filteredAppointments.slice(0, 8).map((appointment) => (
+            {filteredAppointments.length === 0 ? (
+              <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+                No appointments are available for the prototype schedule.
+              </div>
+            ) : filteredAppointments.slice(0, 8).map((appointment) => (
               <div
                 key={appointment.id}
                 className="min-w-[190px] rounded-[var(--radius-md)] border p-3"
@@ -96,34 +70,15 @@ export default function SchedulePage() {
       >
         <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
           <h2 className="mb-3 text-base font-bold" style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text)' }}>May 4 - May 10, 2026</h2>
-          <FilterStrip>
-            <FilterField grow>
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search schedule, patient, MRN, appointment, or provider..."
-              />
-            </FilterField>
-            <FilterField>
-              <Select value={timeFilter} onChange={(event) => setTimeFilter(event.target.value)} aria-label="Time">
-                <option value="">All Times</option>
-                {timeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </Select>
-            </FilterField>
-            <FilterField>
-              <Select value={siteFilter} onChange={(event) => setSiteFilter(event.target.value)} aria-label="Site">
-                <option value="">All Sites</option>
-                {siteOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </Select>
-            </FilterField>
-            <FilterField>
-              <Select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)} aria-label="Provider">
-                <option value="">All Providers</option>
-                {providerOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </Select>
-            </FilterField>
-          </FilterStrip>
+          <p className="text-sm font-semibold text-[var(--color-text-muted)]">
+            Static prototype calendar view. Interactive schedule filtering remains part of the scheduling workflow backlog.
+          </p>
         </div>
+        {gridAppointments.length === 0 ? (
+          <div className="border-t p-8 text-center text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>
+            No calendar blocks are available for the prototype schedule.
+          </div>
+        ) : (
         <div className="grid grid-cols-[56px_repeat(7,minmax(120px,1fr))] overflow-hidden border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
           <div className="p-2 font-bold text-xs" style={{ background: 'var(--color-hover)', color: 'var(--color-text-muted)' }}>PDT</div>
           {days.map((day) => (
@@ -150,6 +105,7 @@ export default function SchedulePage() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </PageStack>
   );

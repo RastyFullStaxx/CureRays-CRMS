@@ -11,7 +11,7 @@ import {
   internalFormTemplates,
   templateSources,
   workflowDefinitions,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 import { carepathPhaseLabels } from '@/lib/workflow';
 
 export default function WorkflowTemplatesPage() {

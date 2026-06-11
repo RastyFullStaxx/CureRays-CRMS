@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { CheckCircle2, Eye, FileCheck2, FileText, PenLine, Plus, RefreshCw, Upload } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function DocumentsPage() {
@@ -63,6 +64,8 @@ export default function DocumentsPage() {
           )},
         ]}
         rows={documents}
+        empty="No documents are available."
+        emptyDescription="Generated, signed, and uploaded document records will appear after course document requirements are initialized."
         pageSize={10}
         search={{
           placeholder: 'Search document, patient, course, category, signature, or eCW status...',

@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardCheck, ListChecks, PenLine, Plus } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -8,7 +9,7 @@ import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, phaseLabel, responsiblePartyName, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function TasksPage() {
@@ -74,6 +75,8 @@ export default function TasksPage() {
           )},
         ]}
         rows={tasks.slice(0, 8)}
+        empty="No tasks are available."
+        emptyDescription="Open work queues will appear after workflow tasks are generated."
         pageSize={8}
         search={{
           placeholder: 'Search tasks, patient, course, assignee, or linked record...',

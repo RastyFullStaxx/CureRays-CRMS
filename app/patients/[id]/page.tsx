@@ -6,7 +6,7 @@ import {
   fractionLogEntries,
   generatedDocuments,
   treatmentCourses,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 import {
   auditChecks,
   clinicalFormTemplates,
@@ -17,7 +17,7 @@ import {
   getTreatmentPlans,
   getWorkflowSteps,
   imagingAssets,
-} from '@/lib/module-data';
+} from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 

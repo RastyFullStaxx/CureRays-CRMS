@@ -1,10 +1,9 @@
-'use client';
 
-import { Bell, Building2, ChevronRight, FileText, LockKeyhole, Plug, Settings, ShieldCheck, UserCog, Workflow } from 'lucide-react';
+import { Bell, Building2, FileText, LockKeyhole, Plug, Settings, ShieldCheck, UserCog, Workflow } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card } from '@/components/ui/card';
-import { settingsCategories } from '@/lib/global-page-data';
+import { settingsCategories } from '@/lib/services/operational-page-service';
 
 const icons = [Building2, UserCog, Workflow, ShieldCheck, FileText, Bell, LockKeyhole, Plug];
 
@@ -21,16 +20,13 @@ export default function SettingsPage() {
           {settingsCategories.map((category, index) => {
             const Icon = icons[index] ?? Settings;
             return (
-              <button
+              <div
                 key={category.title}
-                type="button"
-                className="flex w-full items-center gap-5 border-b p-5 text-left transition last:border-0"
+                className="flex w-full items-center gap-5 border-b p-5 text-left last:border-0"
                 style={{
                   borderColor: 'var(--color-border-soft)',
                   background: 'transparent',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-hover)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 <span
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-lg"
@@ -46,8 +42,7 @@ export default function SettingsPage() {
                   <span className="mt-1 block text-sm font-semibold leading-5" style={{ color: 'var(--color-text-muted)' }}>{category.description}</span>
                 </span>
                 <span className="hidden w-72 text-sm font-semibold lg:block" style={{ color: 'var(--color-text)' }}>{category.summary}</span>
-                <ChevronRight className="h-5 w-5 shrink-0" style={{ color: 'var(--color-primary)' }} />
-              </button>
+              </div>
             );
           })}
         </div>

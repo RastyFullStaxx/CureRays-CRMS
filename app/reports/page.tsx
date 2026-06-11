@@ -1,6 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
 
-import { useMemo, useState } from 'react';
 import { UsersRound, CalendarDays, ClipboardList, FileText, PenLine } from 'lucide-react';
 import Link from 'next/link';
 import { PageStack } from '@/components/shared/page-stack';
@@ -9,43 +8,16 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FilterStrip } from '@/components/shared/filter-strip';
-import { FilterField } from '@/components/shared/filter-strip';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
   operationalPatients,
-} from '@/lib/clinical-store';
-import { createFacetOptions } from '@/lib/table-filters';
+} from '@/lib/services/operational-page-service';
 
 export default function ReportsPage() {
   const patients = operationalPatients();
-  const [query, setQuery] = useState('');
-  const [diagnosisFilter, setDiagnosisFilter] = useState('');
-  const [phaseFilter, setPhaseFilter] = useState('');
-  const [signalFilter, setSignalFilter] = useState('');
-  const diagnosisOptions = createFacetOptions(patients, (patient) => patient.diagnosisCategory);
-  const phaseOptions = createFacetOptions(patients, (patient) => patient.chartRoundsPhase?.replace(/_/g, ' '));
-  const scopedPatients = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return patients.filter((patient) => {
-      const phase = patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '';
-      const text = [
-        patient.displayLabel,
-        patient.patientRef,
-        patient.diagnosisCategory,
-        phase,
-        patient.nextActionCategory,
-      ].join(' ').toLowerCase();
-
-      return (!normalizedQuery || text.includes(normalizedQuery))
-        && (!diagnosisFilter || patient.diagnosisCategory === diagnosisFilter)
-        && (!phaseFilter || phase === phaseFilter);
-    });
-  }, [diagnosisFilter, patients, phaseFilter, query]);
+  const scopedPatients = patients;
   const onTreatment = scopedPatients.filter((p) => p.chartRoundsPhase === 'ON_TREATMENT').length;
   const overdueTasks = carepathTasks.filter((t) => t.status === 'BLOCKED').length;
 
@@ -64,38 +36,18 @@ export default function ReportsPage() {
         <StatCard icon={PenLine} label="Overdue Tasks" value={overdueTasks} tone="error" />
       </StatGrid>
 
-      <FilterStrip>
-        <FilterField grow>
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search report, diagnosis, phase, staff workload, or audit signal"
-          />
-        </FilterField>
-        <FilterField>
-          <Select value={diagnosisFilter} onChange={(event) => setDiagnosisFilter(event.target.value)} aria-label="Diagnosis">
-            <option value="">All Diagnoses</option>
-            {diagnosisOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </Select>
-        </FilterField>
-        <FilterField>
-          <Select value={phaseFilter} onChange={(event) => setPhaseFilter(event.target.value)} aria-label="Phase">
-            <option value="">All Phases</option>
-            {phaseOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-          </Select>
-        </FilterField>
-        <FilterField>
-          <Select value={signalFilter} onChange={(event) => setSignalFilter(event.target.value)} aria-label="Signal">
-            <option value="">All Signals</option>
-            <option value="patients">Patient Phase</option>
-            <option value="documents">Documentation</option>
-            <option value="tasks">Tasks</option>
-          </Select>
-        </FilterField>
-      </FilterStrip>
-
+      {scopedPatients.length === 0 ? (
+        <Card>
+          <h2 className="font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
+            No report cohort is available
+          </h2>
+          <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
+            Operational report charts will appear after prototype patient records are available.
+          </p>
+        </Card>
+      ) : (
       <div className="grid gap-4 xl:grid-cols-2">
-        {signalFilter !== 'documents' && signalFilter !== 'tasks' && <Card>
+        <Card>
           <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
             Patient Phase Distribution
           </h2>
@@ -114,9 +66,9 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
-        </Card>}
+        </Card>
 
-        {signalFilter !== 'patients' && signalFilter !== 'tasks' && <Card>
+        <Card>
           <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
             Documentation Readiness
           </h2>
@@ -135,9 +87,9 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
-        </Card>}
+        </Card>
 
-        {signalFilter !== 'patients' && signalFilter !== 'documents' && <Card>
+        <Card>
           <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
             Task Pressure
           </h2>
@@ -156,8 +108,9 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
-        </Card>}
+        </Card>
       </div>
+      )}
 
       <Card>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

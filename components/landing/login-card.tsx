@@ -18,7 +18,7 @@ export function LoginCard() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="landing-login-card rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-6 py-8 shadow-[0_16px_40px_rgba(43,47,95,0.08)] sm:px-10 sm:py-12"
+      className="landing-login-card rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-6 py-8 shadow-[var(--shadow-card)] sm:px-10 sm:py-12"
     >
       <div>
         <h2 className="text-4xl font-bold tracking-normal text-[var(--color-text)] sm:text-[44px]">
@@ -42,7 +42,7 @@ export function LoginCard() {
               name="email"
               type="email"
               autoComplete="email"
-              className="landing-input h-[52px] min-h-[52px] w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 pl-12 text-base font-semibold text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[#0033A0]/10"
+              className="landing-input h-[52px] min-h-[52px] w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3 pl-12 text-base font-semibold text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               placeholder="Enter your email"
             />
           </span>
@@ -60,12 +60,12 @@ export function LoginCard() {
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              className="landing-input landing-password-input h-[52px] min-h-[52px] w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-12 py-3 text-base font-semibold text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[#0033A0]/10"
+              className="landing-input landing-password-input h-[52px] min-h-[52px] w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] px-12 py-3 text-base font-semibold text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10"
               placeholder="Enter your password"
             />
             <button
               type="button"
-              className="landing-password-toggle absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/12"
+              className="landing-password-toggle absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-[var(--color-text-muted)] transition hover:bg-[var(--color-bg)] hover:text-[var(--color-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/12"
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               title={showPassword ? "Hide password" : "Show password"}
@@ -82,7 +82,7 @@ export function LoginCard() {
 
       <button
         type="submit"
-        className="landing-submit mt-8 h-[52px] min-h-[52px] w-full rounded-lg bg-[var(--color-primary)] px-5 py-3 text-base font-bold text-white shadow-[0_10px_22px_rgba(0,51,160,0.18)] transition hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/20"
+        className="landing-submit mt-8 h-[52px] min-h-[52px] w-full rounded-lg bg-[var(--color-primary)] px-5 py-3 text-base font-bold text-white shadow-[var(--shadow-card)] transition hover:bg-[var(--color-primary-dark)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/20"
       >
         Sign In
       </button>
@@ -95,7 +95,7 @@ export function LoginCard() {
 
       <button
         type="button"
-        className="landing-forgot-button mx-auto flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-[var(--color-primary)] transition hover:bg-[var(--color-bg)] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/12"
+        className="landing-forgot-button mx-auto flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-[var(--color-primary)] transition hover:bg-[var(--color-bg)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/12"
       >
         <LockKeyhole className="h-4 w-4" aria-hidden="true" />
         Forgot password?

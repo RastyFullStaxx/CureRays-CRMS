@@ -1,4 +1,3 @@
-import { ClipboardList } from "lucide-react";
 import type {
   CarepathTask,
   ChartRoundsPhase,
@@ -10,7 +9,7 @@ import type {
   TreatmentCourse
 } from "@/lib/types";
 import { chartRoundsPhaseLabels, countFlaggedPatients, patientsByPhase } from "@/lib/workflow";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/shared/page-header";
 import { PatientTable } from "@/components/patient-table";
 
 const phaseCopy: Record<ChartRoundsPhase, { title: string; description: string; eyebrow: string }> = {
@@ -55,11 +54,13 @@ export function PhaseView({
   return (
     <div className="space-y-4">
       <PageHeader
-        eyebrow={copy.eyebrow}
         title={copy.title}
-        description={copy.description}
-        icon={ClipboardList}
-        stat={`${filteredPatients.length} patients`}
+        subtitle={`${copy.eyebrow}: ${copy.description}`}
+        actions={
+          <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">
+            {filteredPatients.length} patients
+          </span>
+        }
       />
 
       <div className="grid gap-4 md:grid-cols-3">

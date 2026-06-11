@@ -170,9 +170,9 @@ export const treatmentProgressItems: TreatmentProgressItem[] = [
 ];
 
 export const phaseDistribution = [
-  { label: "On Treatment", value: 27, percent: 29, color: "#0033A0" },
-  { label: "Post Treatment", value: 41, percent: 45, color: "#7DA0CA" },
-  { label: "Upcoming", value: 24, percent: 26, color: "#FF6620" }
+  { label: "On Treatment", value: 27, percent: 29, color: "var(--color-primary)" },
+  { label: "Post Treatment", value: 41, percent: 45, color: "var(--color-text-muted)" },
+  { label: "Upcoming", value: 24, percent: 26, color: "var(--color-accent)" }
 ];
 
 export const dashboardAlerts = {

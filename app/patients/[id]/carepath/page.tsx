@@ -6,7 +6,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { carepathTasks, treatmentCourses } from '@/lib/clinical-store';
+import { carepathTasks, treatmentCourses } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { carepathPhaseLabels, courseTasks, orderedCarepathPhases, patientActiveCourse } from '@/lib/workflow';
 

@@ -5,7 +5,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-import { operationalAuditEvents } from '@/lib/clinical-store';
+import { operationalAuditEvents } from '@/lib/services/operational-page-service';
 
 export default function AuditLogsPage() {
   const auditEvents = operationalAuditEvents();
@@ -26,7 +26,7 @@ export default function AuditLogsPage() {
       <PageHeader
         title="Audit Logs"
         subtitle="Track system events, document changes, and administrative actions"
-        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Logs</Button>}
+        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Logs</Button>}
       />
 
       <StatGrid>
@@ -49,6 +49,8 @@ export default function AuditLogsPage() {
           { key: 'newValue', label: 'New Value' },
         ]}
         rows={rows}
+        empty="No audit events are available."
+        emptyDescription="Redacted audit events will appear after prototype workflow actions run."
         search={{ placeholder: 'Search user, patient, course, action, entity, or timestamp...', keys: ['timestamp', 'userName', 'patientRef', 'action', 'entityType', 'entityId'] }}
         filters={[
           { id: 'userName', label: 'User' },

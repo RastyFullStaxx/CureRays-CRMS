@@ -10,7 +10,7 @@ import {
   generatedDocuments,
   operationalPatients,
   operationalTreatmentCourses,
-} from '@/lib/clinical-store';
+} from '@/lib/services/operational-page-service';
 
 export default function RecordsPage() {
   const patients = operationalPatients();
@@ -58,6 +58,8 @@ export default function RecordsPage() {
           { key: 'status', label: 'Status' },
         ]}
         rows={rows}
+        empty="No master records are available."
+        emptyDescription="Tokenized operational records will appear after prototype patient records are created."
         search={{ placeholder: 'Search master records by name, MRN, diagnosis, or phase...', keys: ['name', 'mrn', 'diagnosis', 'phase', 'course', 'status'] }}
         filters={[
           { id: 'phase', label: 'Phase' },

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,10 @@ type DataTableProps<T extends object> = {
   columns: Column<T>[];
   rows: T[];
   loading?: boolean;
+  loadingLabel?: string;
+  error?: string;
   empty?: string;
+  emptyDescription?: string;
   pageSize?: number;
   keyField?: string;
   onRowClick?: (row: T) => void;
@@ -109,7 +112,10 @@ export function DataTable<T extends object>({
   columns,
   rows,
   loading = false,
-  empty = 'No records found.',
+  loadingLabel = 'Loading records...',
+  error,
+  empty,
+  emptyDescription,
   pageSize = 20,
   keyField = 'id',
   onRowClick,
@@ -166,8 +172,9 @@ export function DataTable<T extends object>({
     ? Math.max(1, Math.ceil(filteredRows.length / pageSize))
     : 1;
 
-  const showPagination = pageSize > 0 && filteredRows.length > pageSize;
-  const isEmpty = !loading && paginated.length === 0;
+  const hasError = Boolean(error);
+  const showPagination = !hasError && pageSize > 0 && filteredRows.length > pageSize;
+  const isEmpty = !loading && !hasError && paginated.length === 0;
   const hasActiveFilters = query.trim() || Object.values(filterValues).some(Boolean);
 
   const clearFilters = () => {
@@ -243,7 +250,7 @@ export function DataTable<T extends object>({
         <div
           className="scrollbar-soft flex-1 min-h-0 w-full overflow-x-auto"
           style={{
-            overflowY: isEmpty || loading ? 'hidden' : 'auto',
+            overflowY: isEmpty || loading || hasError ? 'hidden' : 'auto',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -277,7 +284,7 @@ export function DataTable<T extends object>({
               </tr>
             </thead>
 
-            {!isEmpty && !loading && (
+            {!isEmpty && !loading && !hasError && (
               <tbody>
                 {paginated.map((row) => (
                   <tr
@@ -315,8 +322,9 @@ export function DataTable<T extends object>({
             )}
           </table>
 
-          {(isEmpty || loading) && (
+          {(isEmpty || loading || hasError) && (
             <div
+              role={hasError ? 'alert' : loading ? 'status' : undefined}
               style={{
                 flex: 1,
                 display: 'flex',
@@ -325,10 +333,19 @@ export function DataTable<T extends object>({
                 transform: 'translateY(-8px)',
               }}
             >
-              {loading ? (
-                <LoadingSpinner size="md" />
+              {hasError ? (
+                <EmptyState
+                  icon={AlertTriangle}
+                  title="Unable to load this table."
+                  description={error}
+                />
+              ) : loading ? (
+                <div className="flex flex-col items-center gap-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <LoadingSpinner size="md" />
+                  <span>{loadingLabel}</span>
+                </div>
               ) : (
-                <EmptyState title={empty} />
+                <EmptyState title={empty} description={emptyDescription} />
               )}
             </div>
           )}

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { PageStack } from '@/components/shared/page-stack';
 import { StatCard } from '@/components/shared/stat-card';
 import { StatGrid } from '@/components/shared/stat-grid';
-import { fractionLogEntries, prescriptions, treatmentCourses } from '@/lib/clinical-store';
+import { fractionLogEntries, prescriptions, treatmentCourses } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseFractions, patientActiveCourse } from '@/lib/workflow';
 

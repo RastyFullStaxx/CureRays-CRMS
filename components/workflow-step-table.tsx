@@ -1,5 +1,5 @@
 import { CheckCircle2, FileText } from "lucide-react";
-import { DataTable } from "@/components/data-table";
+import { StaticDataTable } from "@/components/shared/static-data-table";
 import { ResponsiblePartyBadge } from "@/components/badges";
 import type { WorkflowStep } from "@/lib/types";
 import { carepathPhaseLabels } from "@/lib/workflow";
@@ -15,8 +15,10 @@ function statusPill(status: WorkflowStep["status"]) {
 
 export function WorkflowStepTable({ steps }: { steps: WorkflowStep[] }) {
   return (
-    <DataTable
+    <StaticDataTable
       minWidth="1380px"
+      empty="No workflow steps are available for this course."
+      emptyDescription="Workflow steps will appear after the course carepath is initialized."
       columns={[
         { header: "Step" },
         { header: "Phase" },

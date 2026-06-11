@@ -5,7 +5,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-import { templateRows } from '@/lib/global-page-data';
+import { templateRows } from '@/lib/services/operational-page-service';
 
 export default function TemplatesPage() {
   const rows = templateRows;
@@ -22,8 +22,8 @@ export default function TemplatesPage() {
         subtitle="Manage document, workflow, and clinical form templates"
         actions={
           <>
-            <Button variant="secondary"><Upload className="h-4 w-4" /> Upload Template</Button>
-            <Button><Plus className="h-4 w-4" /> Create Template</Button>
+            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Upload Template</Button>
+            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Create Template</Button>
           </>
         }
       />
@@ -49,6 +49,8 @@ export default function TemplatesPage() {
           { key: 'owner', label: 'Owner' },
         ]}
         rows={rows}
+        empty="No templates are available."
+        emptyDescription="Template registry rows will appear after local template sources are indexed."
         search={{ placeholder: 'Search templates by name, type, diagnosis, status, or owner...', keys: ['name', 'type', 'diagnosis', 'workflowStep', 'fileType', 'status', 'owner', 'sourcePath'] }}
         filters={[
           { id: 'type', label: 'Type' },

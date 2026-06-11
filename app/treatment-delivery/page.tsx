@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { Activity, AlertTriangle, CalendarDays, CheckCircle2, Clock3, Plus, ShieldCheck, UsersRound } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { TreatmentDeliveryTabs } from '@/components/treatment-delivery/treatment-delivery-tabs';
-import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentDeliveryPage() {
@@ -24,8 +25,8 @@ export default function TreatmentDeliveryPage() {
         title="Treatment Delivery"
         actions={
           <>
-            <Button variant="secondary"><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
-            <Button><Plus className="h-4 w-4" /> Record Treatment</Button>
+            <Button variant="secondary" disabled title="Prototype fixed demo date"><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
+            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Record Treatment</Button>
           </>
         }
       />
@@ -48,7 +49,11 @@ export default function TreatmentDeliveryPage() {
           <Badge variant="primary">Live queue</Badge>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          {activeFractions.map((fraction) => (
+          {activeFractions.length === 0 ? (
+            <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+              No treatments are available in the prototype queue.
+            </div>
+          ) : activeFractions.map((fraction) => (
             <div key={fraction.id} className="clinical-muted-surface p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -118,6 +123,8 @@ export default function TreatmentDeliveryPage() {
             status: fraction.status,
           };
         })}
+        empty="No treatment queue rows are available."
+        emptyDescription="Scheduled fraction rows will appear after treatment delivery data is initialized."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, appointment, therapist, or fraction...',

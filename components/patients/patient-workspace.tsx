@@ -198,6 +198,8 @@ export function PatientWorkspace({
             signed: Boolean(step.signedAt),
             blocker: step.blockers[0],
           }))}
+          empty="No workflow steps are available for this patient course."
+          emptyDescription="Carepath steps will appear after the course workflow is initialized."
         />
       );
     }
@@ -224,6 +226,8 @@ export function PatientWorkspace({
             due: task.dueDate ? formatDate(task.dueDate) : 'No due date',
             description: task.description,
           }))}
+          empty="No tasks are available for this patient course."
+          emptyDescription="Task rows will appear after carepath automation creates work items."
         />
       );
     }
@@ -250,6 +254,11 @@ export function PatientWorkspace({
               </div>
             </Card>
           ))}
+          {clinicalFormTemplates.length === 0 ? (
+            <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+              No clinical form templates are available for this workspace.
+            </div>
+          ) : null}
         </div>
       );
     }
@@ -307,6 +316,8 @@ export function PatientWorkspace({
             uploader: image.uploadedByUserId ?? 'Unassigned',
             notes: image.notes ?? 'No notes',
           }))}
+          empty="No imaging evidence is available for this patient course."
+          emptyDescription="Tagged imaging assets will appear after they are attached to the course."
         />
       );
     }
@@ -333,6 +344,8 @@ export function PatientWorkspace({
             signed: Boolean(document.signedAt),
             updated: document.generatedAt ? formatDate(document.generatedAt) : 'Pending',
           }))}
+          empty="No document records are available for this patient course."
+          emptyDescription="Generated or uploaded documents will appear after document requirements are initialized."
         />
       );
     }
@@ -356,6 +369,11 @@ export function PatientWorkspace({
                   <Badge variant={statusVariant(check.status)}>{titleCase(check.status)}</Badge>
                 </div>
               ))}
+              {auditChecks.length === 0 ? (
+                <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+                  No audit checks are available for this patient course.
+                </div>
+              ) : null}
             </div>
           </Card>
           <Card>
@@ -388,6 +406,11 @@ export function PatientWorkspace({
               </div>
             </Card>
           ))}
+          {auditEvents.length === 0 ? (
+            <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+              No redacted activity events are available for this patient course.
+            </div>
+          ) : null}
         </div>
       );
     }
@@ -623,6 +646,8 @@ function FractionWorkspace({ entries, course }: { entries: FractionLogEntry[]; c
           dot: entry.dotApproval,
           notes: entry.notes,
         }))}
+        empty="No fraction rows are available for this patient course."
+        emptyDescription="Fraction rows will appear after treatment delivery entries are recorded."
       />
     </div>
   );

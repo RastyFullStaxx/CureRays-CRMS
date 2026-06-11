@@ -25,6 +25,20 @@ const sidebarRoutes = [
   "/security-logs"
 ];
 
+const secondaryRoutes = [
+  "/records",
+  "/reports",
+  "/audit-logs",
+  "/upcoming",
+  "/on-treatment",
+  "/post",
+  "/workflow/igsrt",
+  "/workflow/templates",
+  "/settings/users",
+  "/settings/templates",
+  "/treatment-delivery/fraction-logs"
+];
+
 const dynamicExamples = [
   { route: "/patients/PHI-CR2401", file: "app/patients/[id]/page.tsx" },
   { route: "/patients/PHI-CR2401/carepath", file: "app/patients/[id]/carepath/page.tsx" },
@@ -37,7 +51,9 @@ function routeToPageFile(route) {
   return join(root, "app", ...segments, "page.tsx");
 }
 
-for (const route of sidebarRoutes) {
+const staticRoutes = [...sidebarRoutes, ...secondaryRoutes];
+
+for (const route of staticRoutes) {
   const file = routeToPageFile(route);
   assert.ok(existsSync(file), `${route} must have ${file}`);
 }
@@ -49,4 +65,4 @@ for (const example of dynamicExamples) {
   );
 }
 
-console.log(`Route smoke passed for ${sidebarRoutes.length + dynamicExamples.length} routes.`);
+console.log(`Route smoke passed for ${staticRoutes.length + dynamicExamples.length} routes.`);

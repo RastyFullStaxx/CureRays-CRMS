@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { Camera, FileImage, Image as ImageIcon, Plus, Upload } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, phaseLabel } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, phaseLabel } from "@/lib/services/operational-page-service";
 
 export default function ImagingPage() {
   const assets = moduleSnapshot.imagingAssets;
@@ -20,8 +21,8 @@ export default function ImagingPage() {
         subtitle="Manage imaging assets and required categories"
         actions={
           <>
-            <Button variant="secondary"><Upload className="h-4 w-4" /> Upload Imaging</Button>
-            <Button><Plus className="h-4 w-4" /> New Imaging Study</Button>
+            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Upload Imaging</Button>
+            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Imaging Study</Button>
           </>
         }
       />
@@ -58,6 +59,8 @@ export default function ImagingPage() {
           )},
         ]}
         rows={assets}
+        empty="No imaging assets are available."
+        emptyDescription="Tagged imaging evidence will appear after mock assets are attached to a course."
         pageSize={10}
         search={{
           placeholder: 'Search modality, category, phase, patient, uploader, or status...',
@@ -78,7 +81,7 @@ export default function ImagingPage() {
       />
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
         {categories.slice(0, 10).map((category) => (
-          <div key={category} className="rounded-lg border p-3" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-card)', boxShadow: '0 8px 18px rgba(0,0,0,0.04)' }}>
+          <div key={category} className="rounded-lg border p-3" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-card)', boxShadow: 'var(--shadow-card)' }}>
             <p className="line-clamp-2 text-xs font-bold" style={{ color: 'var(--color-text)' }}>{category}</p>
             <p className="mt-2 text-[11px] font-semibold" style={{ color: 'var(--color-text-muted)' }}>
               {assets.some((asset) => asset.category === category) ? "Present" : "Required gap"}

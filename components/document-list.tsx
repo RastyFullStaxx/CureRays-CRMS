@@ -1,10 +1,12 @@
-import { DataTable } from "@/components/data-table";
+import { StaticDataTable } from "@/components/shared/static-data-table";
 import type { DocumentInstance } from "@/lib/types";
 
 export function DocumentList({ documents }: { documents: DocumentInstance[] }) {
   return (
-    <DataTable
+    <StaticDataTable
       minWidth="1180px"
+      empty="No documents are available for this course."
+      emptyDescription="Generated and uploaded documents will appear after the document bundle is initialized."
       columns={[
         { header: "Document" },
         { header: "Category" },

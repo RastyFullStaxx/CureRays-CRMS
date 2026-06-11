@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { AlertTriangle, CheckCircle2, LockKeyhole, PenLine, Plus, Radiation, Send, ShieldCheck } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentPlanningPage() {
@@ -62,6 +63,8 @@ export default function TreatmentPlanningPage() {
           )},
         ]}
         rows={plans}
+        empty="No treatment plans are available."
+        emptyDescription="Plan rows will appear after course planning data is initialized."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, diagnosis, site, energy, or plan status...',

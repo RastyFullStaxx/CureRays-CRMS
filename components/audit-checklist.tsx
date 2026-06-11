@@ -1,9 +1,11 @@
-import { DataTable } from "@/components/data-table";
+import { StaticDataTable } from "@/components/shared/static-data-table";
 import type { AuditCheck } from "@/lib/types";
 
 export function AuditChecklist({ checks }: { checks: AuditCheck[] }) {
   return (
-    <DataTable
+    <StaticDataTable
+      empty="No audit checks are available."
+      emptyDescription="Audit requirements will appear after the carepath audit bundle is initialized."
       columns={[
         { header: "Check" },
         { header: "Category" },

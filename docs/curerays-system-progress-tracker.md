@@ -28,7 +28,7 @@ Update rules:
 
 Current overall assessment:
 
-- Local prototype/app shell readiness: 82%
+- Local prototype/app shell readiness: 84%
 - End-to-end demo workflow readiness using mock/de-identified data: 66%
 - Real clinic pilot readiness with strictly de-identified or synthetic data: 45%
 - Production readiness for real PHI/ePHI: 30%
@@ -67,6 +67,7 @@ Repository and docs reviewed:
 - `prisma/ops-schema.prisma`
 - `prisma/phi-schema.prisma`
 - `scripts/hipaa-guardrails.mjs`
+- `scripts/phase0-guardrails.mjs`
 - `scripts/fraction-worksheet-fixtures.mjs`
 - `scripts/route-smoke.mjs`
 - `.github/workflows/verify.yml`
@@ -75,9 +76,11 @@ Verification run on 2026-06-11:
 
 - `[x]` `npm run typecheck` passed.
 - `[x]` `npm run lint` passed with no ESLint warnings or errors.
+- `[x]` `npm run test:phase0` passed.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
 - `[x]` `npm run test:routes` passed.
+- `[x]` `npm run test:phase1` passed.
 - `[x]` `npm run build` passed.
 - `[x]` `npm run verify` passed.
 
@@ -85,9 +88,10 @@ Current inventory:
 
 - 34 App Router page files.
 - 5 API route files.
-- 65 component TSX files.
-- 16 service files under `lib/services`.
+- 63 component TSX files.
+- 17 service files under `lib/services`.
 - 1 shared RBAC helper in `lib/rbac.ts`.
+- 1 Phase 0 baseline guardrail in `scripts/phase0-guardrails.mjs`.
 - 30 normalized local template files under `docs/2026_TEMPLATES`.
 - 31 `TemplateSource` records in `lib/template-registry.ts`: 16 active, 9 mapping-in-progress, 5 draft, 1 missing placeholder.
 - 25 `DocumentRequirement` records.
@@ -181,9 +185,11 @@ Minimum "production-ready with real PHI" path still needed:
 
 ### Phase 0: Baseline, Product Alignment, And Repo Health
 
-Current completion: 90%
+Current completion: 100%
 
 Goal: keep the prototype coherent, buildable, and aligned with CureRays' patient-course operating model.
+
+Phase 0 is complete for baseline, product-alignment, and repo-health purposes. This does not mean production PHI/ePHI readiness; durable persistence, real auth/RBAC, immutable audit, integrations, and formal clinical validation remain later-phase blockers.
 
 What is already done:
 
@@ -201,20 +207,25 @@ What is already done:
 - `[x]` `npm run test:hipaa` passes.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passes.
 - `[x]` `npm run test:routes` passes.
-- `[x]` `npm run verify` runs typecheck, lint, HIPAA guardrails, fraction fixtures, route smoke, and build.
+- `[x]` `npm run test:phase0` passes.
+- `[x]` `npm run verify` runs typecheck, lint, Phase 0 guardrails, HIPAA guardrails, fraction fixtures, route smoke, Phase 1 guardrails, and build.
 - `[x]` CI workflow exists for `npm run verify`.
 - `[x]` Global scrollbar styling uses top-level design tokens.
 - `[x]` Next.js build no longer ignores lint/type errors, and baseline security headers are configured.
+- `[x]` Hardcoded UI color literals are removed from `app`, `components`, and `lib` outside global token definitions.
+- `[x]` Legacy dark-mode bridges for hardcoded Tailwind hex classes were removed from `app/globals.css`.
+- `[x]` Deprecated root UI primitives were removed or moved into `components/ui` and `components/shared`.
+- `[x]` Operational page data imports now route through a server-only service helper where appropriate.
 
 Remaining checklist:
 
-- `[!]` Refactor hardcoded hex colors in app/component/lib UI files to CSS tokens. Current scan found 366 hardcoded color references.
-- `[~]` Normalize current page/component architecture around `components/ui`, `components/shared`, and token-based styling rules.
-- `[~]` Convert old page-specific imports of mock/clinical data to service or server component access where appropriate.
+- `[x]` Refactor hardcoded hex colors in app/component/lib UI files to CSS tokens. Current scan finds zero hardcoded color literals outside `app/globals.css`.
+- `[x]` Normalize current page/component architecture around `components/ui`, `components/shared`, and token-based styling rules.
+- `[x]` Convert old page-specific imports of mock/clinical data to service or server component access where appropriate.
 - `[x]` Add a repeatable `npm run verify` script that runs typecheck, lint, HIPAA guardrails, fraction fixtures, route smoke, and build.
 - `[x]` Add CI for `npm run verify`.
 - `[x]` Decide whether `TMPDIR=/tmp` should be embedded in the fraction fixture script or documented as a local Windows/WSL command requirement. `npm run verify` sets `TMPDIR=/tmp`.
-- `[?]` Decide whether the first intermittent build failure at `/api/patients` needs a specific regression test if it appears again.
+- `[x]` Decide whether the first intermittent build failure at `/api/patients` needs a specific regression test if it appears again. No recurrence was observed after route, type, lint, guardrail, and build verification.
 
 Pre-mortem:
 
@@ -224,9 +235,11 @@ Pre-mortem:
 
 ### Phase 1: Prototype Navigation And Operational Visibility
 
-Current completion: 83%
+Current completion: 100%
 
 Goal: make the app usable as an internal demo command center using mock or de-identified data.
+
+Phase 1 is complete for internal prototype navigation and operational visibility only. This does not change the later production blockers for real PHI/ePHI use: durable auth, RBAC, OPS/PHI persistence, immutable audit, storage, eCW, and signature integrations remain out of Phase 1 scope.
 
 What is already done:
 
@@ -237,17 +250,20 @@ What is already done:
 - `[x]` Patient workspace exists.
 - `[x]` Workflow, tasks, schedule, clinical forms, planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
 - `[x]` DataTable and shared stat/page components are used in many pages.
-- `[x]` Route smoke script verifies sidebar routes and representative dynamic patient routes.
+- `[x]` Route smoke script verifies sidebar routes, secondary operational routes, and representative dynamic patient routes.
 - `[x]` App shell shows a global prototype/de-identified-data banner.
-- `[x]` Several visible placeholder actions are disabled for demo clarity.
+- `[x]` Non-wired visible prototype actions are disabled for demo clarity.
+- `[x]` App-level loading and error boundaries use non-PHI operational copy.
+- `[x]` Shared `DataTable` and `StaticDataTable` support explicit loading, empty, and error states.
+- `[x]` Phase 1 operational visibility guardrail validates table empty copy, placeholder action states, and route-level loading/error files.
 
 Remaining checklist:
 
 - `[x]` Confirm every nav item points to a meaningful route and no dead routes remain.
-- `[~]` Replace non-wired action buttons with either real handlers or disabled/coming-soon states for pilot clarity.
+- `[x]` Replace non-wired action buttons with either real handlers or disabled/coming-soon states for pilot clarity.
 - `[x]` Align patient registry implementation around shared `DataTable` and operational DTOs. The richer `components/patients/patients-registry.tsx` remains unsuitable for production because it is PHI-heavy.
-- `[x]` Add route smoke tests for sidebar routes and representative dynamic patient routes.
-- `[ ]` Add empty/error/loading states for every table-driven page.
+- `[x]` Add route smoke tests for sidebar routes, secondary operational routes, and representative dynamic patient routes.
+- `[x]` Add empty/error/loading states for every table-driven page.
 - `[x]` Add consistent app-level "mock/de-identified data only" environment banner until production controls exist.
 
 Pre-mortem:
@@ -255,6 +271,8 @@ Pre-mortem:
 - Failure mode: stakeholders believe visible pages mean backend workflows are complete.
 - Early warning: buttons named Add, Upload, Create, Edit, or Sync do nothing or only update runtime memory.
 - Prevention: label the prototype status clearly and prioritize wiring the end-to-end patient/course path.
+
+Note: I preserved the existing wider dirty worktree direction, including the deleted old registry/root primitives and untracked Phase 0/operational service files. tsconfig.tsbuildinfo is modified from verification.
 
 ### Phase 2: Patient Registration, Registry, And Record Maintenance
 
@@ -684,3 +702,5 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-11 | Verified current checks. | Typecheck, lint, HIPAA guardrails, fraction worksheet fixture with `TMPDIR=/tmp`, and build passed. | Add `npm run verify` and CI. |
 | 2026-06-11 | Identified major go-live blockers. | Client PHI imports, in-memory state, auth header placeholder, simulated documents/storage, missing clinical validation. | Prioritize PHI/client boundary and persistent patient/course creation. |
 | 2026-06-11 | Completed one-pass prototype hardening for Phases 0, 1, 2, 6, and 9. | Added `npm run verify`, route smoke, CI, security headers, scrollbar tokens, prototype banner, tokenized `/patients`, guarded Add/Edit Patient forms, patient validation, in-memory course/task/document bundle creation, RBAC helper, fraction reference versioning, approval role gates, expanded HIPAA guardrails, and disabled several placeholder actions. `npm run verify` passed. | Next priority: durable OPS/PHI persistence, real auth/session claims, immutable audit trail, full client-bundle PHI analysis, and formal clinical validation. |
+| 2026-06-11 | Completed Phase 1 prototype navigation and operational visibility to 100%. | Added app loading/error boundaries, explicit table empty/error/loading states, disabled non-wired prototype actions, static settings rows, expanded route smoke coverage, and `npm run test:phase1` guardrails for operational visibility. | Keep Phase 1 limited to internal demo readiness; proceed next to durable patient/course persistence, real auth/session claims, and production PHI controls. |
+| 2026-06-11 | Completed Phase 0 baseline, product alignment, and repo health to 100%. | Added `npm run test:phase0`, removed hardcoded UI colors outside `app/globals.css`, removed legacy dark-mode hex bridges, deleted deprecated root UI primitives, moved static table/section-card helpers under `components/shared`, added server-only operational page service, and confirmed zero Phase 0 guardrail violations. | Keep Phase 0 guarded through `npm run verify`; continue production-readiness work in later phases without reopening baseline debt. |

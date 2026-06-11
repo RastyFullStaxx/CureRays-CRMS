@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { Children, type ReactNode } from 'react';
 import { Plus, UserCog, ShieldCheck, UsersRound } from 'lucide-react';
@@ -9,7 +10,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { adminRoles, adminUsers, permissionRoles, permissionRows } from '@/lib/global-page-data';
+import { adminRoles, adminUsers, permissionRoles, permissionRows } from '@/lib/services/operational-page-service';
 
 function AccessIcon({ level }: { level: string }) {
   if (level === 'full') return <Badge variant="success">Full</Badge>;
@@ -89,7 +90,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
           style={{
             background: active === index ? 'var(--color-bg-elevated)' : 'transparent',
             color: active === index ? 'var(--color-text)' : 'var(--color-text-muted)',
-            boxShadow: active === index ? '0 1px 2px rgba(15, 23, 42, 0.08)' : 'none',
+            boxShadow: active === index ? 'var(--shadow-card)' : 'none',
             textDecoration: 'none',
           }}
         >
@@ -114,7 +115,7 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
       <PageHeader
         title="Users & Roles"
         subtitle="Manage system users, role assignments, and permission matrices"
-        actions={<Button><Plus className="h-4 w-4" /> Invite User</Button>}
+        actions={<Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Invite User</Button>}
       />
 
       {active === 0 && (
@@ -141,6 +142,8 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
               { key: 'mfa', label: 'MFA' },
             ]}
             rows={userRows}
+            empty="No users are available."
+            emptyDescription="User rows will appear after prototype identity records are configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search users by name, email, or role...', keys: ['name', 'email', 'role', 'location', 'status', 'mfa'] }}
             filters={[
@@ -169,6 +172,8 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
               { key: 'updated', label: 'Last Updated' },
             ]}
             rows={roleRows}
+            empty="No roles are available."
+            emptyDescription="Role rows will appear after the prototype RBAC matrix is configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search roles...', keys: ['name', 'description', 'status', 'updated'] }}
             filters={[
@@ -192,6 +197,8 @@ export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?
               ...permissionRoles.map((role) => ({ key: role, label: role, render: (row: Record<string, any>) => <AccessIcon level={row[role]} /> })),
             ]}
             rows={permissionTableRows}
+            empty="No permission modules are available."
+            emptyDescription="Permission rows will appear after the prototype role matrix is configured."
             toolbarPrefix={toolbarTabs}
             search={{ placeholder: 'Search modules or permissions...', keys: ['module', 'description', ...permissionRoles] }}
             filters={[

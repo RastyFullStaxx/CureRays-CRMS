@@ -215,7 +215,7 @@ button, input, select, textarea {
 }
 
 ::selection {
-  background: rgba(0, 51, 160, 0.18);
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .clinical-surface {
@@ -261,76 +261,6 @@ button, input, select, textarea {
 
 .rounded-glass {
   border-radius: var(--radius-lg);
-}
-
-/* Legacy token bridge for older prototype components that still use fixed Tailwind colors. */
-.dark [class*="bg-white"] {
-  background-color: color-mix(in srgb, var(--color-card) 86%, transparent) !important;
-}
-
-.dark [class*="border-white"] {
-  border-color: var(--color-border-soft) !important;
-}
-
-.dark [class*="bg-[#F8FBFF]"],
-.dark [class*="bg-[#EAF1FF]"],
-.dark [class*="bg-[#EEF3FA]"],
-.dark [class*="bg-[#F1ECF5]"],
-.dark [class*="bg-[#E7EEF8]"],
-.dark [class*="bg-[#FFF8F4]"],
-.dark [class*="bg-[#FFF0E8]"],
-.dark [class*="bg-[#FFF7D6]"] {
-  background-color: var(--color-card-muted) !important;
-}
-
-.dark [class*="border-[#D8E4F5]"],
-.dark [class*="border-[#E7EEF8]"],
-.dark [class*="border-[#BFD0EE]"],
-.dark [class*="border-[#FFD7C2]"] {
-  border-color: var(--color-border-soft) !important;
-}
-
-.dark [class*="text-[#061A55]"],
-.dark [class*="text-[#2B2F5F]"],
-.dark [class*="text-curerays-dark-plum"] {
-  color: var(--color-text) !important;
-}
-
-.dark [class*="text-[#3D5A80]"],
-.dark [class*="text-[#7DA0CA]"],
-.dark [class*="text-curerays-indigo"] {
-  color: var(--color-text-muted) !important;
-}
-
-.dark [class*="text-[#0033A0]"],
-.dark [class*="text-curerays-blue"] {
-  color: var(--color-primary) !important;
-}
-
-.dark [class*="text-[#FF6620]"],
-.dark [class*="text-[#D94E11]"],
-.dark [class*="text-curerays-orange"] {
-  color: var(--color-accent) !important;
-}
-
-.dark [class*="bg-[#0033A0]"],
-.dark [class*="bg-curerays-blue"],
-.dark [class*="bg-curerays-dark-plum"] {
-  background-color: var(--color-primary) !important;
-  color: var(--color-primary-foreground) !important;
-}
-
-.dark [class*="bg-[#EAF1FF]"][class*="text-[#0033A0]"],
-.dark [class*="bg-[#F8FBFF]"][class*="text-[#0033A0]"],
-.dark [class*="bg-[var(--color-stat-icon-bg)]"] {
-  background-color: var(--color-stat-icon-bg) !important;
-  color: var(--color-primary) !important;
-}
-
-.dark [class*="shadow-[0_8px_24px"],
-.dark [class*="shadow-[0_16px_40px"],
-.dark [class*="shadow-soft"] {
-  box-shadow: var(--shadow-card) !important;
 }
 
 /* ============================================================
@@ -388,7 +318,7 @@ button, input, select, textarea {
 .dashboard-command-tabs button[aria-selected="true"] {
   background: var(--color-bg-elevated);
   color: var(--color-text);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .dashboard-command-grid {
@@ -2232,7 +2162,7 @@ button, input, select, textarea {
 .sidebar-floating-tooltip {
   background-color: var(--color-text);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.46);
+  box-shadow: var(--shadow-card);
   color: var(--color-card);
   font-family: var(--font-body);
   font-size: 12px;

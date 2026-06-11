@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Flag, Plus } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -7,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/global-page-data";
+import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function CoursesPage() {
@@ -80,6 +81,8 @@ export default function CoursesPage() {
           )},
         ]}
         rows={courses}
+        empty="No treatment courses are available."
+        emptyDescription="Courses will appear after a prototype patient/course bundle is created."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, diagnosis, course, or next action...',

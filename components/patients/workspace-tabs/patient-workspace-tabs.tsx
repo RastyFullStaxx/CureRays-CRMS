@@ -189,9 +189,9 @@ function carepathAction(step: WorkflowStep) {
 }
 
 function ProgressBar({ value, tone = "blue", width = "w-28" }: { value: number; tone?: "blue" | "green" | "orange" | "red"; width?: string }) {
-  const color = tone === "green" ? "bg-emerald-500" : tone === "orange" ? "bg-[#F59E0B]" : tone === "red" ? "bg-rose-500" : "bg-[#0033A0]";
+  const color = tone === "green" ? "bg-emerald-500" : tone === "orange" ? "bg-[var(--color-warning)]" : tone === "red" ? "bg-rose-500" : "bg-[var(--color-primary)]";
   return (
-    <div className={cn("h-2 overflow-hidden rounded-full bg-[#E7EEF8]", width)}>
+    <div className={cn("h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]", width)}>
       <div className={cn("h-full rounded-full", color)} style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />
     </div>
   );
@@ -454,11 +454,11 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-[#061A55]">Carepath Workflow</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Course workflow, signatures, and audit readiness.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Carepath Workflow</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Course workflow, signatures, and audit readiness.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <WorkspaceButton><FileText className="h-4 w-4" /> View Carepath Document</WorkspaceButton>
@@ -474,7 +474,7 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
         </MetricGrid>
       </section>
 
-      <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
       <CompactFixedTable
         columns={[
           { header: "Step", width: "6%" },
@@ -491,19 +491,19 @@ export function CarepathWorkspaceTab({ steps }: { steps: WorkflowStep[] }) {
             <span key="step" className="font-bold">{step.stepNumber}</span>,
             <PhasePill key="phase" phase={step.phase} size="compact" />,
             <div key="doc" className="flex min-w-0 items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                 <FileText className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <TruncateText className="font-bold" title={step.stepName}>{carepathShortNames[step.stepNumber] ?? step.stepName}</TruncateText>
-                <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={step.linkedDocumentId ?? undefined}>{step.linkedDocumentId ?? "Document pending"}</TruncateText>
+                <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={step.linkedDocumentId ?? undefined}>{step.linkedDocumentId ?? "Document pending"}</TruncateText>
               </div>
             </div>,
             <WorkflowStatusPill key="status" status={step.status} size="compact" label={carepathStatusLabel(step.status)} />,
             <RolePill key="role" role={step.responsibleRole} size="compact" label={shortRoleLabels[step.responsibleRole]} />,
             <TruncateText key="trigger" title={step.triggerEvent}>{carepathTrigger(step)}</TruncateText>,
             <div key="action" className="flex min-w-0 items-center justify-between gap-2">
-              <TruncateText className="text-[#3D5A80]" title={step.notes ?? step.triggerEvent}>{carepathAction(step)}</TruncateText>
+              <TruncateText className="text-[var(--color-text-soft)]" title={step.notes ?? step.triggerEvent}>{carepathAction(step)}</TruncateText>
               <WorkspaceButton size="compact" className="shrink-0">Open</WorkspaceButton>
             </div>
           ]
@@ -533,11 +533,11 @@ export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-[#061A55]">Clinical Forms & Mapping</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Assessments, mapping forms, and structured responses.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Clinical Forms & Mapping</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Assessments, mapping forms, and structured responses.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> New Clinical Form</WorkspaceButton>
         </div>
@@ -550,8 +550,8 @@ export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
         </MetricGrid>
       </section>
 
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Clinical Summary</h3>
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Clinical Summary</h3>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             {[
               ["Diagnosis", patient.diagnosis],
@@ -564,16 +564,16 @@ export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
               ["PCP", "Doctor PCP"],
               ["Assessment", "Stable for treatment workflow"]
             ].map(([label, value]) => (
-              <div key={label} className="min-w-0 rounded-xl border border-[#E7EEF8] bg-[#F8FBFF] px-3 py-2">
-                <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>{label}</p>
-                <TruncateText className="mt-0.5 text-[13px] font-bold leading-5 text-[#061A55]" title={value}>{value}</TruncateText>
+              <div key={label} className="min-w-0 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] px-3 py-2">
+                <p className="truncate text-[10px] font-bold uppercase tracking-wide text-[var(--color-text-soft)]" title={label}>{label}</p>
+                <TruncateText className="mt-0.5 text-[13px] font-bold leading-5 text-[var(--color-text)]" title={value}>{value}</TruncateText>
               </div>
             ))}
           </div>
       </section>
 
       <FilterBar searchPlaceholder="Search forms, diagnosis, or notes..." filters={["Diagnosis", "Form Type", "Status", "Phase"]} />
-      <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
       <CompactFixedTable
         columns={[
           { header: "Form", width: "31%" },
@@ -588,19 +588,19 @@ export function ClinicalWorkspaceTab({ patient }: { patient: Patient }) {
           id: form.id,
           cells: [
             <div key="form" className="flex min-w-0 items-center gap-2">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                 <FileText className="h-3.5 w-3.5" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <TruncateText className="font-bold" title={form.name}>{clinicalShortNames[form.id] ?? form.name}</TruncateText>
-                <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={form.description}>{clinicalSubtitles[form.id] ?? form.description}</TruncateText>
+                <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={form.description}>{clinicalSubtitles[form.id] ?? form.description}</TruncateText>
               </div>
             </div>,
             <Pill key="diag" tone="blue" size="compact">{clinicalDiagnosisLabel(form.diagnosis)}</Pill>,
             typeof form.phase === "string" && form.phase !== "N/A" ? <PhasePill key="phase" phase={form.phase} size="compact" /> : <Pill key="phase" tone="slate" size="compact">N/A</Pill>,
             <WorkflowStatusPill key="status" status={form.status} size="compact" label={clinicalStatusLabel(form.status)} />,
             <div key="completion" className="flex min-w-0 items-center gap-2"><span className="w-8 shrink-0 text-[11px] font-bold">{form.completion}%</span><ProgressBar value={form.completion} width="w-16" tone={form.completion === 100 ? "green" : form.completion === 0 ? "red" : "orange"} /></div>,
-            <div key="updated" className="min-w-0"><TruncateText>{form.lastUpdated}</TruncateText><TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={form.owner}>{form.owner}</TruncateText></div>,
+            <div key="updated" className="min-w-0"><TruncateText>{form.lastUpdated}</TruncateText><TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={form.owner}>{form.owner}</TruncateText></div>,
             <ActionCell key="action" />
           ]
         }))}
@@ -667,11 +667,11 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Treatment Planning</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Prescription, fractions, QA, and delivery.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Treatment Planning</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Prescription, fractions, QA, and delivery.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact">
             <FileText className="h-4 w-4" />
@@ -715,12 +715,12 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
       </section>
 
       <section className="grid gap-4 xl:grid-cols-4">
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-[#061A55]">Treatment Course</h3>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Treatment Course</h3>
             <Pill tone="green" size="compact">Active</Pill>
           </div>
-          <div className="space-y-2.5 text-[13px] font-bold text-[#061A55]">
+          <div className="space-y-2.5 text-[13px] font-bold text-[var(--color-text)]">
             {[
               ["Technique", "Orthovoltage IG-SRT"],
               ["Energy", plan?.energy ?? course.energy ?? "50 kV"],
@@ -731,10 +731,10 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
               ["Phase II", "Pending"]
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>
+                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[var(--color-text-soft)]" title={label}>
                   {label}
                 </span>
-                <TruncateText className="max-w-[58%] text-right text-[13px] font-bold text-[#061A55]" title={String(value)}>
+                <TruncateText className="max-w-[58%] text-right text-[13px] font-bold text-[var(--color-text)]" title={String(value)}>
                   {value}
                 </TruncateText>
               </div>
@@ -742,38 +742,38 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-[#061A55]">Dose Coverage</h3>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Dose Coverage</h3>
             <Pill tone="blue" size="compact">Planning</Pill>
           </div>
           <div className="space-y-3">
             <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[#061A55]">
+              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)]">
                 <span>Target depth</span>
                 <span>4.0 mm</span>
               </div>
-              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[#061A55]">
+              <div className="flex items-center justify-between gap-3 text-[13px] font-bold text-[var(--color-text)]">
                 <span>Coverage</span>
                 <span>80%</span>
               </div>
               <ProgressBar value={80} tone="green" width="w-full" />
             </div>
-            <div className="space-y-2 text-[13px] font-bold text-[#061A55]">
+            <div className="space-y-2 text-[13px] font-bold text-[var(--color-text)]">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Surface</span>
+                <span className="text-[11px] uppercase tracking-wide text-[var(--color-text-soft)]">Surface</span>
                 <span>100%</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Energy</span>
+                <span className="text-[11px] uppercase tracking-wide text-[var(--color-text-soft)]">Energy</span>
                 <span>{plan?.energy ?? course.energy ?? "50 kV"}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] uppercase tracking-wide text-[#3D5A80]">Applicator</span>
+                <span className="text-[11px] uppercase tracking-wide text-[var(--color-text-soft)]">Applicator</span>
                 <span>{String(plan?.applicatorSize ?? course.applicator ?? "3 cm").replace(/ cone$/i, "")}</span>
               </div>
             </div>
-            <p className="text-[11px] font-semibold leading-5 text-[#3D5A80]">250 cGy × 80% = 200 cGy depth dose</p>
+            <p className="text-[11px] font-semibold leading-5 text-[var(--color-text-soft)]">250 cGy × 80% = 200 cGy depth dose</p>
           </div>
         </div>
 
@@ -790,9 +790,9 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
           ]}
         />
 
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-lg font-bold text-[#061A55]">QA Status</h3>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">QA Status</h3>
             <Pill tone="green" size="compact">Ready</Pill>
           </div>
           <div className="space-y-2.5">
@@ -804,11 +804,11 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-4 py-3">
+      <section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border-soft)] px-4 py-3">
           <div>
-            <h3 className="text-lg font-bold text-[#061A55]">Fraction Log</h3>
-            <p className="text-xs font-semibold text-[#3D5A80]">Daily delivery, image guidance, setup, and review status.</p>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Fraction Log</h3>
+            <p className="text-xs font-semibold text-[var(--color-text-soft)]">Daily delivery, image guidance, setup, and review status.</p>
           </div>
           <Pill tone="blue" size="compact">{`${course.currentFraction}/${course.totalFractions}`}</Pill>
         </div>
@@ -827,7 +827,7 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
           rows={visibleRows.map((fraction) => ({
             id: fraction.id,
             cells: [
-              <span key="fx" className="font-bold text-[#061A55]">#{fraction.fractionNumber}</span>,
+              <span key="fx" className="font-bold text-[var(--color-text)]">#{fraction.fractionNumber}</span>,
               <TruncateText key="date" title={fraction.date}>{fraction.date}</TruncateText>,
               <PhasePill key="phase" phase={fraction.phase === "Phase II" ? "POST_TX" : "ON_TREATMENT"} label={fraction.phase} size="compact" />,
               <TruncateText key="dose" title={fraction.dose}>{fraction.dose}</TruncateText>,
@@ -947,11 +947,11 @@ export function ImagingWorkspaceTab() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Imaging</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Studies, photos, and guidance assets.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Imaging</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Studies, photos, and guidance assets.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact">
             <Upload className="h-4 w-4" />
@@ -969,11 +969,11 @@ export function ImagingWorkspaceTab() {
 
       <FilterBar searchPlaceholder="Search imaging..." filters={["Modality", "Phase", "Date", "Uploader"]} />
 
-      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#E7EEF8] px-4 py-3">
+      <section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--color-border-soft)] px-4 py-3">
           <div>
-            <h3 className="text-lg font-bold text-[#061A55]">Imaging Studies</h3>
-            <p className="text-xs font-semibold text-[#3D5A80]">Mapped studies, photo sets, and guidance records.</p>
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Imaging Studies</h3>
+            <p className="text-xs font-semibold text-[var(--color-text-soft)]">Mapped studies, photo sets, and guidance records.</p>
           </div>
           <Pill tone="blue" size="compact">{`Page ${page} of ${totalPages}`}</Pill>
         </div>
@@ -991,15 +991,15 @@ export function ImagingWorkspaceTab() {
           rows={visibleStudies.map((row) => ({
             id: row.id,
             cells: [
-              <div key="preview" className="flex h-16 w-20 flex-col items-center justify-center rounded-lg border border-[#D8E4F5] bg-[#F8FBFF] text-center ring-1 ring-[#0033A0]/10">
-                <ImageIcon className="h-4 w-4 text-[#0033A0]" aria-hidden="true" />
-                <span className="mt-1 text-[10px] font-bold text-[#3D5A80]">{row.modality}</span>
+              <div key="preview" className="flex h-16 w-20 flex-col items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-elevated)] text-center ring-1 ring-[var(--color-primary)]/10">
+                <ImageIcon className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
+                <span className="mt-1 text-[10px] font-bold text-[var(--color-text-soft)]">{row.modality}</span>
               </div>,
               <div key="study" className="min-w-0">
-                <TruncateText className="font-bold text-[#061A55]" title={row.title}>
+                <TruncateText className="font-bold text-[var(--color-text)]" title={row.title}>
                   {row.title}
                 </TruncateText>
-                <TruncateText className="text-[11px] font-semibold leading-5 text-[#3D5A80]" title={row.description}>
+                <TruncateText className="text-[11px] font-semibold leading-5 text-[var(--color-text-soft)]" title={row.description}>
                   {row.description}
                 </TruncateText>
                 <div className="mt-1">
@@ -1034,8 +1034,8 @@ export function ImagingWorkspaceTab() {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Required Assets</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Required Assets</h3>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {requiredAssets.map(([asset, state]) => (
               <CheckLine key={asset} state={state === "warning" ? "warning" : "complete"}>
@@ -1045,9 +1045,9 @@ export function ImagingWorkspaceTab() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <div className="border-b border-[#E7EEF8] px-4 py-3">
-            <h3 className="text-lg font-bold text-[#061A55]">Guidance Log</h3>
+        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
+          <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
+            <h3 className="text-lg font-bold text-[var(--color-text)]">Guidance Log</h3>
           </div>
           <CompactFixedTable
             columns={[
@@ -1105,11 +1105,11 @@ export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstan
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Documents</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Documents, signatures, versions, and uploads.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Documents</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Documents, signatures, versions, and uploads.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact"><Upload className="h-4 w-4" /> Upload Document</WorkspaceButton>
         </div>
@@ -1122,7 +1122,7 @@ export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstan
         </MetricGrid>
       </section>
       <FilterBar searchPlaceholder="Search documents..." filters={["Category", "Status", "Phase", "Uploader", "Date"]} />
-      <section className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+      <section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
         <CompactFixedTable
           columns={[
             { header: "Document", width: "28%" },
@@ -1138,12 +1138,12 @@ export function DocumentsWorkspaceTab({ documents }: { documents: DocumentInstan
             id: doc.id,
             cells: [
               <div key="doc" className="flex min-w-0 items-center gap-2">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                   <FileText className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <TruncateText className="font-bold" title={doc.title}>{compactDocumentTitle(doc.title)}</TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={doc.id}>{doc.id}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={doc.id}>{doc.id}</TruncateText>
                 </div>
               </div>,
               <Pill key="cat" tone="blue" size="compact">{compactCategoryLabel(doc.category)}</Pill>,
@@ -1180,11 +1180,11 @@ export function TasksWorkspaceTab({ tasks }: { tasks: Task[] }) {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Tasks</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Patient course tasks and follow-ups.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Tasks</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Patient course tasks and follow-ups.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> Add Task</WorkspaceButton>
         </div>
@@ -1196,33 +1196,33 @@ export function TasksWorkspaceTab({ tasks }: { tasks: Task[] }) {
             .filter((task) => column.status === "COMPLETED" ? task.completedAt || task.status === "COMPLETED" : task.status === column.status)
             .slice(0, 3);
           return (
-            <div key={column.label} className="rounded-2xl border border-[#D8E4F5] bg-[#F8FBFF] p-3 shadow-[0_8px_24px_rgba(0,51,160,0.04)]">
+            <div key={column.label} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3 shadow-[var(--shadow-card)]">
               <div className="mb-3 flex items-center justify-between">
                 <Pill tone={column.tone} size="compact">{column.label}</Pill>
-                <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-[#061A55]">{columnTasks.length}</span>
+                <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-[var(--color-text)]">{columnTasks.length}</span>
               </div>
               <div className="space-y-2.5">
                 {columnTasks.length ? columnTasks.map((task) => (
-                  <div key={`${column.label}-${task.id}`} className="rounded-xl border border-[#D8E4F5] bg-white p-3">
+                  <div key={`${column.label}-${task.id}`} className="rounded-xl border border-[var(--color-border)] bg-white p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <TruncateText className="text-[13px] font-bold text-[#061A55]" title={task.title}>{compactTaskTitle(task.title)}</TruncateText>
+                      <TruncateText className="text-[13px] font-bold text-[var(--color-text)]" title={task.title}>{compactTaskTitle(task.title)}</TruncateText>
                       <Pill tone={priorityTone(task.priority)} size="compact">{priorityLabel(task.priority)}</Pill>
                     </div>
-                    <p className="mt-1 truncate text-[11px] font-semibold text-[#3D5A80]">Course 2401 · {taskStatusMeta(task.status)}</p>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold text-[#3D5A80]">
+                    <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-soft)]">Course 2401 · {taskStatusMeta(task.status)}</p>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] font-bold text-[var(--color-text-soft)]">
                       <span className="inline-flex min-w-0 items-center gap-1 truncate">
                         <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span className="truncate">Due {task.dueDate ?? "Next step"}</span>
                       </span>
-                      <MoreVertical className="h-4 w-4 shrink-0 text-[#0033A0]" aria-hidden="true" />
+                      <MoreVertical className="h-4 w-4 shrink-0 text-[var(--color-primary)]" aria-hidden="true" />
                     </div>
-                    <p className="mt-1 flex items-center gap-1 truncate text-[11px] font-semibold text-[#3D5A80]">
+                    <p className="mt-1 flex items-center gap-1 truncate text-[11px] font-semibold text-[var(--color-text-soft)]">
                       <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span className="truncate">{task.assignedUserId ?? shortRoleLabels[task.assignedRole] ?? task.assignedRole}</span>
                     </p>
                   </div>
                 )) : (
-                  <div className="rounded-xl border border-dashed border-[#D8E4F5] bg-white p-3 text-center text-xs font-bold text-[#3D5A80]">
+                  <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-white p-3 text-center text-xs font-bold text-[var(--color-text-soft)]">
                     No tasks
                   </div>
                 )}
@@ -1248,9 +1248,9 @@ export function BillingWorkspaceTab() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div><h2 className="text-xl font-bold text-[#061A55]">Billing Summary</h2><p className="mt-1 text-sm font-semibold text-[#3D5A80]">CPT/code tracking, pre-authorization, charges, and audit readiness.</p></div>
+          <div><h2 className="text-xl font-bold text-[var(--color-text)]">Billing Summary</h2><p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">CPT/code tracking, pre-authorization, charges, and audit readiness.</p></div>
           <WorkspaceButton variant="primary"><Plus className="h-4 w-4" /> Create Invoice</WorkspaceButton>
         </div>
         <MetricGrid>
@@ -1264,26 +1264,27 @@ export function BillingWorkspaceTab() {
       <FilterBar searchPlaceholder="Search claims, CPT, or treatment..." filters={["Status: All", "Claim Type: All", "Date Range: All"]} />
       <CompactTable
         minWidth="1500px"
+        empty="No billing code rows are available for this course."
         columns={[{ header: "Code Family" }, { header: "CPT / Code" }, { header: "2025 Code" }, { header: "2026 Code" }, { header: "Frequency" }, { header: "Qty Planned" }, { header: "Qty Billed" }, { header: "Related Document" }, { header: "Status" }, { header: "Notes" }]}
         rows={billingCodeRows.map((row) => ({
           id: row.id,
-          cells: [row.family, <span key="code" className="font-bold text-[#0033A0]">{row.code}</span>, row.code2025, row.code2026, row.frequency, row.planned, row.billed, row.document, <WorkflowStatusPill key="status" status={row.status} />, row.notes]
+          cells: [row.family, <span key="code" className="font-bold text-[var(--color-primary)]">{row.code}</span>, row.code2025, row.code2026, row.frequency, row.planned, row.billed, row.document, <WorkflowStatusPill key="status" status={row.status} />, row.notes]
         }))}
       />
       <section className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Pre-auth Ordered vs Justified</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Pre-auth Ordered vs Justified</h3>
           <div className="mt-4 space-y-3">
             <CheckLine>Simulation and mapping work ordered</CheckLine>
             <CheckLine>Planning documents support dose calculation work</CheckLine>
             <CheckLine state="warning">OTV note required before next management billing interval</CheckLine>
           </div>
         </div>
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Course Totals by Phase</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Course Totals by Phase</h3>
           <div className="mt-4 grid gap-3">
             {["Consultation", "Chart Prep", "Planning", "On-Treatment", "Post-TX"].map((phase, index) => (
-              <div key={phase} className="flex items-center justify-between border-b border-[#E7EEF8] pb-2 text-sm font-bold text-[#061A55]"><span>{phase}</span><span>${(1200 + index * 850).toLocaleString()}</span></div>
+              <div key={phase} className="flex items-center justify-between border-b border-[var(--color-border-soft)] pb-2 text-sm font-bold text-[var(--color-text)]"><span>{phase}</span><span>${(1200 + index * 850).toLocaleString()}</span></div>
             ))}
           </div>
         </div>
@@ -1302,18 +1303,18 @@ export function NotesWorkspaceTab() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Clinical Notes</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Patient notes and care communication.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Clinical Notes</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Patient notes and care communication.</p>
           </div>
           <WorkspaceButton variant="primary" size="compact"><Plus className="h-4 w-4" /> Add Note</WorkspaceButton>
         </div>
         <FilterBar searchPlaceholder="Search notes..." filters={["Type", "Author", "Date"]} />
       </section>
       <section className="grid gap-4 xl:grid-cols-[1fr_340px]">
-        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
           <CompactFixedTable
             columns={[
               { header: "Note", width: "34%" },
@@ -1327,18 +1328,18 @@ export function NotesWorkspaceTab() {
               id: note.id,
               cells: [
                 <div key="note" className="flex min-w-0 items-center gap-2">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0]">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
                     <MessageSquareText className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
                     <TruncateText className="font-bold" title={note.title}>{note.title}</TruncateText>
-                    <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={note.preview}>{notePreview(note.id, note.preview)}</TruncateText>
+                    <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={note.preview}>{notePreview(note.id, note.preview)}</TruncateText>
                   </div>
                 </div>,
                 <Pill key="cat" tone={noteTone(note.category)} size="compact">{note.category}</Pill>,
                 <div key="author" className="min-w-0">
                   <TruncateText title={note.author}>{note.author}</TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={note.role}>{note.role}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={note.role}>{note.role}</TruncateText>
                 </div>,
                 <TruncateText key="date" title={note.timestamp}>{note.timestamp.replace(" 2026 ", ", ")}</TruncateText>,
                 <Pill key="visibility" tone={note.visibility === "Billing" ? "purple" : "green"} size="compact">{note.visibility}</Pill>,
@@ -1353,12 +1354,12 @@ export function NotesWorkspaceTab() {
             onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
           />
         </div>
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Note Composer</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Note Composer</h3>
           <div className="mt-3 space-y-2.5">
-            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-[13px] font-bold text-[#061A55]">Category: Clinical</div>
-            <div className="rounded-xl border border-[#D8E4F5] bg-[#F8FBFF] px-3 py-2 text-[13px] font-bold text-[#061A55]">Visibility: Care Team</div>
-            <div className="min-h-24 rounded-xl border border-[#D8E4F5] bg-white p-3 text-[13px] font-semibold text-[#3D5A80]">Write a PHI-safe placeholder note...</div>
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-[13px] font-bold text-[var(--color-text)]">Category: Clinical</div>
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-[13px] font-bold text-[var(--color-text)]">Visibility: Care Team</div>
+            <div className="min-h-24 rounded-xl border border-[var(--color-border)] bg-white p-3 text-[13px] font-semibold text-[var(--color-text-soft)]">Write a PHI-safe placeholder note...</div>
             <WorkspaceButton variant="primary" size="compact" className="w-full">Save Draft</WorkspaceButton>
           </div>
         </div>
@@ -1381,11 +1382,11 @@ export function AuditWorkspaceTab({ checks, readiness }: { checks: AuditCheck[];
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <h2 className="text-xl font-bold text-[#061A55]">Audit Dashboard</h2>
-            <p className="mt-1 text-sm font-semibold text-[#3D5A80]">Course audit readiness and documentation status.</p>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Audit Dashboard</h2>
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text-soft)]">Course audit readiness and documentation status.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <WorkspaceButton size="compact"><Clock3 className="h-4 w-4" /> Run Audit Check</WorkspaceButton>
@@ -1401,7 +1402,7 @@ export function AuditWorkspaceTab({ checks, readiness }: { checks: AuditCheck[];
         </MetricGrid>
       </section>
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="overflow-hidden rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
+        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]">
           <CompactFixedTable
             columns={[
               { header: "Item", width: "26%" },
@@ -1417,7 +1418,7 @@ export function AuditWorkspaceTab({ checks, readiness }: { checks: AuditCheck[];
               cells: [
                 <div key="item" className="min-w-0">
                   <TruncateText className="font-bold" title={row.item}>{(page - 1) * auditRowsPerPage + index + 1}. {row.item}</TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={row.category}>{row.category}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={row.category}>{row.category}</TruncateText>
                 </div>,
                 <WorkflowStatusPill key="status" status={row.status} size="compact" label={compactDocStatusLabel(row.status, false)} />,
                 <TruncateText key="req" title={row.requirement}>{row.requirement}</TruncateText>,
@@ -1435,13 +1436,13 @@ export function AuditWorkspaceTab({ checks, readiness }: { checks: AuditCheck[];
             onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
           />
         </div>
-        <div className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.06)]">
-          <h3 className="text-lg font-bold text-[#061A55]">Treatment Management</h3>
+        <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Treatment Management</h3>
           <div className="mt-3 space-y-3">
-            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Completion Steps</p><div className="mt-2 space-y-1.5">{selected.steps.slice(0, 3).map((step) => <CheckLine key={step} state="info">{step}</CheckLine>)}</div></div>
-            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Evidence</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.evidence.map((item) => <Pill key={item} tone="blue" size="compact">{item}</Pill>)}</div></div>
-            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Billing Codes</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.codes.map((code) => <Pill key={code} tone="orange" size="compact">{code}</Pill>)}</div></div>
-            <div><p className="text-[11px] font-bold uppercase text-[#3D5A80]">Responsible Parties</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.parties.map((party) => <RolePill key={party} role={party} size="compact" />)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[var(--color-text-soft)]">Completion Steps</p><div className="mt-2 space-y-1.5">{selected.steps.slice(0, 3).map((step) => <CheckLine key={step} state="info">{step}</CheckLine>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[var(--color-text-soft)]">Evidence</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.evidence.map((item) => <Pill key={item} tone="blue" size="compact">{item}</Pill>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[var(--color-text-soft)]">Billing Codes</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.codes.map((code) => <Pill key={code} tone="orange" size="compact">{code}</Pill>)}</div></div>
+            <div><p className="text-[11px] font-bold uppercase text-[var(--color-text-soft)]">Responsible Parties</p><div className="mt-2 flex flex-wrap gap-1.5">{selected.parties.map((party) => <RolePill key={party} role={party} size="compact" />)}</div></div>
           </div>
         </div>
       </section>
@@ -1485,9 +1486,9 @@ export function WorkspaceTabRail({
             <div className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" aria-hidden="true" />
               <div className="min-w-0">
-                <TruncateText className="text-sm font-bold text-[#061A55]" title="Step 7: Orthovoltage Prescription">Step 7: Orthovoltage Prescription</TruncateText>
-                <p className="mt-1 text-xs font-semibold leading-5 text-[#3D5A80]">Prescription not generated.</p>
-                <p className="text-xs font-semibold leading-5 text-[#3D5A80]">Assigned to Rad Onc.</p>
+                <TruncateText className="text-sm font-bold text-[var(--color-text)]" title="Step 7: Orthovoltage Prescription">Step 7: Orthovoltage Prescription</TruncateText>
+                <p className="mt-1 text-xs font-semibold leading-5 text-[var(--color-text-soft)]">Prescription not generated.</p>
+                <p className="text-xs font-semibold leading-5 text-[var(--color-text-soft)]">Assigned to Rad Onc.</p>
               </div>
             </div>
             <WorkspaceButton size="compact" className="mt-3 w-full">Resolve</WorkspaceButton>
@@ -1538,12 +1539,12 @@ export function WorkspaceTabRail({
               <button
                 key={action.title}
                 type="button"
-                className="flex h-14 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+                className="flex h-14 w-full items-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-white px-3 text-left transition hover:bg-[var(--color-bg-elevated)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10"
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">{action.icon}</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/15">{action.icon}</span>
                 <span className="min-w-0">
-                  <TruncateText className="text-sm font-bold text-[#061A55]" title={action.title}>{action.title}</TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={action.meta}>{action.meta}</TruncateText>
+                  <TruncateText className="text-sm font-bold text-[var(--color-text)]" title={action.title}>{action.title}</TruncateText>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={action.meta}>{action.meta}</TruncateText>
                 </span>
               </button>
             ))}
@@ -1566,7 +1567,7 @@ export function WorkspaceTabRail({
     return (
       <>
         <RightRailCard title="Treatment Summary" icon={<ShieldCheck className="h-4 w-4" aria-hidden="true" />}>
-          <div className="space-y-2.5 text-[13px] font-bold text-[#061A55]">
+          <div className="space-y-2.5 text-[13px] font-bold text-[var(--color-text)]">
             {[
               ["Course", "Course 2401"],
               ["Phase", "On Treatment"],
@@ -1577,10 +1578,10 @@ export function WorkspaceTabRail({
               ["MD", patient.physician]
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3">
-                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[#3D5A80]" title={label}>
+                <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-wide text-[var(--color-text-soft)]" title={label}>
                   {label}
                 </span>
-                <TruncateText className="max-w-[60%] text-right text-[13px] font-bold text-[#061A55]" title={String(value)}>
+                <TruncateText className="max-w-[60%] text-right text-[13px] font-bold text-[var(--color-text)]" title={String(value)}>
                   {value}
                 </TruncateText>
               </div>
@@ -1599,13 +1600,13 @@ export function WorkspaceTabRail({
               <button
                 key={action.title}
                 type="button"
-                className="flex h-11 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+                className="flex h-11 w-full items-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-white px-3 text-left transition hover:bg-[var(--color-bg-elevated)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10"
               >
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/15">
                   {action.icon}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-bold text-[#061A55]">{action.title}</span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-[var(--color-text)]">{action.title}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-soft)]" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -1613,21 +1614,21 @@ export function WorkspaceTabRail({
         <RightRailCard title="Alerts" icon={<AlertTriangle className="h-4 w-4" aria-hidden="true" />}>
           <div className="space-y-2.5">
             {[
-              { title: "Physics check due", meta: "Due Apr 29", badge: <Pill tone="orange" size="compact">Due</Pill>, icon: <AlertTriangle className="h-4 w-4 text-[#FF6620]" aria-hidden="true" /> },
-              { title: "Phase I nearing completion", meta: "Est. May 7", badge: <Pill tone="blue" size="compact">Info</Pill>, icon: <Clock3 className="h-4 w-4 text-[#0033A0]" aria-hidden="true" /> },
-              { title: "Signature pending", meta: "Prescription review", badge: <Pill tone="orange" size="compact">Pending</Pill>, icon: <FileCheck2 className="h-4 w-4 text-[#FF6620]" aria-hidden="true" /> }
+              { title: "Physics check due", meta: "Due Apr 29", badge: <Pill tone="orange" size="compact">Due</Pill>, icon: <AlertTriangle className="h-4 w-4 text-[var(--color-accent)]" aria-hidden="true" /> },
+              { title: "Phase I nearing completion", meta: "Est. May 7", badge: <Pill tone="blue" size="compact">Info</Pill>, icon: <Clock3 className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" /> },
+              { title: "Signature pending", meta: "Prescription review", badge: <Pill tone="orange" size="compact">Pending</Pill>, icon: <FileCheck2 className="h-4 w-4 text-[var(--color-accent)]" aria-hidden="true" /> }
             ].map((item) => (
-              <div key={item.title} className="rounded-xl border border-[#E7EEF8] bg-white p-3">
+              <div key={item.title} className="rounded-xl border border-[var(--color-border-soft)] bg-white p-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-start gap-2">
-                    <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#F8FBFF] ring-1 ring-[#D8E4F5]">
+                    <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[var(--color-bg-elevated)] ring-1 ring-[var(--color-border)]">
                       {item.icon}
                     </span>
                     <div className="min-w-0">
-                      <TruncateText className="text-sm font-bold text-[#061A55]" title={item.title}>
+                      <TruncateText className="text-sm font-bold text-[var(--color-text)]" title={item.title}>
                         {item.title}
                       </TruncateText>
-                      <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={item.meta}>
+                      <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={item.meta}>
                         {item.meta}
                       </TruncateText>
                     </div>
@@ -1662,27 +1663,27 @@ export function WorkspaceTabRail({
         <RightRailCard
           title="Recent Uploads"
           icon={<Upload className="h-4 w-4" aria-hidden="true" />}
-          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+          action={<button type="button" className="text-xs font-bold text-[var(--color-primary)]">View all</button>}
         >
           <div className="space-y-2.5">
             {imagingRows.slice(0, 3).map((row) => (
               <button
                 key={row.id}
                 type="button"
-                className="flex w-full items-start gap-3 rounded-xl border border-[#E7EEF8] bg-white p-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+                className="flex w-full items-start gap-3 rounded-xl border border-[var(--color-border-soft)] bg-white p-3 text-left transition hover:bg-[var(--color-bg-elevated)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10"
               >
-                <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1", imagingModalityTone(row.modality) === "orange" ? "bg-[#FFF0E8] text-[#FF6620] ring-[#FF6620]/15" : imagingModalityTone(row.modality) === "purple" ? "bg-violet-500/10 text-violet-700 ring-violet-500/15" : imagingModalityTone(row.modality) === "green" ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15" : "bg-[#EAF1FF] text-[#0033A0] ring-[#0033A0]/15")}>
+                <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1", imagingModalityTone(row.modality) === "orange" ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)] ring-[var(--color-accent)]/15" : imagingModalityTone(row.modality) === "purple" ? "bg-violet-500/10 text-violet-700 ring-violet-500/15" : imagingModalityTone(row.modality) === "green" ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15" : "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-[var(--color-primary)]/15")}>
                   {imagingRecentUploadIcon(row.modality)}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <TruncateText className="text-sm font-bold text-[#061A55]" title={imagingTitle(row.title)}>
+                  <TruncateText className="text-sm font-bold text-[var(--color-text)]" title={imagingTitle(row.title)}>
                     {imagingTitle(row.title)}
                   </TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={row.uploaded}>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={row.uploaded}>
                     {row.uploaded}
                   </TruncateText>
                 </span>
-                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[var(--color-text-soft)]" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -1699,20 +1700,20 @@ export function WorkspaceTabRail({
               <button
                 key={action.title}
                 type="button"
-                className="flex h-12 w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10"
+                className="flex h-12 w-full items-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-white px-3 text-left transition hover:bg-[var(--color-bg-elevated)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10"
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/15">
                   {action.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <TruncateText className="text-[13px] font-semibold text-[#061A55]" title={action.title}>
+                  <TruncateText className="text-[13px] font-semibold text-[var(--color-text)]" title={action.title}>
                     {action.title}
                   </TruncateText>
-                  <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={action.meta}>
+                  <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={action.meta}>
                     {action.meta}
                   </TruncateText>
                 </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-soft)]" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -1741,7 +1742,7 @@ export function WorkspaceTabRail({
         <RightRailCard
           title="Recent Activity"
           icon={<History className="h-4 w-4" aria-hidden="true" />}
-          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+          action={<button type="button" className="text-xs font-bold text-[var(--color-primary)]">View all</button>}
         >
           <div className="space-y-2.5">
             {documentActivities.map((item) => (
@@ -1792,7 +1793,7 @@ export function WorkspaceTabRail({
         <RightRailCard
           title="Upcoming Due"
           icon={<Bell className="h-4 w-4" aria-hidden="true" />}
-          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+          action={<button type="button" className="text-xs font-bold text-[var(--color-primary)]">View all</button>}
         >
           <div className="space-y-2.5">
             {tasks.slice(0, 3).map((task) => (
@@ -1843,7 +1844,7 @@ export function WorkspaceTabRail({
                 key={title}
                 title={title}
                 icon={<MessageSquareText className="h-4 w-4" aria-hidden="true" />}
-                badge={<span className="rounded-full bg-[#EAF1FF] px-2 py-1 text-[11px] font-bold text-[#0033A0]">{[12, 6, 4, 3, 3, 2, 2][index]}</span>}
+                badge={<span className="rounded-full bg-[var(--color-primary-soft)] px-2 py-1 text-[11px] font-bold text-[var(--color-primary)]">{[12, 6, 4, 3, 3, 2, 2][index]}</span>}
               />
             ))}
           </div>
@@ -1851,7 +1852,7 @@ export function WorkspaceTabRail({
         <RightRailCard
           title="Recent Notes"
           icon={<Clock3 className="h-4 w-4" aria-hidden="true" />}
-          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+          action={<button type="button" className="text-xs font-bold text-[var(--color-primary)]">View all</button>}
         >
           <div className="space-y-2.5">
             {clinicalNotes.slice(0, 5).map((note) => (
@@ -1900,7 +1901,7 @@ export function WorkspaceTabRail({
         <RightRailCard
           title="Recent Audit Activity"
           icon={<History className="h-4 w-4" aria-hidden="true" />}
-          action={<button type="button" className="text-xs font-bold text-[#0033A0]">View all</button>}
+          action={<button type="button" className="text-xs font-bold text-[var(--color-primary)]">View all</button>}
         >
           <div className="space-y-2.5">
             {[
@@ -1938,8 +1939,8 @@ export function WorkspaceTabRail({
 
 function RailPanel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
-      <h3 className="mb-4 text-lg font-bold text-[#061A55]">{title}</h3>
+    <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
+      <h3 className="mb-4 text-lg font-bold text-[var(--color-text)]">{title}</h3>
       {children}
     </section>
   );

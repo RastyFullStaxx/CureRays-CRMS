@@ -12,7 +12,7 @@ import {
   generatedDocuments,
   operationalPatients,
   operationalTreatmentCourses
-} from "@/lib/clinical-store";
+} from "@/lib/services/operational-page-service";
 import {
   auditBlockers,
   auditReadinessScore,
@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
       <PageHeader
         title="Analytics"
         subtitle="Operational insights, workflow metrics, and audit readiness"
-        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Report</Button>}
+        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Report</Button>}
       />
       <StatGrid>
         <StatCard icon={UsersRound} label="Active Courses" value={treatmentCourses.length} sub="All locations" />

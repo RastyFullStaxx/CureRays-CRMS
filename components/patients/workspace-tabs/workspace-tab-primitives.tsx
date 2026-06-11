@@ -11,17 +11,17 @@ import {
   Search,
   SlidersHorizontal
 } from "lucide-react";
-import { DataTable, type DataTableColumn, type DataTableRow } from "@/components/data-table";
-import { SectionCard } from "@/components/section-card";
+import { StaticDataTable, type StaticDataTableColumn, type StaticDataTableRow } from "@/components/shared/static-data-table";
+import { SectionCard } from "@/components/shared/section-card";
 import type { CarepathWorkflowPhase, ResponsibleParty, WorkflowItemStatus } from "@/lib/types";
 import { carepathPhaseLabels, cn, responsiblePartyLabels } from "@/lib/workflow";
 
 type Tone = "blue" | "green" | "orange" | "red" | "purple" | "slate";
 
 const toneClasses: Record<Tone, string> = {
-  blue: "bg-[#EAF1FF] text-[#0033A0] ring-[#0033A0]/15",
+  blue: "bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-[var(--color-primary)]/15",
   green: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/15",
-  orange: "bg-[#FFF0E8] text-[#D94E11] ring-[#FF6620]/15",
+  orange: "bg-[var(--color-accent-soft)] text-[var(--color-accent)] ring-[var(--color-accent)]/15",
   red: "bg-rose-500/10 text-rose-700 ring-rose-500/15",
   purple: "bg-violet-500/10 text-violet-700 ring-violet-500/15",
   slate: "bg-slate-500/10 text-slate-700 ring-slate-500/15"
@@ -73,13 +73,13 @@ export function WorkspaceButton({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-bold outline-none transition focus:ring-4 focus:ring-[#0033A0]/12",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-bold outline-none transition focus:ring-4 focus:ring-[var(--color-primary)]/12",
         size === "compact" ? "px-2.5 py-1.5 text-xs" : "px-3 py-2 text-sm",
         variant === "primary"
-          ? "bg-[#0033A0] text-white shadow-[0_8px_20px_rgba(0,51,160,0.18)] hover:bg-[#002A86]"
+          ? "bg-[var(--color-primary)] text-white shadow-[var(--shadow-card)] hover:bg-[var(--color-primary-dark)]"
           : variant === "ghost"
-            ? "text-[#0033A0] hover:bg-[#EAF1FF]"
-            : "border border-[#D8E4F5] bg-white text-[#0033A0] hover:bg-[#F8FBFF]",
+            ? "text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
+            : "border border-[var(--color-border)] bg-white text-[var(--color-primary)] hover:bg-[var(--color-bg-elevated)]",
         className
       )}
       {...props}
@@ -105,12 +105,12 @@ export function MetricCard({
   size?: "default" | "compact";
 }) {
   return (
-    <div className={cn("rounded-2xl border border-[#D8E4F5] bg-white shadow-[0_8px_24px_rgba(0,51,160,0.06)]", size === "compact" ? "p-3" : "p-4")}>
+    <div className={cn("rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]", size === "compact" ? "p-3" : "p-4")}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className={cn("truncate font-bold text-[#3D5A80]", size === "compact" ? "text-[11px]" : "text-xs")} title={label}>{label}</p>
-          <p className={cn("mt-2 truncate font-bold leading-none text-[#061A55]", size === "compact" ? "text-xl" : "text-2xl")} title={typeof value === "string" ? value : undefined}>{value}</p>
-          {detail ? <p className="mt-2 truncate text-[11px] font-semibold text-[#3D5A80]" title={typeof detail === "string" ? detail : undefined}>{detail}</p> : null}
+          <p className={cn("truncate font-bold text-[var(--color-text-soft)]", size === "compact" ? "text-[11px]" : "text-xs")} title={label}>{label}</p>
+          <p className={cn("mt-2 truncate font-bold leading-none text-[var(--color-text)]", size === "compact" ? "text-xl" : "text-2xl")} title={typeof value === "string" ? value : undefined}>{value}</p>
+          {detail ? <p className="mt-2 truncate text-[11px] font-semibold text-[var(--color-text-soft)]" title={typeof detail === "string" ? detail : undefined}>{detail}</p> : null}
         </div>
         {icon ? <span className={cn("grid shrink-0 place-items-center rounded-xl ring-1", size === "compact" ? "h-8 w-8" : "h-10 w-10", toneClasses[tone])}>{icon}</span> : null}
       </div>
@@ -147,12 +147,12 @@ export function FilterBar({
   filters?: string[];
 }) {
   return (
-    <div className="grid gap-2 rounded-2xl border border-[#D8E4F5] bg-white p-3 shadow-[0_8px_24px_rgba(0,51,160,0.04)] lg:grid-cols-[minmax(220px,1fr)_auto]">
+    <div className="grid gap-2 rounded-2xl border border-[var(--color-border)] bg-white p-3 shadow-[var(--shadow-card)] lg:grid-cols-[minmax(220px,1fr)_auto]">
       <label className="relative min-w-0" aria-label={searchPlaceholder}>
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#3D5A80]" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-soft)]" aria-hidden="true" />
         <input
           type="search"
-          className="h-10 w-full rounded-xl border border-[#D8E4F5] bg-white pl-10 pr-3 text-sm font-semibold text-[#061A55] outline-none focus:border-[#0033A0]/40 focus:ring-4 focus:ring-[#0033A0]/10"
+          className="h-10 w-full rounded-xl border border-[var(--color-border)] bg-white pl-10 pr-3 text-sm font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]/40 focus:ring-4 focus:ring-[var(--color-primary)]/10"
           placeholder={searchPlaceholder}
         />
       </label>
@@ -192,12 +192,12 @@ export function DonutSummary({
   segments: Array<{ label: string; value: number; tone: Tone }>;
 }) {
   const colorForTone: Record<Tone, string> = {
-    blue: "#3B6FEA",
-    green: "#20B66A",
-    orange: "#F59E0B",
-    red: "#EF4444",
-    purple: "#7C3AED",
-    slate: "#A7B0BD"
+    blue: "var(--color-info)",
+    green: "var(--color-success)",
+    orange: "var(--color-warning)",
+    red: "var(--color-error)",
+    purple: "var(--color-info)",
+    slate: "var(--color-text-muted)"
   };
   let cursor = 0;
   const total = Math.max(segments.reduce((sum, segment) => sum + segment.value, 0), 1);
@@ -221,13 +221,13 @@ export function DonutSummary({
           <div className="absolute inset-0 grid place-items-center">
             <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white text-center shadow-inner">
               <span
-                className={cn("block font-bold leading-none text-[#061A55]", centerLabelClassName ?? "text-3xl")}
+                className={cn("block font-bold leading-none text-[var(--color-text)]", centerLabelClassName ?? "text-3xl")}
               >
                 {centerLabel ?? center ?? `${value}%`}
               </span>
               <span
                 className={cn(
-                  "mt-1 block max-w-20 text-[11px] font-bold leading-tight text-[#3D5A80]",
+                  "mt-1 block max-w-20 text-[11px] font-bold leading-tight text-[var(--color-text-soft)]",
                   centerSubtitleClassName
                 )}
               >
@@ -238,7 +238,7 @@ export function DonutSummary({
         </div>
         <div className="grid flex-1 gap-2">
           {segments.map((segment) => (
-            <div key={segment.label} className="flex items-center justify-between gap-3 text-sm font-bold text-[#061A55]">
+            <div key={segment.label} className="flex items-center justify-between gap-3 text-sm font-bold text-[var(--color-text)]">
               <span className="inline-flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorForTone[segment.tone] }} />
                 {segment.label}
@@ -252,8 +252,18 @@ export function DonutSummary({
   );
 }
 
-export function CompactTable({ columns, rows, minWidth = "1000px" }: { columns: DataTableColumn[]; rows: DataTableRow[]; minWidth?: string }) {
-  return <DataTable compact columns={columns} rows={rows} minWidth={minWidth} />;
+export function CompactTable({
+  columns,
+  rows,
+  empty,
+  minWidth = "1000px"
+}: {
+  columns: StaticDataTableColumn[];
+  rows: StaticDataTableRow[];
+  empty: string;
+  minWidth?: string;
+}) {
+  return <StaticDataTable compact columns={columns} rows={rows} empty={empty} minWidth={minWidth} />;
 }
 
 export type FixedTableColumn = {
@@ -262,7 +272,7 @@ export type FixedTableColumn = {
   width?: string;
 };
 
-export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn[]; rows: DataTableRow[] }) {
+export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn[]; rows: StaticDataTableRow[] }) {
   return (
     <div className="overflow-hidden bg-white">
       <table className="w-full table-fixed border-collapse">
@@ -272,7 +282,7 @@ export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn
           ))}
         </colgroup>
         <thead>
-          <tr className="bg-[#F8FBFF] text-left text-[10px] font-bold uppercase tracking-wide text-[#3D5A80]">
+          <tr className="bg-[var(--color-bg-elevated)] text-left text-[10px] font-bold uppercase tracking-wide text-[var(--color-text-soft)]">
             {columns.map((column) => (
               <th key={column.header} scope="col" className={cn("px-2.5 py-2", column.className)}>
                 {column.header}
@@ -280,11 +290,11 @@ export function CompactFixedTable({ columns, rows }: { columns: FixedTableColumn
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#E7EEF8]">
+        <tbody className="divide-y divide-[var(--color-border-soft)]">
           {rows.map((row) => (
-            <tr key={row.id} className="bg-white transition hover:bg-[#F8FBFF]">
+            <tr key={row.id} className="bg-white transition hover:bg-[var(--color-bg-elevated)]">
               {(row.cells as React.ReactNode[]).map((cell: React.ReactNode, index: number) => (
-                <td key={`${row.id}-${index}`} className="min-w-0 px-2.5 py-2 align-middle text-[12px] font-semibold leading-5 text-[#061A55]">
+                <td key={`${row.id}-${index}`} className="min-w-0 px-2.5 py-2 align-middle text-[12px] font-semibold leading-5 text-[var(--color-text)]">
                   {cell}
                 </td>
               ))}
@@ -308,12 +318,12 @@ export function Pagination({
   onNext: () => void;
 }) {
   return (
-    <div className="flex items-center justify-center gap-3 border-t border-[#E7EEF8] bg-white px-3 py-2.5 text-xs font-bold text-[#3D5A80]">
+    <div className="flex items-center justify-center gap-3 border-t border-[var(--color-border-soft)] bg-white px-3 py-2.5 text-xs font-bold text-[var(--color-text-soft)]">
       <button
         type="button"
         onClick={onPrevious}
         disabled={page <= 1}
-        className="inline-flex items-center gap-1 rounded-lg border border-[#D8E4F5] px-2.5 py-1.5 text-[#0033A0] transition hover:bg-[#F8FBFF] disabled:cursor-not-allowed disabled:opacity-45"
+        className="inline-flex items-center gap-1 rounded-lg border border-[var(--color-border)] px-2.5 py-1.5 text-[var(--color-primary)] transition hover:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed disabled:opacity-45"
       >
         <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
         Previous
@@ -323,7 +333,7 @@ export function Pagination({
         type="button"
         onClick={onNext}
         disabled={page >= totalPages}
-        className="inline-flex items-center gap-1 rounded-lg border border-[#D8E4F5] px-2.5 py-1.5 text-[#0033A0] transition hover:bg-[#F8FBFF] disabled:cursor-not-allowed disabled:opacity-45"
+        className="inline-flex items-center gap-1 rounded-lg border border-[var(--color-border)] px-2.5 py-1.5 text-[var(--color-primary)] transition hover:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed disabled:opacity-45"
       >
         Next
         <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -342,10 +352,10 @@ export function TruncateText({ children, className, title }: { children: ReactNo
 
 export function RightRailCard({ title, icon, action, children }: { title: string; icon?: ReactNode; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-[#D8E4F5] bg-white p-4 shadow-[0_8px_24px_rgba(0,51,160,0.08)]">
+    <section className="rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-[var(--shadow-card)]">
       <div className="mb-3 flex items-center gap-2">
-        {icon ? <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">{icon}</span> : null}
-        <h3 className="min-w-0 truncate text-lg font-bold text-[#061A55]">{title}</h3>
+        {icon ? <span className="grid h-8 w-8 place-items-center rounded-xl bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/15">{icon}</span> : null}
+        <h3 className="min-w-0 truncate text-lg font-bold text-[var(--color-text)]">{title}</h3>
         {action ? <div className="ml-auto shrink-0">{action}</div> : null}
       </div>
       {children}
@@ -355,7 +365,7 @@ export function RightRailCard({ title, icon, action, children }: { title: string
 
 export function ActionCell() {
   return (
-    <span className="inline-flex items-center gap-2 text-[#0033A0]">
+    <span className="inline-flex items-center gap-2 text-[var(--color-primary)]">
       <Eye className="h-4 w-4" aria-hidden="true" />
       <MoreVertical className="h-4 w-4" aria-hidden="true" />
     </span>
@@ -379,25 +389,25 @@ export function IconActionRow({
     <button
       type="button"
       className={cn(
-        "flex w-full items-center gap-3 rounded-xl border border-[#E7EEF8] bg-white px-3 py-2.5 text-left transition hover:bg-[#F8FBFF] focus:outline-none focus:ring-4 focus:ring-[#0033A0]/10",
+        "flex w-full items-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-white px-3 py-2.5 text-left transition hover:bg-[var(--color-bg-elevated)] focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10",
         className
       )}
     >
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#EAF1FF] text-[#0033A0] ring-1 ring-[#0033A0]/15">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/15">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <TruncateText className="text-[13px] font-bold text-[#061A55]" title={title}>
+        <TruncateText className="text-[13px] font-bold text-[var(--color-text)]" title={title}>
           {title}
         </TruncateText>
         {meta ? (
-          <TruncateText className="text-[11px] font-semibold text-[#3D5A80]" title={meta}>
+          <TruncateText className="text-[11px] font-semibold text-[var(--color-text-soft)]" title={meta}>
             {meta}
           </TruncateText>
         ) : null}
       </span>
       {badge ? <span className="shrink-0">{badge}</span> : null}
-      <ChevronRight className="h-4 w-4 shrink-0 text-[#3D5A80]" aria-hidden="true" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-soft)]" aria-hidden="true" />
     </button>
   );
 }
@@ -406,11 +416,11 @@ export function RailList({ items }: { items: Array<{ title: string; meta?: strin
   return (
     <div className="space-y-2">
       {items.map((item) => (
-        <div key={`${item.title}-${item.meta ?? ""}`} className="rounded-xl border border-[#E7EEF8] bg-white p-3">
+        <div key={`${item.title}-${item.meta ?? ""}`} className="rounded-xl border border-[var(--color-border-soft)] bg-white p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-[#061A55]">{item.title}</p>
-              {item.meta ? <p className="mt-1 text-xs font-semibold leading-5 text-[#3D5A80]">{item.meta}</p> : null}
+              <p className="truncate text-sm font-bold text-[var(--color-text)]">{item.title}</p>
+              {item.meta ? <p className="mt-1 text-xs font-semibold leading-5 text-[var(--color-text-soft)]">{item.meta}</p> : null}
             </div>
             {item.badge ?? (item.tone ? <Pill tone={item.tone}>{item.tone}</Pill> : null)}
           </div>
@@ -422,9 +432,9 @@ export function RailList({ items }: { items: Array<{ title: string; meta?: strin
 
 export function CheckLine({ children, state = "complete" }: { children: ReactNode; state?: "complete" | "warning" | "blocked" | "info" }) {
   const Icon = state === "complete" ? CheckCircle2 : state === "info" ? Clock3 : AlertTriangle;
-  const color = state === "complete" ? "text-emerald-600" : state === "blocked" ? "text-rose-600" : state === "warning" ? "text-[#FF6620]" : "text-[#0033A0]";
+  const color = state === "complete" ? "text-emerald-600" : state === "blocked" ? "text-rose-600" : state === "warning" ? "text-[var(--color-accent)]" : "text-[var(--color-primary)]";
   return (
-    <div className="flex items-start gap-2 text-sm font-semibold text-[#061A55]">
+    <div className="flex items-start gap-2 text-sm font-semibold text-[var(--color-text)]">
       <Icon className={cn("mt-0.5 h-4 w-4 shrink-0", color)} aria-hidden="true" />
       <span>{children}</span>
     </div>
@@ -433,7 +443,7 @@ export function CheckLine({ children, state = "complete" }: { children: ReactNod
 
 export function Thumbnail({ label, tone = "blue" }: { label: string; tone?: Tone }) {
   return (
-    <div className={cn("grid aspect-[4/3] w-28 place-items-center rounded-lg border border-[#D8E4F5] text-center text-[11px] font-bold ring-1", toneClasses[tone])}>
+    <div className={cn("grid aspect-[4/3] w-28 place-items-center rounded-lg border border-[var(--color-border)] text-center text-[11px] font-bold ring-1", toneClasses[tone])}>
       <FileText className="mb-1 h-5 w-5" aria-hidden="true" />
       {label}
     </div>

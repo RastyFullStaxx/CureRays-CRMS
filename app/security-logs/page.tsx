@@ -5,7 +5,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-import { operationalAuditEvents } from '@/lib/clinical-store';
+import { operationalAuditEvents } from '@/lib/services/operational-page-service';
 
 export default function SecurityLogsPage() {
   const auditEvents = operationalAuditEvents();
@@ -26,7 +26,7 @@ export default function SecurityLogsPage() {
       <PageHeader
         title="Security Logs"
         subtitle="HIPAA-compliant audit trail for security events and access tracking"
-        actions={<Button variant="secondary"><Download className="h-4 w-4" /> Export Logs</Button>}
+        actions={<Button variant="secondary" disabled title="Prototype placeholder"><Download className="h-4 w-4" /> Export Logs</Button>}
       />
 
       <StatGrid>
@@ -49,6 +49,8 @@ export default function SecurityLogsPage() {
           { key: 'newValue', label: 'New Value' },
         ]}
         rows={rows}
+        empty="No security events are available."
+        emptyDescription="Redacted security events will appear after prototype access or workflow actions run."
         search={{ placeholder: 'Search security events by user, patient, action, or timestamp...', keys: ['timestamp', 'userName', 'patientRef', 'action', 'entityType', 'entityId'] }}
         filters={[
           { id: 'userName', label: 'User' },

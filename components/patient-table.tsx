@@ -9,7 +9,7 @@ import type {
   TreatmentCourse,
 } from '@/lib/types';
 import { patientName } from '@/lib/workflow';
-import { SectionCard } from '@/components/section-card';
+import { SectionCard } from '@/components/shared/section-card';
 
 export function PatientTable({
   patients,

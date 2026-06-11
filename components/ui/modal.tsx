@@ -36,7 +36,7 @@ export function Modal({ open, onClose, title, children, width = 480 }: ModalProp
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}
+      style={{ background: 'var(--color-overlay)', backdropFilter: 'blur(2px)' }}
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div

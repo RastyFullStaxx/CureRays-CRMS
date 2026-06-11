@@ -1,4 +1,5 @@
-'use client';
+export const dynamic = 'force-dynamic';
+
 import { CheckCircle2, Eye, FileText, NotebookTabs, PenLine, Plus, RefreshCw, Route, Workflow } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
@@ -9,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clinicalDocumentRows, moduleSnapshot, patientLabel, patientMrn, statusLabel, statusTone } from "@/lib/global-page-data";
-import { handJointRows } from '@/lib/page-layout-data';
+import { clinicalDocumentRows, moduleSnapshot, patientLabel, patientMrn, statusLabel, statusTone } from "@/lib/services/operational-page-service";
+import { handJointRows } from '@/lib/services/operational-page-service';
 import { mapTone } from "@/lib/status-utils";
 
 export default function ClinicalFormsPage() {
@@ -24,7 +25,7 @@ export default function ClinicalFormsPage() {
         <PageHeader
           title="Clinical Forms"
           subtitle="Structured clinical documentation and form management"
-          actions={<Button><Plus className="h-4 w-4" /> New Clinical Form</Button>}
+          actions={<Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Clinical Form</Button>}
         />
         <StatGrid>
           <StatCard icon={NotebookTabs} label="Drafts" value={documents.filter((document) => document.status === "NOT_STARTED").length || 8} sub="Structured forms" />
@@ -55,12 +56,14 @@ export default function ClinicalFormsPage() {
               { key: 'assignedStaff', label: 'Assigned Staff' },
               { key: 'actions', label: 'Actions', render: () => (
                 <div className="flex flex-wrap gap-1.5">
-                  <Button variant="secondary" size="sm"><Eye className="h-3.5 w-3.5" /> Open</Button>
-                  <Button variant="secondary" size="sm"><PenLine className="h-3.5 w-3.5" /> Edit Fields</Button>
+                  <Button variant="secondary" size="sm" disabled title="Prototype placeholder"><Eye className="h-3.5 w-3.5" /> Open</Button>
+                  <Button variant="secondary" size="sm" disabled title="Prototype placeholder"><PenLine className="h-3.5 w-3.5" /> Edit Fields</Button>
                 </div>
               )},
             ]}
             rows={documents}
+            empty="No clinical forms are available."
+            emptyDescription="Structured forms will appear after document instances are generated."
             pageSize={10}
             search={{
               placeholder: 'Search form, document, patient, MRN, status, or reviewer...',
@@ -108,7 +111,7 @@ export default function ClinicalFormsPage() {
               <p style={{ color: 'var(--color-text)' }}><strong>Exam:</strong> Hand X-ray 3-View</p>
               <div className="mt-2 flex items-center gap-2 text-[var(--color-text-muted)]">
                 <Route className="h-3 w-3" />
-                <span>Workflow: Draft &#8594; Pending Review &#8594; Final</span>
+                <span>Workflow: Draft -&gt; Pending Review -&gt; Final</span>
               </div>
             </div>
           </Card>

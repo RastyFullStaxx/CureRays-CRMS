@@ -32,7 +32,7 @@ export function TreatmentDeliveryTabs({ active }: { active: TreatmentDeliveryTab
             style={{
               background: active === tab.id ? "var(--color-bg-elevated)" : "transparent",
               color: active === tab.id ? "var(--color-text)" : "var(--color-text-muted)",
-              boxShadow: active === tab.id ? "0 1px 2px rgba(15, 23, 42, 0.08)" : "none",
+              boxShadow: active === tab.id ? "var(--shadow-card)" : "none",
               textDecoration: "none"
             }}
           >

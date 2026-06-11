@@ -72,7 +72,7 @@ const landingCriticalCss = `
 }
 
 .landing-description {
-  color: rgba(43, 47, 95, 0.82);
+  color: color-mix(in srgb, var(--color-text) 82%, transparent);
   font-size: 1.0625rem;
   font-weight: 600;
   line-height: 1.75;
@@ -82,7 +82,7 @@ const landingCriticalCss = `
 
 .landing-trust-list {
   align-items: center;
-  color: rgba(43, 47, 95, 0.76);
+  color: color-mix(in srgb, var(--color-text) 76%, transparent);
   display: flex;
   flex-wrap: wrap;
   font-size: 0.875rem;
@@ -100,7 +100,7 @@ const landingCriticalCss = `
 }
 
 .landing-trust-dot {
-  background: rgba(43, 47, 95, 0.48);
+  background: color-mix(in srgb, var(--color-text) 48%, transparent);
   border-radius: 999px;
   display: block;
   height: 4px;
@@ -109,10 +109,10 @@ const landingCriticalCss = `
 
 .landing-trust-icon {
   align-items: center;
-  background: rgba(255, 255, 255, 0.84);
+  background: color-mix(in srgb, var(--color-card) 84%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  box-shadow: 0 10px 24px rgba(43, 47, 95, 0.06);
+  box-shadow: var(--shadow-card);
   color: var(--color-primary);
   display: grid;
   height: 36px;
@@ -136,7 +136,7 @@ const landingCriticalCss = `
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 16px 40px rgba(43, 47, 95, 0.08);
+  box-shadow: var(--shadow-card);
   box-sizing: border-box;
   color: var(--color-text);
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3.2vw, 2.5rem);
@@ -153,7 +153,7 @@ const landingCriticalCss = `
 }
 
 .landing-login-card p {
-  color: rgba(61, 90, 128, 0.78);
+  color: color-mix(in srgb, var(--color-text-soft) 78%, transparent);
 }
 
 .landing-login-subtitle {
@@ -190,7 +190,7 @@ const landingCriticalCss = `
 }
 
 .landing-input-icon {
-  color: rgba(43, 47, 95, 0.58);
+  color: color-mix(in srgb, var(--color-text) 58%, transparent);
   height: 20px;
   left: 1rem;
   pointer-events: none;
@@ -218,12 +218,12 @@ const landingCriticalCss = `
 }
 
 .landing-input::placeholder {
-  color: rgba(61, 90, 128, 0.48);
+  color: color-mix(in srgb, var(--color-text-soft) 48%, transparent);
 }
 
 .landing-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(0, 51, 160, 0.1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .landing-password-toggle {
@@ -231,7 +231,7 @@ const landingCriticalCss = `
   background: transparent;
   border: 0;
   border-radius: 999px;
-  color: rgba(43, 47, 95, 0.64);
+  color: color-mix(in srgb, var(--color-text) 64%, transparent);
   cursor: pointer;
   display: grid;
   height: 36px;
@@ -256,7 +256,7 @@ const landingCriticalCss = `
   background: var(--color-primary);
   border: 0;
   border-radius: 8px;
-  box-shadow: 0 10px 22px rgba(0, 51, 160, 0.18);
+  box-shadow: var(--shadow-card);
   color: var(--color-card);
   cursor: pointer;
   font: inherit;
@@ -276,7 +276,7 @@ const landingCriticalCss = `
 
 .landing-divider {
   align-items: center;
-  color: rgba(61, 90, 128, 0.62);
+  color: color-mix(in srgb, var(--color-text-soft) 62%, transparent);
   display: grid;
   font-size: 0.75rem;
   font-weight: 800;
@@ -313,7 +313,7 @@ const landingCriticalCss = `
 
 .landing-secure-note {
   align-items: center;
-  color: rgba(61, 90, 128, 0.66);
+  color: color-mix(in srgb, var(--color-text-soft) 66%, transparent);
   display: flex;
   font-size: 0.875rem;
   font-weight: 600;
@@ -325,7 +325,7 @@ const landingCriticalCss = `
 }
 
 .landing-secure-note svg {
-  color: rgba(43, 47, 95, 0.46);
+  color: color-mix(in srgb, var(--color-text) 46%, transparent);
   flex: 0 0 auto;
   height: 16px;
   width: 16px;
@@ -474,7 +474,7 @@ export default function LandingPage() {
                   {index > 0 ? (
                     <span className="landing-trust-dot hidden h-1 w-1 rounded-full bg-[var(--color-text-muted)] sm:block" aria-hidden="true" />
                   ) : null}
-                  <span className="landing-trust-icon grid h-9 w-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/84 text-[var(--color-primary)] shadow-[0_10px_24px_rgba(43,47,95,0.06)]">
+                  <span className="landing-trust-icon grid h-9 w-9 place-items-center rounded-full border border-[var(--color-border)] bg-white/84 text-[var(--color-primary)] shadow-[var(--shadow-card)]">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span>{item.label}</span>
