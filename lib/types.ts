@@ -601,6 +601,20 @@ export type GeneratedDocumentOutput = {
   renderedAt: string;
 };
 
+export type FractionWorksheetCalculationStatus = "AUTO_LOOKUP" | "MANUAL_OVERRIDE" | "NEEDS_OVERRIDE" | "LEGACY_IMPORTED";
+
+export type FractionWorksheetApprovalState = "PENDING" | "APPROVED" | "REVISION_NEEDED";
+
+export type FractionWorksheetCalculationMeta = {
+  sourceTemplate: string;
+  sourceTabs: string[];
+  depthRoundedMm: number;
+  lookupKey?: string;
+  calculatedAt: string;
+  clinicalValidationRequired: boolean;
+  warnings: string[];
+};
+
 export type FractionLogEntry = {
   id: string;
   courseId: string;
@@ -608,16 +622,33 @@ export type FractionLogEntry = {
   date: string;
   phase: string;
   energy: string;
+  energyKv?: number;
   ssd: string;
+  ssdCm?: number;
+  fieldSizeCm?: string;
+  treatmentTimeMinutes?: number;
   dosePerFraction: number;
+  dosePerFractionCgy?: number;
   cumulativeDose: number;
+  cumulativeDoseCgy?: number;
   technicianInitials: string;
   mdApproval: boolean;
+  mdApprovalState?: FractionWorksheetApprovalState;
   dotApproval: boolean;
+  dotApprovalState?: FractionWorksheetApprovalState;
   depthOfTarget: string;
+  depthOfTargetMm?: number;
   isodosePercent: number;
+  isodoseToDotPercent?: number;
   doseToDepth: number;
+  doseToDotCgy?: number;
   cumulativeDoseToDepth: number;
+  cumulativeDoseToDotCgy?: number;
+  treatmentSetupComments?: string;
+  isodoseOverrideReason?: string;
+  calculationStatus?: FractionWorksheetCalculationStatus;
+  calculationMeta?: FractionWorksheetCalculationMeta;
+  isodoseNote?: string;
   notes: string;
 };
 
