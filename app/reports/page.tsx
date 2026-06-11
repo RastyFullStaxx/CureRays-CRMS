@@ -1,130 +1,130 @@
 export const dynamic = 'force-dynamic';
 
-import { UsersRound, CalendarDays, ClipboardList, FileText, PenLine } from 'lucide-react';
 import Link from 'next/link';
+import {
+  BarChart3,
+  ClipboardList,
+  FileText,
+  ShieldCheck,
+  TrendingUp,
+  UsersRound,
+} from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  carepathTasks,
-  fractionLogEntries,
-  generatedDocuments,
-  operationalPatients,
-} from '@/lib/services/operational-page-service';
+import { getAnalyticsTelemetry } from '@/lib/services/analytics-telemetry-service';
+
+const reportTiles = [
+  {
+    title: 'Workflow Performance',
+    detail: 'Carepath flow, owner pressure, and tokenized inspection queues.',
+    href: '/analytics?panel=workflow',
+    icon: ClipboardList,
+  },
+  {
+    title: 'Treatment Analytics',
+    detail: 'Fraction throughput, approvals, held courses, and course progress.',
+    href: '/analytics?panel=treatment',
+    icon: TrendingUp,
+  },
+  {
+    title: 'Document Intelligence',
+    detail: 'Lifecycle funnel, signature aging, template coverage, and evidence gaps.',
+    href: '/analytics?panel=documents',
+    icon: FileText,
+  },
+  {
+    title: 'Billing & Risk',
+    detail: 'Audit closeout readiness, billing state, risk graph, and PHI boundary assurance.',
+    href: '/analytics?panel=billing-risk',
+    icon: ShieldCheck,
+  },
+];
 
 export default function ReportsPage() {
-  const patients = operationalPatients();
-  const scopedPatients = patients;
-  const onTreatment = scopedPatients.filter((p) => p.chartRoundsPhase === 'ON_TREATMENT').length;
-  const overdueTasks = carepathTasks.filter((t) => t.status === 'BLOCKED').length;
+  const telemetry = getAnalyticsTelemetry();
+  const [cohort, pressure, audit, intervention] = telemetry.overview.kpis;
 
   return (
     <PageStack>
       <PageHeader
         title="Reports"
-        subtitle="Operational intelligence and clinical workflow signals"
+        subtitle="Current-state reporting doorway for the deeper Analytics cockpit"
+        actions={(
+          <Link href="/analytics">
+            <Button>
+              <BarChart3 className="h-4 w-4" />
+              Open Analytics
+            </Button>
+          </Link>
+        )}
       />
 
       <StatGrid>
-        <StatCard icon={UsersRound} label="Active Patients" value={scopedPatients.length} tone="primary" />
-        <StatCard icon={CalendarDays} label="On Treatment" value={onTreatment} tone="success" />
-        <StatCard icon={ClipboardList} label="Pending Tasks" value={carepathTasks.length} tone="warning" />
-        <StatCard icon={FileText} label="Documents Ready" value={generatedDocuments.length} tone="info" />
-        <StatCard icon={PenLine} label="Overdue Tasks" value={overdueTasks} tone="error" />
+        <StatCard icon={UsersRound} label={cohort.label} value={cohort.value} sub={cohort.detail} tone="primary" />
+        <StatCard icon={ClipboardList} label={pressure.label} value={pressure.value} sub={pressure.detail} tone="warning" />
+        <StatCard icon={ShieldCheck} label={audit.label} value={audit.value} sub={audit.detail} tone="success" />
+        <StatCard icon={TrendingUp} label={intervention.label} value={intervention.value} sub={intervention.detail} tone="error" />
       </StatGrid>
 
-      {scopedPatients.length === 0 ? (
+      <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
-          <h2 className="font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
-            No report cohort is available
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="clinical-label">Reports Relationship</p>
+              <h2 className="mt-2 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
+                Reports summarize; Analytics explains.
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold text-[var(--color-text-muted)]">
+                This page keeps the lightweight report doorway. The Analytics cockpit is the center for bottleneck
+                patterns, model-labeled projections, and operational insight across workflow, treatment, documents,
+                staffing, billing, audit, and risk.
+              </p>
+            </div>
+            <span className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)]">
+              Model as of {telemetry.asOfLabel}
+            </span>
+          </div>
+        </Card>
+
+        <Card>
+          <p className="clinical-label">Prototype Forecast Guardrail</p>
+          <h2 className="mt-2 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
+            Projection charts are labeled.
           </h2>
           <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
-            Operational report charts will appear after patient records are available.
+            {telemetry.sampleNotice}
           </p>
         </Card>
-      ) : (
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card>
-          <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
-            Patient Phase Distribution
-          </h2>
-          <div className="space-y-2">
-            {[
-              { label: 'Upcoming', value: scopedPatients.filter((p) => p.chartRoundsPhase === 'UPCOMING').length, color: 'var(--color-info)' },
-              { label: 'On Treatment', value: onTreatment, color: 'var(--color-success)' },
-              { label: 'Post', value: scopedPatients.filter((p) => p.chartRoundsPhase === 'POST').length, color: 'var(--color-primary)' },
-            ].map((segment) => (
-              <div key={segment.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
-                </div>
-                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
-            Documentation Readiness
-          </h2>
-          <div className="space-y-2">
-            {[
-              { label: 'Signed', value: generatedDocuments.filter((d) => d.signReviewState === 'SIGNED').length, color: 'var(--color-success)' },
-              { label: 'Pending Review', value: generatedDocuments.filter((d) => d.signReviewState === 'READY_FOR_SIGNATURE').length, color: 'var(--color-info)' },
-              { label: 'Needs Action', value: generatedDocuments.filter((d) => d.signReviewState === 'REVIEW_REQUIRED').length, color: 'var(--color-warning)' },
-            ].map((segment) => (
-              <div key={segment.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
-                </div>
-                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="mb-3 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
-            Task Pressure
-          </h2>
-          <div className="space-y-2">
-            {[
-              { label: 'Open Tasks', value: carepathTasks.filter((task) => !['COMPLETED', 'SIGNED', 'CLOSED'].includes(task.status)).length, color: 'var(--color-info)' },
-              { label: 'Blocked', value: overdueTasks, color: 'var(--color-error)' },
-              { label: 'Completed', value: carepathTasks.filter((task) => task.status === 'COMPLETED').length, color: 'var(--color-success)' },
-            ].map((segment) => (
-              <div key={segment.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded" style={{ background: segment.color }} />
-                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text)' }}>{segment.label}</span>
-                </div>
-                <span className="text-xs font-bold" style={{ color: 'var(--color-text-muted)' }}>{segment.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
       </div>
-      )}
 
-      <Card>
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>Need deeper patterns?</h2>
-            <p className="mt-2" style={{ fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}>
-              Reports show current state. Analytics explains bottlenecks, risks, and solution opportunities.
-            </p>
-          </div>
-          <Link href="/analytics">
-            <Button>Open Analytics</Button>
-          </Link>
-        </div>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {reportTiles.map((tile) => {
+          const Icon = tile.icon;
+
+          return (
+            <Card key={tile.title} className="flex min-h-[190px] flex-col justify-between">
+              <div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]">
+                  <Icon size={18} />
+                </span>
+                <h2 className="mt-4 font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 18 }}>
+                  {tile.title}
+                </h2>
+                <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
+                  {tile.detail}
+                </p>
+              </div>
+              <Link className="mt-4 inline-flex text-sm font-bold text-[var(--color-primary)]" href={tile.href}>
+                Open panel
+              </Link>
+            </Card>
+          );
+        })}
+      </div>
     </PageStack>
   );
 }

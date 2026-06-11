@@ -46,7 +46,6 @@ import {
   cn,
   documentProgress,
   formatDate,
-  patientName,
   responsiblePartyLabels,
 } from '@/lib/workflow';
 
@@ -92,6 +91,10 @@ const tabs: Array<{ id: WorkspaceTab; label: string; icon: typeof ClipboardList 
   { id: 'billing-audit', label: 'Billing / Audit', icon: WalletCards },
   { id: 'activity', label: 'Activity', icon: ShieldCheck },
 ];
+
+function patientDisplayName(patient: Patient) {
+  return `${patient.firstName} ${patient.lastName}`;
+}
 
 const phaseOrder = ['Consult', 'Chart Prep', 'Simulation', 'Planning', 'On Tx', 'Post', 'Audit'];
 
@@ -536,7 +539,7 @@ export function PatientWorkspace({
                 Patients
               </Link>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-heading text-2xl font-bold text-[var(--color-text)]">{patientName(patient)}</h1>
+                <h1 className="truncate font-heading text-2xl font-bold text-[var(--color-text)]">{patientDisplayName(patient)}</h1>
                 <Badge variant={statusVariant(patient.status)}>{titleCase(patient.status)}</Badge>
                 <Badge variant="primary">PHI controlled</Badge>
               </div>

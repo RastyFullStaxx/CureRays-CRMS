@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { PhaseBadge, StatusBadge } from "@/components/badges";
 import type { Course, Patient } from "@/lib/types";
-import { patientName } from "@/lib/workflow";
+import { patientName } from "@/lib/server/patient-phi-formatting";
 
 export function PatientSummaryHeader({ patient, course }: { patient: Patient; course: Course }) {
   return (

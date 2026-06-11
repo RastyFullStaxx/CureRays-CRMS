@@ -139,12 +139,8 @@ export const openDocumentRiskStatuses: DocumentStatus[] = [
   "NEEDS_REVIEW"
 ];
 
-export function patientName(patient: Patient) {
-  return `${patient.firstName} ${patient.lastName}`;
-}
-
 export function patientDisplayLabel(patient: WorkflowPatient) {
-  return "displayLabel" in patient ? patient.displayLabel : patientName(patient);
+  return "displayLabel" in patient ? patient.displayLabel : `Patient ${patient.id}`;
 }
 
 export function patientActionSummary(patient: WorkflowPatient) {

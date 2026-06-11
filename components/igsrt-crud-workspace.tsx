@@ -6,7 +6,6 @@ import type { GeneratedDocumentOutput, IgsrtWorkspace, PrescriptionPhase } from 
 import { DocumentStatusBadge } from "@/components/badges";
 import { FractionLogTable } from "@/components/fraction-log-table";
 import { DocumentLifecycleTable } from "@/components/document-lifecycle-table";
-import { patientName } from "@/lib/workflow";
 
 type ApiResult = {
   data?: IgsrtWorkspace | GeneratedDocumentOutput;
@@ -31,6 +30,10 @@ function splitList(value: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function patientDisplayName(workspace: IgsrtWorkspace) {
+  return `Patient ${workspace.patient.id}`;
 }
 
 export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: IgsrtWorkspace }) {
@@ -70,7 +73,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
       setWorkspace(result.data);
     }
 
-    if (result.data && "contentPreview" in result.data) {
+    if (result.data && "format" in result.data) {
       setPreview(result.data);
     }
   }
@@ -216,7 +219,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
           <div>
             <p className="text-sm font-semibold text-curerays-orange">System of record workspace</p>
             <h2 className="mt-2 text-2xl font-semibold text-curerays-dark-plum">
-              {patientName(workspace.patient)} - {workspace.course.protocolName}
+              {patientDisplayName(workspace)} - {workspace.course.protocolName}
             </h2>
             <p className="mt-2 text-sm leading-6 text-curerays-indigo">
               Structured IGSRT records now drive document status, task blockers, dose totals, and generated exports.
@@ -559,12 +562,14 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
         </div>
 
         <section className="glass-panel rounded-glass p-5">
-          <p className="text-sm font-semibold text-curerays-orange">Generated preview</p>
+          <p className="text-sm font-semibold text-curerays-orange">Generated output</p>
           <h3 className="mt-1 text-xl font-semibold text-curerays-dark-plum">
             {preview ? `${preview.format} v${preview.version}` : "No output rendered"}
           </h3>
           <pre className="scrollbar-soft mt-4 max-h-[520px] overflow-auto whitespace-pre-wrap rounded-lg bg-white/66 p-4 text-sm leading-6 text-curerays-dark-plum">
-            {preview?.contentPreview ?? "Render a document to preview system-filled output."}
+            {preview
+              ? `Rendered ${preview.format} output version ${preview.version} at ${preview.renderedAt}.`
+              : "Render a document to create output metadata."}
           </pre>
         </section>
       </section>

@@ -59,7 +59,8 @@ import {
   toOperationalPriorityFlag
 } from "@/lib/hipaa";
 import { canApproveFraction } from "@/lib/rbac";
-import { courseDocuments, courseFractions, patientName } from "@/lib/workflow";
+import { courseDocuments, courseFractions } from "@/lib/workflow";
+import { patientName } from "@/lib/server/patient-phi-formatting";
 import { fileStorageService } from "@/lib/services/file-storage-service";
 import {
   deriveWorkflowDocumentStates,

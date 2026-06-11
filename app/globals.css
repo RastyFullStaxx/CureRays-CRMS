@@ -2380,3 +2380,913 @@ button, input, select, textarea {
     transform: none;
   }
 }
+
+/* ============================================================
+   ANALYTICS CLINICAL COCKPIT
+   ============================================================ */
+
+.analytics-command {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analytics-command-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 48px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.analytics-command-header h1 {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1;
+  margin-top: 3px;
+}
+
+.analytics-command-header span {
+  color: var(--color-text-muted);
+  display: block;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  margin-top: 4px;
+  max-width: 840px;
+}
+
+.analytics-command-actions {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  min-width: 0;
+}
+
+.analytics-command-tabs {
+  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  max-width: min(64vw, 760px);
+  overflow-x: auto;
+  padding: 3px;
+}
+
+.analytics-command-tabs::-webkit-scrollbar {
+  height: 0;
+}
+
+.analytics-command-tabs button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  height: 30px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.analytics-command-tabs button[aria-selected="true"] {
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-card);
+  color: var(--color-text);
+}
+
+.analytics-command-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.analytics-model-banner {
+  align-items: center;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 10%, transparent), color-mix(in srgb, var(--color-accent) 8%, transparent)),
+    var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 10px 12px;
+}
+
+.analytics-model-banner span {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.analytics-model-banner p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
+}
+
+.analytics-panel {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+}
+
+.analytics-panel-overview {
+  grid-template-areas:
+    "kpis kpis"
+    "forecast insights"
+    "mix insights";
+  grid-template-columns: minmax(0, 1.42fr) minmax(310px, 0.72fr);
+}
+
+.analytics-panel-workflow {
+  grid-template-areas:
+    "sankey insights"
+    "heatmap drilldown"
+    "pareto drilldown";
+  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.82fr);
+}
+
+.analytics-panel-treatment {
+  grid-template-areas:
+    "kpis kpis"
+    "throughput insights"
+    "progress insights";
+  grid-template-columns: minmax(0, 1.36fr) minmax(320px, 0.78fr);
+}
+
+.analytics-panel-documents {
+  grid-template-areas:
+    "lifecycle aging insights"
+    "evidence evidence insights"
+    "templates templates insights";
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.78fr) minmax(310px, 0.72fr);
+}
+
+.analytics-panel-staffing {
+  grid-template-areas:
+    "role insights"
+    "capacity provider";
+  grid-template-columns: minmax(0, 1.34fr) minmax(320px, 0.78fr);
+}
+
+.analytics-panel-billing {
+  grid-template-areas:
+    "risk insights"
+    "billing audit"
+    "phi phi";
+  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.82fr);
+}
+
+.analytics-kpi-strip {
+  display: grid;
+  gap: 10px;
+  grid-area: kpis;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.analytics-card,
+.analytics-kpi,
+.analytics-insight-rail {
+  background:
+    linear-gradient(180deg, var(--color-surface-sheen-start), var(--color-surface-sheen-end)),
+    var(--color-card);
+  border: var(--border-container);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.analytics-card,
+.analytics-insight-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(12px, 1.1vw, 18px);
+}
+
+.analytics-card-title,
+.analytics-insight-head {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  gap: 10px;
+  min-width: 0;
+}
+
+.analytics-card-title h2,
+.analytics-insight-head h2 {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: clamp(14px, 1vw, 17px);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.analytics-card-title p,
+.analytics-insight-head p {
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-card-icon {
+  align-items: center;
+  background: var(--color-stat-icon-bg);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.analytics-chart-frame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.analytics-chart-legend {
+  border-top: 1px solid var(--color-border-soft);
+  display: grid;
+  flex-shrink: 0;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 10px;
+}
+
+.analytics-chart-legend span {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.analytics-chart-legend b {
+  color: var(--color-text);
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.analytics-kpi {
+  border-left: 4px solid var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 112px;
+  padding: 14px;
+}
+
+.analytics-kpi.is-success,
+.analytics-insight.is-success,
+.analytics-queue-item.is-success,
+.analytics-progress-row.is-success,
+.analytics-provider-row.is-success,
+.analytics-billing-chip.is-success,
+.analytics-phi-signal.is-success {
+  border-color: var(--color-success);
+}
+
+.analytics-kpi.is-warning,
+.analytics-insight.is-warning,
+.analytics-queue-item.is-warning,
+.analytics-progress-row.is-warning,
+.analytics-provider-row.is-warning,
+.analytics-billing-chip.is-warning,
+.analytics-phi-signal.is-warning {
+  border-color: var(--color-warning);
+}
+
+.analytics-kpi.is-error,
+.analytics-insight.is-error,
+.analytics-queue-item.is-error,
+.analytics-progress-row.is-error,
+.analytics-provider-row.is-error,
+.analytics-billing-chip.is-error,
+.analytics-phi-signal.is-error {
+  border-color: var(--color-error);
+}
+
+.analytics-kpi.is-info,
+.analytics-insight.is-info,
+.analytics-queue-item.is-info,
+.analytics-progress-row.is-info,
+.analytics-provider-row.is-info,
+.analytics-billing-chip.is-info,
+.analytics-phi-signal.is-info {
+  border-color: var(--color-info);
+}
+
+.analytics-kpi.is-neutral,
+.analytics-insight.is-neutral,
+.analytics-queue-item.is-neutral,
+.analytics-progress-row.is-neutral,
+.analytics-provider-row.is-neutral,
+.analytics-billing-chip.is-neutral,
+.analytics-phi-signal.is-neutral {
+  border-color: var(--color-border);
+}
+
+.analytics-kpi span,
+.analytics-insight span,
+.analytics-queue-state,
+.analytics-progress-row span,
+.analytics-provider-row span,
+.analytics-billing-chip span,
+.analytics-phi-signal span,
+.analytics-template-row span {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.analytics-kpi strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: 1;
+}
+
+.analytics-kpi p,
+.analytics-kpi em {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.analytics-forecast-card {
+  grid-area: forecast;
+  min-height: 420px;
+}
+
+.analytics-mix-card {
+  grid-area: mix;
+  min-height: 260px;
+}
+
+.analytics-insight-rail {
+  grid-area: insights;
+  max-height: min(76vh, 780px);
+}
+
+.analytics-insight-list,
+.analytics-queue-list,
+.analytics-progress-list,
+.analytics-template-list,
+.analytics-provider-list,
+.analytics-phi-grid {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.analytics-insight {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+}
+
+.analytics-insight strong,
+.analytics-queue-item strong,
+.analytics-progress-row strong,
+.analytics-provider-row strong,
+.analytics-template-row strong,
+.analytics-phi-signal strong,
+.analytics-billing-chip strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.analytics-insight p,
+.analytics-insight em,
+.analytics-insight b,
+.analytics-insight small,
+.analytics-queue-item p,
+.analytics-queue-item em,
+.analytics-progress-row p,
+.analytics-progress-row b,
+.analytics-provider-row b,
+.analytics-template-row span,
+.analytics-phi-signal p,
+.analytics-billing-chip em {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.analytics-insight b {
+  color: var(--color-text);
+}
+
+.analytics-mix-grid {
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.analytics-donut {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(138px, 0.72fr) minmax(0, 1fr);
+  min-height: 0;
+}
+
+.analytics-donut-plot {
+  aspect-ratio: 1;
+  min-height: 138px;
+  min-width: 138px;
+  position: relative;
+}
+
+.analytics-donut-center {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+}
+
+.analytics-donut-center strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.analytics-donut-center span,
+.analytics-donut-legend span {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.analytics-donut-legend {
+  display: grid;
+  gap: 8px;
+}
+
+.analytics-donut-legend span {
+  align-items: center;
+  display: flex;
+  gap: 7px;
+  justify-content: space-between;
+}
+
+.analytics-donut-legend i {
+  border-radius: 999px;
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 9px;
+  width: 9px;
+}
+
+.analytics-sankey-card {
+  grid-area: sankey;
+  min-height: 430px;
+}
+
+.analytics-heatmap-card {
+  grid-area: heatmap;
+  min-height: 370px;
+}
+
+.analytics-pareto-card {
+  grid-area: pareto;
+  min-height: 310px;
+}
+
+.analytics-drilldown {
+  grid-area: drilldown;
+  min-height: 430px;
+}
+
+.analytics-echart {
+  height: 100%;
+  min-height: 260px;
+  width: 100%;
+}
+
+.analytics-echart-sankey {
+  min-height: 340px;
+}
+
+.analytics-echart-heatmap,
+.analytics-echart-graph {
+  min-height: 300px;
+}
+
+.analytics-queue-item {
+  align-items: center;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  padding: 10px;
+}
+
+.analytics-queue-rank {
+  align-items: center;
+  background: var(--color-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.analytics-queue-item div,
+.analytics-progress-row div,
+.analytics-provider-row div,
+.analytics-template-row div {
+  min-width: 0;
+}
+
+.analytics-queue-item p,
+.analytics-queue-item em,
+.analytics-progress-row span,
+.analytics-template-row span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-queue-state {
+  display: grid;
+  gap: 3px;
+  justify-items: end;
+  text-align: right;
+}
+
+.analytics-queue-state b {
+  color: var(--color-text);
+  font-size: 11px;
+}
+
+.analytics-treatment-card {
+  grid-area: throughput;
+  min-height: 360px;
+}
+
+.analytics-progress-card {
+  grid-area: progress;
+  min-height: 300px;
+}
+
+.analytics-progress-row,
+.analytics-provider-row,
+.analytics-template-row {
+  align-items: center;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+.analytics-progress-row {
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.72fr) 66px 108px;
+}
+
+.analytics-progress-row em,
+.analytics-provider-row em,
+.analytics-template-row em {
+  background: var(--color-border-soft);
+  border-radius: 999px;
+  display: flex;
+  height: 9px;
+  overflow: hidden;
+}
+
+.analytics-progress-row i,
+.analytics-provider-row i,
+.analytics-template-row i {
+  background: var(--color-primary);
+  display: block;
+  height: 100%;
+}
+
+.analytics-progress-row.is-success i,
+.analytics-provider-row.is-success i {
+  background: var(--color-success);
+}
+
+.analytics-progress-row.is-warning i,
+.analytics-provider-row.is-warning i {
+  background: var(--color-warning);
+}
+
+.analytics-progress-row.is-error i,
+.analytics-provider-row.is-error i {
+  background: var(--color-error);
+}
+
+.analytics-lifecycle-card {
+  grid-area: lifecycle;
+  min-height: 320px;
+}
+
+.analytics-aging-card {
+  grid-area: aging;
+  min-height: 320px;
+}
+
+.analytics-evidence-card {
+  grid-area: evidence;
+  min-height: 370px;
+}
+
+.analytics-template-card {
+  grid-area: templates;
+  min-height: 260px;
+}
+
+.analytics-template-row {
+  border-left: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.84fr);
+}
+
+.analytics-template-row .is-active {
+  background: var(--color-success);
+}
+
+.analytics-template-row .is-mapping {
+  background: var(--color-info);
+}
+
+.analytics-template-row .is-draft {
+  background: var(--color-warning);
+}
+
+.analytics-template-row .is-missing {
+  background: var(--color-error);
+}
+
+.analytics-role-card {
+  grid-area: role;
+  min-height: 380px;
+}
+
+.analytics-capacity-card {
+  grid-area: capacity;
+  min-height: 340px;
+}
+
+.analytics-provider-card {
+  grid-area: provider;
+  min-height: 340px;
+}
+
+.analytics-provider-row {
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.72fr) 52px;
+}
+
+.analytics-risk-card {
+  grid-area: risk;
+  min-height: 460px;
+}
+
+.analytics-billing-card {
+  grid-area: billing;
+  min-height: 300px;
+}
+
+.analytics-audit-card {
+  grid-area: audit;
+  min-height: 300px;
+}
+
+.analytics-phi-card {
+  grid-area: phi;
+  min-height: 220px;
+}
+
+.analytics-billing-grid {
+  align-items: center;
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(180px, 1fr);
+  min-height: 0;
+}
+
+.analytics-billing-chip {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 5px;
+  margin-bottom: 8px;
+  padding: 10px;
+}
+
+.analytics-phi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.analytics-phi-signal {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+}
+
+.analytics-phi-signal strong {
+  font-size: 20px;
+}
+
+@media (max-width: 1180px) {
+  .analytics-command-body {
+    overflow: auto;
+  }
+
+  .analytics-panel,
+  .analytics-panel-overview,
+  .analytics-panel-workflow,
+  .analytics-panel-treatment,
+  .analytics-panel-documents,
+  .analytics-panel-staffing,
+  .analytics-panel-billing {
+    grid-template-areas: none;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analytics-kpi-strip,
+  .analytics-forecast-card,
+  .analytics-mix-card,
+  .analytics-insight-rail,
+  .analytics-sankey-card,
+  .analytics-heatmap-card,
+  .analytics-pareto-card,
+  .analytics-drilldown,
+  .analytics-treatment-card,
+  .analytics-progress-card,
+  .analytics-lifecycle-card,
+  .analytics-aging-card,
+  .analytics-evidence-card,
+  .analytics-template-card,
+  .analytics-role-card,
+  .analytics-capacity-card,
+  .analytics-provider-card,
+  .analytics-risk-card,
+  .analytics-billing-card,
+  .analytics-audit-card,
+  .analytics-phi-card {
+    grid-area: auto;
+  }
+
+  .analytics-insight-rail {
+    max-height: none;
+  }
+
+  .analytics-phi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px), (max-height: 720px) {
+  .analytics-command {
+    gap: 8px;
+  }
+
+  .analytics-command-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .analytics-command-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analytics-command-tabs {
+    max-width: 100%;
+  }
+
+  .analytics-command-tabs button {
+    padding: 0 8px;
+  }
+
+  .analytics-model-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .analytics-model-banner p {
+    text-align: left;
+  }
+
+  .analytics-kpi-strip,
+  .analytics-mix-grid,
+  .analytics-chart-legend,
+  .analytics-phi-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analytics-kpi {
+    min-height: 94px;
+  }
+
+  .analytics-donut,
+  .analytics-billing-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analytics-queue-item {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .analytics-queue-state {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .analytics-progress-row,
+  .analytics-provider-row,
+  .analytics-template-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .analytics-forecast-card,
+  .analytics-sankey-card,
+  .analytics-risk-card {
+    min-height: 390px;
+  }
+
+  .analytics-echart-sankey,
+  .analytics-echart-graph {
+    min-height: 260px;
+  }
+
+  .analytics-card-title p,
+  .analytics-insight-head p {
+    white-space: normal;
+  }
+}

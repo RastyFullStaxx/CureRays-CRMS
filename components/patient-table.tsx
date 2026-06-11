@@ -8,7 +8,7 @@ import type {
   Patient,
   TreatmentCourse,
 } from '@/lib/types';
-import { patientName } from '@/lib/workflow';
+import { patientName } from '@/lib/server/patient-phi-formatting';
 import { SectionCard } from '@/components/shared/section-card';
 
 export function PatientTable({

@@ -84,6 +84,7 @@ Verification run on 2026-06-12:
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
 - `[x]` `npm run test:phase6` passed.
+- `[x]` `npm run test:later-phases` passed.
 - `[x]` `npm run test:routes` passed.
 - `[x]` `npm run test:phase1` passed.
 - `[x]` `npm run test:phase2` passed.
@@ -98,9 +99,11 @@ Current inventory:
 - 17 service files under `lib/services`.
 - 1 shared RBAC helper in `lib/rbac.ts`.
 - 1 server-only patient registration service in `lib/server/patient-registration-service.ts`.
+- 3 later-phase server-only grounding helpers for workflow commands, document lifecycle, and closeout readiness.
 - 1 Phase 0 baseline guardrail in `scripts/phase0-guardrails.mjs`.
 - 1 Phase 2 patient registration guardrail in `scripts/phase2-patient-registration.mjs`.
 - 1 Phase 6 treatment planning/fraction worksheet guardrail in `scripts/phase6-treatment-planning.mjs`.
+- 1 later-phase grounding guardrail in `scripts/later-phase-grounding.mjs`.
 - 30 normalized local template files under `docs/2026_TEMPLATES`.
 - 31 `TemplateSource` records in `lib/template-registry.ts`: 16 active, 9 mapping-in-progress, 5 draft, 1 missing placeholder.
 - 25 `DocumentRequirement` records.
@@ -346,7 +349,7 @@ Pre-mortem:
 
 ### Phase 3: Course Workflow Engine And Task Queues
 
-Current completion: 45%
+Current completion: 48%
 
 Goal: make workflows and task queues the operational source of truth instead of static page data.
 
@@ -361,6 +364,7 @@ What is already done:
 - `[x]` `workflowService.markNotApplicable()` enforces a non-empty N/A reason at helper level.
 - `[x]` Task queues exist visually and through `taskService.listByQueue()`.
 - `[x]` Workflow definitions exist in `lib/template-registry.ts`.
+- `[x]` Server-only workflow command helper evaluates course advancement blockers and N/A reason requirements without mutating state.
 
 Remaining checklist:
 
@@ -368,7 +372,7 @@ Remaining checklist:
 - `[ ]` Implement create-course workflow-definition selection.
 - `[ ]` Generate applicable workflow steps from `WorkflowDefinition.documentRequirementIds`.
 - `[ ]` Enforce optional/removed step logic with explicit N/A reason where relevant.
-- `[ ]` Implement guarded workflow transitions.
+- `[~]` Implement guarded workflow transitions. A server-only evaluation command exists; durable transition mutations and audit events are still not implemented.
 - `[ ]` Add due date calculation rules by phase/role/template.
 - `[ ]` Add task assignment and reassignment UI.
 - `[ ]` Add task completion, review, signature, blocked, overdue, N/A, and reopen flows.
@@ -385,7 +389,7 @@ Pre-mortem:
 
 ### Phase 4: Template Registry And Document Requirements
 
-Current completion: 60%
+Current completion: 62%
 
 Goal: turn the Drive template inventory into app-readable, versioned, clinically approved document requirements.
 
@@ -398,6 +402,7 @@ What is already done:
 - `[x]` Universal, Skin Cancer IGSRT, Arthritis, and Dupuytren's workflow definitions exist.
 - `[x]` App pages can list templates and document rows.
 - `[x]` `applicableDocumentRequirements()` and related helpers exist.
+- `[x]` Later-phase guardrail verifies template source IDs, local source-file existence, workflow requirement references, and the expected missing billing pre-auth placeholder.
 
 Remaining checklist:
 
@@ -419,7 +424,7 @@ Pre-mortem:
 
 ### Phase 5: Document Generation, Signatures, File Storage, Drive, And eCW
 
-Current completion: 25%
+Current completion: 28%
 
 Goal: generate, store, sign, export, upload, version, and audit patient/course documents.
 
@@ -433,6 +438,8 @@ What is already done:
 - `[x]` `fileStorageService.createCourseFolders()` returns a planned folder list.
 - `[x]` `driveSyncService` exists as a stub.
 - `[x]` `documentGenerationService.generateFromTemplate()` exists as a stub.
+- `[x]` Server-only document lifecycle helper owns generated-document read/render/sign command shape for the prototype adapter.
+- `[x]` `/api/generated-documents/[id]` now requires PHI access for reads and routes render/sign mutations through the document lifecycle helper.
 
 Remaining checklist:
 
@@ -448,7 +455,7 @@ Remaining checklist:
 - `[ ]` Replace simulated `drive://` URLs with real storage references.
 - `[ ]` Add electronic signature provider or documented manual signature workflow.
 - `[ ]` Add eCW upload integration or manual upload confirmation workflow.
-- `[ ]` Add audit events for open, render, sign, export, upload, void, and manual edit.
+- `[~]` Add audit events for open, render, sign, export, upload, void, and manual edit. Prototype render/sign audit events exist; immutable open/export/upload/void/manual-edit events remain incomplete.
 - `[ ]` Add tests for document generation, versioning, signing, lock rules, and eCW upload state.
 
 Pre-mortem:
@@ -511,7 +518,7 @@ Pre-mortem:
 
 ### Phase 7: Billing, Coding, Audit, And Closeout
 
-Current completion: 35%
+Current completion: 38%
 
 Goal: make billing readiness and audit closeout enforceable, traceable, and evidence-backed.
 
@@ -524,13 +531,14 @@ What is already done:
 - `[x]` `auditReadinessScore()` calculates readiness from tasks, documents, and fractions.
 - `[x]` Audit/security log pages show tokenized/redacted event tables.
 - `[x]` Carepath PreAuth Audit template sources are tracked as mapping-in-progress.
+- `[x]` Server-only closeout readiness helper centralizes blockers across documents, signatures, fractions, billing items, audit checks, and final audit eligibility.
 
 Remaining checklist:
 
 - `[ ]` Define billing code master and real code applicability rules.
 - `[ ]` Model payer/preauthorization status and required evidence.
 - `[ ]` Link billing items to documents, tasks, treatment fractions, and signatures.
-- `[ ]` Implement closeout gate: treatment summary, follow-up, billing, required docs, signatures, images, N/A reasons, and final Carepath audit sign.
+- `[~]` Implement closeout gate: treatment summary, follow-up, billing, required docs, signatures, images, N/A reasons, and final Carepath audit sign. Readiness evaluation exists; close/lock mutation is still not implemented.
 - `[ ]` Implement final audit sign and course close/lock.
 - `[ ]` Add immutable audit events for all closeout actions.
 - `[ ]` Add billing/audit exception workflow with reason, owner, due date, and resolution.
@@ -545,7 +553,7 @@ Pre-mortem:
 
 ### Phase 8: Persistence, APIs, And Data Boundaries
 
-Current completion: 25%
+Current completion: 27%
 
 Goal: replace in-memory mock state with durable OPS/PHI persistence and server-owned APIs.
 
@@ -558,6 +566,7 @@ What is already done:
 - `[x]` Operational redaction helpers exist.
 - `[x]` `server-only` is used in PHI store and fraction log registry service.
 - `[x]` `getOperationalWorkflowSnapshot()` exists.
+- `[x]` New workflow, document lifecycle, and closeout helpers define server-owned command/readiness interfaces while still using in-memory adapters.
 
 Remaining checklist:
 
@@ -584,7 +593,7 @@ Pre-mortem:
 
 ### Phase 9: Authentication, RBAC, Security, And HIPAA Hardening
 
-Current completion: 35%
+Current completion: 39%
 
 Goal: make the app safe for role-based clinical operations and real PHI/ePHI.
 
@@ -601,11 +610,14 @@ What is already done:
 - `[x]` Users/Roles display data derives from the same role matrix.
 - `[x]` Guardrails check raw-patient client imports and forbid direct client imports of selected PHI-only modules.
 - `[x]` Production security headers are configured in Next.js.
+- `[x]` HIPAA guardrails now walk transitive runtime imports from client entrypoints and block PHI/server modules from client bundles.
+- `[x]` Raw patient-name formatting moved out of shared workflow helpers and into a server-only PHI formatting module.
+- `[x]` Generated document content previews are no longer stored or rendered by the IGSRT client workspace.
 
 Remaining checklist:
 
 - `[!]` Replace `x-curerays-role` header authorization with real authentication and session role claims.
-- `[~]` Expand guardrails to catch all client imports of PHI-bearing modules, including patient registry/workspace cases. Current guardrails catch raw patient imports and selected PHI-only modules; transitive client bundle analysis is still needed.
+- `[~]` Expand guardrails to catch all client imports of PHI-bearing modules, including patient registry/workspace cases. Transitive runtime import analysis exists; two prototype PHI client screens remain explicitly allowlisted until a production DTO split is completed.
 - `[ ]` Implement MFA, session timeout, secure cookies, CSRF strategy if applicable, password/session policy, and logout.
 - `[~]` Enforce RBAC by module, route, action, and data sensitivity. Prototype route/action checks exist for PHI, documents, IGSRT mutation, and fraction approvals.
 - `[x]` Add least-privilege role matrix for VA, MA, RTT, NP/PA, PCP, Rad Onc, Physicist, Billing, and Admin.
@@ -625,7 +637,7 @@ Pre-mortem:
 
 ### Phase 10: Testing, QA, Release, And Pilot Operations
 
-Current completion: 30%
+Current completion: 32%
 
 Goal: create confidence that the system works repeatedly, safely, and recoverably.
 
@@ -636,6 +648,7 @@ What is already done:
 - `[x]` HIPAA guardrail script exists and passes.
 - `[x]` Fraction worksheet fixture script exists and passes with `TMPDIR=/tmp`.
 - `[x]` Production build passes.
+- `[x]` Later-phase grounding guardrail validates server command helper seams, document route wiring, template readiness references, and closeout blocker visibility.
 
 Remaining checklist:
 
@@ -663,7 +676,7 @@ Pre-mortem:
 
 These should be treated as release gates, not optional cleanup.
 
-- `[!]` PHI in client components: client pages/components must not import raw `patients`, MRNs, names, notes, or generated previews for production.
+- `[!]` PHI in client components: client pages/components must not import raw `patients`, MRNs, names, notes, or generated previews for production. Transitive import guardrails now exist, but prototype PHI client screens still require a production DTO split.
 - `[!]` No durable persistence: current mutations are in-memory and will be lost on restart.
 - `[!]` No real authentication/RBAC: role headers are placeholders only.
 - `[!]` No immutable audit trail: audit events are in-memory and use placeholder actors.
@@ -679,7 +692,7 @@ Target completion outcome: prototype stays buildable, clear, and honest.
 
 - `[ ]` Add this tracker to the team update ritual.
 - `[x]` Add `npm run verify`.
-- `[~]` Expand HIPAA guardrails to catch client imports of `clinical-store` PHI data.
+- `[~]` Expand HIPAA guardrails to catch client imports of `clinical-store` PHI data. Transitive runtime import checks exist; prototype PHI client allowlist remains.
 - `[~]` Mark or wire non-functional action buttons.
 - `[x]` Refactor patient registry to use operational/server DTOs instead of client PHI imports.
 - `[x]` Decide whether to use the richer `PatientsRegistry` component or the simpler shared `DataTable` page.
@@ -701,8 +714,8 @@ Target completion outcome: the strongest workflows become usable by roles in a p
 
 - `[ ]` Persist IGSRT simulation order, prescription, and fraction worksheet data.
 - `[x]` Add role enforcement for DOT/MD approvals.
-- `[ ]` Add workflow transition gates.
-- `[ ]` Add document render/sign lifecycle persistence.
+- `[~]` Add workflow transition gates. Evaluation helper exists; persisted transition command remains.
+- `[~]` Add document render/sign lifecycle persistence. Server command helper exists; durable output/version persistence remains.
 - `[ ]` Add audit event persistence.
 
 ### Integration Sprint
@@ -738,3 +751,4 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-11 | Completed Phase 0 baseline, product alignment, and repo health to 100%. | Added `npm run test:phase0`, removed hardcoded UI colors outside `app/globals.css`, removed legacy dark-mode hex bridges, deleted deprecated root UI primitives, moved static table/section-card helpers under `components/shared`, added server-only operational page service, and confirmed zero Phase 0 guardrail violations. | Keep Phase 0 guarded through `npm run verify`; continue production-readiness work in later phases without reopening baseline debt. |
 | 2026-06-11 | Completed Phase 2A patient registration and record maintenance foundation. | Added `lib/server/patient-registration-service.ts`, repository contract with in-memory and Prisma-ready adapters, service-owned create/update API delegation, rollback checkpoints for prototype patient/course/task/document/audit creation, audit actor metadata fields, OPS/PHI schema placeholders, and `npm run test:phase2`. Focused checks and full `npm run verify` passed. | Continue to durable OPS/PHI persistence, real auth/session claims, workflow-definition selection, immutable audit storage, and true API integration tests. |
 | 2026-06-12 | Completed Phase 2 for de-identified pilot scope. | Added Prisma 6.19.3, OPS/PHI client generation and migration scripts, opt-in Prisma repository adapter, server-owned prototype session claims, initial-course intake fields, workflow-definition selection with universal fallback, workflow/task/document/audit/folder bundle post-conditions, guarded edit DTO, lifecycle and history routes, optimistic concurrency, redacted correction history, and expanded `npm run test:phase2`. `npm run verify` passed. | Keep production PHI use blocked until real auth/session controls, deployed OPS/PHI databases, immutable audit infrastructure, and broader PHI client-boundary hardening are complete. |
+| 2026-06-12 | Completed later-phase grounding pass across Phases 3, 4, 5, 7, 8, 9, and 10. | Added server-only workflow command, document lifecycle, and closeout readiness helpers; guarded generated-document GET/read lifecycle; moved raw patient-name formatting out of shared workflow helpers; removed generated content preview rendering from the IGSRT client; expanded HIPAA transitive client import guardrails; added `npm run test:later-phases`. `npm run verify` passed. | Use the new helper seams when implementing durable workflow transitions, document persistence, closeout locks, OPS/PHI repositories, and production DTO splits. |

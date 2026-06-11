@@ -3,9 +3,9 @@ import type { CarepathTask, FractionLogEntry, GeneratedDocument, Patient, Treatm
 import {
   auditReadinessScore,
   carepathProgress,
-  documentProgress,
-  patientName
+  documentProgress
 } from "@/lib/workflow";
+import { patientName } from "@/lib/server/patient-phi-formatting";
 import { PhaseBadge, StatusBadge } from "@/components/badges";
 import { ProgressBar } from "@/components/progress-bar";
 

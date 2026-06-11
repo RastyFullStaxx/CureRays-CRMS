@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatedDocuments, renderGeneratedDocument, signGeneratedDocument } from "@/lib/clinical-store";
-import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
+import {
+  readGeneratedDocumentLifecycle,
+  renderGeneratedDocumentLifecycle,
+  signGeneratedDocumentLifecycle
+} from "@/lib/server/document-lifecycle-service";
+import { phiAccessFromRequest } from "@/lib/server/phi-store";
+import type { GeneratedDocumentOutput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export function GET(_request: NextRequest, { params }: { params: { id: string } }) {
-  const document = generatedDocuments.find((item) => item.id === params.id);
+function safeOutputFormat(value: unknown): GeneratedDocumentOutput["format"] {
+  return value === "DOCX" || value === "XLSX" ? value : "PDF";
+}
 
-  if (!document) {
-    return NextResponse.json({ message: "Document not found" }, { status: 404 });
+function documentResponse(result: ReturnType<typeof readGeneratedDocumentLifecycle>) {
+  if (result.blockedReason) {
+    return NextResponse.json({ message: result.blockedReason }, { status: 404 });
   }
 
-  return NextResponse.json({ document });
+  return NextResponse.json(result);
+}
+
+export function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const access = phiAccessFromRequest(request, "Read generated PHI document");
+  if (!access) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
+  try {
+    return documentResponse(readGeneratedDocumentLifecycle(access, params.id));
+  } catch {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
@@ -22,21 +42,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   const body = await request.json();
 
-  if (body.action === "sign") {
-    try {
-      requirePhiAction(access, "document:sign");
-    } catch {
-      return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
-    }
-    const result = signGeneratedDocument(params.id);
-    return result ? NextResponse.json(result) : NextResponse.json({ message: "Document not found" }, { status: 404 });
-  }
-
   try {
-    requirePhiAction(access, "document:render");
+    const result = body.action === "sign"
+      ? signGeneratedDocumentLifecycle(access, params.id)
+      : renderGeneratedDocumentLifecycle(access, params.id, safeOutputFormat(body.format));
+
+    return documentResponse(result);
   } catch {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
-  const result = renderGeneratedDocument(params.id, body.format ?? "PDF");
-  return result ? NextResponse.json(result) : NextResponse.json({ message: "Document not found" }, { status: 404 });
 }

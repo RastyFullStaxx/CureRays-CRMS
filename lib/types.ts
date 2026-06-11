@@ -563,6 +563,14 @@ export type WorkflowDefinition = {
   status: "ACTIVE" | "DRAFT" | "MAPPING_IN_PROGRESS";
 };
 
+export type WorkflowCommandResult = {
+  allowed: boolean;
+  status: "READY" | "BLOCKED" | "NOT_FOUND" | "VALIDATION_FAILED";
+  blockers: string[];
+  auditAction: string;
+  nextPhase?: CarepathWorkflowPhase;
+};
+
 export type WorkflowDocumentState = {
   requirementId: string;
   documentId?: string;
@@ -710,6 +718,14 @@ export type GeneratedDocumentOutput = {
   driveFileUrl?: string;
   contentPreview: string;
   renderedAt: string;
+};
+
+export type DocumentLifecycleResult = {
+  document: GeneratedDocument | null;
+  output?: GeneratedDocumentOutput;
+  auditEvent?: AuditEvent;
+  phiBoundary: string;
+  blockedReason?: string;
 };
 
 export type FractionWorksheetCalculationStatus = "AUTO_LOOKUP" | "MANUAL_OVERRIDE" | "NEEDS_OVERRIDE" | "LEGACY_IMPORTED";
@@ -958,6 +974,14 @@ export type OperationalAuditEvent = Omit<AuditEvent, "previousValue" | "newValue
   previousValue: "PHI_REDACTED" | "NONE" | string;
   newValue: "PHI_REDACTED" | "NONE" | string;
   redacted: boolean;
+};
+
+export type CloseoutReadiness = {
+  courseRef: string;
+  ready: boolean;
+  blockers: string[];
+  missingEvidence: string[];
+  requiredActions: string[];
 };
 
 export type RoleQueueItem = {

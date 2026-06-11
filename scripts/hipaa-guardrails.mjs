@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, relative } from "node:path";
+import ts from "typescript";
 
 const root = process.cwd();
 const read = (path) => readFileSync(join(root, path), "utf8");
@@ -53,6 +54,17 @@ const clientForbiddenModules = [
   "@/lib/mock-data",
   "@/lib/server/phi-store"
 ];
+const transitiveClientForbiddenFiles = [
+  "lib/clinical-store.ts",
+  "lib/mock-data.ts",
+  "lib/server/phi-store.ts",
+  "lib/server/patient-phi-formatting.ts"
+];
+const prototypePhiClientAllowlist = new Set([
+  "components/patients/patient-registry-client.tsx",
+  "components/patients/patient-workspace.tsx"
+]);
+const rawPhiClientPattern = /\b(firstName|lastName|mrn|contentPreview)\b/;
 
 function listSourceFiles(directory) {
   return readdirSync(join(root, directory)).flatMap((name) => {
@@ -66,8 +78,122 @@ function listSourceFiles(directory) {
   });
 }
 
-const clientFiles = [...listSourceFiles("app"), ...listSourceFiles("components")]
+function normalizePath(path) {
+  return path.replaceAll("\\", "/");
+}
+
+const sourceFiles = [...listSourceFiles("app"), ...listSourceFiles("components"), ...listSourceFiles("lib")];
+const sourceFileSet = new Set(sourceFiles.map(normalizePath));
+
+function isClientFile(file) {
+  const source = read(file).trimStart();
+  return source.startsWith("'use client'") || source.startsWith('"use client"');
+}
+
+function resolveLocalImport(fromFile, specifier) {
+  if (!specifier.startsWith("@/") && !specifier.startsWith(".")) {
+    return null;
+  }
+
+  const base = specifier.startsWith("@/")
+    ? join(root, specifier.slice(2))
+    : join(root, dirname(fromFile), specifier);
+  const candidates = [
+    base,
+    `${base}.ts`,
+    `${base}.tsx`,
+    join(base, "index.ts"),
+    join(base, "index.tsx")
+  ];
+
+  for (const candidate of candidates) {
+    const relativePath = normalizePath(relative(root, candidate));
+    if (sourceFileSet.has(relativePath)) {
+      return relativePath;
+    }
+  }
+
+  return null;
+}
+
+function runtimeImportEdges(file) {
+  const source = read(file);
+  const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const edges = [];
+
+  function visit(node) {
+    if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly && ts.isStringLiteral(node.moduleSpecifier)) {
+      const resolved = resolveLocalImport(file, node.moduleSpecifier.text);
+      if (resolved) {
+        edges.push(resolved);
+      }
+    }
+
+    if (ts.isExportDeclaration(node) && !node.isTypeOnly && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      const resolved = resolveLocalImport(file, node.moduleSpecifier.text);
+      if (resolved) {
+        edges.push(resolved);
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(tree);
+  return edges;
+}
+
+const clientFiles = sourceFiles
+  .filter((file) => file.startsWith("app/") || file.startsWith("components/"))
   .filter((file) => read(file).trimStart().startsWith("'use client'") || read(file).trimStart().startsWith('"use client"'));
+
+function clientImportGraphViolations() {
+  const forbidden = new Set(transitiveClientForbiddenFiles);
+  const violations = [];
+
+  for (const entrypoint of clientFiles) {
+    const seen = new Set();
+    const stack = [entrypoint];
+
+    while (stack.length > 0) {
+      const file = stack.pop();
+      if (!file || seen.has(file)) {
+        continue;
+      }
+
+      seen.add(file);
+
+      if (forbidden.has(file) || file.startsWith("lib/server/")) {
+        violations.push(`${entrypoint} -> ${file}`);
+        continue;
+      }
+
+      for (const edge of runtimeImportEdges(file)) {
+        stack.push(edge);
+      }
+    }
+  }
+
+  return violations.sort();
+}
+
+const transitiveViolations = clientImportGraphViolations();
+
+assert.deepEqual(
+  transitiveViolations,
+  [],
+  `Client entrypoints must not transitively import PHI/server modules: ${transitiveViolations.join(", ")}`
+);
+
+const rawPhiClientViolations = clientFiles
+  .filter((file) => !prototypePhiClientAllowlist.has(file))
+  .filter((file) => rawPhiClientPattern.test(read(file)));
+
+assert.deepEqual(
+  rawPhiClientViolations,
+  [],
+  `Client files must not introduce raw patient fields or generated content previews: ${rawPhiClientViolations.join(", ")}`
+);
 
 for (const file of clientFiles) {
   const source = read(file);
