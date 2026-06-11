@@ -8,8 +8,8 @@ import type { PatientCreateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  const response = listOperationalPatientRecords();
+export async function GET() {
+  const response = await listOperationalPatientRecords();
   return NextResponse.json(response.body, { status: response.status });
 }
 
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json()) as Partial<PatientCreateInput>;
-  const response = registerPatient(body, context);
+  const response = await registerPatient(body, context);
 
   return NextResponse.json(response.body, { status: response.status });
 }

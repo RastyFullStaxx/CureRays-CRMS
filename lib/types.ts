@@ -127,6 +127,15 @@ export type Patient = {
   lastUpdatedAt: string;
 };
 
+export type InitialCourseCreateInput = {
+  protocol?: string;
+  bodyRegion?: string;
+  laterality?: string;
+  treatmentModality?: string;
+  totalFractions?: number;
+  startDate?: string;
+};
+
 export type PatientCreateInput = {
   firstName: string;
   lastName: string;
@@ -140,12 +149,64 @@ export type PatientCreateInput = {
   status?: PatientStatus;
   nextAction?: string;
   notes?: string;
+  initialCourse?: InitialCourseCreateInput;
 };
 
 export type PatientUpdateInput = Partial<PatientCreateInput> & {
   nextAction?: string;
   chartRoundsPhase?: ChartRoundsPhase;
   status?: PatientStatus;
+  expectedLastUpdatedAt?: string;
+  changeReason?: string;
+};
+
+export type PatientRegistrationInput = PatientCreateInput & {
+  initialCourse: InitialCourseCreateInput;
+};
+
+export type PatientEditDto = {
+  phiRecordId: string;
+  patientRef: string;
+  firstName: string;
+  lastName: string;
+  mrn: string;
+  diagnosis: string;
+  diagnosisCategory: DiagnosisCategory;
+  location: string;
+  physician: string;
+  assignedStaff: string;
+  chartRoundsPhase: ChartRoundsPhase;
+  status: PatientStatus;
+  nextAction: string;
+  notes: string;
+  lastUpdatedAt: string;
+  initialCourse?: InitialCourseCreateInput;
+};
+
+export type PatientLifecycleUpdateInput = {
+  patientStatus?: PatientStatus;
+  chartRoundsPhase?: ChartRoundsPhase;
+  courseStatus?: TreatmentCourseStatus;
+  coursePhase?: CarepathWorkflowPhase;
+  expectedLastUpdatedAt?: string;
+  changeReason: string;
+};
+
+export type PatientRecordHistoryEntry = {
+  id: string;
+  patientRef: string;
+  courseRef?: string;
+  action: string;
+  summary: string;
+  previousValue: "PHI_REDACTED" | "NONE";
+  newValue: "PHI_REDACTED";
+  changedBy: string;
+  role?: PrototypeAccessRole;
+  sessionId?: string;
+  ipAddress?: string;
+  deviceId?: string;
+  reason: string;
+  timestamp: string;
 };
 
 export type PatientValidationResult = {
@@ -255,6 +316,9 @@ export type OperationalTreatmentCourse = {
   patientRef: string;
   diagnosisCategory: DiagnosisCategory;
   protocolFamily: string;
+  workflowDefinitionId?: string;
+  bodyRegion?: string;
+  laterality?: string;
   totalFractions: number;
   currentFraction: number;
   chartRoundsPhase: ChartRoundsPhase;
@@ -275,6 +339,10 @@ export type TreatmentCourse = {
   status: TreatmentCourseStatus;
   treatmentModality: string;
   treatmentType: string;
+  workflowDefinitionId?: string;
+  bodyRegion?: string;
+  laterality?: string;
+  coursePhase?: CarepathWorkflowPhase;
   phaseOne?: string;
   phaseTwo?: string;
   energy?: string;
@@ -408,6 +476,21 @@ export type TreatmentFraction = {
   energy?: string;
   applicator?: string;
   imageGuidanceCompleted: boolean;
+  imageGuidanceStatus?: "NOT_REQUIRED" | "REQUIRED" | "MISSING" | "COMPLETE" | "NOT_APPLICABLE";
+  imageAssetIds?: string[];
+  imageGuidanceNotApplicableReason?: string;
+  scheduledFromPrescription?: boolean;
+  sourcePrescriptionId?: string;
+  sourcePhaseId?: string;
+  linkedFractionLogEntryId?: string;
+  physicsCheckRequired?: boolean;
+  physicsCheckCompletedAt?: string;
+  physicsCheckCompletedByUserId?: string;
+  otvRequired?: boolean;
+  otvCompletedAt?: string;
+  otvCompletedByUserId?: string;
+  generatedAt?: string;
+  lockedAt?: string;
   status: WorkflowItemStatus;
   therapistId?: string;
   physicianReviewedAt?: string;
@@ -700,6 +783,44 @@ export type FractionLogEntry = {
   notes: string;
 };
 
+export type CourseFolderPlaceholder = {
+  id: string;
+  patientRef: string;
+  courseRef: string;
+  courseId: string;
+  storageProvider: "PENDING_DRIVE" | "APP_STORAGE";
+  path: string;
+  folders: string[];
+  status: "PLANNED" | "CREATED";
+  createdAt: string;
+};
+
+export type Phase6ReadinessStatus = "BLOCKED" | "READY_FOR_SCHEDULE" | "SCHEDULED" | "CLINICAL_VALIDATION_REQUIRED";
+
+export type Phase6PlanningReadiness = {
+  courseId: string;
+  status: Phase6ReadinessStatus;
+  missingInputs: string[];
+  signedPrescription: boolean;
+  prototypeReady: boolean;
+  scheduleGenerated: boolean;
+  scheduledFractions: number;
+  plannedFractions: number;
+  clinicalValidationRequired: true;
+  clinicianSignoffStatus: "REQUIRED" | "RECORDED";
+};
+
+export type Phase6GateStatus = {
+  courseId: string;
+  status: "CLEAR" | "BLOCKED" | "DUE";
+  label: string;
+  detail: string;
+  missing: string[];
+  dueFractions: number[];
+  completedFractions: number[];
+  evidenceIds: string[];
+};
+
 export type Appointment = {
   id: string;
   patientId: string;
@@ -823,6 +944,7 @@ export type AuditEvent = {
     | "SIMULATION_ORDER"
     | "PRESCRIPTION"
     | "MAPPING_RECORD"
+    | "TREATMENT_FRACTION"
     | "SYSTEM";
   entityId: string;
   previousValue: string;
@@ -883,6 +1005,7 @@ export type WorkflowSnapshot = {
   workflowDocumentStates: WorkflowDocumentState[];
   simulationOrders: SimulationOrder[];
   prescriptions: Prescription[];
+  treatmentFractions: TreatmentFraction[];
   mappingRecords: MappingRecord[];
   generatedDocumentOutputs: GeneratedDocumentOutput[];
   auditEvents: AuditEvent[];
@@ -904,4 +1027,9 @@ export type IgsrtWorkspace = WorkflowSnapshot & {
   prescription: Prescription;
   courseDocuments: GeneratedDocument[];
   courseFractions: FractionLogEntry[];
+  treatmentFractions: TreatmentFraction[];
+  planningReadiness: Phase6PlanningReadiness;
+  imagingGateStatus: Phase6GateStatus;
+  otvDueStatus: Phase6GateStatus;
+  physicsCheckDueStatus: Phase6GateStatus;
 };

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { PageStack } from '@/components/shared/page-stack';
 import { StatCard } from '@/components/shared/stat-card';
 import { StatGrid } from '@/components/shared/stat-grid';
-import { fractionLogEntries, prescriptions, treatmentCourses } from '@/lib/services/operational-page-service';
+import { fractionLogEntries, getTreatmentFractions, prescriptions, treatmentCourses } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseFractions, patientActiveCourse } from '@/lib/workflow';
 
@@ -23,6 +23,7 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
   }
 
   const entries = courseFractions(course.id, fractionLogEntries);
+  const scheduledFractions = getTreatmentFractions().filter((fraction) => fraction.courseId === course.id);
   const prescription = prescriptions.find((item) => item.courseId === course.id);
   const approved = entries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
   const cumulativeDose = entries.at(-1)?.cumulativeDoseCgy ?? entries.at(-1)?.cumulativeDose ?? 0;
@@ -52,6 +53,7 @@ export default function PatientFractionLogPage({ params }: { params: { id: strin
           initialEntries={entries}
           course={course}
           phases={prescription?.phases ?? []}
+          scheduledFractions={scheduledFractions}
           title="Native Fractionation Worksheet"
         />
       </div>

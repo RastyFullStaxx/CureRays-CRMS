@@ -28,7 +28,8 @@ import type {
   FractionLogStatus,
   IgsrtWorkspace,
   PrescriptionPhase,
-  TreatmentCourse
+  TreatmentCourse,
+  TreatmentFraction
 } from "@/lib/types";
 import {
   buildBillingRows,
@@ -160,16 +161,32 @@ function nextOpenPhase(
   return summaries.find((phase) => phase.completedFractions < phase.plannedFractions) ?? summaries[0];
 }
 
-function buildInitialDraft(course: TreatmentCourse, phases: PrescriptionPhase[], entries: FractionLogEntry[]): DraftFraction {
-  const defaults = phaseDefaults(nextOpenPhase(course, phases, entries), course);
+function nextScheduledFraction(scheduledFractions: TreatmentFraction[], entries: FractionLogEntry[]) {
+  const recordedNumbers = new Set(activeEntries(entries).map((entry) => entry.fractionNumber));
+  return scheduledFractions
+    .filter((fraction) => !recordedNumbers.has(fraction.fractionNumber))
+    .sort((a, b) => a.fractionNumber - b.fractionNumber)[0];
+}
+
+function buildInitialDraft(
+  course: TreatmentCourse,
+  phases: PrescriptionPhase[],
+  entries: FractionLogEntry[],
+  scheduledFractions: TreatmentFraction[] = []
+): DraftFraction {
+  const scheduled = nextScheduledFraction(scheduledFractions, entries);
+  const defaults = phaseDefaults(
+    scheduled ? buildPhaseSummaries(course, phases, entries).find((phase) => phase.phaseName === scheduled.phase) : nextOpenPhase(course, phases, entries),
+    course
+  );
 
   return {
-    fractionNumber: String(nextFractionNumber(entries)),
-    date: todayIsoDate(),
-    phase: defaults.phaseName,
-    energyKv: String(defaults.energyKv),
-    fieldSizeCm: defaults.fieldSizeCm,
-    dosePerFractionCgy: String(defaults.dosePerFractionCgy),
+    fractionNumber: String(scheduled?.fractionNumber ?? nextFractionNumber(entries)),
+    date: scheduled?.treatmentDate ?? todayIsoDate(),
+    phase: scheduled?.phase ?? defaults.phaseName,
+    energyKv: String(scheduled ? parseEnergyKv(scheduled.energy) : defaults.energyKv),
+    fieldSizeCm: scheduled?.applicator ? normalizeFieldSizeCm(scheduled.applicator) : defaults.fieldSizeCm,
+    dosePerFractionCgy: String(scheduled?.plannedDose ?? defaults.dosePerFractionCgy),
     depthOfTargetMm: String(defaults.depthOfTargetMm),
     ssdCm: String(defaults.ssdCm),
     treatmentTimeMinutes: String(defaults.treatmentTimeMinutes),
@@ -220,15 +237,18 @@ export function FractionWorksheetPanel({
   initialEntries,
   course,
   phases,
+  scheduledFractions = [],
   title = "Fractionation Worksheet"
 }: {
   initialEntries: FractionLogEntry[];
   course: TreatmentCourse;
   phases: PrescriptionPhase[];
+  scheduledFractions?: TreatmentFraction[];
   title?: string;
 }) {
   const [entries, setEntries] = useState(initialEntries);
-  const [draft, setDraft] = useState(() => buildInitialDraft(course, phases, initialEntries));
+  const [schedule, setSchedule] = useState(scheduledFractions);
+  const [draft, setDraft] = useState(() => buildInitialDraft(course, phases, initialEntries, scheduledFractions));
   const [showAdvancedEntry, setShowAdvancedEntry] = useState(false);
   const [advancedPanel, setAdvancedPanel] = useState<AdvancedPanel>("note");
   const [selectedEntryId, setSelectedEntryId] = useState(initialEntries[0]?.id ?? "");
@@ -242,14 +262,28 @@ export function FractionWorksheetPanel({
   const sortedEntries = useMemo(() => [...entries].sort((a, b) => a.fractionNumber - b.fractionNumber), [entries]);
   const sortedActiveEntries = useMemo(() => activeEntries(sortedEntries), [sortedEntries]);
   const phaseSummaries = useMemo(() => buildPhaseSummaries(course, phases, sortedActiveEntries), [course, phases, sortedActiveEntries]);
+  const scheduleByFraction = useMemo(
+    () => new Map(schedule.map((fraction) => [fraction.fractionNumber, fraction])),
+    [schedule]
+  );
   const selectedEntry = sortedEntries.find((entry) => entry.id === selectedEntryId) ?? sortedEntries[0];
   const correctionEntry = sortedEntries.find((entry) => entry.id === correctionEntryId);
   const billingRows = useMemo(() => buildBillingRows(sortedEntries), [sortedEntries]);
   const approvedCount = sortedActiveEntries.filter((entry) => entry.status === "APPROVED").length;
   const latestEntry = sortedActiveEntries.at(-1);
+  const missingImageCount = schedule.filter((fraction) => fraction.imageGuidanceStatus === "MISSING").length;
+  const otvDueCount = schedule.filter((fraction) => fraction.otvRequired && !fraction.otvCompletedAt).length;
+  const physicsDueCount = schedule.filter((fraction) => fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt).length;
   const reviewQueue = sortedActiveEntries.filter((entry) => {
     const hasWarnings = compactWarnings(entry).length > 0;
-    return entry.status !== "APPROVED" || hasWarnings || entry.calculationStatus === "MANUAL_OVERRIDE" || entry.calculationStatus === "LEGACY_IMPORTED";
+    const scheduled = scheduleByFraction.get(entry.fractionNumber);
+    return (
+      entry.status !== "APPROVED" ||
+      hasWarnings ||
+      scheduled?.imageGuidanceStatus === "MISSING" ||
+      entry.calculationStatus === "MANUAL_OVERRIDE" ||
+      entry.calculationStatus === "LEGACY_IMPORTED"
+    );
   });
 
   const preview = useMemo(() => {
@@ -306,6 +340,9 @@ export function FractionWorksheetPanel({
         setEntries(workspace.courseFractions);
         setSelectedEntryId(data.id ? String(data.id) : workspace.courseFractions.at(-1)?.id ?? selectedEntryId);
       }
+      if (workspace?.treatmentFractions) {
+        setSchedule(workspace.treatmentFractions);
+      }
       setMessage(successMessage);
       return workspace ?? null;
     } catch (caughtError) {
@@ -343,7 +380,7 @@ export function FractionWorksheetPanel({
     );
 
     if (workspace?.courseFractions) {
-      setDraft(buildInitialDraft(course, phases, workspace.courseFractions));
+      setDraft(buildInitialDraft(course, phases, workspace.courseFractions, workspace.treatmentFractions ?? schedule));
       setShowAdvancedEntry(false);
     }
   }
@@ -388,6 +425,18 @@ export function FractionWorksheetPanel({
       "approveFraction",
       { courseId: course.id, id: entry.id, approvalType },
       `${approvalType} approval recorded for Fx ${entry.fractionNumber}.`
+    );
+  }
+
+  async function linkFractionImage(entry: FractionLogEntry) {
+    await requestJson(
+      "linkFractionImage",
+      {
+        courseId: course.id,
+        fractionNumber: entry.fractionNumber,
+        assetId: `PROTO-IMG-${entry.id}`
+      },
+      `Image evidence linked for Fx ${entry.fractionNumber}.`
     );
   }
 
@@ -445,6 +494,15 @@ export function FractionWorksheetPanel({
               </Badge>
               <Badge variant="info">
                 {formatDose(latestEntry?.cumulativeDoseToDotCgy ?? latestEntry?.cumulativeDoseToDepth)} DOT
+              </Badge>
+              <Badge variant={missingImageCount ? "warning" : "success"}>
+                IMG {missingImageCount}
+              </Badge>
+              <Badge variant={otvDueCount ? "warning" : "success"}>
+                OTV {otvDueCount}
+              </Badge>
+              <Badge variant={physicsDueCount ? "warning" : "success"}>
+                PHYS {physicsDueCount}
               </Badge>
             </div>
           </div>
@@ -673,6 +731,9 @@ export function FractionWorksheetPanel({
                   <Badge variant={statusVariant(entry.status)}>{statusLabel(entry.status)}</Badge>
                   {approvalBadge("DOT", entry.dotApproval, entry.dotApprovalState)}
                   {approvalBadge("MD", entry.mdApproval, entry.mdApprovalState)}
+                  {scheduleByFraction.get(entry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? (
+                    <Badge variant="warning">Image missing</Badge>
+                  ) : null}
                 </div>
                 <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
                   {formatDate(entry.date)} | {entry.phase} | {entry.energyKv ?? parseEnergyKv(entry.energy)} kV | {formatDose(entry.dosePerFractionCgy ?? entry.dosePerFraction)}
@@ -687,7 +748,20 @@ export function FractionWorksheetPanel({
               <div className="flex flex-wrap items-center gap-2">
                 {!entry.dotApproval ? (
                   <>
-                    <Button type="button" size="sm" variant="secondary" disabled={pendingAction === `approveFraction-${entry.id}`} onClick={() => approveFraction(entry, "DOT")}>
+                    {scheduleByFraction.get(entry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? (
+                      <Button type="button" size="sm" variant="secondary" disabled={pendingAction === `linkFractionImage-new`} onClick={() => linkFractionImage(entry)}>
+                        <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                        Image Complete
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      disabled={pendingAction === `approveFraction-${entry.id}` || scheduleByFraction.get(entry.fractionNumber)?.imageGuidanceStatus === "MISSING"}
+                      title={scheduleByFraction.get(entry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? "Link imaging evidence before DOT approval" : undefined}
+                      onClick={() => approveFraction(entry, "DOT")}
+                    >
                       <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                       DOT Approve
                     </Button>

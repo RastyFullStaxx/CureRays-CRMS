@@ -24,6 +24,8 @@ await writeFile(modulePath, compiled, "utf8");
 const service = await import(pathToFileURL(modulePath).href);
 
 assert.equal(service.fractionWorksheetReferenceVersion, "IGSRT-FX-REF-2026-06-11-PROTOTYPE");
+assert.equal(service.roundToClinicalTenth(12.26), 12.3);
+assert.equal(service.roundToClinicalTenth(12.24), 12.2);
 
 const lookup50 = service.lookupIsodoseToDotPercent({
   energyKv: 50,
@@ -46,6 +48,14 @@ const lookup100 = service.lookupIsodoseToDotPercent({
   depthOfTargetMm: 2
 });
 assert.equal(lookup100.percent, 93.8);
+
+const lookupMissing = service.lookupIsodoseToDotPercent({
+  energyKv: 125,
+  fieldSizeCm: "10 cm",
+  depthOfTargetMm: 2
+});
+assert.equal(lookupMissing.percent, null);
+assert.ok(lookupMissing.warnings.some((warning) => warning.includes("No normalized worksheet reference table")));
 
 const priorEntry = service.calculateFractionWorksheetEntry(
   {
@@ -107,6 +117,46 @@ const overrideEntry = service.calculateFractionWorksheetEntry(
 assert.equal(overrideEntry.calculationStatus, "MANUAL_OVERRIDE");
 assert.equal(overrideEntry.doseToDotCgy, 200);
 assert.equal(overrideEntry.calculationMeta.referenceVersion, service.fractionWorksheetReferenceVersion);
+
+const voidableEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 1,
+    date: "2026-04-05",
+    phase: "Phase I",
+    energyKv: 50,
+    fieldSizeCm: "2.0 cm",
+    ssdCm: 15,
+    dosePerFractionCgy: 250,
+    depthOfTargetMm: 1,
+    technicianInitials: "QA"
+  },
+  []
+);
+const dependentEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 2,
+    date: "2026-04-06",
+    phase: "Phase I",
+    energyKv: 50,
+    fieldSizeCm: "2.0 cm",
+    ssdCm: 15,
+    dosePerFractionCgy: 250,
+    depthOfTargetMm: 1,
+    technicianInitials: "QA"
+  },
+  [voidableEntry]
+);
+assert.equal(dependentEntry.cumulativeDoseCgy, 500);
+
+const recalculatedAfterVoid = service.recalculateFractionWorksheetEntries([
+  { ...voidableEntry, status: "VOIDED", voidReason: "Fixture void", voidedAt: "2026-04-06T10:00:00Z" },
+  dependentEntry
+]);
+assert.equal(recalculatedAfterVoid[0].status, "VOIDED");
+assert.equal(recalculatedAfterVoid[1].cumulativeDoseCgy, 250);
+assert.equal(recalculatedAfterVoid[1].cumulativeDoseToDotCgy, 210);
 
 assert.throws(() =>
   service.calculateFractionWorksheetEntry(

@@ -34,11 +34,14 @@ export {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
+  getPhase6GateStatuses,
+  getPhase6PlanningReadiness,
   getIgsrtWorkspace,
   operationalAuditEvents,
   operationalPatients,
   operationalTreatmentCourses,
   prescriptions,
+  treatmentFractions,
   treatmentCourses,
 } from '@/lib/clinical-store';
 export {

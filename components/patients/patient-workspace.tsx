@@ -128,6 +128,17 @@ function Metric({ label, value, detail }: { label: string; value: string | numbe
   );
 }
 
+function ReadinessStrip({ label, values }: { label: string; values: string[] }) {
+  return (
+    <div className="clinical-muted-surface p-3">
+      <p className="clinical-label">{label}</p>
+      <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+        {values.length ? values.slice(0, 5).join(', ') : 'Clear'}
+      </p>
+    </div>
+  );
+}
+
 function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
@@ -171,6 +182,10 @@ export function PatientWorkspace({
   const blockedSteps = workflowSteps.filter((step) => step.status === 'BLOCKED' || step.blockers.length > 0);
   const unsignedDocs = documents.filter((document) => !document.signedAt);
   const openChecks = auditChecks.filter((check) => !['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED'].includes(check.status));
+  const scheduledFractions = treatmentFractions.filter((fraction) => fraction.scheduledFromPrescription);
+  const missingImageFractions = treatmentFractions.filter((fraction) => fraction.imageGuidanceStatus === 'MISSING');
+  const otvDueFractions = treatmentFractions.filter((fraction) => fraction.otvRequired && !fraction.otvCompletedAt);
+  const physicsDueFractions = treatmentFractions.filter((fraction) => fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt);
 
   const tabContent = useMemo(() => {
     if (activeTab === 'workflow') {
@@ -290,6 +305,24 @@ export function PatientWorkspace({
                 <p className="clinical-label">Rad Onc</p>
                 <Badge variant={statusVariant(currentPlan?.radOncSignatureStatus ?? 'PENDING')}>{titleCase(currentPlan?.radOncSignatureStatus ?? 'PENDING')}</Badge>
               </div>
+            </div>
+          </Card>
+          <Card className="xl:col-span-2">
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <SectionTitle title="Phase 6 Readiness" />
+              <Badge variant="warning">Clinical Validation Required</Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <Metric label="Schedule" value={`${scheduledFractions.length}/${course.totalFractions}`} />
+              <Metric label="Imaging Gates" value={missingImageFractions.length ? `${missingImageFractions.length} Missing` : 'Clear'} />
+              <Metric label="OTV Due" value={otvDueFractions.length} />
+              <Metric label="Physics Due" value={physicsDueFractions.length} />
+              <Metric label="Logged Fractions" value={fractionEntries.length} />
+            </div>
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              <ReadinessStrip label="Missing Imaging" values={missingImageFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+              <ReadinessStrip label="OTV" values={otvDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+              <ReadinessStrip label="Physics" values={physicsDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
             </div>
           </Card>
         </div>
@@ -480,8 +513,12 @@ export function PatientWorkspace({
     fractionEntries,
     fractionPercent,
     images,
+    missingImageFractions,
     openChecks.length,
+    otvDueFractions,
+    physicsDueFractions,
     readiness,
+    scheduledFractions.length,
     tasks,
     unsignedDocs.length,
     urgentTasks,

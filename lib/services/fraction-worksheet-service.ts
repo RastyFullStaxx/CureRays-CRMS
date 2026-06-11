@@ -359,16 +359,43 @@ export function calculateFractionWorksheetEntry(
 
 export function recalculateFractionWorksheetEntries(entries: FractionLogEntry[]) {
   const recalculatedActiveEntries: FractionLogEntry[] = [];
+  const sortedEntries = [...entries].sort((a, b) => a.fractionNumber - b.fractionNumber);
 
-  return [...entries]
-    .sort((a, b) => a.fractionNumber - b.fractionNumber)
+  return sortedEntries
     .reduce<FractionLogEntry[]>((recalculatedEntries, entry) => {
       if (isVoidedFractionEntry(entry)) {
         recalculatedEntries.push({ ...entry, status: "VOIDED" });
         return recalculatedEntries;
       }
 
-      const recalculatedEntry = calculateFractionWorksheetEntry(entry, recalculatedActiveEntries, { existingId: entry.id });
+      const lowerVoidedEntries = sortedEntries.filter(
+        (item) => item.fractionNumber < entry.fractionNumber && isVoidedFractionEntry(item)
+      );
+      const shouldAdjustImportedBaseline = recalculatedActiveEntries.length === 0 && lowerVoidedEntries.length > 0;
+      const dosePerFractionCgy = entry.dosePerFractionCgy ?? entry.dosePerFraction;
+      const doseToDotCgy = entry.doseToDotCgy ?? entry.doseToDepth;
+      const adjustedInput = shouldAdjustImportedBaseline
+        ? {
+            ...entry,
+            cumulativeDoseCgy: Math.max(
+              0,
+              (entry.cumulativeDoseCgy ?? entry.cumulativeDose) -
+                lowerVoidedEntries.reduce((total, item) => total + (item.dosePerFractionCgy ?? item.dosePerFraction), 0)
+            ),
+            cumulativeDoseToDotCgy: Math.max(
+              0,
+              (entry.cumulativeDoseToDotCgy ?? entry.cumulativeDoseToDepth) -
+                lowerVoidedEntries.reduce((total, item) => total + (item.doseToDotCgy ?? item.doseToDepth), 0)
+            )
+          }
+        : entry;
+      const recalculatedEntry = calculateFractionWorksheetEntry(adjustedInput, recalculatedActiveEntries, { existingId: entry.id });
+      if (shouldAdjustImportedBaseline && recalculatedActiveEntries.length === 0) {
+        recalculatedEntry.cumulativeDose = Math.max(dosePerFractionCgy, recalculatedEntry.cumulativeDose);
+        recalculatedEntry.cumulativeDoseCgy = recalculatedEntry.cumulativeDose;
+        recalculatedEntry.cumulativeDoseToDepth = Math.max(doseToDotCgy, recalculatedEntry.cumulativeDoseToDepth);
+        recalculatedEntry.cumulativeDoseToDotCgy = recalculatedEntry.cumulativeDoseToDepth;
+      }
       recalculatedActiveEntries.push(recalculatedEntry);
       recalculatedEntries.push(recalculatedEntry);
       return recalculatedEntries;

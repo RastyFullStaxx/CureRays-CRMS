@@ -66,6 +66,10 @@ model TreatmentCoursePhi {
   status              String
   treatmentModality   String
   treatmentType       String
+  workflowDefinitionId String?
+  bodyRegion          String?
+  laterality          String?
+  coursePhase         String?
   phaseOne            String?
   phaseTwo            String?
   energy              String?
@@ -77,6 +81,7 @@ model TreatmentCoursePhi {
   simulationOrders    SimulationOrderPhi[]
   prescriptions       PrescriptionPhi[]
   mappingRecords      MappingRecordPhi[]
+  treatmentFractions  TreatmentFractionPhi[]
   fractionLogEntries  FractionLogEntryPhi[]
   generatedOutputs    GeneratedDocumentOutputPhi[]
 }
@@ -163,20 +168,92 @@ model FractionLogEntryPhi {
   courseId              String
   course                TreatmentCoursePhi @relation(fields: [courseId], references: [id])
   fractionNumber        Int
+  status                String             @default("RECORDED")
   date                  DateTime
   phase                 String
   energy                String
+  energyKv              Int?
   ssd                   String
+  ssdCm                 Decimal?
+  fieldSizeCm           String?
+  treatmentTimeMinutes  Decimal?
   dosePerFraction       Int
+  dosePerFractionCgy    Int?
   cumulativeDose        Int
+  cumulativeDoseCgy     Decimal?
   technicianInitials    String
   mdApproval            Boolean
+  mdApprovalState       String?
+  mdApprovedAt          DateTime?
+  mdApprovedByUserId    String?
   dotApproval           Boolean
+  dotApprovalState      String?
+  dotApprovedAt         DateTime?
+  dotApprovedByUserId   String?
   depthOfTarget         String
+  depthOfTargetMm       Decimal?
   isodosePercent        Int
+  isodoseToDotPercent   Decimal?
   doseToDepth           Int
+  doseToDotCgy          Decimal?
   cumulativeDoseToDepth Int
+  cumulativeDoseToDotCgy Decimal?
+  treatmentSetupComments String?
+  isodoseOverrideReason String?
+  calculationStatus     String?
+  calculationReferenceVersion String?
+  calculationSourceTemplate String?
+  calculationSourceTabs String[]           @default([])
+  calculationDepthRoundedMm Decimal?
+  calculationLookupKey  String?
+  calculationClinicalValidationRequired Boolean @default(true)
+  calculationWarnings   String[]           @default([])
+  isodoseNote           String?
+  revisionApprovalType  String?
+  revisionReason        String?
+  revisionRequestedAt   DateTime?
+  revisionRequestedByUserId String?
+  voidReason            String?
+  voidedAt              DateTime?
+  voidedByUserId        String?
+  correctionReason      String?
+  correctedAt           DateTime?
+  correctedByUserId     String?
   notes                 String
+}
+
+model TreatmentFractionPhi {
+  id                                String             @id
+  courseId                          String
+  course                            TreatmentCoursePhi @relation(fields: [courseId], references: [id])
+  fractionNumber                    Int
+  phase                             String
+  treatmentDate                     DateTime
+  plannedDose                       Int
+  deliveredDose                     Int?
+  cumulativeDose                    Int
+  energy                            String?
+  applicator                        String?
+  imageGuidanceCompleted            Boolean            @default(false)
+  imageGuidanceStatus               String?
+  imageAssetIds                     String[]           @default([])
+  imageGuidanceNotApplicableReason  String?
+  scheduledFromPrescription         Boolean            @default(false)
+  sourcePrescriptionId              String?
+  sourcePhaseId                     String?
+  linkedFractionLogEntryId          String?
+  physicsCheckRequired              Boolean            @default(false)
+  physicsCheckCompletedAt           DateTime?
+  physicsCheckCompletedByUserId     String?
+  otvRequired                       Boolean            @default(false)
+  otvCompletedAt                    DateTime?
+  otvCompletedByUserId              String?
+  generatedAt                       DateTime?
+  lockedAt                          DateTime?
+  status                            String
+  therapistId                       String?
+  physicianReviewedAt               DateTime?
+  notes                             String?
 }
 
 model GeneratedDocumentOutputPhi {

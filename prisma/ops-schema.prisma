@@ -81,10 +81,77 @@ model OperationalCourse {
   patient          OperationalPatient @relation(fields: [patientRef], references: [patientRef])
   diagnosisCategory DiagnosisCategory
   protocolFamily   String
+  workflowDefinitionId String?
+  bodyRegion       String?
+  laterality       String?
   totalFractions   Int
   currentFraction  Int
   chartRoundsPhase ChartRoundsPhase
   status           String
+  coursePhase      String?
+}
+
+model OperationalWorkflowStep {
+  id                 String   @id
+  courseRef          String
+  workflowDefinitionId String
+  stepNumber         Int
+  stepName           String
+  phase              String
+  status             String
+  responsibleRole    String
+  triggerEvent       String
+  dueDate            DateTime?
+  requiresSignature  Boolean
+  linkedDocumentId   String?
+  naReason           String?
+  blockers           String[]
+  auditChecklist     String[]
+  notes              String?
+  createdAt          DateTime
+  updatedAt          DateTime
+}
+
+model OperationalAuditCheck {
+  id                 String   @id
+  courseRef          String
+  category           String
+  label              String
+  status             String
+  required           Boolean
+  evidenceDocumentId String?
+  notes              String?
+  completedByUserId  String?
+  completedAt        DateTime?
+  naReason           String?
+}
+
+model CourseFolderPlaceholder {
+  id              String   @id
+  patientRef      String
+  courseRef       String
+  storageProvider String
+  path            String
+  folders         String[]
+  status          String
+  createdAt       DateTime
+}
+
+model PatientRecordHistory {
+  id            String   @id
+  patientRef    String
+  courseRef     String?
+  action        String
+  summary       String
+  previousValue String
+  newValue      String
+  changedBy     String
+  role          String?
+  sessionId     String?
+  ipAddress     String?
+  deviceId      String?
+  reason        String
+  timestamp     DateTime
 }
 
 model CarepathTask {

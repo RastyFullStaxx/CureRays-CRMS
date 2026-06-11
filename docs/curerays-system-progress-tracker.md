@@ -1,6 +1,6 @@
 # CureRays CRMS System Progress Tracker
 
-Last updated: 2026-06-11
+Last updated: 2026-06-12
 
 Owner: CureRays CRMS implementation team
 
@@ -28,16 +28,16 @@ Update rules:
 
 Current overall assessment:
 
-- Local prototype/app shell readiness: 85%
-- End-to-end demo workflow readiness using mock/de-identified data: 67%
-- Real clinic pilot readiness with strictly de-identified or synthetic data: 46%
+- Local prototype/app shell readiness: 87%
+- End-to-end demo workflow readiness using mock/de-identified data: 72%
+- Real clinic pilot readiness with strictly de-identified or synthetic data: 53%
 - Production readiness for real PHI/ePHI: 31%
 
 Plain answer to the question "pwede na ba from patient registration to record maintenance and updating?":
 
-The system can run locally and can demonstrate the patient-course operating model with mock data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit prototype patient records in runtime memory through guarded PHI actions, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
+The system can run locally and can demonstrate the patient-course operating model with mock data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit patient-course bundles through guarded PHI actions, select workflow definitions from intake course fields, create workflow/task/document/audit/folder placeholders with rollback checks, record redacted correction history with optimistic concurrency, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
 
-It is not yet ready for real patient registration through normal clinic operations. Patient creation and update are now owned by a server-only service with a repository contract, prototype rollback checks, tokenized responses, and actor-shaped audit metadata, but records are not durable after process restart, workflow/folder creation is not a real database transaction, authentication is still a header placeholder, and production PHI boundaries are not fully enforced. So: pwede na for internal demo and workflow alignment using mock or de-identified data; hindi pa pwede for live PHI clinical use.
+It is ready to pilot the Phase 2 patient-registration-to-maintenance path with strictly de-identified or synthetic data. Patient creation and update are owned by a server-only service with a repository contract, memory fallback, opt-in Prisma OPS/PHI persistence adapter, tokenized responses, workflow bundle post-conditions, server-owned prototype session claims, and redacted correction history. It is still not ready for live PHI clinical use because real authentication/session management, production deployment controls, immutable audit infrastructure, and full PHI client-boundary hardening remain later-phase blockers. So: pwede na for internal demo and de-identified pilot workflow alignment; hindi pa pwede for live PHI clinical use.
 
 ## Evidence Consulted
 
@@ -64,23 +64,26 @@ Repository and docs reviewed:
 - `lib/hipaa.ts`
 - `lib/server/phi-store.ts`
 - `lib/server/patient-registration-service.ts`
+- `lib/server/phase6-treatment-workflow-service.ts`
 - `prisma/schema.prisma`
 - `prisma/ops-schema.prisma`
 - `prisma/phi-schema.prisma`
 - `scripts/hipaa-guardrails.mjs`
 - `scripts/phase0-guardrails.mjs`
 - `scripts/phase2-patient-registration.mjs`
+- `scripts/phase6-treatment-planning.mjs`
 - `scripts/fraction-worksheet-fixtures.mjs`
 - `scripts/route-smoke.mjs`
 - `.github/workflows/verify.yml`
 
-Verification run on 2026-06-11:
+Verification run on 2026-06-12:
 
 - `[x]` `npm run typecheck` passed.
 - `[x]` `npm run lint` passed with no ESLint warnings or errors.
 - `[x]` `npm run test:phase0` passed.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
+- `[x]` `npm run test:phase6` passed.
 - `[x]` `npm run test:routes` passed.
 - `[x]` `npm run test:phase1` passed.
 - `[x]` `npm run test:phase2` passed.
@@ -90,13 +93,14 @@ Verification run on 2026-06-11:
 Current inventory:
 
 - 34 App Router page files.
-- 5 API route files.
+- 7 API route files.
 - 63 component TSX files.
 - 17 service files under `lib/services`.
 - 1 shared RBAC helper in `lib/rbac.ts`.
 - 1 server-only patient registration service in `lib/server/patient-registration-service.ts`.
 - 1 Phase 0 baseline guardrail in `scripts/phase0-guardrails.mjs`.
 - 1 Phase 2 patient registration guardrail in `scripts/phase2-patient-registration.mjs`.
+- 1 Phase 6 treatment planning/fraction worksheet guardrail in `scripts/phase6-treatment-planning.mjs`.
 - 30 normalized local template files under `docs/2026_TEMPLATES`.
 - 31 `TemplateSource` records in `lib/template-registry.ts`: 16 active, 9 mapping-in-progress, 5 draft, 1 missing placeholder.
 - 25 `DocumentRequirement` records.
@@ -281,9 +285,11 @@ Baseline note: Phase 0 and Phase 1 are now treated as committed baseline archite
 
 ### Phase 2: Patient Registration, Registry, And Record Maintenance
 
-Current completion: 56%
+Current completion: 100% for de-identified pilot scope; production PHI readiness remains blocked by later security/persistence hardening.
 
 Goal: support safe patient/course intake and ongoing record maintenance as structured app state.
+
+Phase 2 is complete for strictly de-identified or synthetic pilot data. It does not authorize live PHI use; real authentication, production session controls, immutable audit infrastructure, deployed database migrations, and full client-bundle PHI hardening remain later-phase requirements.
 
 What is already done:
 
@@ -292,21 +298,27 @@ What is already done:
 - `[x]` `createPatient(input)` can create an in-memory patient.
 - `[x]` `updatePatient(id, input)` can update an in-memory patient.
 - `[x]` `GET /api/patients` returns operational patients through the server-only patient registration service.
-- `[x]` `POST /api/patients` delegates to `registerPatient()` behind a PHI role header check.
-- `[x]` `GET /api/patients/[id]` resolves PHI behind a PHI role header check.
-- `[x]` `PATCH /api/patients/[id]` delegates to `updatePatientRecord()` behind a PHI role header check.
+- `[x]` `POST /api/patients` delegates to `registerPatient()` behind server-owned prototype session claims.
+- `[x]` `GET /api/patients/[id]` returns a guarded minimal `PatientEditDto`, not the raw `Patient` object.
+- `[x]` `PATCH /api/patients/[id]` delegates to `updatePatientRecord()` with optimistic concurrency and required change reason.
+- `[x]` `GET /api/patients/[id]/history` returns redacted correction history.
+- `[x]` `PATCH /api/patients/[id]/lifecycle` supports patient/course lifecycle and phase updates while modeling completion at the course level.
 - `[x]` `patientRef`, `courseRef`, and `phiRecordId` helpers exist.
 - `[x]` Redacted audit events are created for in-memory create/update operations with actor-shaped metadata fields.
 - `[x]` `/patients` renders tokenized operational DTOs by default and no longer imports raw `patients`.
 - `[x]` Add Patient UI posts to a validated create-patient API path.
 - `[x]` Edit Patient UI fetches PHI only after explicit user action and patches through the guarded API.
 - `[x]` Required-field validation and duplicate MRN checks exist in the prototype API/store path.
-- `[x]` Patient creation creates an in-memory course and runs existing document/task requirement generation helpers.
+- `[x]` Patient creation accepts initial-course fields: protocol, body region/site, laterality, modality, total fractions, and start date.
+- `[x]` Patient creation selects workflow definitions by diagnosis/protocol/body region/modality with universal fallback.
+- `[x]` Patient creation creates course, workflow steps, tasks, document requirements, audit checks, and folder placeholders as one checked bundle.
 - `[x]` `lib/server/patient-registration-service.ts` owns the create/update service API and returns only operational/redacted mutation responses.
-- `[x]` `PatientRegistrationRepository` defines the persistence contract with the current in-memory adapter and a Prisma-ready adapter shape behind `CURERAYS_PATIENT_REPOSITORY` / `CURERAYS_PERSISTENCE_MODE`.
-- `[x]` Prototype patient creation now uses rollback checkpoints for patient, course, document, task, and audit arrays if bundle post-conditions fail.
+- `[x]` `PatientRegistrationRepository` defines the persistence contract with the current in-memory adapter and an opt-in Prisma OPS/PHI adapter behind `CURERAYS_PATIENT_REPOSITORY` / `CURERAYS_PERSISTENCE_MODE`.
+- `[x]` Prototype patient creation now uses rollback checkpoints for patient, course, document, task, workflow step, audit check, folder placeholder, history, and audit arrays if bundle post-conditions fail.
 - `[x]` OPS and PHI Prisma audit models include actor metadata placeholders for role, session, IP, and device.
-- `[x]` `npm run test:phase2` validates the service/repository boundary, API delegation, rollback structure, redacted responses, duplicate-MRN guard, and audit metadata shape.
+- `[x]` Prisma 6.19.3 is installed with OPS/PHI generation and migration scripts.
+- `[x]` OPS/PHI schemas include course workflow metadata, operational workflow steps, audit checks, folder placeholders, and redacted record history.
+- `[x]` `npm run test:phase2` validates service/repository boundary, API delegation, rollback structure, redacted responses, duplicate-MRN guard, workflow selection, bundle post-conditions, unauthorized access denial, optimistic concurrency, lifecycle updates, and correction history.
 
 Remaining checklist:
 
@@ -314,17 +326,17 @@ Remaining checklist:
 - `[x]` Wire Add Patient UI to a validated create-patient form.
 - `[x]` Wire Edit Patient UI to `PATCH /api/patients/[id]`.
 - `[x]` Add patient search, duplicate checking, MRN uniqueness checks, and required-field validation.
-- `[~]` Create course creation flow as part of registration or as a follow-up step. Prototype creation now creates an in-memory default course through a server-owned transaction contract, not a durable database transaction.
-- `[ ]` On course creation, select the workflow definition by diagnosis/protocol/body region/laterality/modality.
-- `[~]` On course creation, create workflow steps, tasks, document requirements, initial audit checks, and folder placeholders in one transaction. Prototype creates course-linked tasks/documents in memory with rollback checks; workflow steps, audit checks, folders, and DB transaction remain incomplete.
-- `[ ]` Add patient status update workflow: active, on hold, paused, closed/completed course.
-- `[ ]` Add phase update workflow: Upcoming, On Treatment, Post, and detailed internal phases.
-- `[ ]` Persist patients/courses in OPS/PHI databases.
-- `[~]` Add audit trail with authenticated actor, IP/device/session, before/after redaction, and reason for sensitive changes. Actor-shaped metadata now exists and mutation responses are redacted; real authenticated session claims and immutable audit storage remain incomplete.
-- `[ ]` Add optimistic/pessimistic concurrency rules for simultaneous edits.
-- `[ ]` Add record history view and rollback/correction policy.
-- `[ ]` Add React/UI tests for registration and update flows.
-- `[ ]` Add API integration tests for create/update/list/read behavior. Current Phase 2 guardrail is structural/static, not a full route-handler integration test runner.
+- `[x]` Create course creation flow as part of registration with initial-course fields.
+- `[x]` On course creation, select the workflow definition by diagnosis/protocol/body region/laterality/modality.
+- `[x]` On course creation, create workflow steps, tasks, document requirements, initial audit checks, and folder placeholders in one checked bundle with in-memory rollback.
+- `[x]` Add patient status update workflow for active, on hold, and paused.
+- `[x]` Add course-level completion and phase update workflow for Upcoming, On Treatment, Post, and detailed internal phases.
+- `[~]` Persist patients/courses in OPS/PHI databases. Opt-in Prisma adapter, generated clients, and schema support exist; deployed database migrations/environments remain Phase 8/production work.
+- `[~]` Add audit trail with authenticated actor, IP/device/session, before/after redaction, and reason for sensitive changes. Redacted history and actor-shaped metadata exist; real authenticated session claims and immutable audit storage remain incomplete.
+- `[x]` Add optimistic concurrency rules for simultaneous edits using `expectedLastUpdatedAt`.
+- `[x]` Add record history view/API and correction policy with redacted append-only entries; destructive rollback is intentionally not implemented.
+- `[~]` Add React/UI tests for registration and update flows. Deferred until a React test framework is introduced; Phase 2 has service/route guardrails.
+- `[x]` Add lightweight Node route/service integration tests for create/update/list/read, duplicate rollback, workflow selection, bundle post-conditions, unauthorized PHI denial, concurrency conflict, lifecycle update, and redacted history.
 
 Pre-mortem:
 
@@ -447,7 +459,7 @@ Pre-mortem:
 
 ### Phase 6: Treatment Planning And Fractionation Worksheet
 
-Current completion: 63%
+Current completion: 78%
 
 Goal: support treatment planning and daily treatment delivery records without prematurely claiming clinical calculation authority.
 
@@ -465,20 +477,30 @@ What is already done:
 - `[x]` Fixture script asserts reference version and "clinical validation required" metadata.
 - `[x]` Prototype role gates enforce Rad Onc/Admin for MD approval and RTT/Admin for DOT approval.
 - `[x]` Fully approved fraction rows are locked against normal edits; revision and void remain controlled paths.
+- `[x]` Treatment fraction rows are now modeled separately from recorded worksheet rows, with prescription-derived schedule fields, linked worksheet row IDs, imaging gate state, OTV state, and physics-check state.
+- `[x]` Prisma prototype and PHI schemas now include rich fraction calculation metadata, approval states, correction/revision/void metadata, and treatment fraction schedule models.
+- `[x]` Server-owned Phase 6 workflow service exists for schedule generation, image linking, OTV/physics checks, and fraction mutation wrappers.
+- `[x]` `/api/igsrt` supports `generateFractionSchedule`, `linkFractionImage`, `recordPhysicsCheck`, and `recordOtvCheck` in addition to the existing simulation, prescription, document, and fraction actions.
+- `[x]` Treatment Planning page shows Phase 6 readiness, missing inputs, schedule coverage, imaging/OTV/physics gates, and worksheet links.
+- `[x]` Patient Planning tab shows schedule coverage, missing imaging, OTV due, physics due, logged fraction count, and the clinical validation warning.
+- `[x]` Native fraction worksheet consumes scheduled fraction defaults, exposes IMG/OTV/PHYS gate badges, links prototype imaging evidence, and disables DOT approval while required imaging is missing.
+- `[x]` Historical corrections recalculate dependent active rows and reset downstream approvals when cumulative totals change.
+- `[x]` Voided rows remain retained for history and are excluded from active recalculation paths.
+- `[x]` `scripts/phase6-treatment-planning.mjs` verifies Phase 6 service/API/schema/UI/test wiring.
 
 Remaining checklist:
 
 - `[!]` Obtain formal clinical validation for reference curves, calculations, rounding, override rules, cumulative dose handling, and generated notes.
 - `[x]` Version all clinical reference data and tie calculations to reference version for the prototype reference table.
-- `[ ]` Persist fraction entries and recalculated dependent totals.
+- `[~]` Persist fraction entries and recalculated dependent totals in app-owned in-memory state. Durable OPS/PHI database persistence remains a production blocker.
 - `[x]` Add role-specific MD and DOT approval enforcement at the prototype API boundary.
 - `[x]` Add lock rules after final approval and clear correction workflows after lock.
-- `[ ]` Add treatment schedule/fraction creation from prescription.
-- `[ ]` Connect imaging guidance completion to required image assets.
-- `[ ]` Connect weekly physics checks and OTV/treatment management rules where clinically required.
-- `[ ]` Add audit logs for every fraction create/update/approve/revise/void.
-- `[ ]` Add unit tests for all calculation edge cases and historical correction scenarios.
-- `[ ]` Add integration tests for `/api/igsrt`.
+- `[x]` Add treatment schedule/fraction creation from prescription for signed or prototype-ready prescriptions.
+- `[x]` Connect imaging guidance completion to required image assets at the prototype evidence-gate level.
+- `[x]` Connect weekly physics checks and OTV/treatment management rules at the prototype schedule-gate level.
+- `[x]` Add redacted audit logs for fraction create/update/approve/revise/void plus schedule/image/OTV/physics actions.
+- `[~]` Add guardrail coverage for calculation edge cases and historical correction scenarios. Formal unit-test framework remains future work.
+- `[~]` Add API/workflow guardrail coverage for `/api/igsrt` Phase 6 actions. Full integration tests remain future work.
 - `[ ]` Add clinician sign-off checklist before any production use.
 
 Pre-mortem:
@@ -647,7 +669,7 @@ These should be treated as release gates, not optional cleanup.
 - `[!]` No immutable audit trail: audit events are in-memory and use placeholder actors.
 - `[!]` No real document/file integration: generated output is simulated.
 - `[!]` No clinical validation for calculation logic.
-- `[!]` Add Patient is wired for prototype-only in-memory workflows, but many other visible action buttons remain disabled placeholders or are not wired to production workflows.
+- `[~]` Add Patient/Edit Patient are wired for de-identified pilot workflows with memory fallback and opt-in Prisma persistence; many other visible action buttons remain disabled placeholders or are not wired to production workflows.
 
 ## Recommended Execution Order
 
@@ -667,11 +689,11 @@ Target completion outcome: prototype stays buildable, clear, and honest.
 
 Target completion outcome: patient registration through record maintenance works with de-identified durable data.
 
-- `[ ]` Implement persistent patient/course storage for demo/staging.
-- `[x]` Wire Add Patient and Edit Patient UI for prototype in-memory state.
-- `[~]` Implement create-course flow. Prototype patient creation creates a default course through the server registration service; durable workflow-definition selection is incomplete.
-- `[~]` Auto-create workflow steps, tasks, document requirements, audit checks, and folder placeholders. Prototype creates tasks/documents with rollback checks; workflow steps, audit checks, folders, and real DB transaction safety remain incomplete.
-- `[~]` Add tests around patient/course creation and update. Phase 2 structural guardrails now exist; full API/service integration tests still need a test runner.
+- `[~]` Implement persistent patient/course storage for demo/staging. Prisma OPS/PHI adapter and generated clients exist; deployed databases and migrations still need environment setup.
+- `[x]` Wire Add Patient and Edit Patient UI for de-identified pilot state.
+- `[x]` Implement create-course flow as part of registration with workflow-definition selection.
+- `[x]` Auto-create workflow steps, tasks, document requirements, audit checks, and folder placeholders with bundle post-condition checks.
+- `[x]` Add tests around patient/course creation and update through the Phase 2 Node route/service guardrail.
 
 ### Clinical Operations Sprint
 
@@ -715,3 +737,4 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-11 | Completed Phase 1 prototype navigation and operational visibility to 100%. | Added app loading/error boundaries, explicit table empty/error/loading states, disabled non-wired prototype actions, static settings rows, expanded route smoke coverage, and `npm run test:phase1` guardrails for operational visibility. | Keep Phase 1 limited to internal demo readiness; proceed next to durable patient/course persistence, real auth/session claims, and production PHI controls. |
 | 2026-06-11 | Completed Phase 0 baseline, product alignment, and repo health to 100%. | Added `npm run test:phase0`, removed hardcoded UI colors outside `app/globals.css`, removed legacy dark-mode hex bridges, deleted deprecated root UI primitives, moved static table/section-card helpers under `components/shared`, added server-only operational page service, and confirmed zero Phase 0 guardrail violations. | Keep Phase 0 guarded through `npm run verify`; continue production-readiness work in later phases without reopening baseline debt. |
 | 2026-06-11 | Completed Phase 2A patient registration and record maintenance foundation. | Added `lib/server/patient-registration-service.ts`, repository contract with in-memory and Prisma-ready adapters, service-owned create/update API delegation, rollback checkpoints for prototype patient/course/task/document/audit creation, audit actor metadata fields, OPS/PHI schema placeholders, and `npm run test:phase2`. Focused checks and full `npm run verify` passed. | Continue to durable OPS/PHI persistence, real auth/session claims, workflow-definition selection, immutable audit storage, and true API integration tests. |
+| 2026-06-12 | Completed Phase 2 for de-identified pilot scope. | Added Prisma 6.19.3, OPS/PHI client generation and migration scripts, opt-in Prisma repository adapter, server-owned prototype session claims, initial-course intake fields, workflow-definition selection with universal fallback, workflow/task/document/audit/folder bundle post-conditions, guarded edit DTO, lifecycle and history routes, optimistic concurrency, redacted correction history, and expanded `npm run test:phase2`. `npm run verify` passed. | Keep production PHI use blocked until real auth/session controls, deployed OPS/PHI databases, immutable audit infrastructure, and broader PHI client-boundary hardening are complete. |

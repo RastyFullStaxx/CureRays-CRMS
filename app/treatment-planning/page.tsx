@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import { AlertTriangle, CheckCircle2, LockKeyhole, PenLine, Plus, Radiation, Send, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, CalendarCheck2, ExternalLink, PenLine, Plus, Radiation, ShieldCheck } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
@@ -8,14 +9,28 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { moduleSnapshot, patientLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
+import { Phase6PlanningActions } from "@/components/treatment-planning/phase6-planning-actions";
+import {
+  getPhase6GateStatuses,
+  getPhase6PlanningReadiness,
+  moduleSnapshot,
+  patientLabel,
+  statusLabel,
+  statusTone
+} from "@/lib/services/operational-page-service";
 import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentPlanningPage() {
-  const plans = moduleSnapshot.plans;
+  const plans = moduleSnapshot.plans.map((plan) => ({
+    ...plan,
+    readiness: getPhase6PlanningReadiness(plan.courseId),
+    gates: getPhase6GateStatuses(plan.courseId),
+  }));
   const physics = plans.filter((plan) => plan.physicistReviewStatus === "READY_FOR_REVIEW").length;
   const radOnc = plans.filter((plan) => plan.radOncSignatureStatus === "READY_FOR_REVIEW").length;
   const locked = plans.filter((plan) => plan.lockedAt).length;
+  const scheduled = plans.filter((plan) => plan.readiness.scheduleGenerated).length;
+  const gated = plans.filter((plan) => plan.gates.imagingGateStatus.status === "BLOCKED").length;
 
   return (
     <PageStack>
@@ -28,8 +43,8 @@ export default function TreatmentPlanningPage() {
         <StatCard icon={Radiation} label="Plans in Progress" value={plans.length - locked} sub="Open planning work" />
         <StatCard icon={ShieldCheck} label="Physics Review" value={physics} sub="Physicist queue" tone="info" />
         <StatCard icon={PenLine} label="Rad Onc Signature" value={radOnc} sub="Ready to sign" tone="primary" />
-        <StatCard icon={CheckCircle2} label="Locked Plans" value={locked} sub="Signed plans" tone="success" />
-        <StatCard icon={AlertTriangle} label="Blocked" value={2} sub="Missing inputs" tone="warning" />
+        <StatCard icon={CalendarCheck2} label="Schedules" value={`${scheduled}/${plans.length}`} sub="Generated from Rx" tone="success" />
+        <StatCard icon={AlertTriangle} label="Gated" value={gated} sub="Imaging or review gates" tone="warning" />
       </StatGrid>
       <DataTable
         columns={[
@@ -52,6 +67,36 @@ export default function TreatmentPlanningPage() {
           { key: 'totalDose', label: 'Total Dose', render: (row) => row.totalDose ?? "Pending" },
           { key: 'fractions', label: 'Fractions', render: (row) => row.totalFractions ?? "Pending" },
           { key: 'coverage', label: 'Coverage', render: (row) => row.percentDepthDose ? `${row.percentDepthDose}%` : "Pending" },
+          { key: 'readiness', label: 'Readiness', render: (row) => (
+            <div className="grid gap-1">
+              <Badge variant={row.readiness.missingInputs.length ? "warning" : "info"}>
+                {row.readiness.status.replaceAll("_", " ")}
+              </Badge>
+              {row.readiness.missingInputs.length ? (
+                <span className="text-xs font-semibold text-[var(--color-text-muted)]">
+                  {row.readiness.missingInputs.slice(0, 2).join(", ")}
+                </span>
+              ) : null}
+            </div>
+          )},
+          { key: 'schedule', label: 'Schedule', render: (row) => (
+            <span className="font-semibold text-[var(--color-text)]">
+              {row.readiness.scheduledFractions}/{row.readiness.plannedFractions || row.totalFractions || 0}
+            </span>
+          )},
+          { key: 'gates', label: 'Gates', render: (row) => (
+            <div className="flex flex-wrap gap-1">
+              <Badge variant={row.gates.imagingGateStatus.status === "BLOCKED" ? "warning" : "success"}>
+                IMG {row.gates.imagingGateStatus.dueFractions.length}
+              </Badge>
+              <Badge variant={row.gates.physicsCheckDueStatus.dueFractions.length ? "warning" : "success"}>
+                PHYS {row.gates.physicsCheckDueStatus.dueFractions.length}
+              </Badge>
+              <Badge variant={row.gates.otvDueStatus.dueFractions.length ? "warning" : "success"}>
+                OTV {row.gates.otvDueStatus.dueFractions.length}
+              </Badge>
+            </div>
+          )},
           { key: 'physics', label: 'Physics', render: (row) => (
             <Badge variant={mapTone(statusTone(row.physicistReviewStatus))}>{statusLabel(row.physicistReviewStatus)}</Badge>
           )},
@@ -60,6 +105,19 @@ export default function TreatmentPlanningPage() {
           )},
           { key: 'status', label: 'Status', render: (row) => (
             <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS"))}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
+          )},
+          { key: 'actions', label: 'Actions', render: (row) => (
+            <div className="flex flex-wrap items-center gap-2">
+              {!row.readiness.scheduleGenerated ? (
+                <Phase6PlanningActions courseId={row.courseId} disabled={row.readiness.missingInputs.length > 0} />
+              ) : null}
+              <Link href={`/patients/${row.patientId}/fraction-log`}>
+                <Button type="button" size="sm" variant="secondary">
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  Worksheet
+                </Button>
+              </Link>
+            </div>
           )},
         ]}
         rows={plans}
@@ -76,6 +134,8 @@ export default function TreatmentPlanningPage() {
             row.site,
             row.energy,
             row.applicatorSize,
+            row.readiness.status,
+            row.readiness.missingInputs.join(' '),
             row.physicistReviewStatus,
             row.radOncSignatureStatus,
             row.lockedAt ? 'Locked' : 'In Progress',

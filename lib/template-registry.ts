@@ -1029,7 +1029,8 @@ function bodyRegionMatches(requirementBodyRegion: string | undefined, course: Tr
   }
 
   const normalizedRequirement = requirementBodyRegion.toLowerCase();
-  const normalizedCourse = `${course.diagnosis} ${course.protocolName} ${course.treatmentType} ${course.applicator ?? ""} ${course.targetDepth ?? ""}`.toLowerCase();
+  const normalizedCourse =
+    `${course.diagnosis} ${course.protocolName} ${course.treatmentType} ${course.bodyRegion ?? ""} ${course.applicator ?? ""} ${course.targetDepth ?? ""}`.toLowerCase();
   const aliases: Record<string, string[]> = {
     hand: ["hand", "thumb", "finger", "palm", "wrist"],
     foot: ["foot", "toe", "ankle"],

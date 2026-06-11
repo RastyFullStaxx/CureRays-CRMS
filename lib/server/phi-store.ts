@@ -8,10 +8,12 @@ import {
   patients,
   prescriptions,
   simulationOrders,
+  treatmentFractions,
   treatmentCourses
 } from "@/lib/clinical-store";
 import { phiRecordId } from "@/lib/hipaa";
-import { canAccessPhi, normalizeRole, PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
+import { canAccessPhi, roleCan } from "@/lib/rbac";
+import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
 import type { Patient, PrototypeAccessRole } from "@/lib/types";
 
 export type PhiAccessContext = {
@@ -20,7 +22,8 @@ export type PhiAccessContext = {
 };
 
 export function phiAccessFromRequest(request: NextRequest, reason: string): PhiAccessContext | null {
-  const role = normalizeRole(request.headers.get(PROTOTYPE_ROLE_HEADER));
+  const session = prototypeSessionFromRequest(request);
+  const role = session?.role ?? null;
 
   if (role && canAccessPhi(role)) {
     return { role, reason };
@@ -68,6 +71,7 @@ export function getPatientPhiBundle(patientRefOrId: string, context: PhiAccessCo
     courses,
     simulationOrders: simulationOrders.filter((order) => courseIds.has(order.courseId)),
     prescriptions: prescriptions.filter((prescription) => courseIds.has(prescription.courseId)),
+    treatmentFractions: treatmentFractions.filter((fraction) => courseIds.has(fraction.courseId)),
     mappingRecords: mappingRecords.filter((record) => courseIds.has(record.courseId)),
     generatedDocumentOutputs: generatedDocumentOutputs.filter((output) => courseIds.has(output.courseId)),
     auditEvents: auditEvents.filter((event) => event.patientId === patient.id || courseIds.has(event.entityId))

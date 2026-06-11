@@ -13,7 +13,8 @@ import {
   priorityFlags,
   simulationOrders,
   templateSources,
-  treatmentCourses
+  treatmentCourses,
+  treatmentFractions
 } from "@/lib/clinical-store";
 import type {
   AuditCheck,
@@ -326,23 +327,7 @@ export function getTreatmentPlans(): TreatmentPlan[] {
 }
 
 export function getTreatmentFractions(): TreatmentFraction[] {
-  return fractionLogEntries.map((entry) => ({
-    id: entry.id,
-    courseId: entry.courseId,
-    fractionNumber: entry.fractionNumber,
-    phase: entry.phase,
-    treatmentDate: entry.date,
-    plannedDose: entry.dosePerFraction,
-    deliveredDose: entry.dosePerFraction,
-    cumulativeDose: entry.cumulativeDose,
-    energy: entry.energy,
-    applicator: entry.ssd,
-    imageGuidanceCompleted: entry.dotApproval,
-    status: entry.mdApproval && entry.dotApproval ? "COMPLETED" : "READY_FOR_REVIEW",
-    therapistId: entry.technicianInitials,
-    physicianReviewedAt: entry.mdApproval ? entry.date : undefined,
-    notes: entry.notes
-  }));
+  return treatmentFractions;
 }
 
 export const imagingCategories = [

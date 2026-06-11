@@ -18,6 +18,8 @@ export default function TreatmentDeliveryPage() {
   const activeFractions = fractions.slice(0, 5);
   const completed = fractions.filter((fraction) => fraction.status === "COMPLETED").length;
   const held = fractions.filter((fraction) => fraction.status === "BLOCKED" || fraction.status === "OVERDUE").length || 2;
+  const otvDue = fractions.filter((fraction) => fraction.otvRequired && !fraction.otvCompletedAt).length;
+  const physicsDue = fractions.filter((fraction) => fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt).length;
 
   return (
     <PageStack>
@@ -36,8 +38,8 @@ export default function TreatmentDeliveryPage() {
         <StatCard icon={Clock3} label="In Progress" value={activeFractions.length - completed} sub="Active queue" tone="warning" />
         <StatCard icon={CheckCircle2} label="Completed" value={completed} sub="Today" tone="success" />
         <StatCard icon={AlertTriangle} label="Held/Missed" value={held} sub="Needs follow-up" tone="error" />
-        <StatCard icon={UsersRound} label="OTV Due" value={3} sub="Patients" tone="warning" />
-        <StatCard icon={ShieldCheck} label="Physics Check Due" value={2} sub="Patients" tone="info" />
+        <StatCard icon={UsersRound} label="OTV Due" value={otvDue} sub="Scheduled checks" tone="warning" />
+        <StatCard icon={ShieldCheck} label="Physics Check Due" value={physicsDue} sub="Weekly checks" tone="info" />
       </StatGrid>
       <Card>
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -105,7 +107,12 @@ export default function TreatmentDeliveryPage() {
             <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
           )},
           { key: 'alerts', label: 'Alerts', render: (row) => (
-            (row._index as number) % 3 === 0 ? <Badge variant="warning">OTV</Badge> : "-"
+            <div className="flex flex-wrap gap-1">
+              {row.imageGuidanceStatus === "MISSING" ? <Badge variant="warning">IMG</Badge> : null}
+              {row.otvDue ? <Badge variant="warning">OTV</Badge> : null}
+              {row.physicsDue ? <Badge variant="info">PHYS</Badge> : null}
+              {row.imageGuidanceStatus !== "MISSING" && !row.otvDue && !row.physicsDue ? "-" : null}
+            </div>
           )},
         ]}
         rows={fractions.map((fraction, index) => {
@@ -121,6 +128,9 @@ export default function TreatmentDeliveryPage() {
             room: index % 2 ? "Room 2" : "Room 1",
             therapistId: fraction.therapistId,
             status: fraction.status,
+            imageGuidanceStatus: fraction.imageGuidanceStatus,
+            otvDue: Boolean(fraction.otvRequired && !fraction.otvCompletedAt),
+            physicsDue: Boolean(fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt),
           };
         })}
         empty="No treatment queue rows are available."
@@ -142,7 +152,7 @@ export default function TreatmentDeliveryPage() {
           { id: 'room', label: 'Location' },
           { id: 'therapistId', label: 'Therapist', getValue: (row) => row.therapistId ?? 'Unassigned' },
           { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
-          { id: 'alerts', label: 'Alerts', getValue: (row) => (row._index as number) % 3 === 0 ? 'OTV' : 'Clear' },
+          { id: 'alerts', label: 'Alerts', getValue: (row) => row.imageGuidanceStatus === "MISSING" ? 'Image' : row.otvDue ? 'OTV' : row.physicsDue ? 'Physics' : 'Clear' },
         ]}
       />
     </PageStack>
