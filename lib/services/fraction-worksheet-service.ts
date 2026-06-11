@@ -56,6 +56,8 @@ const sourceTemplate =
 
 const sourceTabs = ["skin lesion", "Isodose Note", "100 kV", "70 kV", "50 kV"];
 
+export const fractionWorksheetReferenceVersion = "IGSRT-FX-REF-2026-06-11-PROTOTYPE";
+
 const depthsMm = Array.from({ length: 40 }, (_, index) => roundToOne((index + 1) / 10));
 
 const referenceCurveRows: Record<FractionWorksheetEnergyKv, Record<string, number[]>> = {
@@ -277,6 +279,7 @@ export function calculateFractionWorksheetEntry(
       : Number(input.cumulativeDoseToDotCgy ?? input.cumulativeDoseToDepth ?? doseToDotCgy)
   );
   const calculationMeta: FractionWorksheetCalculationMeta = {
+    referenceVersion: fractionWorksheetReferenceVersion,
     sourceTemplate,
     sourceTabs,
     depthRoundedMm: lookup.roundedDepthMm,

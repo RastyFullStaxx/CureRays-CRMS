@@ -22,8 +22,8 @@ export default function AuditPage() {
         subtitle="Closeout readiness, blockers, and compliance checks"
         actions={
           <>
-            <Button variant="secondary"><Upload className="h-4 w-4" /> Export Audit Report</Button>
-            <Button><PlayCircle className="h-4 w-4" /> Run Audit Check</Button>
+            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Export Audit Report</Button>
+            <Button disabled title="Prototype placeholder"><PlayCircle className="h-4 w-4" /> Run Audit Check</Button>
           </>
         }
       />

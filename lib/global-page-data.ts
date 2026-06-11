@@ -1,8 +1,8 @@
 import {
-  appointments,
   carepathTasks,
   generatedDocuments,
-  patients,
+  operationalAppointments,
+  operationalPatients,
   templateSources,
   treatmentCourses
 } from "@/lib/clinical-store";
@@ -19,19 +19,22 @@ import {
   imagingCategories
 } from "@/lib/module-data";
 import type { CarepathWorkflowPhase, ResponsibleParty, TemplateSource, WorkflowItemStatus } from "@/lib/types";
-import { carepathPhaseLabels, patientName, responsiblePartyLabels } from "@/lib/workflow";
+import { roleMatrix } from "@/lib/rbac";
+import { carepathPhaseLabels, responsiblePartyLabels } from "@/lib/workflow";
 
 export function patientById(id: string) {
-  return patients.find((patient) => patient.id === id);
+  return operationalPatients().find(
+    (patient) => patient.id === id || patient.patientRef === id || patient.phiRecordId === id
+  );
 }
 
 export function patientLabel(id: string) {
   const patient = patientById(id);
-  return patient ? patientName(patient) : "Unassigned patient";
+  return patient?.displayLabel ?? "Restricted patient";
 }
 
 export function patientMrn(id: string) {
-  return patientById(id)?.mrn ?? "MRN-PENDING";
+  return patientById(id)?.patientRef ?? "PREF-PENDING";
 }
 
 export function courseLabel(id: string) {
@@ -60,12 +63,12 @@ export function statusTone(status: string): "blue" | "green" | "orange" | "amber
 }
 
 export const moduleSnapshot = {
-  patients,
+  patients: operationalPatients(),
   treatmentCourses,
   courses: getCourses(),
   workflowSteps: getWorkflowSteps(),
   tasks: getTasks(),
-  appointments,
+  appointments: operationalAppointments(),
   fractions: getTreatmentFractions(),
   documents: getDocumentInstances(),
   generatedDocuments,
@@ -107,29 +110,28 @@ export const adminUsers = [
   { name: "Kelly Alvarez", email: "kelly.alvarez@curerays.com", role: "Administrator", location: "Grass Valley", status: "Active", lastLogin: "Apr 30, 11:05 AM", mfa: "On" }
 ];
 
-export const adminRoles = [
-  { name: "Physician", description: "Reviews plans, signs clinical documents, and manages course decisions.", users: 5, status: "Active", updated: "May 6, 2026" },
-  { name: "Radiation Therapist", description: "Runs treatments, uploads imaging, and completes fraction records.", users: 8, status: "Active", updated: "May 5, 2026" },
-  { name: "Clinical Nurse", description: "Supports clinical documentation, follow-ups, and patient coordination.", users: 6, status: "Active", updated: "May 4, 2026" },
-  { name: "Medical Assistant", description: "Completes simulation support, mapping forms, and intake tasks.", users: 5, status: "Active", updated: "May 4, 2026" },
-  { name: "Billing Specialist", description: "Reviews billing readiness and eCW upload state.", users: 2, status: "Active", updated: "May 2, 2026" },
-  { name: "QA Specialist", description: "Runs audit checks and manages compliance findings.", users: 2, status: "Active", updated: "Apr 30, 2026" },
-  { name: "Data Analyst", description: "Views system analytics and exports operational reports.", users: 1, status: "Active", updated: "Apr 28, 2026" },
-  { name: "Administrator", description: "Manages settings, roles, templates, and system controls.", users: 4, status: "Active", updated: "Apr 25, 2026" }
-];
+export const adminRoles = roleMatrix.map((role, index) => ({
+  name: role.label,
+  description: `${role.actions.length} prototype action grant(s); module access is shared with API role gates.`,
+  users: [2, 5, 8, 4, 1, 5, 2, 2, 4][index] ?? 1,
+  status: "Active",
+  updated: "June 11, 2026"
+}));
 
-export const permissionRoles = ["Physician", "Radiation Therapist", "Clinical Nurse", "Medical Assistant", "Billing Specialist", "QA Specialist", "Administrator"];
+export const permissionRoles = roleMatrix.map((role) => role.label);
 export const permissionRows = [
-  { module: "Patient Management", description: "Access patient demographic information and records", levels: ["full", "view", "view", "view", "none", "none", "full"] },
-  { module: "Clinical Forms", description: "View, create, and edit clinical documentation", levels: ["full", "edit", "edit", "view", "none", "view", "full"] },
-  { module: "Treatment Planning", description: "Create and manage treatment plans and parameters", levels: ["edit", "edit", "view", "na", "none", "view", "full"] },
-  { module: "Imaging", description: "View and annotate imaging studies and reports", levels: ["view", "edit", "view", "na", "none", "edit", "full"] },
-  { module: "Documents", description: "Upload, view, and manage documents and files", levels: ["edit", "view", "edit", "edit", "view", "edit", "full"] },
-  { module: "Audit & QA", description: "Access audit logs and quality assurance tools", levels: ["view", "na", "view", "na", "na", "edit", "full"] },
-  { module: "Analytics & Reports", description: "View system analytics and dashboards", levels: ["view", "view", "view", "none", "view", "view", "full"] },
-  { module: "Templates", description: "Manage and use system templates", levels: ["edit", "view", "view", "view", "na", "view", "edit"] },
-  { module: "System Settings", description: "Configure system settings and preferences", levels: ["none", "none", "none", "none", "none", "none", "full"] }
-];
+  { module: "Patient Management", description: "Tokenized registry plus guarded PHI actions", key: "patients" },
+  { module: "Tasks", description: "Task queues and assignment workflow", key: "tasks" },
+  { module: "Schedule", description: "Appointment calendar and treatment timing", key: "schedule" },
+  { module: "Documents", description: "Document lifecycle and signature evidence", key: "documents" },
+  { module: "Billing", description: "Billing readiness and evidence review", key: "billing" },
+  { module: "Audit & QA", description: "Audit closeout and compliance review", key: "audit" },
+  { module: "System Settings", description: "Security, templates, and configuration", key: "settings" }
+].map((row) => ({
+  module: row.module,
+  description: row.description,
+  levels: roleMatrix.map((role) => role.moduleAccess[row.key] ?? "none")
+}));
 
 export const clinicalDocumentRows = getDocumentInstances().slice(0, 6).map((document, index) => ({
   ...document,

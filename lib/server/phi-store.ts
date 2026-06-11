@@ -11,29 +11,19 @@ import {
   treatmentCourses
 } from "@/lib/clinical-store";
 import { phiRecordId } from "@/lib/hipaa";
-import type { Patient, ResponsibleParty } from "@/lib/types";
-
-const phiRoles = new Set<ResponsibleParty | "ADMIN" | "CLINICIAN" | "SYSTEM">([
-  "ADMIN",
-  "CLINICIAN",
-  "SYSTEM",
-  "RAD_ONC",
-  "NP_PA",
-  "MA",
-  "RTT",
-  "PHYSICIST"
-]);
+import { canAccessPhi, normalizeRole, PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
+import type { Patient, PrototypeAccessRole } from "@/lib/types";
 
 export type PhiAccessContext = {
-  role: ResponsibleParty | "ADMIN" | "CLINICIAN" | "SYSTEM";
+  role: PrototypeAccessRole;
   reason: string;
 };
 
 export function phiAccessFromRequest(request: NextRequest, reason: string): PhiAccessContext | null {
-  const role = request.headers.get("x-curerays-role")?.toUpperCase();
+  const role = normalizeRole(request.headers.get(PROTOTYPE_ROLE_HEADER));
 
-  if (role && phiRoles.has(role as PhiAccessContext["role"])) {
-    return { role: role as PhiAccessContext["role"], reason };
+  if (role && canAccessPhi(role)) {
+    return { role, reason };
   }
 
   return null;
@@ -44,7 +34,15 @@ export function systemPhiAccess(reason: string): PhiAccessContext {
 }
 
 export function requirePhiAccess(context: PhiAccessContext | null) {
-  if (!context || !phiRoles.has(context.role)) {
+  if (!context || !canAccessPhi(context.role)) {
+    throw new Error("PHI access denied");
+  }
+}
+
+export function requirePhiAction(context: PhiAccessContext | null, action: Parameters<typeof roleCan>[1]) {
+  requirePhiAccess(context);
+
+  if (!context || !roleCan(context.role, action)) {
     throw new Error("PHI access denied");
   }
 }

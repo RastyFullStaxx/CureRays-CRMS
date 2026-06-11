@@ -28,16 +28,16 @@ Update rules:
 
 Current overall assessment:
 
-- Local prototype/app shell readiness: 78%
-- End-to-end demo workflow readiness using mock/de-identified data: 62%
-- Real clinic pilot readiness with strictly de-identified or synthetic data: 42%
-- Production readiness for real PHI/ePHI: 28%
+- Local prototype/app shell readiness: 82%
+- End-to-end demo workflow readiness using mock/de-identified data: 66%
+- Real clinic pilot readiness with strictly de-identified or synthetic data: 45%
+- Production readiness for real PHI/ePHI: 30%
 
 Plain answer to the question "pwede na ba from patient registration to record maintenance and updating?":
 
-The system can run locally and can demonstrate the patient-course operating model with mock data. It can list patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, update some IGSRT records in runtime memory, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
+The system can run locally and can demonstrate the patient-course operating model with mock data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit prototype patient records in runtime memory through guarded PHI actions, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
 
-It is not yet ready for real patient registration through normal clinic operations. Patient creation and update exist at the API/state-helper layer, but the Add Patient UI is not wired, created patients are not durable after process restart, course/workflow/task/folder creation is incomplete, authentication is a header placeholder, and production PHI boundaries are not fully enforced. So: pwede na for internal demo and workflow alignment using mock or de-identified data; hindi pa pwede for live PHI clinical use.
+It is not yet ready for real patient registration through normal clinic operations. Patient creation and update are wired for the prototype and create an in-memory course/task/document bundle, but records are not durable after process restart, workflow/task/folder creation is not a real database transaction, authentication is still a header placeholder, and production PHI boundaries are not fully enforced. So: pwede na for internal demo and workflow alignment using mock or de-identified data; hindi pa pwede for live PHI clinical use.
 
 ## Evidence Consulted
 
@@ -68,6 +68,8 @@ Repository and docs reviewed:
 - `prisma/phi-schema.prisma`
 - `scripts/hipaa-guardrails.mjs`
 - `scripts/fraction-worksheet-fixtures.mjs`
+- `scripts/route-smoke.mjs`
+- `.github/workflows/verify.yml`
 
 Verification run on 2026-06-11:
 
@@ -75,7 +77,9 @@ Verification run on 2026-06-11:
 - `[x]` `npm run lint` passed with no ESLint warnings or errors.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
-- `[x]` `npm run build` passed after a rerun. One earlier plain build attempt failed during page-data collection for `/api/patients`, then `npx next build --debug` and a second `npm run build` both passed. Keep this as a watch item if it recurs.
+- `[x]` `npm run test:routes` passed.
+- `[x]` `npm run build` passed.
+- `[x]` `npm run verify` passed.
 
 Current inventory:
 
@@ -83,6 +87,7 @@ Current inventory:
 - 5 API route files.
 - 65 component TSX files.
 - 16 service files under `lib/services`.
+- 1 shared RBAC helper in `lib/rbac.ts`.
 - 30 normalized local template files under `docs/2026_TEMPLATES`.
 - 31 `TemplateSource` records in `lib/template-registry.ts`: 16 active, 9 mapping-in-progress, 5 draft, 1 missing placeholder.
 - 25 `DocumentRequirement` records.
@@ -156,9 +161,9 @@ Minimum "demo-ready" path today:
 
 Minimum "pilot-ready with de-identified data" path still needed:
 
-1. Wire Add Patient and Edit Patient UI to APIs.
+1. Replace prototype Add/Edit Patient with durable, authenticated database-backed workflows.
 2. Add durable storage for patient/course/workflow state in a non-PHI or de-identified environment.
-3. Create course creation flow that initializes workflow steps, tasks, document requirements, and folder placeholders.
+3. Complete course creation flow that initializes workflow steps, tasks, document requirements, audit checks, and folder placeholders.
 4. Enforce app-level roles with real auth.
 5. Add test coverage for create/update flows and fraction workflows.
 6. Prevent raw PHI in client bundles.
@@ -176,7 +181,7 @@ Minimum "production-ready with real PHI" path still needed:
 
 ### Phase 0: Baseline, Product Alignment, And Repo Health
 
-Current completion: 85%
+Current completion: 90%
 
 Goal: keep the prototype coherent, buildable, and aligned with CureRays' patient-course operating model.
 
@@ -195,15 +200,20 @@ What is already done:
 - `[x]` `npm run build` passes on latest rerun.
 - `[x]` `npm run test:hipaa` passes.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passes.
+- `[x]` `npm run test:routes` passes.
+- `[x]` `npm run verify` runs typecheck, lint, HIPAA guardrails, fraction fixtures, route smoke, and build.
+- `[x]` CI workflow exists for `npm run verify`.
+- `[x]` Global scrollbar styling uses top-level design tokens.
+- `[x]` Next.js build no longer ignores lint/type errors, and baseline security headers are configured.
 
 Remaining checklist:
 
 - `[!]` Refactor hardcoded hex colors in app/component/lib UI files to CSS tokens. Current scan found 366 hardcoded color references.
 - `[~]` Normalize current page/component architecture around `components/ui`, `components/shared`, and token-based styling rules.
 - `[~]` Convert old page-specific imports of mock/clinical data to service or server component access where appropriate.
-- `[ ]` Add a repeatable `npm run verify` script that runs typecheck, lint, HIPAA guardrails, fraction fixtures, and build.
-- `[ ]` Add CI for `npm run verify`.
-- `[ ]` Decide whether `TMPDIR=/tmp` should be embedded in the fraction fixture script or documented as a local Windows/WSL command requirement.
+- `[x]` Add a repeatable `npm run verify` script that runs typecheck, lint, HIPAA guardrails, fraction fixtures, route smoke, and build.
+- `[x]` Add CI for `npm run verify`.
+- `[x]` Decide whether `TMPDIR=/tmp` should be embedded in the fraction fixture script or documented as a local Windows/WSL command requirement. `npm run verify` sets `TMPDIR=/tmp`.
 - `[?]` Decide whether the first intermittent build failure at `/api/patients` needs a specific regression test if it appears again.
 
 Pre-mortem:
@@ -214,7 +224,7 @@ Pre-mortem:
 
 ### Phase 1: Prototype Navigation And Operational Visibility
 
-Current completion: 78%
+Current completion: 83%
 
 Goal: make the app usable as an internal demo command center using mock or de-identified data.
 
@@ -227,15 +237,18 @@ What is already done:
 - `[x]` Patient workspace exists.
 - `[x]` Workflow, tasks, schedule, clinical forms, planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
 - `[x]` DataTable and shared stat/page components are used in many pages.
+- `[x]` Route smoke script verifies sidebar routes and representative dynamic patient routes.
+- `[x]` App shell shows a global prototype/de-identified-data banner.
+- `[x]` Several visible placeholder actions are disabled for demo clarity.
 
 Remaining checklist:
 
-- `[~]` Confirm every nav item points to a meaningful route and no dead routes remain.
+- `[x]` Confirm every nav item points to a meaningful route and no dead routes remain.
 - `[~]` Replace non-wired action buttons with either real handlers or disabled/coming-soon states for pilot clarity.
-- `[ ]` Align patient registry implementation. `components/patients/patients-registry.tsx` is richer than `app/patients/page.tsx`, but the page currently uses the simpler table.
-- `[ ]` Add route smoke tests or Playwright checks for all 34 pages.
+- `[x]` Align patient registry implementation around shared `DataTable` and operational DTOs. The richer `components/patients/patients-registry.tsx` remains unsuitable for production because it is PHI-heavy.
+- `[x]` Add route smoke tests for sidebar routes and representative dynamic patient routes.
 - `[ ]` Add empty/error/loading states for every table-driven page.
-- `[ ]` Add consistent page-level "mock/de-identified data only" environment banner until production controls exist.
+- `[x]` Add consistent app-level "mock/de-identified data only" environment banner until production controls exist.
 
 Pre-mortem:
 
@@ -245,7 +258,7 @@ Pre-mortem:
 
 ### Phase 2: Patient Registration, Registry, And Record Maintenance
 
-Current completion: 38%
+Current completion: 48%
 
 Goal: support safe patient/course intake and ongoing record maintenance as structured app state.
 
@@ -261,16 +274,21 @@ What is already done:
 - `[x]` `PATCH /api/patients/[id]` calls `updatePatient()` behind a PHI role header check.
 - `[x]` `patientRef`, `courseRef`, and `phiRecordId` helpers exist.
 - `[x]` Redacted audit events are created for in-memory create/update operations.
+- `[x]` `/patients` renders tokenized operational DTOs by default and no longer imports raw `patients`.
+- `[x]` Add Patient UI posts to a validated create-patient API path.
+- `[x]` Edit Patient UI fetches PHI only after explicit user action and patches through the guarded API.
+- `[x]` Required-field validation and duplicate MRN checks exist in the prototype API/store path.
+- `[x]` Patient creation creates an in-memory course and runs existing document/task requirement generation helpers.
 
 Remaining checklist:
 
-- `[!]` Remove PHI-bearing patient data from client bundles before production. Example blocker: `app/patients/page.tsx` is a client component and imports `patients` directly from `lib/clinical-store`.
-- `[ ]` Wire Add Patient UI to a validated create-patient form.
-- `[ ]` Wire Edit Patient UI to `PATCH /api/patients/[id]`.
-- `[ ]` Add patient search, duplicate checking, MRN uniqueness checks, and required-field validation.
-- `[ ]` Create course creation flow as part of registration or as a follow-up step.
+- `[!]` Remove PHI-bearing patient data from all client bundles before production. `/patients` is hardened, but patient workspaces and other prototype paths still intentionally render PHI after server-side lookup.
+- `[x]` Wire Add Patient UI to a validated create-patient form.
+- `[x]` Wire Edit Patient UI to `PATCH /api/patients/[id]`.
+- `[x]` Add patient search, duplicate checking, MRN uniqueness checks, and required-field validation.
+- `[~]` Create course creation flow as part of registration or as a follow-up step. Prototype creation now creates an in-memory default course, not a durable transactional bundle.
 - `[ ]` On course creation, select the workflow definition by diagnosis/protocol/body region/laterality/modality.
-- `[ ]` On course creation, create workflow steps, tasks, document requirements, initial audit checks, and folder placeholders in one transaction.
+- `[~]` On course creation, create workflow steps, tasks, document requirements, initial audit checks, and folder placeholders in one transaction. Prototype creates course-linked tasks/documents in memory; audit checks/folders/DB transaction remain incomplete.
 - `[ ]` Add patient status update workflow: active, on hold, paused, closed/completed course.
 - `[ ]` Add phase update workflow: Upcoming, On Treatment, Post, and detailed internal phases.
 - `[ ]` Persist patients/courses in OPS/PHI databases.
@@ -401,7 +419,7 @@ Pre-mortem:
 
 ### Phase 6: Treatment Planning And Fractionation Worksheet
 
-Current completion: 58%
+Current completion: 63%
 
 Goal: support treatment planning and daily treatment delivery records without prematurely claiming clinical calculation authority.
 
@@ -415,14 +433,18 @@ What is already done:
 - `[x]` Fraction log registry page exists.
 - `[x]` Treatment delivery pages exist.
 - `[x]` Clinical validation warning is present in calculation metadata.
+- `[x]` Fraction worksheet reference data has a prototype reference version stored in calculation metadata.
+- `[x]` Fixture script asserts reference version and "clinical validation required" metadata.
+- `[x]` Prototype role gates enforce Rad Onc/Admin for MD approval and RTT/Admin for DOT approval.
+- `[x]` Fully approved fraction rows are locked against normal edits; revision and void remain controlled paths.
 
 Remaining checklist:
 
 - `[!]` Obtain formal clinical validation for reference curves, calculations, rounding, override rules, cumulative dose handling, and generated notes.
-- `[ ]` Version all clinical reference data and tie calculations to reference version.
+- `[x]` Version all clinical reference data and tie calculations to reference version for the prototype reference table.
 - `[ ]` Persist fraction entries and recalculated dependent totals.
-- `[ ]` Add role-specific MD and DOT approval enforcement.
-- `[ ]` Add lock rules after final approval and clear correction workflows after lock.
+- `[x]` Add role-specific MD and DOT approval enforcement at the prototype API boundary.
+- `[x]` Add lock rules after final approval and clear correction workflows after lock.
 - `[ ]` Add treatment schedule/fraction creation from prescription.
 - `[ ]` Connect imaging guidance completion to required image assets.
 - `[ ]` Connect weekly physics checks and OTV/treatment management rules where clinically required.
@@ -512,7 +534,7 @@ Pre-mortem:
 
 ### Phase 9: Authentication, RBAC, Security, And HIPAA Hardening
 
-Current completion: 28%
+Current completion: 35%
 
 Goal: make the app safe for role-based clinical operations and real PHI/ePHI.
 
@@ -524,18 +546,23 @@ What is already done:
 - `[x]` HIPAA utility functions redact operational data.
 - `[x]` HIPAA guardrail script checks selected boundaries.
 - `[x]` Audit/security log screens exist with mock/tokenized events.
+- `[x]` Central prototype RBAC matrix exists in `lib/rbac.ts`.
+- `[x]` PHI API routes use shared role/action helpers instead of local role lists.
+- `[x]` Users/Roles display data derives from the same role matrix.
+- `[x]` Guardrails check raw-patient client imports and forbid direct client imports of selected PHI-only modules.
+- `[x]` Production security headers are configured in Next.js.
 
 Remaining checklist:
 
 - `[!]` Replace `x-curerays-role` header authorization with real authentication and session role claims.
-- `[!]` Expand guardrails to catch all client imports of PHI-bearing modules, including patient registry/workspace cases.
+- `[~]` Expand guardrails to catch all client imports of PHI-bearing modules, including patient registry/workspace cases. Current guardrails catch raw patient imports and selected PHI-only modules; transitive client bundle analysis is still needed.
 - `[ ]` Implement MFA, session timeout, secure cookies, CSRF strategy if applicable, password/session policy, and logout.
-- `[ ]` Enforce RBAC by module, route, action, and data sensitivity.
-- `[ ]` Add least-privilege role matrix for VA, MA, RTT, NP/PA, PCP, Rad Onc, Physicist, Billing, and Admin.
+- `[~]` Enforce RBAC by module, route, action, and data sensitivity. Prototype route/action checks exist for PHI, documents, IGSRT mutation, and fraction approvals.
+- `[x]` Add least-privilege role matrix for VA, MA, RTT, NP/PA, PCP, Rad Onc, Physicist, Billing, and Admin.
 - `[ ]` Add row/facility/location-level scoping if CureRays needs multi-location isolation.
 - `[ ]` Add immutable audit logs for PHI reads and writes.
 - `[ ]` Remove PHI from logs, errors, stack traces, localStorage/sessionStorage, URLs, analytics, and client bundles.
-- `[ ]` Add production security headers and monitoring.
+- `[~]` Add production security headers and monitoring. Security headers exist; monitoring is not implemented.
 - `[ ]` Confirm hosting, database, file storage, logs, backups, email, and integrations are BAA-covered where required.
 - `[ ]` Add backup/recovery and breach-response procedures.
 - `[ ]` Add penetration/security review before go-live.
@@ -592,7 +619,7 @@ These should be treated as release gates, not optional cleanup.
 - `[!]` No immutable audit trail: audit events are in-memory and use placeholder actors.
 - `[!]` No real document/file integration: generated output is simulated.
 - `[!]` No clinical validation for calculation logic.
-- `[!]` Add Patient and many other visible action buttons are not wired to production workflows.
+- `[!]` Add Patient is wired for prototype-only in-memory workflows, but many other visible action buttons remain disabled placeholders or are not wired to production workflows.
 
 ## Recommended Execution Order
 
@@ -601,21 +628,21 @@ These should be treated as release gates, not optional cleanup.
 Target completion outcome: prototype stays buildable, clear, and honest.
 
 - `[ ]` Add this tracker to the team update ritual.
-- `[ ]` Add `npm run verify`.
-- `[ ]` Expand HIPAA guardrails to catch client imports of `clinical-store` PHI data.
-- `[ ]` Mark or wire non-functional action buttons.
-- `[ ]` Refactor patient registry to use operational/server DTOs instead of client PHI imports.
-- `[ ]` Decide whether to use the richer `PatientsRegistry` component or the simpler shared `DataTable` page.
-- `[ ]` Add demo-only banner.
+- `[x]` Add `npm run verify`.
+- `[~]` Expand HIPAA guardrails to catch client imports of `clinical-store` PHI data.
+- `[~]` Mark or wire non-functional action buttons.
+- `[x]` Refactor patient registry to use operational/server DTOs instead of client PHI imports.
+- `[x]` Decide whether to use the richer `PatientsRegistry` component or the simpler shared `DataTable` page.
+- `[x]` Add demo-only banner.
 
 ### MVP Workflow Sprint
 
 Target completion outcome: patient registration through record maintenance works with de-identified durable data.
 
 - `[ ]` Implement persistent patient/course storage for demo/staging.
-- `[ ]` Wire Add Patient and Edit Patient UI.
-- `[ ]` Implement create-course flow.
-- `[ ]` Auto-create workflow steps, tasks, document requirements, audit checks, and folder placeholders.
+- `[x]` Wire Add Patient and Edit Patient UI for prototype in-memory state.
+- `[~]` Implement create-course flow. Prototype patient creation creates a default course; durable workflow-definition selection is incomplete.
+- `[~]` Auto-create workflow steps, tasks, document requirements, audit checks, and folder placeholders. Prototype creates tasks/documents; workflow steps, audit checks, folders, and transaction safety remain incomplete.
 - `[ ]` Add tests around patient/course creation and update.
 
 ### Clinical Operations Sprint
@@ -623,7 +650,7 @@ Target completion outcome: patient registration through record maintenance works
 Target completion outcome: the strongest workflows become usable by roles in a pilot setting.
 
 - `[ ]` Persist IGSRT simulation order, prescription, and fraction worksheet data.
-- `[ ]` Add role enforcement for DOT/MD approvals.
+- `[x]` Add role enforcement for DOT/MD approvals.
 - `[ ]` Add workflow transition gates.
 - `[ ]` Add document render/sign lifecycle persistence.
 - `[ ]` Add audit event persistence.
@@ -656,4 +683,4 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-11 | Created initial system progress tracker from repo/docs/code audit. | Docs, routes, services, Prisma schemas, validation scripts, build output reviewed. | Use this as the working checklist for the next implementation phase. |
 | 2026-06-11 | Verified current checks. | Typecheck, lint, HIPAA guardrails, fraction worksheet fixture with `TMPDIR=/tmp`, and build passed. | Add `npm run verify` and CI. |
 | 2026-06-11 | Identified major go-live blockers. | Client PHI imports, in-memory state, auth header placeholder, simulated documents/storage, missing clinical validation. | Prioritize PHI/client boundary and persistent patient/course creation. |
-
+| 2026-06-11 | Completed one-pass prototype hardening for Phases 0, 1, 2, 6, and 9. | Added `npm run verify`, route smoke, CI, security headers, scrollbar tokens, prototype banner, tokenized `/patients`, guarded Add/Edit Patient forms, patient validation, in-memory course/task/document bundle creation, RBAC helper, fraction reference versioning, approval role gates, expanded HIPAA guardrails, and disabled several placeholder actions. `npm run verify` passed. | Next priority: durable OPS/PHI persistence, real auth/session claims, immutable audit trail, full client-bundle PHI analysis, and formal clinical validation. |

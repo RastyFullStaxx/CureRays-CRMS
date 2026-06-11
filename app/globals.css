@@ -106,6 +106,13 @@
   --color-hover: rgba(0, 0, 0, 0.04);
   --color-overlay: rgba(11, 18, 32, 0.36);
 
+  /* --- Scrollbar --- */
+  --scrollbar-size: 9px;
+  --scrollbar-radius: 999px;
+  --scrollbar-thumb: color-mix(in srgb, var(--color-text-muted) 34%, transparent);
+  --scrollbar-thumb-hover: color-mix(in srgb, var(--color-primary) 46%, var(--color-text-muted));
+  --scrollbar-track: color-mix(in srgb, var(--color-card-muted) 62%, transparent);
+
   /* --- Component Dimensions --- */
   --height-btn:            40px;
   --height-btn-sm:         34px;
@@ -1894,31 +1901,28 @@ button, input, select, textarea {
    ============================================================ */
 
 .scrollbar-soft {
-  --scrollbar-soft-thumb: color-mix(in srgb, var(--color-text-muted) 34%, transparent);
-  --scrollbar-soft-thumb-hover: color-mix(in srgb, var(--color-primary) 46%, var(--color-text-muted));
-  --scrollbar-soft-track: color-mix(in srgb, var(--color-card-muted) 62%, transparent);
-  scrollbar-color: var(--scrollbar-soft-thumb) var(--scrollbar-soft-track);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
 }
 
 .scrollbar-soft::-webkit-scrollbar {
-  height: 9px;
-  width: 9px;
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
 }
 
 .scrollbar-soft::-webkit-scrollbar-track {
-  background: var(--scrollbar-soft-track);
-  border-radius: 999px;
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
 }
 
 .scrollbar-soft::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-soft-thumb);
-  border: 2px solid var(--scrollbar-soft-track);
-  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
 }
 
 .scrollbar-soft::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-soft-thumb-hover);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ============================================================

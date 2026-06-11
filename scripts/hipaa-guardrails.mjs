@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
@@ -8,6 +8,7 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 const opsSchema = read("prisma/ops-schema.prisma");
 const phiSchema = read("prisma/phi-schema.prisma");
 const clinicalStore = read("lib/clinical-store.ts");
+const globalPageData = read("lib/global-page-data.ts");
 
 for (const forbidden of ["firstName", "lastName", "mrn", "contentPreview", "PatientPhi"]) {
   assert.equal(
@@ -30,6 +31,7 @@ assert.equal(
 const operationalPages = [
   "app/page.tsx",
   "app/dashboard/page.tsx",
+  "app/patients/page.tsx",
   "app/records/page.tsx",
   "app/upcoming/page.tsx",
   "app/on-treatment/page.tsx",
@@ -46,6 +48,49 @@ for (const page of operationalPages) {
     `${page} must use operationalPatients(), not PHI-bearing patients`
   );
 }
+
+const clientForbiddenModules = [
+  "@/lib/mock-data",
+  "@/lib/server/phi-store"
+];
+
+function listSourceFiles(directory) {
+  return readdirSync(join(root, directory)).flatMap((name) => {
+    const relative = `${directory}/${name}`;
+    const absolute = join(root, relative);
+    if (statSync(absolute).isDirectory()) {
+      return listSourceFiles(relative);
+    }
+
+    return /\.(tsx|ts)$/.test(name) ? [relative] : [];
+  });
+}
+
+const clientFiles = [...listSourceFiles("app"), ...listSourceFiles("components")]
+  .filter((file) => read(file).trimStart().startsWith("'use client'") || read(file).trimStart().startsWith('"use client"'));
+
+for (const file of clientFiles) {
+  const source = read(file);
+  for (const forbiddenModule of clientForbiddenModules) {
+    assert.equal(
+      source.includes(forbiddenModule),
+      false,
+      `${file} must not import PHI-bearing module ${forbiddenModule}`
+    );
+  }
+
+  assert.equal(
+    /import\s+\{[^}]*\bpatients\b[^}]*\}\s+from\s+["']@\/lib\/clinical-store["']/s.test(source),
+    false,
+    `${file} must not import raw patients from clinical-store`
+  );
+}
+
+assert.equal(
+  /patientName\s*\(|\.mrn\b|\bfirstName\b|\blastName\b/.test(globalPageData),
+  false,
+  "global-page-data must expose tokenized patient labels only"
+);
 
 for (const clientEntry of ["components/dashboard/dashboard-telemetry-client.tsx"]) {
   const source = read(clientEntry);

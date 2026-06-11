@@ -13,8 +13,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:routes": "node scripts/route-smoke.mjs",
     "test:fraction-worksheet": "node scripts/fraction-worksheet-fixtures.mjs",
-    "test:hipaa": "node scripts/hipaa-guardrails.mjs"
+    "test:hipaa": "node scripts/hipaa-guardrails.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test:hipaa && TMPDIR=/tmp npm run test:fraction-worksheet && npm run test:routes && npm run build"
   },
   "dependencies": {
     "@types/d3-force": "^3.0.10",

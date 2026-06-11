@@ -24,8 +24,8 @@ export default function DocumentsPage() {
         subtitle="Document management, signatures, and eCW uploads"
         actions={
           <>
-            <Button variant="secondary"><Upload className="h-4 w-4" /> Upload Document</Button>
-            <Button><Plus className="h-4 w-4" /> Create from Template</Button>
+            <Button variant="secondary" disabled title="Prototype placeholder"><Upload className="h-4 w-4" /> Upload Document</Button>
+            <Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> Create from Template</Button>
           </>
         }
       />

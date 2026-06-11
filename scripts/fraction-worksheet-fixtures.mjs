@@ -23,6 +23,8 @@ await writeFile(modulePath, compiled, "utf8");
 
 const service = await import(pathToFileURL(modulePath).href);
 
+assert.equal(service.fractionWorksheetReferenceVersion, "IGSRT-FX-REF-2026-06-11-PROTOTYPE");
+
 const lookup50 = service.lookupIsodoseToDotPercent({
   energyKv: 50,
   fieldSizeCm: "2.0 cm",
@@ -82,6 +84,8 @@ assert.equal(nextEntry.doseToDotCgy, 210);
 assert.equal(nextEntry.cumulativeDoseCgy, 1250);
 assert.equal(nextEntry.cumulativeDoseToDotCgy, 1050);
 assert.equal(nextEntry.calculationStatus, "AUTO_LOOKUP");
+assert.equal(nextEntry.calculationMeta.referenceVersion, service.fractionWorksheetReferenceVersion);
+assert.equal(nextEntry.calculationMeta.clinicalValidationRequired, true);
 
 const overrideEntry = service.calculateFractionWorksheetEntry(
   {
@@ -102,6 +106,7 @@ const overrideEntry = service.calculateFractionWorksheetEntry(
 );
 assert.equal(overrideEntry.calculationStatus, "MANUAL_OVERRIDE");
 assert.equal(overrideEntry.doseToDotCgy, 200);
+assert.equal(overrideEntry.calculationMeta.referenceVersion, service.fractionWorksheetReferenceVersion);
 
 assert.throws(() =>
   service.calculateFractionWorksheetEntry(

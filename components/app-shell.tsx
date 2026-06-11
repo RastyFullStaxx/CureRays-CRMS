@@ -16,6 +16,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
 
       <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+        <div
+          className="shrink-0 border-b px-4 py-2 text-center text-xs font-bold"
+          style={{
+            background: 'color-mix(in srgb, var(--color-warning) 12%, var(--color-card))',
+            borderColor: 'var(--color-border-soft)',
+            color: 'var(--color-text)',
+          }}
+        >
+          Prototype environment: mock or de-identified data only. Do not enter real PHI.
+        </div>
         <main
           id="main-content"
           className="flex flex-col flex-1 overflow-hidden"

@@ -279,12 +279,19 @@ export function FractionWorksheetPanel({
     setError(null);
     setMessage(null);
 
+    const prototypeRole =
+      action === "approveFraction" || action === "requestFractionRevision"
+        ? data.approvalType === "DOT"
+          ? "RTT"
+          : "RAD_ONC"
+        : "RAD_ONC";
+
     try {
       const response = await fetch("/api/igsrt", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-curerays-role": "RAD_ONC"
+          "x-curerays-role": prototypeRole
         },
         body: JSON.stringify({ action, data })
       });

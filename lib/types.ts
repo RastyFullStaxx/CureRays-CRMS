@@ -72,6 +72,8 @@ export type ResponsibleParty =
 
 export type UserRole = ResponsibleParty;
 
+export type PrototypeAccessRole = ResponsibleParty | "CLINICIAN" | "SYSTEM";
+
 export type WorkflowItemStatus =
   | "NOT_STARTED"
   | "PENDING"
@@ -123,6 +125,32 @@ export type Patient = {
   notes: string;
   checklist: Checklist;
   lastUpdatedAt: string;
+};
+
+export type PatientCreateInput = {
+  firstName: string;
+  lastName: string;
+  mrn: string;
+  diagnosis: string;
+  diagnosisCategory: DiagnosisCategory;
+  location: string;
+  physician: string;
+  assignedStaff: string;
+  chartRoundsPhase?: ChartRoundsPhase;
+  status?: PatientStatus;
+  nextAction?: string;
+  notes?: string;
+};
+
+export type PatientUpdateInput = Partial<PatientCreateInput> & {
+  nextAction?: string;
+  chartRoundsPhase?: ChartRoundsPhase;
+  status?: PatientStatus;
+};
+
+export type PatientValidationResult = {
+  valid: boolean;
+  errors: string[];
 };
 
 export type Course = {
@@ -610,6 +638,7 @@ export type FractionLogStatus = "RECORDED" | "NEEDS_REVIEW" | "REVISION_NEEDED" 
 export type FractionApprovalType = "MD" | "DOT";
 
 export type FractionWorksheetCalculationMeta = {
+  referenceVersion: string;
   sourceTemplate: string;
   sourceTabs: string[];
   depthRoundedMm: number;

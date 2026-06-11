@@ -21,7 +21,7 @@ export default function TreatmentPlanningPage() {
       <PageHeader
         title="Treatment Planning"
         subtitle="Plan creation, physics review, and signature routing"
-        actions={<Button><Plus className="h-4 w-4" /> New Plan</Button>}
+        actions={<Button disabled title="Prototype placeholder"><Plus className="h-4 w-4" /> New Plan</Button>}
       />
       <StatGrid>
         <StatCard icon={Radiation} label="Plans in Progress" value={plans.length - locked} sub="Open planning work" />

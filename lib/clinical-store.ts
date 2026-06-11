@@ -16,14 +16,19 @@ import type {
   AuditEvent,
   BillingCode,
   CarepathTask,
+  DiagnosisCategory,
   FractionApprovalType,
   FractionLogEntry,
   GeneratedDocument,
   GeneratedDocumentOutput,
   IgsrtWorkspace,
   MappingRecord,
+  PatientCreateInput,
+  PatientUpdateInput,
+  PatientValidationResult,
   Patient,
   Prescription,
+  PrototypeAccessRole,
   PriorityFlag,
   SimulationOrder,
   TreatmentCourse,
@@ -31,6 +36,8 @@ import type {
 } from "@/lib/types";
 import {
   PHI_REDACTED,
+  patientRef,
+  phiRecordId,
   redactAuditEvent,
   toOperationalActivity,
   toOperationalAppointment,
@@ -38,6 +45,7 @@ import {
   toOperationalPatient,
   toOperationalPriorityFlag
 } from "@/lib/hipaa";
+import { canApproveFraction } from "@/lib/rbac";
 import { courseDocuments, courseFractions, patientName } from "@/lib/workflow";
 import {
   deriveWorkflowDocumentStates,
@@ -82,6 +90,65 @@ function compactBoolean(value: unknown) {
 
 function activeFractionEntries(entries: FractionLogEntry[]) {
   return entries.filter((entry) => !isVoidedFractionEntry(entry));
+}
+
+function textInput(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function diagnosisCategoryInput(value: unknown): DiagnosisCategory {
+  return value === "ARTHRITIS" || value === "DUPUYTRENS" ? value : "SKIN_CANCER";
+}
+
+function nextPatientNumber() {
+  const numericIds = patients
+    .map((patient) => Number(patient.id.replace(/^CR-/, "")))
+    .filter(Number.isFinite);
+  return Math.max(2400, ...numericIds) + 1;
+}
+
+function resolvePatientIndex(patientRefOrId: string) {
+  const normalized = patientRefOrId.replace(/^PREF-CR/i, "CR-");
+  return patients.findIndex(
+    (patient) =>
+      patient.id === normalized ||
+      patient.id === patientRefOrId ||
+      phiRecordId(patient.id) === patientRefOrId ||
+      patientRef(patient.id) === patientRefOrId
+  );
+}
+
+function protocolForDiagnosis(category: DiagnosisCategory) {
+  if (category === "ARTHRITIS") {
+    return {
+      protocolName: "Arthritis workflow",
+      treatmentModality: "Orthovoltage",
+      treatmentType: "Arthritis"
+    };
+  }
+
+  if (category === "DUPUYTRENS") {
+    return {
+      protocolName: "Dupuytren's workflow",
+      treatmentModality: "Orthovoltage",
+      treatmentType: "Dupuytren's"
+    };
+  }
+
+  return {
+    protocolName: "Skin Cancer IGSRT",
+    treatmentModality: "IGSRT",
+    treatmentType: "SRT"
+  };
+}
+
+function patientMutationPayload(patient: Patient, auditEvent: AuditEvent, course?: TreatmentCourse) {
+  return {
+    data: toOperationalPatient(patient),
+    course: course ? toOperationalCourse(course) : undefined,
+    auditEvent: redactAuditEvent(auditEvent),
+    phiBoundary: "PHI fields were accepted by a guarded prototype route and redacted from this response."
+  };
 }
 
 export const patients: Patient[] = clone(mockPatients);
@@ -592,32 +659,101 @@ function getWorkflowResponseForCourse(courseId: string) {
   }
 }
 
-export function createPatient(input: Partial<Patient>) {
+export function validatePatientCreateInput(input: Partial<PatientCreateInput>): PatientValidationResult {
+  const requiredFields: Array<keyof PatientCreateInput> = [
+    "firstName",
+    "lastName",
+    "mrn",
+    "diagnosis",
+    "diagnosisCategory",
+    "location",
+    "physician",
+    "assignedStaff"
+  ];
+  const errors = requiredFields
+    .filter((field) => !textInput(input[field]))
+    .map((field) => `${field} is required.`);
+
+  const mrn = textInput(input.mrn).toLowerCase();
+  if (mrn && patients.some((patient) => patient.mrn.toLowerCase() === mrn)) {
+    errors.push("MRN must be unique.");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+export function validatePatientUpdateInput(
+  patientRefOrId: string,
+  input: Partial<PatientUpdateInput>
+): PatientValidationResult {
+  const errors: string[] = [];
+  const patientIndex = resolvePatientIndex(patientRefOrId);
+
+  if (patientIndex < 0) {
+    errors.push("Patient not found.");
+  }
+
+  const mrn = textInput(input.mrn).toLowerCase();
+  if (
+    mrn &&
+    patients.some((patient, index) => index !== patientIndex && patient.mrn.toLowerCase() === mrn)
+  ) {
+    errors.push("MRN must be unique.");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+export function createPatient(input: PatientCreateInput) {
   const timestamp = nowIso();
+  const diagnosisCategory = diagnosisCategoryInput(input.diagnosisCategory);
+  const patientNumber = nextPatientNumber();
+  const patientId = `CR-${patientNumber}`;
+  const courseId = `COURSE-${patientNumber}`;
+  const protocol = protocolForDiagnosis(diagnosisCategory);
   const patient: Patient = {
-    id: input.id ?? `CR-${2400 + patients.length + 1}`,
-    firstName: input.firstName ?? "New",
-    lastName: input.lastName ?? "Patient",
-    mrn: input.mrn ?? `MRN-${90000 + patients.length + 1}`,
-    diagnosis: input.diagnosis ?? "Skin cancer - pending site",
-    diagnosisCategory: input.diagnosisCategory ?? "SKIN_CANCER",
-    location: input.location ?? "Main Campus",
-    physician: input.physician ?? "Unassigned",
+    id: patientId,
+    firstName: textInput(input.firstName),
+    lastName: textInput(input.lastName),
+    mrn: textInput(input.mrn),
+    diagnosis: textInput(input.diagnosis),
+    diagnosisCategory,
+    location: textInput(input.location),
+    physician: textInput(input.physician),
     chartRoundsPhase: input.chartRoundsPhase ?? "UPCOMING",
     status: input.status ?? "ACTIVE",
-    assignedStaff: input.assignedStaff ?? "Unassigned",
-    activeCourseId: input.activeCourseId ?? "",
+    assignedStaff: textInput(input.assignedStaff),
+    activeCourseId: courseId,
     nextAction: input.nextAction ?? "Create treatment course",
-    flags: input.flags ?? [],
-    notes: input.notes ?? "New record created from the workflow API.",
-    checklist: input.checklist ?? {
+    flags: [],
+    notes: textInput(input.notes) || "New record created from the workflow API.",
+    checklist: {
       txSummaryComplete: false,
       followUpScheduled: false,
       billingComplete: false
     },
     lastUpdatedAt: timestamp
   };
+  const course: TreatmentCourse = {
+    id: courseId,
+    patientId,
+    diagnosis: patient.diagnosis,
+    diagnosisCategory,
+    protocolName: protocol.protocolName,
+    totalFractions: diagnosisCategory === "SKIN_CANCER" ? 20 : 10,
+    currentFraction: 0,
+    startDate: todayIsoDate(),
+    endDate: null,
+    chartRoundsPhase: patient.chartRoundsPhase,
+    status: "NOT_STARTED",
+    treatmentModality: protocol.treatmentModality,
+    treatmentType: protocol.treatmentType,
+    notes: "Prototype course bundle created with initial workflow documents and tasks."
+  };
   patients.push(patient);
+  treatmentCourses.push(course);
+  ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
+  ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
   const auditEvent = addAuditEvent({
     userId: "SYSTEM",
     userName: "Workflow API",
@@ -628,28 +764,52 @@ export function createPatient(input: Partial<Patient>) {
     newValue: PHI_REDACTED,
     reason: "Structured CRUD record created inside CureRays CWS."
   });
-  return { data: patient, auditEvent };
+  return patientMutationPayload(patient, auditEvent, course);
 }
 
-export function updatePatient(id: string, input: Partial<Patient>) {
-  const patient = patients.find((item) => item.id === id);
+export function updatePatient(patientRefOrId: string, input: PatientUpdateInput) {
+  const patientIndex = resolvePatientIndex(patientRefOrId);
+  const patient = patients[patientIndex];
   if (!patient) {
     return null;
   }
 
   const previousValue = PHI_REDACTED;
-  Object.assign(patient, input, { id, lastUpdatedAt: nowIso() });
+  const nextDiagnosisCategory = input.diagnosisCategory
+    ? diagnosisCategoryInput(input.diagnosisCategory)
+    : patient.diagnosisCategory;
+  Object.assign(patient, {
+    firstName: input.firstName === undefined ? patient.firstName : textInput(input.firstName),
+    lastName: input.lastName === undefined ? patient.lastName : textInput(input.lastName),
+    mrn: input.mrn === undefined ? patient.mrn : textInput(input.mrn),
+    diagnosis: input.diagnosis === undefined ? patient.diagnosis : textInput(input.diagnosis),
+    diagnosisCategory: nextDiagnosisCategory,
+    location: input.location === undefined ? patient.location : textInput(input.location),
+    physician: input.physician === undefined ? patient.physician : textInput(input.physician),
+    chartRoundsPhase: input.chartRoundsPhase ?? patient.chartRoundsPhase,
+    status: input.status ?? patient.status,
+    assignedStaff: input.assignedStaff === undefined ? patient.assignedStaff : textInput(input.assignedStaff),
+    notes: input.notes === undefined ? patient.notes : textInput(input.notes),
+    nextAction: input.nextAction === undefined ? patient.nextAction : textInput(input.nextAction),
+    lastUpdatedAt: nowIso()
+  });
+  const course = treatmentCourses.find((item) => item.id === patient.activeCourseId);
+  if (course) {
+    course.diagnosis = patient.diagnosis;
+    course.diagnosisCategory = patient.diagnosisCategory;
+    course.chartRoundsPhase = patient.chartRoundsPhase;
+  }
   const auditEvent = addAuditEvent({
     userId: "SYSTEM",
     userName: "Workflow API",
     action: "Patient updated",
     entityType: "PATIENT",
-    entityId: id,
+    entityId: patient.id,
     previousValue,
     newValue: PHI_REDACTED,
     reason: "Patient workflow state updated through the API."
   });
-  return { data: patient, auditEvent };
+  return patientMutationPayload(patient, auditEvent, course);
 }
 
 export function updateSimulationOrder(courseId: string, input: Partial<SimulationOrder>) {
@@ -743,9 +903,9 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
       fractionNumber: input.fractionNumber ?? nextFractionNumber,
       date: input.date ?? todayIsoDate(),
       status: input.status ?? "NEEDS_REVIEW",
-      mdApproval: compactBoolean(input.mdApproval),
+      mdApproval: false,
       mdApprovalState: input.mdApprovalState ?? "PENDING",
-      dotApproval: compactBoolean(input.dotApproval),
+      dotApproval: false,
       dotApprovalState: input.dotApprovalState ?? "PENDING"
     },
     courseEntries
@@ -775,6 +935,9 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
   const existingEntry = fractionLogEntries[entryIndex];
   if (isVoidedFractionEntry(existingEntry)) {
     throw new Error("Voided fraction rows cannot be edited.");
+  }
+  if (existingEntry.mdApproval && existingEntry.dotApproval && existingEntry.status === "APPROVED") {
+    throw new Error("Approved fraction rows are locked. Request revision or void the row before editing.");
   }
 
   const courseEntries = activeFractionEntries(courseFractions(input.courseId, fractionLogEntries)).sort(
@@ -814,10 +977,8 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
       ...existingEntry,
       ...input,
       ...approvalReset,
-      mdApproval:
-        approvalReset.mdApproval ?? (input.mdApproval === undefined ? existingEntry.mdApproval : compactBoolean(input.mdApproval)),
-      dotApproval:
-        approvalReset.dotApproval ?? (input.dotApproval === undefined ? existingEntry.dotApproval : compactBoolean(input.dotApproval))
+      mdApproval: approvalReset.mdApproval ?? existingEntry.mdApproval,
+      dotApproval: approvalReset.dotApproval ?? existingEntry.dotApproval
     },
     courseEntries,
     { existingId: existingEntry.id }
@@ -846,6 +1007,7 @@ export function approveFractionLogEntry(input: {
   id: string;
   approvalType: FractionApprovalType;
   userId?: string;
+  role?: PrototypeAccessRole;
 }) {
   const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
   if (!entry) {
@@ -856,6 +1018,9 @@ export function approveFractionLogEntry(input: {
   }
 
   const approvalType = normalizeApprovalType(input.approvalType);
+  if (!canApproveFraction(input.role ?? null, approvalType)) {
+    throw new Error(`${approvalType} approval is not allowed for the current prototype role.`);
+  }
   const approvedAt = nowIso();
   const approvedByUserId = input.userId ?? "SYSTEM";
 
@@ -899,6 +1064,7 @@ export function requestFractionRevision(input: {
   approvalType: FractionApprovalType;
   reason: string;
   userId?: string;
+  role?: PrototypeAccessRole;
 }) {
   const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
   if (!entry) {
@@ -914,6 +1080,9 @@ export function requestFractionRevision(input: {
   }
 
   const approvalType = normalizeApprovalType(input.approvalType);
+  if (!canApproveFraction(input.role ?? null, approvalType)) {
+    throw new Error(`${approvalType} revision is not allowed for the current prototype role.`);
+  }
   if (approvalType === "MD") {
     entry.mdApproval = false;
     entry.mdApprovalState = "REVISION_NEEDED";

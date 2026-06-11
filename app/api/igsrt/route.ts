@@ -11,7 +11,7 @@ import {
   updateSimulationOrder,
   voidFractionLogEntry
 } from "@/lib/clinical-store";
-import { phiAccessFromRequest } from "@/lib/server/phi-store";
+import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,14 @@ export function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!phiAccessFromRequest(request, "Update IGSRT PHI workspace")) {
+  const access = phiAccessFromRequest(request, "Update IGSRT PHI workspace");
+  if (!access) {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
+
+  try {
+    requirePhiAction(access, "igsrt:mutate");
+  } catch {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
@@ -55,11 +62,29 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!phiAccessFromRequest(request, "Mutate IGSRT PHI workspace")) {
+  const access = phiAccessFromRequest(request, "Mutate IGSRT PHI workspace");
+  if (!access) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
   const body = await request.json();
+  const mutateActions = new Set(["addFraction", "updateFraction", "voidFraction"]);
+  const documentActions = new Map([
+    ["renderDocument", "document:render" as const],
+    ["signDocument", "document:sign" as const]
+  ]);
+
+  try {
+    if (mutateActions.has(body.action)) {
+      requirePhiAction(access, "igsrt:mutate");
+    }
+    const documentAction = documentActions.get(body.action);
+    if (documentAction) {
+      requirePhiAction(access, documentAction);
+    }
+  } catch {
+    return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+  }
 
   if (body.action === "addFraction") {
     try {
@@ -88,11 +113,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "approveFraction") {
     try {
-      const result = approveFractionLogEntry(body.data);
+      const result = approveFractionLogEntry({ ...body.data, role: access.role });
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof Error && error.message.includes("not allowed")) {
+        return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+      }
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction approval failed" },
         { status: 400 }
@@ -102,11 +130,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "requestFractionRevision") {
     try {
-      const result = requestFractionRevision(body.data);
+      const result = requestFractionRevision({ ...body.data, role: access.role });
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof Error && error.message.includes("not allowed")) {
+        return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
+      }
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction revision request failed" },
         { status: 400 }
