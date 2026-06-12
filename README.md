@@ -277,10 +277,16 @@ The project context is stored in repo docs so future development sessions do not
 ```bash
 npm install
 npm run dev
+npm run verify
 npm run typecheck
+npm run lint
 npm run test:hipaa
+npm run test:guardrails
+npm run test:full
 npm run build
 ```
+
+`npm run verify` is the fast prototype gate and only runs typecheck plus lint. Use `npm run test:full` when you need the build and all phase/HIPAA guardrails.
 
 ## Development Principles
 

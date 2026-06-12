@@ -7,7 +7,8 @@ import type { PatientLifecycleUpdateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = (await request.json()) as Partial<PatientLifecycleUpdateInput>;
   const context = patientMutationContextFromRequest(
     request,
@@ -19,6 +20,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  const response = await updatePatientLifecycleRecord(params.id, body, context);
+  const response = await updatePatientLifecycleRecord(id, body, context);
   return NextResponse.json(response.body, { status: response.status });
 }

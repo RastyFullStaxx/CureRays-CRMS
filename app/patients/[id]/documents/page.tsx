@@ -7,8 +7,9 @@ import { generatedDocuments, treatmentCourses } from '@/lib/services/operational
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, patientActiveCourse } from '@/lib/workflow';
 
-export default function PatientDocumentsPage({ params }: { params: { id: string } }) {
-  const patient = findPatientPhi(params.id, systemPhiAccess('Render patient documents page'));
+export default async function PatientDocumentsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const patient = findPatientPhi(id, systemPhiAccess('Render patient documents page'));
 
   if (!patient) {
     notFound();

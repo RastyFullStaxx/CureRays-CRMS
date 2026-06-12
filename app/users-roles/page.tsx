@@ -38,8 +38,9 @@ function StableStatGrid({ children }: { children: ReactNode }) {
   );
 }
 
-export default function UsersRolesPage({ searchParams }: { searchParams?: { tab?: string } }) {
-  const active = searchParams?.tab === 'roles' ? 1 : searchParams?.tab === 'permissions' ? 2 : 0;
+export default async function UsersRolesPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const params = await searchParams;
+  const active = params?.tab === 'roles' ? 1 : params?.tab === 'permissions' ? 2 : 0;
   const userRows = adminUsers.map((user) => ({
     id: user.email,
     name: user.name,

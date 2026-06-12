@@ -22,8 +22,9 @@ import {
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 
-export default function PatientProfilePage({ params }: { params: { id: string } }) {
-  const patient = findPatientPhi(params.id, systemPhiAccess('Render patient workspace page'));
+export default async function PatientProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const patient = findPatientPhi(id, systemPhiAccess('Render patient workspace page'));
 
   if (!patient) {
     notFound();

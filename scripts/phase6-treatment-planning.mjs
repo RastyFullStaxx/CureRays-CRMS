@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
-const read = (path) => readFileSync(join(root, path), "utf8");
+const read = (path) => readFileSync(join(root, path), "utf8").replace(/\r\n/g, "\n");
 
 function assertIncludes(source, expected, message) {
   assert.ok(source.includes(expected), message);

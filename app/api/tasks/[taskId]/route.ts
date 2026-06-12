@@ -7,7 +7,8 @@ import type { TaskMutationInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(request: NextRequest, { params }: { params: { taskId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
+  const { taskId } = await params;
   const body = (await request.json()) as Partial<TaskMutationInput>;
   const context = workflowMutationContextFromRequest(
     request,
@@ -19,6 +20,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { taskId
     return NextResponse.json({ message: "Task access denied" }, { status: 403 });
   }
 
-  const response = await updateTaskCommand(params.taskId, body, context);
+  const response = await updateTaskCommand(taskId, body, context);
   return NextResponse.json(response.body, { status: response.status });
 }

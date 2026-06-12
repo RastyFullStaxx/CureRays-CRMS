@@ -10,8 +10,9 @@ import { carepathTasks, treatmentCourses } from '@/lib/services/operational-page
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { carepathPhaseLabels, courseTasks, orderedCarepathPhases, patientActiveCourse } from '@/lib/workflow';
 
-export default function PatientCarepathPage({ params }: { params: { id: string } }) {
-  const patient = findPatientPhi(params.id, systemPhiAccess('Render patient carepath page'));
+export default async function PatientCarepathPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const patient = findPatientPhi(id, systemPhiAccess('Render patient carepath page'));
 
   if (!patient) {
     notFound();

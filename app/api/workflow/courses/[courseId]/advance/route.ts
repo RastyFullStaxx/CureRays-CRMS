@@ -7,7 +7,8 @@ import type { WorkflowAdvanceInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { courseId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
+  const { courseId } = await params;
   const body = (await request.json()) as Partial<WorkflowAdvanceInput>;
   const context = workflowMutationContextFromRequest(
     request,
@@ -19,6 +20,6 @@ export async function POST(request: NextRequest, { params }: { params: { courseI
     return NextResponse.json({ message: "Workflow access denied" }, { status: 403 });
   }
 
-  const response = await advanceCourseWorkflow(params.courseId, body, context);
+  const response = await advanceCourseWorkflow(courseId, body, context);
   return NextResponse.json(response.body, { status: response.status });
 }

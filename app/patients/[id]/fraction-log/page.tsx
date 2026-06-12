@@ -9,8 +9,9 @@ import { fractionLogEntries, getTreatmentFractions, prescriptions, treatmentCour
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseFractions, patientActiveCourse } from '@/lib/workflow';
 
-export default function PatientFractionLogPage({ params }: { params: { id: string } }) {
-  const patient = findPatientPhi(params.id, systemPhiAccess('Render patient fraction log page'));
+export default async function PatientFractionLogPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const patient = findPatientPhi(id, systemPhiAccess('Render patient fraction log page'));
 
   if (!patient) {
     notFound();

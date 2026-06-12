@@ -8,18 +8,20 @@ import type { PatientUpdateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const context = patientMutationContextFromRequest(request, "phi:read", "Resolve patient edit DTO");
 
   if (!context) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  const response = await getPatientEditRecord(params.id, context);
+  const response = await getPatientEditRecord(id, context);
   return NextResponse.json(response.body, { status: response.status });
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = (await request.json()) as Partial<PatientUpdateInput>;
   const context = patientMutationContextFromRequest(
     request,
@@ -30,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
-  const response = await updatePatientRecord(params.id, body, context);
+  const response = await updatePatientRecord(id, body, context);
 
   return NextResponse.json(response.body, { status: response.status });
 }
