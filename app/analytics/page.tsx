@@ -21,7 +21,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         <Button disabled>Export Report</Button>
       </div>
       <AnalyticsCommandClient
-        telemetry={getAnalyticsTelemetry()}
+        telemetry={await getAnalyticsTelemetry()}
         initialPanel={panelFromSearch(panel)}
       />
     </>

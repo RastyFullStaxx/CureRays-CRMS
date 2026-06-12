@@ -44,8 +44,8 @@ const reportTiles = [
   },
 ];
 
-export default function ReportsPage() {
-  const telemetry = getAnalyticsTelemetry();
+export default async function ReportsPage() {
+  const telemetry = await getAnalyticsTelemetry();
   const [cohort, pressure, audit, intervention] = telemetry.overview.kpis;
 
   return (

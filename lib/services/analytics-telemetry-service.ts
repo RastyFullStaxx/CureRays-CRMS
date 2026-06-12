@@ -35,6 +35,7 @@ import {
   responsiblePartyLabels,
   workflowBottlenecksByParty,
 } from '@/lib/workflow';
+import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
 
 export type AnalyticsPanel =
   | 'overview'
@@ -1057,7 +1058,9 @@ export function isAnalyticsPanel(value: string | undefined): value is AnalyticsP
   return Boolean(value && panels.includes(value as AnalyticsPanel));
 }
 
-export function getAnalyticsTelemetry(): AnalyticsTelemetry {
+export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
+  await hydrateClinicalStoreFromDatabase();
+
   const asOf = asOfDate();
   const insights = makeInsights(asOf);
   const workflowSankey = buildWorkflowSankey();

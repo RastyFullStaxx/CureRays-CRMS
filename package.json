@@ -19,6 +19,7 @@
     "prisma:generate": "npm run prisma:generate:ops && npm run prisma:generate:phi",
     "prisma:migrate:ops": "prisma migrate deploy --schema prisma/ops-schema.prisma",
     "prisma:migrate:phi": "prisma migrate deploy --schema prisma/phi-schema.prisma",
+    "prisma:seed": "node scripts/seed-postgres.mjs",
     "test:phase0": "node scripts/phase0-guardrails.mjs",
     "test:phase1": "node scripts/phase1-operational-visibility.mjs",
     "test:phase2": "node scripts/phase2-patient-registration.mjs",
