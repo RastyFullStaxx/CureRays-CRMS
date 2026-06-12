@@ -29,15 +29,15 @@ Update rules:
 Current overall assessment:
 
 - Local prototype/app shell readiness: 87%
-- End-to-end demo workflow readiness using mock/de-identified data: 72%
-- Real clinic pilot readiness with strictly de-identified or synthetic data: 53%
+- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 76%
+- Real clinic pilot readiness with strictly de-identified or synthetic data: 56%
 - Production readiness for real PHI/ePHI: 31%
 
 Plain answer to the question "pwede na ba from patient registration to record maintenance and updating?":
 
-The system can run locally and can demonstrate the patient-course operating model with mock data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit patient-course bundles through guarded PHI actions, select workflow definitions from intake course fields, create workflow/task/document/audit/folder placeholders with rollback checks, record redacted correction history with optimistic concurrency, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
+The system can run locally and can demonstrate the patient-course operating model with mock or locally seeded PostgreSQL data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit patient-course bundles through guarded PHI actions, select workflow definitions from intake course fields, create workflow/task/document/audit/folder placeholders with rollback checks, record redacted correction history with optimistic concurrency, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
 
-It is ready to pilot the Phase 2 patient-registration-to-maintenance path with strictly de-identified or synthetic data. Patient creation and update are owned by a server-only service with a repository contract, memory fallback, opt-in Prisma OPS/PHI persistence adapter, tokenized responses, workflow bundle post-conditions, server-owned prototype session claims, and redacted correction history. It is still not ready for live PHI clinical use because real authentication/session management, production deployment controls, immutable audit infrastructure, and full PHI client-boundary hardening remain later-phase blockers. So: pwede na for internal demo and de-identified pilot workflow alignment; hindi pa pwede for live PHI clinical use.
+It is ready to pilot the Phase 2 patient-registration-to-maintenance path with strictly de-identified or synthetic data. Patient creation and update are owned by a server-only service with a repository contract, memory fallback, opt-in Prisma OPS/PHI persistence adapter, tokenized responses, workflow bundle post-conditions, server-owned prototype session claims, and redacted correction history. Local OPS/PHI PostgreSQL tables can now be created and seeded, and server-rendered pages can hydrate the prototype store from PostgreSQL before rendering dashboards, analytics, reports, and other store-backed views. It is still not ready for live PHI clinical use because real authentication/session management, production deployment controls, immutable audit infrastructure, full PHI client-boundary hardening, and full Prisma-native mutation coverage remain later-phase blockers. So: pwede na for internal demo and de-identified pilot workflow alignment; hindi pa pwede for live PHI clinical use.
 
 ## Evidence Consulted
 
@@ -85,7 +85,7 @@ Repository and docs reviewed:
 Verification run on 2026-06-12:
 
 - `[x]` `npm run typecheck` passed.
-- `[x]` `npm run lint` passed with no ESLint warnings or errors.
+- `[x]` `npm run lint` passed. Existing repo warnings remain and should not be treated as production-clean.
 - `[x]` `npm run test:phase0` passed.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
@@ -121,6 +121,7 @@ Current inventory:
 - 25 `TemplateFieldMap` records plus 4 explicit deferral/future-placeholder records.
 - 4 workflow definitions: Universal active; Skin Cancer IGSRT, Arthritis, and Dupuytren's mapping-in-progress.
 - Mock data baseline: 6 patients, 6 treatment courses, 7 mock tasks, 8 mock generated documents, 3 mock fraction rows, plus additional clinical-store/task/template-derived state.
+- Local PostgreSQL demo seed baseline: 6 OPS/PHI patients and courses, 36 OPS carepath tasks, 36 OPS generated documents, 36 PHI fraction log rows, treatment fractions, prescriptions, simulation orders, mapping rows, generated outputs, template/workflow rows, and audit events.
 
 ## Current Functional Map
 
@@ -128,10 +129,10 @@ Current inventory:
 
 - `[x]` Local Next.js app builds and runs.
 - `[x]` Branded login/landing screen exists.
-- `[x]` Dashboard exists with telemetry-heavy operational views.
-- `[x]` Patient registry, master records, upcoming, on-treatment, and post-treatment views display mock patient/course state.
+- `[x]` Dashboard exists with telemetry-heavy operational views and now hydrates from local OPS/PHI PostgreSQL seed data when `CURERAYS_PERSISTENCE_MODE=prisma` is enabled.
+- `[x]` Patient registry, master records, upcoming, on-treatment, and post-treatment views display patient/course state from the shared store; server layout hydration can now load that store from local PostgreSQL before render.
 - `[x]` Patient workspace route exists and can show workflow, tasks, clinical, planning, imaging, documents, fractions, billing/audit, and activity tabs for mock patients.
-- `[x]` Workflow pages show canonical Carepath steps and blockers from mock/generated state.
+- `[x]` Workflow pages show canonical Carepath steps and blockers from mock/generated or locally seeded PostgreSQL-backed state.
 - `[x]` Task, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
 - `[x]` IGSRT fraction worksheet can add, update, approve, request revision, and void rows against in-memory state.
 - `[x]` Fraction worksheet calculations have a fixture script and preserve a "clinical validation required" warning.
@@ -601,7 +602,7 @@ Pre-mortem:
 
 ### Phase 8: Persistence, APIs, And Data Boundaries
 
-Current completion: 27%
+Current completion: 42%
 
 Goal: replace in-memory mock state with durable OPS/PHI persistence and server-owned APIs.
 
@@ -610,6 +611,13 @@ What is already done:
 - `[x]` OPS Prisma schema exists.
 - `[x]` PHI Prisma schema exists.
 - `[x]` Legacy unified Prisma schema exists.
+- `[x]` Local OPS/PHI PostgreSQL databases have been created and schema SQL has been applied for development.
+- `[x]` Prisma clients for OPS and PHI schemas have been generated locally.
+- `[x]` Local `.env` supports `OPS_DATABASE_URL`, `PHI_DATABASE_URL`, and `CURERAYS_PERSISTENCE_MODE=prisma`.
+- `[x]` Local seed command exists: `npm run prisma:seed`.
+- `[x]` Local seed data populates every current OPS/PHI Prisma model with synthetic/de-identified demo rows.
+- `[x]` Server-only database hydration helper loads PostgreSQL rows into the shared clinical store before server-rendered pages render, with memory fallback.
+- `[x]` Dashboard, Analytics, and Reports telemetry now await database hydration before building chart payloads.
 - `[x]` API routes exist for workflow, patients, IGSRT, and generated documents.
 - `[x]` Operational redaction helpers exist.
 - `[x]` `server-only` is used in PHI store and fraction log registry service.
@@ -618,18 +626,17 @@ What is already done:
 
 Remaining checklist:
 
-- `[!]` Decide the migration path away from in-memory `clinical-store`.
-- `[ ]` Generate Prisma clients for OPS and PHI schemas.
-- `[ ]` Configure `OPS_DATABASE_URL` and `PHI_DATABASE_URL` in deployment environments.
-- `[ ]` Create migrations for OPS schema.
-- `[ ]` Create migrations for PHI schema.
-- `[ ]` Implement repository/data-access layer for OPS entities.
-- `[ ]` Implement server-only PHI access layer.
-- `[ ]` Replace mock data reads in production routes/pages with API/server data.
-- `[ ]` Add DTOs that never expose PHI except to authorized PHI routes.
+- `[~]` Complete the migration path away from in-memory `clinical-store`. Current state uses PostgreSQL hydration into the shared store rather than fully Prisma-native reads everywhere.
+- `[~]` Configure `OPS_DATABASE_URL` and `PHI_DATABASE_URL` in deployment environments. Local development is configured; deployment/staging environments remain.
+- `[ ]` Create tracked Prisma migrations for OPS schema. Local schema SQL exists, but migration history is not yet formalized.
+- `[ ]` Create tracked Prisma migrations for PHI schema. Local schema SQL exists, but migration history is not yet formalized.
+- `[~]` Implement repository/data-access layer for OPS entities. Patient/workflow seams and DB hydration exist; all routes/pages/actions are not fully repository-backed yet.
+- `[~]` Implement server-only PHI access layer. PHI route helpers and DB hydration exist; production-grade access/audit policy remains incomplete.
+- `[~]` Replace mock data reads in production routes/pages with API/server data. Server layout hydration now feeds many store-backed server views from PostgreSQL, but several modules still depend on hydrated in-memory arrays and fallback mock state.
+- `[~]` Add DTOs that never expose PHI except to authorized PHI routes. Tokenized operational telemetry exists; full production DTO split for all patient workspace paths remains.
 - `[ ]` Add transaction boundaries for patient/course/workflow/document/task creation.
 - `[ ]` Add append-only audit event storage.
-- `[ ]` Add seed data for demo environments without real PHI.
+- `[x]` Add seed data for demo environments without real PHI.
 - `[ ]` Add API input validation.
 - `[ ]` Add API integration tests.
 
@@ -725,7 +732,7 @@ Pre-mortem:
 These should be treated as release gates, not optional cleanup.
 
 - `[!]` PHI in client components: client pages/components must not import raw `patients`, MRNs, names, notes, or generated previews for production. Transitive import guardrails now exist, but prototype PHI client screens still require a production DTO split.
-- `[!]` No durable persistence: current mutations are in-memory and will be lost on restart.
+- `[~]` Durable persistence transition: local OPS/PHI PostgreSQL schema, seed data, and server hydration exist, but many mutations and route-level repositories still rely on hydrated in-memory state or memory fallback.
 - `[!]` No real authentication/RBAC: role headers are placeholders only.
 - `[!]` No immutable audit trail: audit events are in-memory and use placeholder actors.
 - `[!]` No real document/file integration: generated output is simulated.
@@ -750,7 +757,7 @@ Target completion outcome: prototype stays buildable, clear, and honest.
 
 Target completion outcome: patient registration through record maintenance works with de-identified durable data.
 
-- `[~]` Implement persistent patient/course storage for demo/staging. Prisma OPS/PHI adapter and generated clients exist; deployed databases and migrations still need environment setup.
+- `[~]` Implement persistent patient/course storage for demo/staging. Local OPS/PHI PostgreSQL databases, schema SQL, seed data, generated clients, and DB hydration exist; deployed databases, tracked migrations, and complete Prisma-native mutation coverage still need work.
 - `[x]` Wire Add Patient and Edit Patient UI for de-identified pilot state.
 - `[x]` Implement create-course flow as part of registration with workflow-definition selection.
 - `[x]` Auto-create workflow steps, tasks, document requirements, audit checks, and folder placeholders with bundle post-condition checks.
@@ -805,3 +812,4 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 | 2026-06-12 | Completed Phase 5 document lifecycle for de-identified pilot scope. | Added server-only document lifecycle repository/adapter, tokenized lifecycle DTOs, APP_STORAGE output references, guarded render/export/sign/manual eCW upload/void/manual-edit commands, lifecycle metadata on document pages, `/api/igsrt` lifecycle delegation, RBAC actions, and `npm run test:phase5`. | Keep live Drive sync, production file storage/BAA confirmation, real DOCX/XLSX/PDF generation, eCW integration, electronic signatures, and immutable audit storage as production blockers. |
 | 2026-06-12 | Completed Phase 6 treatment planning and fractionation for de-identified pilot/code-owned scope. | Added Phase 6 mutation hardening, duplicate active fraction prevention, manual override validation, version-tied clinical sign-off checklist, Treatment Planning and patient Planning checklist surfaces, and expanded Phase 6/fraction guardrails. `npm run test:phase6`, `TMPDIR=/tmp npm run test:fraction-worksheet`, `npm run typecheck`, and `npm run lint` passed. | Keep formal clinical validation, durable OPS/PHI persistence, real authentication/session claims, immutable audit storage, and production file/device integrations as production blockers. |
 | 2026-06-12 | Relaxed prototype tooling without removing guardrails. | Split `npm run verify` into a fast typecheck/lint gate, added `npm run test:guardrails`, kept HIPAA and phase checks available through `npm run test:full`, moved linting to ESLint CLI, cleaned generated/session artifacts, and preserved security headers plus PHI guardrail scripts. | Use `npm run verify` during feature work; run `npm run test:full` before higher-confidence reviews or release-style checkpoints. |
+| 2026-06-12 | Added local OPS/PHI PostgreSQL bootstrap, seed data, and DB hydration for server-rendered prototype views. | Created local schema SQL artifacts, configured `.env` for `OPS_DATABASE_URL`, `PHI_DATABASE_URL`, and `CURERAYS_PERSISTENCE_MODE=prisma`, added `npm run prisma:seed`, seeded synthetic OPS/PHI rows across all current Prisma models, and added server-only hydration so dashboard, analytics, reports, and store-backed server pages can render from PostgreSQL-backed state with memory fallback. `npm run typecheck` passed; lint passes with existing repo warnings. | Continue from hydration bridge to fully Prisma-native repositories, tracked migrations, production auth/session claims, immutable audit storage, and complete PHI-safe DTO splits before live PHI use. |
