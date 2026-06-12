@@ -4,7 +4,7 @@ CureRays Clinical Workflow System (CWS) is a patient-course centered clinical op
 
 The system is not a generic healthcare dashboard. Its purpose is to become the operational command center for CureRays treatment workflows: intake, consultation, chart prep, simulation, treatment planning, treatment delivery, documentation, billing readiness, audit, and closeout.
 
-Current project status as of 2026-06-08: active prototype development. The first prototype direction is focused on reliable workflow visibility, template/document mapping, phase-based patient tracking, task ownership, and audit readiness before deeper automation is added.
+Current project status as of 2026-06-12: active prototype development with local OPS/PHI PostgreSQL bootstrap available. The current direction is focused on reliable workflow visibility, template/document mapping, phase-based patient tracking, task ownership, audit readiness, and a careful transition from mock/in-memory state to server-owned persistence before deeper production automation is added.
 
 ## Current Standing
 
@@ -12,18 +12,19 @@ Current project status as of 2026-06-08: active prototype development. The first
 
 - Next.js App Router frontend using React, TypeScript, and Tailwind CSS.
 - A branded CureRays landing/login entry point and dashboard-oriented UI direction.
-- Mock/in-memory workflow data used for frontend prototyping.
+- Mock/in-memory workflow data used for frontend prototyping, with local PostgreSQL hydration now available for server-rendered prototype views.
 - Patient-course centered product documentation under `docs/`.
 - Dashboard and module planning for patient queues, patient workspace, workflow, tasks, documents, treatment planning, treatment delivery, billing, audit, analytics, settings, and security logs.
 - Repository documentation for product context, workflow model, page plan, data model, file storage, Drive template registry, and automation rules.
-- Prisma schema planning for separated OPS and PHI databases.
+- Prisma schemas, generated clients, local schema SQL, and local seed data for separated OPS and PHI databases.
 - HIPAA-aware development guardrails and a `npm run test:hipaa` script.
 - A Drive template registry that maps the client’s manual Google Drive templates into the app’s future template/document model.
+- Server-only database hydration that can load locally seeded OPS/PHI PostgreSQL rows into the shared clinical store before Dashboard, Analytics, Reports, and other store-backed server pages render.
 
 ### What does not exist yet
 
 - Production authentication and role-based access control.
-- Production database persistence for real patient/course workflow records.
+- Fully Prisma-native persistence for every read and mutation path. Local database bootstrap and hydration exist, but several modules still rely on hydrated in-memory arrays or memory fallback.
 - Google Drive metadata sync, folder creation, file movement, or live template ingestion.
 - Full document generation from mapped templates.
 - Real eCW integration.
@@ -51,6 +52,20 @@ The app should answer these operational questions clearly:
 
 The goal is not to replace clinical judgment. The goal is to make operational state visible, consistent, traceable, and auditable.
 
+## Current Readiness Snapshot
+
+The living readiness source is [docs/curerays-system-progress-tracker.md](docs/curerays-system-progress-tracker.md).
+
+Current high-level tracker values:
+
+- Overall system completion: 61%
+- Local prototype/app shell readiness: 87%
+- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 76%
+- Real clinic pilot readiness with strictly de-identified or synthetic data: 56%
+- Production readiness for real PHI/ePHI: 31%
+
+These percentages are intentionally conservative. Local PostgreSQL support improves demo and development fidelity, but it does not mean the system is ready for live PHI/ePHI.
+
 ## Core Operating Model
 
 The system is centered on one patient record and one or more treatment courses.
@@ -61,7 +76,7 @@ Patients -> Courses -> Workflow Steps -> Tasks -> Forms/Documents -> Signatures 
 
 A patient should exist once. Upcoming, On Treatment, and Post are filtered views of the same patient/course records, not copied rows across spreadsheets.
 
-The app database is the source of truth. Google Drive files, Google Sheets, Word/Google Docs, PDFs, and PowerPoint decks are template sources, generated outputs, or synced artifacts. Staff should update structured app fields first; those fields drive workflow state, document requirements, task ownership, signatures, billing readiness, and audit closeout.
+The intended production app database is the source of truth. Today, the prototype can run from mock/in-memory data or from locally seeded OPS/PHI PostgreSQL rows that hydrate the shared clinical store. Google Drive files, Google Sheets, Word/Google Docs, PDFs, and PowerPoint decks are template sources, generated outputs, or synced artifacts. Staff should ultimately update structured app fields first; those fields drive workflow state, document requirements, task ownership, signatures, billing readiness, and audit closeout.
 
 ## Workflow Phases
 
@@ -191,11 +206,24 @@ Operational data should use tokenized references such as `patientRef` and `cours
 
 PHI should be resolved only through server-side code and stored only in the PHI boundary once production infrastructure is ready.
 
-Planned persistence model:
+Persistence model:
 
 - OPS database: workflow state, tasks, document lifecycle, template metadata, audit references, billing readiness, and tokenized patient/course references.
 - PHI database: patient identifiers, demographics, clinical PHI, and document-generation data that requires patient identity.
 - File storage: Drive or future HIPAA-grade storage for templates and generated outputs, with links and lifecycle state tracked in the app database.
+
+Local development now supports this split with:
+
+- `OPS_DATABASE_URL`
+- `PHI_DATABASE_URL`
+- `CURERAYS_PERSISTENCE_MODE=prisma`
+- `prisma/ops-schema.prisma`
+- `prisma/phi-schema.prisma`
+- `prisma/ops-schema.sql`
+- `prisma/phi-schema.sql`
+- `npm run prisma:seed`
+
+The current database bridge is intentionally transitional: PostgreSQL rows hydrate the existing shared clinical store for server-rendered prototype views, while deeper route-level repositories and mutation paths continue to be completed.
 
 Before production use with real ePHI, CureRays must confirm BAA-covered infrastructure, secure database deployment, secret management, access controls, audit trails, encryption, least-privilege permissions, backup/recovery, and breach-response procedures.
 
@@ -287,6 +315,39 @@ npm run build
 ```
 
 `npm run verify` is the fast prototype gate and only runs typecheck plus lint. Use `npm run test:full` when you need the build and all phase/HIPAA guardrails.
+
+Node.js 20.19+ is required by the current Next.js/ESLint stack. This repo currently pins Node `22.14.0` in `.nvmrc`; use that version when possible.
+
+## Local PostgreSQL Setup
+
+The app can still run from mock/in-memory data, but the preferred local prototype setup is now:
+
+```env
+OPS_DATABASE_URL="postgresql://curerays_ops_user:curerays_dev_password@localhost:5432/curerays_ops"
+PHI_DATABASE_URL="postgresql://curerays_phi_user:curerays_dev_password@localhost:5432/curerays_phi"
+CURERAYS_PERSISTENCE_MODE="prisma"
+```
+
+Local database bootstrap summary:
+
+1. Create PostgreSQL databases `curerays_ops` and `curerays_phi`.
+2. Apply `prisma/ops-schema.sql` to `curerays_ops`.
+3. Apply `prisma/phi-schema.sql` to `curerays_phi`.
+4. Generate Prisma clients when schemas change:
+
+```bash
+npm run prisma:generate
+```
+
+5. Seed synthetic/de-identified demo data:
+
+```bash
+npm run prisma:seed
+```
+
+The seed command populates every current OPS/PHI Prisma model with synthetic local demo data for dashboard, analytics, reports, workflow, document, and treatment/fraction views. On this Windows/XAMPP-style local setup, the seeder includes a Windows `psql.exe` fallback because WSL may not be able to reach the Windows PostgreSQL service through `localhost`.
+
+Important: this local seed data is for prototype visualization only. Do not seed or store real patient PHI/ePHI in local development.
 
 ## Development Principles
 
