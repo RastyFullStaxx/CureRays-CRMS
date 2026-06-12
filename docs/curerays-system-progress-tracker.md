@@ -28,6 +28,7 @@ Update rules:
 
 Current overall assessment:
 
+- Overall system completion: 61%
 - Local prototype/app shell readiness: 87%
 - End-to-end demo workflow readiness using mock/database-seeded de-identified data: 76%
 - Real clinic pilot readiness with strictly de-identified or synthetic data: 56%
