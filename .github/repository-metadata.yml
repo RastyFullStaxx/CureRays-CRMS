@@ -1,0 +1,43 @@
+owner: RastyFullStaxx
+repo: CureRays-CRMS
+canonical_url: https://github.com/RastyFullStaxx/CureRays-CRMS
+visibility_goal: public-indexing
+product_names:
+  - CureRays CRMS
+  - CureRays Clinical Workflow System
+  - CureRays CWS
+description: >
+  HIPAA-aware radiation oncology clinical workflow prototype for patient-course
+  tracking, document readiness, fractionation log review, operational task
+  ownership, and audit visibility.
+topics:
+  - nextjs
+  - react
+  - typescript
+  - healthcare
+  - radiation-oncology
+  - clinical-workflow
+  - patient-management
+  - patient-course-tracking
+  - fractionation-log
+  - prisma
+  - hipaa-aware
+stack:
+  frontend:
+    - Next.js App Router
+    - React
+    - TypeScript
+    - Tailwind CSS
+  data:
+    - Prisma
+    - OPS/PHI separated schema model
+primary_docs:
+  - README.md
+  - docs/repository-discovery.md
+  - docs/curerays-system-progress-tracker.md
+  - docs/curerays-product-context.md
+  - docs/curerays-workflow-model.md
+  - docs/curerays-data-model.md
+safety_notes:
+  phi_policy: Do not use real patient PHI or ePHI in this prototype repository.
+  indexing_note: Metadata improves discovery but does not guarantee immediate GitHub or search engine indexing.

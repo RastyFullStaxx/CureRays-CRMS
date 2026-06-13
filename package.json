@@ -2,7 +2,31 @@
   "name": "curerays-cws",
   "version": "0.1.0",
   "private": true,
-  "description": "CureRays Clinical Workflow System frontend.",
+  "description": "CureRays CRMS radiation oncology clinical workflow prototype for patient-course tracking, document readiness, fractionation log review, and audit visibility.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RastyFullStaxx/CureRays-CRMS.git"
+  },
+  "homepage": "https://github.com/RastyFullStaxx/CureRays-CRMS",
+  "bugs": {
+    "url": "https://github.com/RastyFullStaxx/CureRays-CRMS/issues"
+  },
+  "keywords": [
+    "curerays",
+    "curerays-crms",
+    "clinical-workflow",
+    "radiation-oncology",
+    "patient-course-tracking",
+    "fractionation-log",
+    "document-readiness",
+    "audit-readiness",
+    "healthcare",
+    "hipaa-aware",
+    "nextjs",
+    "react",
+    "typescript",
+    "prisma"
+  ],
   "engines": {
     "node": ">=20.19",
     "npm": ">=9"

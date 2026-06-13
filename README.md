@@ -1,5 +1,12 @@
 # CureRays Clinical Workflow System
 
+## Repository Identity For Public Discovery
+
+- Repository: `RastyFullStaxx/CureRays-CRMS`
+- Canonical URL: `https://github.com/RastyFullStaxx/CureRays-CRMS`
+- Product names: `CureRays CRMS`, `CureRays Clinical Workflow System`, `CureRays CWS`
+- Discovery summary: CureRays CRMS is a HIPAA-aware prototype for radiation oncology clinical workflow, patient-course tracking, document readiness, fractionation log review, audit visibility, and operational task ownership. The app is built with Next.js, React, TypeScript, Tailwind CSS, Prisma, and separated OPS/PHI data modeling for future clinical operations work.
+
 CureRays Clinical Workflow System (CWS) is a patient-course centered clinical operations system for CureRays Radiation Medicine. It is being built to replace the current manual workflow that depends on fragmented Google Drive files, Google Sheets, Word/Google Docs templates, PowerPoint planning decks, manual reminders, and role-by-role follow-up.
 
 The system is not a generic healthcare dashboard. Its purpose is to become the operational command center for CureRays treatment workflows: intake, consultation, chart prep, simulation, treatment planning, treatment delivery, documentation, billing readiness, audit, and closeout.
