@@ -16,7 +16,7 @@ export function InsightPriorityMatrix({ insights }: { insights: AnalyticsInsight
           <h3 className="text-lg font-semibold text-curerays-dark-plum">Insight priority matrix</h3>
           <p className="mt-1 text-sm text-curerays-indigo">What deserves attention first.</p>
         </div>
-        <span className="rounded-full bg-white/58 px-3 py-2 text-xs font-bold text-curerays-indigo">
+        <span className="clinical-pill clinical-pill-primary px-2.5 py-1 text-xs">
           {insights.length} insights
         </span>
       </div>

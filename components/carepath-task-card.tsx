@@ -9,7 +9,7 @@ export function CarepathTaskCard({ task }: { task: CarepathTask }) {
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-curerays-blue/8 px-3 py-1 text-xs font-bold text-curerays-blue">
+            <span className="clinical-pill clinical-pill-primary gap-1 px-2.5 py-0.5 text-xs">
               <Hash className="h-3 w-3" aria-hidden="true" />
               {task.taskNumber}
             </span>
@@ -19,7 +19,7 @@ export function CarepathTaskCard({ task }: { task: CarepathTask }) {
           <h3 className="mt-3 text-base font-semibold text-curerays-dark-plum">{task.title}</h3>
           <p className="mt-1 text-sm leading-5 text-curerays-indigo">{task.noteAction}</p>
         </div>
-        <div className="rounded-lg bg-white/58 px-3 py-2 text-xs font-semibold text-curerays-indigo">
+        <div className="clinical-pill clinical-pill-default px-2.5 py-1 text-xs">
           Due {formatDate(task.dueDate)}
         </div>
       </div>

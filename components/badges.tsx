@@ -9,43 +9,43 @@ import type {
 import { cn } from '@/lib/workflow';
 
 const statusColors: Record<string, string> = {
-  COMPLETED: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  SIGNED: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  UPLOADED: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  CLOSED: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
-  READY_FOR_REVIEW: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  NEEDS_REVIEW: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  REVIEW_REQUIRED: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  IN_PROGRESS: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  PENDING: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  NOT_STARTED: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
-  BLOCKED: 'bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]',
-  OVERDUE: 'bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]',
-  MISSING_FIELDS: 'bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]',
-  NOT_APPLICABLE: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
-  DRAFT: 'bg-[var(--color-badge-info-bg)] text-[var(--color-badge-info-fg)] ring-[var(--color-badge-info-border)]',
-  PENDING_NEEDED: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  ACTIVE: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  ON_HOLD: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  PAUSED: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
+  COMPLETED: 'clinical-pill-success',
+  SIGNED: 'clinical-pill-success',
+  UPLOADED: 'clinical-pill-success',
+  CLOSED: 'clinical-pill-default',
+  READY_FOR_REVIEW: 'clinical-pill-warning',
+  NEEDS_REVIEW: 'clinical-pill-warning',
+  REVIEW_REQUIRED: 'clinical-pill-warning',
+  IN_PROGRESS: 'clinical-pill-primary',
+  PENDING: 'clinical-pill-primary',
+  NOT_STARTED: 'clinical-pill-default',
+  BLOCKED: 'clinical-pill-error',
+  OVERDUE: 'clinical-pill-error',
+  MISSING_FIELDS: 'clinical-pill-error',
+  NOT_APPLICABLE: 'clinical-pill-default',
+  DRAFT: 'clinical-pill-info',
+  PENDING_NEEDED: 'clinical-pill-warning',
+  ACTIVE: 'clinical-pill-success',
+  ON_HOLD: 'clinical-pill-warning',
+  PAUSED: 'clinical-pill-warning',
 };
 
 const phaseColors: Record<ChartRoundsPhase, string> = {
-  UPCOMING: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  ON_TREATMENT: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  POST: 'bg-[var(--color-badge-info-bg)] text-[var(--color-badge-info-fg)] ring-[var(--color-badge-info-border)]',
+  UPCOMING: 'clinical-pill-primary',
+  ON_TREATMENT: 'clinical-pill-success',
+  POST: 'clinical-pill-info',
 };
 
 const partyColors: Record<string, string> = {
-  VA: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  MA: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  RTT: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
-  NP_PA: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  PCP: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
-  RAD_ONC: 'bg-[var(--color-badge-info-bg)] text-[var(--color-badge-info-fg)] ring-[var(--color-badge-info-border)]',
-  PHYSICIST: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
-  BILLING: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
-  ADMIN: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
+  VA: 'clinical-pill-primary',
+  MA: 'clinical-pill-success',
+  RTT: 'clinical-pill-success',
+  NP_PA: 'clinical-pill-primary',
+  PCP: 'clinical-pill-primary',
+  RAD_ONC: 'clinical-pill-info',
+  PHYSICIST: 'clinical-pill-default',
+  BILLING: 'clinical-pill-warning',
+  ADMIN: 'clinical-pill-default',
 };
 
 const partyLabels: Record<string, string> = {
@@ -64,7 +64,7 @@ function Pill({ color, children }: { color: string; children: React.ReactNode })
   return (
     <span
       className={cn(
-        'clinical-pill px-2 py-0.5 text-xs ring-1 ring-inset',
+        'clinical-pill px-2 py-0.5 text-xs',
         color
       )}
     >
@@ -74,25 +74,25 @@ function Pill({ color, children }: { color: string; children: React.ReactNode })
 }
 
 export function CarepathTaskStatusBadge({ status }: { status: CarepathTaskStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function DocumentStatusBadge({ status }: { status: DocumentStatus | WorkflowItemStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function ResponsiblePartyBadge({ party }: { party: ResponsibleParty }) {
   return (
-    <Pill color={partyColors[party] ?? 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]'}>
+    <Pill color={partyColors[party] ?? 'clinical-pill-primary'}>
       {partyLabels[party] ?? party}
     </Pill>
   );
 }
 
 export function PhaseBadge({ phase }: { phase: ChartRoundsPhase }) {
-  return <Pill color={phaseColors[phase] ?? 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]'}>{phase.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={phaseColors[phase] ?? 'clinical-pill-default'}>{phase.replaceAll('_', ' ')}</Pill>;
 }
 
 export function StatusBadge({ status }: { status: PatientStatus }) {
-  return <Pill color={statusColors[status] ?? 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
 }

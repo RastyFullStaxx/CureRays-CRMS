@@ -23,7 +23,7 @@ export function AuditTimeline({ events }: { events: Array<AuditEvent | Operation
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-curerays-blue/8 px-3 py-1 text-xs font-bold text-curerays-blue">
+                <span className="clinical-pill clinical-pill-primary gap-2 px-2.5 py-0.5 text-xs">
                   <Fingerprint className="h-3.5 w-3.5" aria-hidden="true" />
                   {event.action}
                 </span>
@@ -46,7 +46,7 @@ export function AuditTimeline({ events }: { events: Array<AuditEvent | Operation
               ) : null}
             </div>
             <div className="flex items-start justify-start lg:justify-end">
-              <span className="inline-flex items-center gap-2 rounded-full bg-curerays-plum/10 px-3 py-1 text-xs font-bold text-curerays-plum">
+              <span className="clinical-pill clinical-pill-info gap-2 px-2.5 py-0.5 text-xs">
                 <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
                 {"redacted" in event && event.redacted ? "PHI redacted" : "Audit logged"}
               </span>

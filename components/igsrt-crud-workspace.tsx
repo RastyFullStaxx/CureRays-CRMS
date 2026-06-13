@@ -247,7 +247,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
               <p className="text-sm font-semibold text-curerays-orange">Simulation order</p>
               <h3 className="mt-1 text-xl font-semibold text-curerays-dark-plum">CTP / SIM IGSRT</h3>
             </div>
-            <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-bold text-curerays-indigo">
+            <span className="clinical-pill clinical-pill-primary px-2.5 py-0.5 text-xs">
               {order.status.replaceAll("_", " ")}
             </span>
           </div>
@@ -349,7 +349,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
               <p className="text-sm font-semibold text-curerays-orange">Prescription</p>
               <h3 className="mt-1 text-xl font-semibold text-curerays-dark-plum">Phase Parameters</h3>
             </div>
-            <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-bold text-curerays-indigo">
+            <span className="clinical-pill clinical-pill-primary px-2.5 py-0.5 text-xs">
               {rx.status.replaceAll("_", " ")}
             </span>
           </div>
@@ -449,7 +449,7 @@ export function IgsrtCrudWorkspace({ initialWorkspace }: { initialWorkspace: Igs
             <p className="text-sm font-semibold text-curerays-orange">Fraction CRUD</p>
             <h3 className="mt-1 text-xl font-semibold text-curerays-dark-plum">Daily Treatment Entry</h3>
           </div>
-          <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-bold text-curerays-indigo">
+          <span className="clinical-pill clinical-pill-info px-2.5 py-0.5 text-xs">
             Auto-calculates cumulative dose
           </span>
         </div>

@@ -57,7 +57,7 @@ export function PhaseView({
         title={copy.title}
         subtitle={`${copy.eyebrow}: ${copy.description}`}
         actions={
-          <span className="rounded-full bg-[var(--color-primary-soft)] px-3 py-1 text-xs font-bold text-[var(--color-primary)]">
+          <span className="clinical-pill clinical-pill-primary px-2.5 py-0.5 text-xs">
             {filteredPatients.length} patients
           </span>
         }

@@ -21,7 +21,7 @@ export function PatientSummaryHeader({ patient, course }: { patient: Patient; co
           <PhaseBadge phase={course.simpleDashboardPhase} />
           <StatusBadge status={patient.status} />
           {course.flagsIssues.length ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-curerays-orange/10 px-3 py-1 text-xs font-bold text-curerays-orange">
+            <span className="clinical-pill clinical-pill-warning gap-2 px-2.5 py-0.5 text-xs">
               <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
               {course.flagsIssues.length} flag(s)
             </span>

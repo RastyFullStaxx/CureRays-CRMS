@@ -125,6 +125,9 @@ components/
 6. **No right rail** — all content is full-width
 7. **Sidebar is collapsible** — 240px ↔ 64px, persisted in localStorage
 8. **No separate topbar** — user actions live in sidebar's pinned account row
+9. **Clinical modals use the largest appropriate shared modal token** — avoid unnecessary scrolling by grouping fields into balanced sections before adding another internal scroll area
+10. **Every scrollable UI uses the shared styled scrollbar** — apply `scrollbar-soft` or a shared class that maps to the same scrollbar tokens
+11. **Status text uses shared pill primitives** — no ad hoc translucent rounded pills; use `Badge`, `StatusBadge`, or `clinical-pill` tone classes
 
 ### Page Pattern
 

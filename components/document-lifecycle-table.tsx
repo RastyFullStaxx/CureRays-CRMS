@@ -13,8 +13,8 @@ export function DocumentLifecycleTable({ documents }: { documents: GeneratedDocu
             Tracks required, signed, reviewed, completed, and not-applicable documents.
           </p>
         </div>
-        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/60 px-3 py-2 text-xs font-semibold text-curerays-indigo">
-          <LockKeyhole className="h-3.5 w-3.5 text-curerays-plum" aria-hidden="true" />
+        <span className="clinical-pill clinical-pill-info w-fit gap-2 px-2.5 py-1 text-xs">
+          <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
           Template-aware preview
         </span>
       </div>

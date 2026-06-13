@@ -13,11 +13,14 @@ CureRays CRMS is a clinical workflow tool for older clinic staff and radiation o
 - Do not hardcode hex values, ad hoc Tailwind palette colors, translucent status pills, or one-off rounded badge styles in components.
 - Add or extend tokens/classes when a visual pattern will recur.
 - Stay inside the CureRays palette: brand primary, accent, clinical neutrals, and status tokens.
+- Status text must use `Badge`, `StatusBadge`, or `clinical-pill` tone classes. Do not create translucent rounded status pills in page code.
 
 ## Component Rules
 
 - Use primitives from `components/ui/` and composites from `components/shared/` before creating new UI.
 - Keep modals stable: fixed header/footer zones, scrollable body, consistent action widths, and no layout jump between steps.
+- For large clinical edit/review modals, use the largest appropriate shared modal token and rebalance fields into grouped sections before accepting unnecessary scrolling.
+- Any scrollable modal body, tab panel, table wrapper, list, or workspace region must use the shared styled scrollbar behavior (`scrollbar-soft` or the shared modal body scrollbar rules).
 - Use full-width patient workspace content; do not reintroduce right rails.
 - Prefer history/review first, then action. Creation forms should be intentional, not the first visual object users see.
 - For older staff, group fields by task meaning, use plain labels, avoid hidden required information, and keep controls large enough to scan.

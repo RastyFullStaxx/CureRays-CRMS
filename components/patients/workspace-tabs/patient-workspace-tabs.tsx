@@ -1210,7 +1210,7 @@ export function TasksWorkspaceTab({ tasks }: { tasks: Task[] }) {
             <div key={column.label} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3 shadow-[var(--shadow-card)]">
               <div className="mb-3 flex items-center justify-between">
                 <Pill tone={column.tone} size="compact">{column.label}</Pill>
-                <span className="rounded-full bg-white px-2 py-1 text-xs font-bold text-[var(--color-text)]">{columnTasks.length}</span>
+                <Pill tone="slate" size="compact">{columnTasks.length}</Pill>
               </div>
               <div className="space-y-2.5">
                 {columnTasks.length ? columnTasks.map((task) => (
@@ -1855,7 +1855,7 @@ export function WorkspaceTabRail({
                 key={title}
                 title={title}
                 icon={<MessageSquareText className="h-4 w-4" aria-hidden="true" />}
-                badge={<span className="rounded-full bg-[var(--color-primary-soft)] px-2 py-1 text-[11px] font-bold text-[var(--color-primary)]">{[12, 6, 4, 3, 3, 2, 2][index]}</span>}
+                badge={<Pill tone="blue" size="compact">{[12, 6, 4, 3, 3, 2, 2][index]}</Pill>}
               />
             ))}
           </div>

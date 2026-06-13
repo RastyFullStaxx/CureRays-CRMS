@@ -19,12 +19,12 @@ import { carepathPhaseLabels, cn, responsiblePartyLabels } from "@/lib/workflow"
 type Tone = "blue" | "green" | "orange" | "red" | "purple" | "slate";
 
 const toneClasses: Record<Tone, string> = {
-  blue: "bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]",
-  green: "bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]",
-  orange: "bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]",
-  red: "bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]",
-  purple: "bg-[var(--color-badge-info-bg)] text-[var(--color-badge-info-fg)] ring-[var(--color-badge-info-border)]",
-  slate: "bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]"
+  blue: "clinical-pill-primary",
+  green: "clinical-pill-success",
+  orange: "clinical-pill-warning",
+  red: "clinical-pill-error",
+  purple: "clinical-pill-info",
+  slate: "clinical-pill-default"
 };
 
 const statusTone: Record<string, Tone> = {
@@ -123,7 +123,7 @@ export function MetricGrid({ children, columns = "xl:grid-cols-5" }: { children:
 }
 
 export function Pill({ children, tone = "blue", size = "default" }: { children: ReactNode; tone?: Tone; size?: "default" | "compact" }) {
-  return <span className={cn("clinical-pill max-w-full ring-1", size === "compact" ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs", toneClasses[tone])}>{children}</span>;
+  return <span className={cn("clinical-pill max-w-full", size === "compact" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-0.5 text-xs", toneClasses[tone])}>{children}</span>;
 }
 
 export function WorkflowStatusPill({ status, size = "default", label }: { status: WorkflowItemStatus | string; size?: "default" | "compact"; label?: string }) {

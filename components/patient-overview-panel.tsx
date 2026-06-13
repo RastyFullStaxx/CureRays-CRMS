@@ -33,7 +33,7 @@ export function PatientOverviewPanel({
           <div className="flex flex-wrap items-center gap-2">
             <PhaseBadge phase={patient.chartRoundsPhase} />
             <StatusBadge status={patient.status} />
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1 text-xs font-bold text-curerays-indigo">
+            <span className="clinical-pill clinical-pill-info gap-2 px-2.5 py-0.5 text-xs">
               <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
               PHI-minimized
             </span>

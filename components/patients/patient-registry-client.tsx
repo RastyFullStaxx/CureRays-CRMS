@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState, type FormEvent, type MouseEvent, type ReactNode, type RefObject } from 'react';
+import { useMemo, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -47,7 +47,6 @@ type PatientFormState = PatientCreateInput & {
 };
 
 type FormStep = 'start' | 'detected' | 'identity' | 'clinical' | 'course' | 'review';
-type EditSectionId = 'identity' | 'clinical' | 'course' | 'reason';
 type PatientFieldId =
   | keyof PatientFormState
   | 'initialCourse.protocol'
@@ -384,10 +383,6 @@ function CourseFields({
 
 export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   const router = useRouter();
-  const editIdentityRef = useRef<HTMLDivElement>(null);
-  const editClinicalRef = useRef<HTMLDivElement>(null);
-  const editCourseRef = useRef<HTMLDivElement>(null);
-  const editReasonRef = useRef<HTMLDivElement>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [formStep, setFormStep] = useState<FormStep>('identity');
   const [form, setForm] = useState<PatientFormState>(blankForm);
@@ -405,12 +400,6 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   const activeStepIndex = formSteps.findIndex((step) => step.id === formStep);
   const isEdit = modalMode === 'edit' && Boolean(editingPhiId);
   const isCreate = modalMode === 'create';
-  const editSections: Array<{ id: EditSectionId; label: string; ref: RefObject<HTMLDivElement | null> }> = [
-    { id: 'identity', label: 'Identity', ref: editIdentityRef },
-    { id: 'clinical', label: 'Clinical', ref: editClinicalRef },
-    { id: 'course', label: 'Course', ref: editCourseRef },
-    { id: 'reason', label: 'Change Reason', ref: editReasonRef },
-  ];
 
   const metrics = useMemo(() => {
     return {
@@ -436,10 +425,6 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         [key]: value,
       },
     }));
-  };
-
-  const scrollToEditSection = (sectionRef: RefObject<HTMLDivElement | null>) => {
-    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const openCreate = () => {
@@ -717,8 +702,8 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         open={modalMode !== null}
         onClose={closeModal}
         title={modalMode === 'edit' ? 'Edit Patient Record' : 'Add Patient'}
-        width={isEdit ? 'var(--width-clinical-modal-lg)' : 'var(--width-clinical-modal)'}
-        height="var(--height-clinical-modal)"
+        width={isEdit ? 'var(--width-clinical-modal-xl)' : 'var(--width-clinical-modal)'}
+        height={isEdit ? 'var(--height-clinical-modal-xl)' : 'var(--height-clinical-modal)'}
         contentClassName="flex flex-col"
       >
         <form className="clinical-modal-frame flex-1" onSubmit={submitForm}>
@@ -775,18 +760,6 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                 </div>
                 <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
-              <nav className="clinical-section-nav mt-3" aria-label="Edit patient sections">
-                {editSections.map((section) => (
-                  <button
-                    key={section.id}
-                    type="button"
-                    className="clinical-focus clinical-section-nav-button"
-                    onClick={() => scrollToEditSection(section.ref)}
-                  >
-                    {section.label}
-                  </button>
-                ))}
-              </nav>
             </div>
           ) : null}
 
@@ -963,8 +936,8 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
 
             {isEdit ? (
               <div className="grid gap-4">
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <div ref={editIdentityRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                <div className="grid gap-4 xl:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
+                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                     <p className="font-heading text-base font-bold text-[var(--color-text)]">Patient Identity</p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field label="First name" field="firstName" required>
@@ -978,18 +951,18 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                       </Field>
                     </div>
                   </div>
-                  <div ref={editClinicalRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                     <p className="font-heading text-base font-bold text-[var(--color-text)]">Clinical Basics</p>
                     <ClinicalFields form={form} updateForm={updateForm} compact />
                   </div>
                 </div>
-                <div ref={editCourseRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                   <p className="font-heading text-base font-bold text-[var(--color-text)]">Course Setup</p>
                   <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} compact />
                 </div>
-                <div ref={editReasonRef} className="scroll-mt-3">
+                <div>
                   <Field label="Change reason" field="changeReason" required>
-                    <Textarea rows={3} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
+                    <Textarea rows={2} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
                   </Field>
                 </div>
               </div>
