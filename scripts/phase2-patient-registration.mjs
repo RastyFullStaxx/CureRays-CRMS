@@ -56,10 +56,13 @@ assert.ok(existsSync(join(root, servicePath)), "Phase 2 patient registration ser
 
 const serviceSource = read(servicePath);
 const patientRoute = read("app/api/patients/route.ts");
+const patientPrefillRoute = read("app/api/patients/prefill/route.ts");
 const patientIdRoute = read("app/api/patients/[id]/route.ts");
 const historyRoute = read("app/api/patients/[id]/history/route.ts");
 const lifecycleRoute = read("app/api/patients/[id]/lifecycle/route.ts");
 const clinicalStore = read("lib/clinical-store.ts");
+const prefillService = read("lib/server/patient-prefill-service.ts");
+const patientRegistryClient = read("components/patients/patient-registry-client.tsx");
 const types = read("lib/types.ts");
 const opsSchema = read("prisma/ops-schema.prisma");
 const phiSchema = read("prisma/phi-schema.prisma");
@@ -92,6 +95,10 @@ for (const expected of [
 
 assertIncludes(patientRoute, "await listOperationalPatientRecords", "GET /api/patients must await tokenized service list");
 assertIncludes(patientRoute, "await registerPatient", "POST /api/patients must await registration service");
+assertIncludes(patientPrefillRoute, "await request.formData()", "Prefill route must accept multipart form data");
+assertIncludes(patientPrefillRoute, "parsePatientPrefillDocx", "Prefill route must delegate DOCX parsing to server service");
+assertIncludes(patientPrefillRoute, "patientMutationContextFromRequest", "Prefill route must enforce PHI access");
+assertExcludes(patientPrefillRoute, "console.", "Prefill route must not log PHI-bearing upload details");
 assertIncludes(patientIdRoute, "getPatientEditRecord", "GET /api/patients/[id] must use edit DTO service");
 assertIncludes(patientIdRoute, "await updatePatientRecord", "PATCH /api/patients/[id] must use registration service");
 assertIncludes(historyRoute, "listPatientRecordHistoryEntries", "History route must use redacted history service");
@@ -130,6 +137,39 @@ for (const expected of [
   assertIncludes(types, expected, `Phase 2 type contract must include ${expected}`);
 }
 assertIncludes(types, "mrn?: string", "PatientCreateInput.mrn must stay optional for EMR-owned external MRN policy");
+for (const expected of [
+  "PatientPrefillResult",
+  "PatientPrefillField",
+  "PatientPrefillTemplateType"
+]) {
+  assertIncludes(types, expected, `Patient prefill type contract must include ${expected}`);
+}
+
+for (const expected of [
+  'import "server-only"',
+  "parsePatientPrefillDocx",
+  "inflateRawSync",
+  "fileRetained: false",
+  "requiresIdentityConfirmation: true",
+  "Only AVS or Intake DOCX files"
+]) {
+  assertIncludes(prefillService, expected, `Prefill service must include ${expected}`);
+}
+
+for (const forbidden of ["writeFile", "appendFile", "createWriteStream", "console."]) {
+  assertExcludes(prefillService, forbidden, `Prefill service must not retain or log uploaded PHI: ${forbidden}`);
+}
+
+for (const expected of [
+  "Upload AVS / Intake",
+  "Enter Manually",
+  "Detected Details Review",
+  "prefillIdentityConfirmed",
+  "Use Detected Details",
+  "/api/patients/prefill"
+]) {
+  assertIncludes(patientRegistryClient, expected, `Add Patient prefill UI must include ${expected}`);
+}
 
 for (const expected of [
   "model OperationalWorkflowStep",
@@ -156,6 +196,7 @@ assertIncludes(packageJson, "npm run test:phase2", "npm run verify must include 
 installTsHook();
 
 const service = require(join(root, servicePath));
+const prefill = require(join(root, "lib/server/patient-prefill-service.ts"));
 const store = require(join(root, "lib/clinical-store.ts"));
 
 function fakeRequest(headers = {}) {
@@ -235,6 +276,27 @@ delete noMrnInput.mrn;
 const noMrn = await service.registerPatient(noMrnInput, createContext);
 assert.equal(noMrn.ok, true, "Registration without external MRN should succeed");
 assert.ok(noMrn.body.data.patientRef, "Registration without external MRN should still return a CRMS patient reference");
+
+const intakePrefill = prefill.parsePatientPrefillDocx({
+  fileName: "Intake_Form.Universal.08APR2025.Template.docx",
+  buffer: readFileSync(join(root, "docs/2026_TEMPLATES/00_UNIVERSAL/Intake_Form.Universal.08APR2025.Template.docx"))
+});
+assert.equal(intakePrefill.templateType, "INTAKE", "Intake DOCX should be classified as Intake");
+assert.equal(intakePrefill.fileRetained, false, "Prefill must not retain uploaded files");
+assert.equal(intakePrefill.requiresIdentityConfirmation, true, "Prefill must require identity confirmation");
+assert.ok(intakePrefill.fields.some((field) => field.key === "mrn"), "Prefill result should include external MRN candidate field");
+
+const avsPrefill = prefill.parsePatientPrefillDocx({
+  fileName: "AVS_PCP.Universal.Template.docx",
+  buffer: readFileSync(join(root, "docs/2026_TEMPLATES/00_UNIVERSAL/AVS_PCP.Universal.Template.docx"))
+});
+assert.equal(avsPrefill.templateType, "AVS", "AVS DOCX should be classified as AVS");
+assert.equal(avsPrefill.fileRetained, false, "AVS prefill must not retain uploaded files");
+assert.throws(
+  () => prefill.parsePatientPrefillDocx({ fileName: "Intake.pdf", buffer: Buffer.from("not a docx") }),
+  /Only AVS or Intake DOCX files/,
+  "Prefill must reject non-DOCX files"
+);
 
 const readContext = context("phi:read", "Phase 2 read");
 const editDto = await service.getPatientEditRecord(created.body.data.phiRecordId, readContext);

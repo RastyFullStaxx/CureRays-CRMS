@@ -245,6 +245,38 @@ export type PatientValidationResult = {
   errors: string[];
 };
 
+export type PatientPrefillTemplateType = "AVS" | "INTAKE" | "UNKNOWN";
+
+export type PatientPrefillFieldStatus = "FOUND" | "NEEDS_REVIEW" | "NOT_FOUND";
+
+export type PatientPrefillFieldKey =
+  | "firstName"
+  | "lastName"
+  | "mrn"
+  | "diagnosis"
+  | "location"
+  | "physician"
+  | "notes"
+  | "initialCourse.bodyRegion";
+
+export type PatientPrefillField = {
+  key: PatientPrefillFieldKey;
+  label: string;
+  status: PatientPrefillFieldStatus;
+  value?: string;
+  source: "DOCX_HEADER" | "DOCX_BODY" | "SYSTEM";
+  requiresReview: boolean;
+};
+
+export type PatientPrefillResult = {
+  templateType: PatientPrefillTemplateType;
+  fileRetained: false;
+  requiresIdentityConfirmation: true;
+  fields: PatientPrefillField[];
+  draft: Partial<PatientCreateInput>;
+  warnings: string[];
+};
+
 export type Course = {
   id: string;
   patientId: string;

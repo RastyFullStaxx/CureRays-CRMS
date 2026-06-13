@@ -225,28 +225,37 @@ Use Patients to find, create, and maintain patient records.
 
 1. Open Patients.
 2. Select Add Patient.
-3. Complete the guided Patient Identity step:
+3. Choose how to start:
+   - Upload AVS / Intake if you have a DOCX file to prefill draft details.
+   - Enter Manually if there is no file.
+4. If a DOCX file is uploaded, review Detected Details:
+   - Confirm the detected patient identity.
+   - Check any detected external MRN.
+   - Continue only after confirming the values are draft and need review.
+5. Complete the guided Patient Identity step:
    - First name
    - Last name
    - External MRN, if it already exists in the EMR or registration system
    - Review the generated CRMS patient reference shown by the system
-4. Complete Clinical Basics:
+6. Complete Clinical Basics:
    - Diagnosis category
    - Diagnosis
    - Location or treatment site
    - Physician
    - Assigned staff
    - Initial phase and status
-5. Complete Course Setup:
+7. Complete Course Setup:
    - Protocol
    - Body region or site
    - Laterality, if applicable
    - Planned fractions and course details required by the form
    - Next action and notes, if known
-6. Review the final summary.
-7. Save.
+8. Review the final summary.
+9. Save.
 
 External MRN is optional in CRMS because it may be assigned by the EMR or registration system outside this prototype. CRMS always generates its own internal patient reference so staff can identify the record even when an external MRN is not available yet.
+
+AVS / Intake upload is assistive only. Uploaded DOCX files are read for draft prefill and are not stored by CRMS in this prototype. Staff must review and edit detected details before saving.
 
 After saving, the system creates the patient record, active course, workflow steps, initial tasks, document requirements, audit checks, and course file locations. The new patient workspace opens after a successful save.
 

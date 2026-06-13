@@ -11,6 +11,7 @@ import {
   Plus,
   Save,
   ShieldCheck,
+  Upload,
   UserRoundCheck,
   UsersRound,
 } from 'lucide-react';
@@ -30,6 +31,8 @@ import type {
   DiagnosisCategory,
   PatientCreateInput,
   PatientEditDto,
+  PatientPrefillField,
+  PatientPrefillResult,
   PatientStatus,
 } from '@/lib/types';
 import type { PatientRegistryRow } from '@/lib/services/patient-service';
@@ -43,7 +46,7 @@ type PatientFormState = PatientCreateInput & {
   status: PatientStatus;
 };
 
-type FormStep = 'identity' | 'clinical' | 'course' | 'review';
+type FormStep = 'start' | 'detected' | 'identity' | 'clinical' | 'course' | 'review';
 type PatientFieldId =
   | keyof PatientFormState
   | 'initialCourse.protocol'
@@ -233,6 +236,42 @@ function ReviewRow({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
+function prefillStatusVariant(status: PatientPrefillField['status']) {
+  if (status === 'FOUND') return 'success';
+  if (status === 'NEEDS_REVIEW') return 'warning';
+  return 'default';
+}
+
+function prefillStatusLabel(status: PatientPrefillField['status']) {
+  return status.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function applyPrefillDraft(form: PatientFormState, prefill: PatientPrefillResult): PatientFormState {
+  const draft = prefill.draft;
+  const nextCourse = {
+    ...(form.initialCourse ?? {}),
+    ...(draft.initialCourse?.bodyRegion ? { bodyRegion: draft.initialCourse.bodyRegion } : {}),
+    ...(draft.initialCourse?.laterality ? { laterality: draft.initialCourse.laterality } : {}),
+    ...(draft.initialCourse?.protocol ? { protocol: draft.initialCourse.protocol } : {}),
+    ...(draft.initialCourse?.treatmentModality ? { treatmentModality: draft.initialCourse.treatmentModality } : {}),
+    ...(draft.initialCourse?.totalFractions ? { totalFractions: draft.initialCourse.totalFractions } : {}),
+    ...(draft.initialCourse?.startDate ? { startDate: draft.initialCourse.startDate } : {}),
+  };
+
+  return {
+    ...form,
+    ...(draft.firstName ? { firstName: draft.firstName } : {}),
+    ...(draft.lastName ? { lastName: draft.lastName } : {}),
+    ...(draft.mrn ? { mrn: draft.mrn } : {}),
+    ...(draft.diagnosis ? { diagnosis: draft.diagnosis } : {}),
+    ...(draft.diagnosisCategory ? { diagnosisCategory: draft.diagnosisCategory } : {}),
+    ...(draft.location ? { location: draft.location } : {}),
+    ...(draft.physician ? { physician: draft.physician } : {}),
+    notes: draft.notes && !form.notes ? draft.notes : form.notes,
+    initialCourse: nextCourse,
+  };
+}
+
 type PatientFormUpdater = <K extends keyof PatientFormState>(key: K, value: PatientFormState[K]) => void;
 type CourseFormUpdater = <K extends keyof NonNullable<PatientFormState['initialCourse']>>(
   key: K,
@@ -357,6 +396,10 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   const [changeReason, setChangeReason] = useState('');
   const [editingPhiId, setEditingPhiId] = useState<string | null>(null);
   const [editingLastUpdatedAt, setEditingLastUpdatedAt] = useState<string | null>(null);
+  const [prefill, setPrefill] = useState<PatientPrefillResult | null>(null);
+  const [prefillFileName, setPrefillFileName] = useState('');
+  const [prefillIdentityConfirmed, setPrefillIdentityConfirmed] = useState(false);
+  const [prefillPending, setPrefillPending] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -394,10 +437,13 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
 
   const openCreate = () => {
     setForm(blankForm);
-    setFormStep('identity');
+    setFormStep('start');
     setChangeReason('');
     setEditingPhiId(null);
     setEditingLastUpdatedAt(null);
+    setPrefill(null);
+    setPrefillFileName('');
+    setPrefillIdentityConfirmed(false);
     setError(null);
     setMessage(null);
     setModalMode('create');
@@ -433,11 +479,69 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   };
 
   const closeModal = () => {
-    if (pending) return;
+    if (pending || prefillPending) return;
     setModalMode(null);
     setEditingPhiId(null);
     setEditingLastUpdatedAt(null);
+    setPrefill(null);
+    setPrefillFileName('');
+    setPrefillIdentityConfirmed(false);
     setError(null);
+  };
+
+  const startManualEntry = () => {
+    setForm(blankForm);
+    setPrefill(null);
+    setPrefillFileName('');
+    setPrefillIdentityConfirmed(false);
+    setError(null);
+    setFormStep('identity');
+  };
+
+  const uploadPrefillFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+      setError('Upload one AVS or Intake DOCX file.');
+      return;
+    }
+
+    setPrefillPending(true);
+    setError(null);
+    setPrefill(null);
+    setPrefillIdentityConfirmed(false);
+    setPrefillFileName(file.name);
+
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/patients/prefill', {
+        method: 'POST',
+        body,
+      });
+      const result = (await response.json()) as { prefill?: PatientPrefillResult; message?: string };
+      if (!response.ok || !result.prefill) {
+        throw new Error(result.message ?? 'Patient prefill could not be completed.');
+      }
+
+      setPrefill(result.prefill);
+      setFormStep('detected');
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'Patient prefill could not be completed.');
+      setFormStep('start');
+    } finally {
+      setPrefillPending(false);
+    }
+  };
+
+  const confirmPrefill = () => {
+    if (!prefill || !prefillIdentityConfirmed) {
+      setError('Confirm the detected patient identity before continuing.');
+      return;
+    }
+
+    setForm((current) => applyPrefillDraft(current, prefill));
+    setError(null);
+    setFormStep('identity');
   };
 
   const goNext = () => {
@@ -454,6 +558,10 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
 
   const goBack = () => {
     setError(null);
+    if (formStep === 'identity') {
+      setFormStep(prefill ? 'detected' : 'start');
+      return;
+    }
     setFormStep(formSteps[Math.max(activeStepIndex - 1, 0)].id);
   };
 
@@ -607,7 +715,21 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         contentClassName="flex flex-col"
       >
         <form className="clinical-modal-frame flex-1" onSubmit={submitForm}>
-          {isCreate ? (
+          {isCreate && (formStep === 'start' || formStep === 'detected') ? (
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-[var(--color-text)]">Start patient registration</p>
+                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                    Upload AVS/Intake to prefill draft fields, or continue manually.
+                  </p>
+                </div>
+                <Badge variant={formStep === 'detected' ? 'warning' : 'primary'}>{formStep === 'detected' ? 'Review detected details' : 'Step 0'}</Badge>
+              </div>
+            </div>
+          ) : null}
+
+          {isCreate && formStep !== 'start' && formStep !== 'detected' ? (
             <div className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
               <div className="grid gap-2 sm:grid-cols-4">
                 {formSteps.map((step, index) => {
@@ -635,7 +757,9 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                 })}
               </div>
             </div>
-          ) : (
+          ) : null}
+
+          {isEdit ? (
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -645,12 +769,126 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                 <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
             </div>
-          )}
+          ) : null}
 
           <div className="clinical-modal-body grid content-start gap-4 py-4">
             {error ? (
               <div className="clinical-alert-error p-3 text-sm font-semibold" role="alert">
                 {error}
+              </div>
+            ) : null}
+
+            {isCreate && formStep === 'start' ? (
+              <div className="grid gap-4">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                        <Upload className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-heading text-base font-bold text-[var(--color-text)]">Upload AVS / Intake</p>
+                        <p className="mt-1 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                          CRMS will read one DOCX file in memory and prefill draft fields for review.
+                        </p>
+                      </div>
+                    </div>
+                    <Input
+                      className="mt-4"
+                      type="file"
+                      accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      disabled={prefillPending}
+                      onChange={(event) => {
+                        void uploadPrefillFile(event.target.files?.[0]);
+                        event.target.value = '';
+                      }}
+                    />
+                    <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">
+                      DOCX only. File is not stored after extraction.
+                    </p>
+                  </div>
+
+                  <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-card)] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                        <Edit3 className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-heading text-base font-bold text-[var(--color-text)]">Enter Manually</p>
+                        <p className="mt-1 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                          Start with a blank form when there is no AVS or Intake file.
+                        </p>
+                      </div>
+                    </div>
+                    <Button type="button" className="mt-4 clinical-action-lg" disabled={prefillPending} onClick={startManualEntry}>
+                      Manual Entry
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
+
+                {prefillPending ? (
+                  <div className="clinical-muted-surface p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                    Reading DOCX and detecting patient details...
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {isCreate && formStep === 'detected' && prefill ? (
+              <div className="grid gap-4">
+                <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="clinical-label">Detected Details Review</p>
+                      <h3 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                        {prefill.templateType === 'AVS' ? 'AVS document' : 'Intake document'}
+                      </h3>
+                      <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                        {prefillFileName || 'Uploaded DOCX'} | File retained: No
+                      </p>
+                    </div>
+                    <Badge variant="warning">Staff review required</Badge>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {prefill.fields.map((field) => (
+                    <div key={field.key} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="clinical-label">{field.label}</p>
+                          <p className="mt-1 min-h-5 break-words text-sm font-bold text-[var(--color-text)]">
+                            {field.value || 'Not found'}
+                          </p>
+                        </div>
+                        <Badge variant={prefillStatusVariant(field.status)}>{prefillStatusLabel(field.status)}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <label className="clinical-muted-surface flex items-start gap-3 p-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 accent-[var(--color-primary)]"
+                    checked={prefillIdentityConfirmed}
+                    onChange={(event) => setPrefillIdentityConfirmed(event.target.checked)}
+                  />
+                  <span className="text-sm font-semibold leading-6 text-[var(--color-text)]">
+                    I reviewed the detected patient identity and understand these values are draft only.
+                  </span>
+                </label>
+
+                {prefill.warnings.length ? (
+                  <div className="grid gap-2">
+                    {prefill.warnings.map((warning) => (
+                      <div key={warning} className="clinical-alert-error p-3 text-xs font-semibold">
+                        {warning}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -733,25 +971,44 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
           </div>
 
           <div className="clinical-modal-footer">
-            <Button type="button" variant="ghost" className="clinical-action" disabled={pending} onClick={closeModal}>Cancel</Button>
+            <Button type="button" variant="ghost" className="clinical-action" disabled={pending || prefillPending} onClick={closeModal}>Cancel</Button>
             <div className="flex flex-wrap gap-2">
-              {isCreate && activeStepIndex > 0 ? (
+              {isCreate && formStep === 'detected' ? (
+                <>
+                  <Button type="button" variant="secondary" className="clinical-action" disabled={prefillPending} onClick={() => {
+                    setError(null);
+                    setFormStep('start');
+                  }}>
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    Back
+                  </Button>
+                  <Button type="button" variant="secondary" className="clinical-action-lg" disabled={prefillPending} onClick={startManualEntry}>
+                    Enter Manually
+                  </Button>
+                  <Button type="button" className="clinical-action-lg" disabled={!prefillIdentityConfirmed || prefillPending} onClick={confirmPrefill}>
+                    Use Detected Details
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </>
+              ) : null}
+              {isCreate && formStep !== 'start' && formStep !== 'detected' && (activeStepIndex > 0 || formStep === 'identity') ? (
                 <Button type="button" variant="secondary" className="clinical-action" disabled={pending} onClick={goBack}>
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                   Back
                 </Button>
               ) : null}
-              {isCreate && activeStepIndex < formSteps.length - 1 ? (
+              {isCreate && formStep !== 'start' && formStep !== 'detected' && activeStepIndex < formSteps.length - 1 ? (
                 <Button type="button" className="clinical-action" disabled={pending || missingChecks(form, formStep, false, changeReason).length > 0} onClick={goNext}>
                   Continue
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
-              ) : (
+              ) : null}
+              {(isEdit || (isCreate && formStep === 'review')) ? (
                 <Button type="submit" className="clinical-action-lg" disabled={pending}>
                   {pending ? <Save className="h-4 w-4" aria-hidden="true" /> : <CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
                   {pending ? 'Saving' : isEdit ? 'Save Changes' : 'Save & Open'}
                 </Button>
-              )}
+              ) : null}
             </div>
           </div>
         </form>
