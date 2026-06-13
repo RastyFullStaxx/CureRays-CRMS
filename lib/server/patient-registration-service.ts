@@ -2,10 +2,19 @@ import "server-only";
 
 import type { NextRequest } from "next/server";
 import {
+  auditEvents,
+  carepathTasks,
   createPatient,
+  courseFolderPlaceholders,
+  generatedDocuments,
   getPatientEditRecord as getPatientEditRecordFromStore,
   listPatientRecordHistory,
   operationalPatients,
+  patientCourseAuditChecks,
+  patientCourseWorkflowSteps,
+  patientRecordHistory,
+  patients,
+  treatmentCourses,
   updatePatient,
   updatePatientLifecycle,
   validatePatientCreateInput,
@@ -105,8 +114,49 @@ class PatientRepositoryUnavailableError extends Error {
   }
 }
 
+class PatientPersistenceWriteError extends Error {
+  constructor() {
+    super("Patient persistence write failed.");
+    this.name = "PatientPersistenceWriteError";
+  }
+}
+
 function safeText(value: string | null | undefined) {
   return String(value ?? "").trim();
+}
+
+function clone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function replaceArray<T>(target: T[], rows: T[]) {
+  target.splice(0, target.length, ...rows);
+}
+
+function snapshotClinicalStore() {
+  return {
+    patients: clone(patients),
+    treatmentCourses: clone(treatmentCourses),
+    generatedDocuments: clone(generatedDocuments),
+    carepathTasks: clone(carepathTasks),
+    patientCourseWorkflowSteps: clone(patientCourseWorkflowSteps),
+    patientCourseAuditChecks: clone(patientCourseAuditChecks),
+    courseFolderPlaceholders: clone(courseFolderPlaceholders),
+    patientRecordHistory: clone(patientRecordHistory),
+    auditEvents: clone(auditEvents)
+  };
+}
+
+function restoreClinicalStore(snapshot: ReturnType<typeof snapshotClinicalStore>) {
+  replaceArray(patients, snapshot.patients);
+  replaceArray(treatmentCourses, snapshot.treatmentCourses);
+  replaceArray(generatedDocuments, snapshot.generatedDocuments);
+  replaceArray(carepathTasks, snapshot.carepathTasks);
+  replaceArray(patientCourseWorkflowSteps, snapshot.patientCourseWorkflowSteps);
+  replaceArray(patientCourseAuditChecks, snapshot.patientCourseAuditChecks);
+  replaceArray(courseFolderPlaceholders, snapshot.courseFolderPlaceholders);
+  replaceArray(patientRecordHistory, snapshot.patientRecordHistory);
+  replaceArray(auditEvents, snapshot.auditEvents);
 }
 
 function repositoryModeFromEnv(): PatientRepositoryMode {
@@ -234,10 +284,73 @@ function validationErrorsForRequiredPatientFields(input: Partial<PatientCreateIn
     .map((field) => `${field} is required.`);
 }
 
-async function persistMutationResult(input: PatientCreateInput | PatientUpdateInput, result: PatientCourseMutationResult) {
+function dateTime(value: string | Date | null | undefined, fallback = new Date()) {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value;
+  }
+
+  const parsed = new Date(String(value ?? ""));
+  return Number.isFinite(parsed.getTime()) ? parsed : fallback;
+}
+
+function dateOnly(value: string | null | undefined, fallback = new Date()) {
+  return dateTime(value ? `${value}T00:00:00.000Z` : undefined, fallback);
+}
+
+function optionalDate(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = dateOnly(value);
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function persistedDocumentStatus(status: string) {
+  const allowed = new Set([
+    "DRAFT",
+    "PENDING_NEEDED",
+    "MISSING_FIELDS",
+    "READY_FOR_REVIEW",
+    "SIGNED",
+    "EXPORTED",
+    "NOT_APPLICABLE",
+    "NEEDS_REVIEW",
+    "COMPLETED"
+  ]);
+
+  return allowed.has(status) ? status : "NEEDS_REVIEW";
+}
+
+function persistablePatient(result: PatientCourseMutationResult) {
+  const patient = patients.find((item) => item.id === result.data.id);
+  if (!patient) {
+    throw new PatientPersistenceWriteError();
+  }
+
+  return patient;
+}
+
+function persistableCourse(result: PatientCourseMutationResult) {
+  if (!result.course) {
+    return undefined;
+  }
+
+  const course = treatmentCourses.find((item) => item.id === result.course?.id);
+  if (!course) {
+    throw new PatientPersistenceWriteError();
+  }
+
+  return course;
+}
+
+async function persistMutationResult(result: PatientCourseMutationResult) {
   const ops = loadPrismaClient(".prisma/ops-client");
   const phi = loadPrismaClient(".prisma/phi-client");
   const updatedAt = new Date(result.data.lastUpdatedAt);
+  const patient = persistablePatient(result);
+  const course = persistableCourse(result);
+  const courseRef = result.course?.courseRef;
 
   try {
     await ops.$transaction(async (tx) => {
@@ -268,11 +381,11 @@ async function persistMutationResult(input: PatientCreateInput | PatientUpdateIn
         }
       });
 
-      if (result.course) {
+      if (result.course && courseRef) {
         await prismaDelegate(tx, "operationalCourse").upsert({
-          where: { courseRef: result.course.courseRef },
+          where: { courseRef },
           create: {
-            courseRef: result.course.courseRef,
+            courseRef,
             patientRef: result.course.patientRef,
             diagnosisCategory: result.course.diagnosisCategory,
             protocolFamily: result.course.protocolFamily,
@@ -282,7 +395,8 @@ async function persistMutationResult(input: PatientCreateInput | PatientUpdateIn
             totalFractions: result.course.totalFractions,
             currentFraction: result.course.currentFraction,
             chartRoundsPhase: result.course.chartRoundsPhase,
-            status: result.course.status
+            status: result.course.status,
+            coursePhase: result.course.coursePhase
           },
           update: {
             diagnosisCategory: result.course.diagnosisCategory,
@@ -293,47 +407,385 @@ async function persistMutationResult(input: PatientCreateInput | PatientUpdateIn
             totalFractions: result.course.totalFractions,
             currentFraction: result.course.currentFraction,
             chartRoundsPhase: result.course.chartRoundsPhase,
-            status: result.course.status
+            status: result.course.status,
+            coursePhase: result.course.coursePhase
           }
         });
       }
+
+      const courseId = course?.id;
+      if (courseId && courseRef) {
+        await Promise.all(
+          patientCourseWorkflowSteps
+            .filter((step) => step.courseId === courseId)
+            .map((step) => prismaDelegate(tx, "operationalWorkflowStep").upsert({
+              where: { id: step.id },
+              create: {
+                id: step.id,
+                courseRef,
+                workflowDefinitionId: step.requirementIds?.length ? course.workflowDefinitionId ?? "WF-UNIVERSAL" : course.workflowDefinitionId ?? "WF-UNIVERSAL",
+                stepNumber: step.stepNumber,
+                stepName: step.stepName,
+                phase: step.phase,
+                status: step.status,
+                responsibleRole: step.responsibleRole,
+                triggerEvent: step.triggerEvent,
+                dueDate: optionalDate(step.dueDate),
+                requiresSignature: step.requiresSignature,
+                linkedDocumentId: step.linkedDocumentId,
+                naReason: step.naReason,
+                blockers: step.blockers,
+                auditChecklist: step.auditChecklist,
+                notes: step.notes,
+                createdAt: dateTime(step.createdAt),
+                updatedAt: dateTime(step.updatedAt)
+              },
+              update: {
+                workflowDefinitionId: course.workflowDefinitionId ?? "WF-UNIVERSAL",
+                stepName: step.stepName,
+                phase: step.phase,
+                status: step.status,
+                responsibleRole: step.responsibleRole,
+                triggerEvent: step.triggerEvent,
+                dueDate: optionalDate(step.dueDate),
+                requiresSignature: step.requiresSignature,
+                linkedDocumentId: step.linkedDocumentId,
+                naReason: step.naReason,
+                blockers: step.blockers,
+                auditChecklist: step.auditChecklist,
+                notes: step.notes,
+                updatedAt: dateTime(step.updatedAt)
+              }
+            }))
+        );
+
+        await Promise.all(
+          carepathTasks
+            .filter((task) => task.courseId === courseId)
+            .map((task) => prismaDelegate(tx, "carepathTask").upsert({
+              where: { id: task.id },
+              create: {
+                id: task.id,
+                courseRef,
+                taskNumber: task.taskNumber,
+                title: task.title,
+                workflowPhase: task.workflowPhase,
+                documentName: task.documentName,
+                status: task.status,
+                responsibleParty: task.responsibleParty,
+                timing: task.timing,
+                noteAction: task.noteAction,
+                cptCodes: task.cptCodes,
+                auditSteps: task.auditSteps,
+                auditReady: task.auditReady,
+                dueDate: optionalDate(task.dueDate),
+                completedAt: task.completedAt ? dateTime(task.completedAt) : null,
+                signedAt: task.signedAt ? dateTime(task.signedAt) : null,
+                lastUpdatedAt: dateTime(task.lastUpdatedAt),
+                assignedUser: task.assignedUser
+              },
+              update: {
+                title: task.title,
+                workflowPhase: task.workflowPhase,
+                documentName: task.documentName,
+                status: task.status,
+                responsibleParty: task.responsibleParty,
+                timing: task.timing,
+                noteAction: task.noteAction,
+                cptCodes: task.cptCodes,
+                auditSteps: task.auditSteps,
+                auditReady: task.auditReady,
+                dueDate: optionalDate(task.dueDate),
+                completedAt: task.completedAt ? dateTime(task.completedAt) : null,
+                signedAt: task.signedAt ? dateTime(task.signedAt) : null,
+                lastUpdatedAt: dateTime(task.lastUpdatedAt),
+                assignedUser: task.assignedUser
+              }
+            }))
+        );
+
+        await Promise.all(
+          generatedDocuments
+            .filter((document) => document.courseId === courseId)
+            .map((document) => prismaDelegate(tx, "generatedDocument").upsert({
+              where: { id: document.id },
+              create: {
+                id: document.id,
+                templateId: document.templateId,
+                patientRef: result.data.patientRef,
+                courseRef,
+                name: document.name,
+                clinicalPhase: document.clinicalPhase,
+                responsibleParty: document.responsibleParty,
+                status: persistedDocumentStatus(document.status),
+                requiredAction: document.requiredAction,
+                cptCode: document.cptCode,
+                assignedTo: document.assignedTo,
+                lastUpdatedAt: dateTime(document.lastUpdatedAt),
+                signedAt: document.signedAt ? dateTime(document.signedAt) : null,
+                exportedAt: document.exportedAt ? dateTime(document.exportedAt) : null,
+                signReviewState: document.signReviewState,
+                auditReady: document.auditReady
+              },
+              update: {
+                name: document.name,
+                clinicalPhase: document.clinicalPhase,
+                responsibleParty: document.responsibleParty,
+                status: persistedDocumentStatus(document.status),
+                requiredAction: document.requiredAction,
+                cptCode: document.cptCode,
+                assignedTo: document.assignedTo,
+                lastUpdatedAt: dateTime(document.lastUpdatedAt),
+                signedAt: document.signedAt ? dateTime(document.signedAt) : null,
+                exportedAt: document.exportedAt ? dateTime(document.exportedAt) : null,
+                signReviewState: document.signReviewState,
+                auditReady: document.auditReady
+              }
+            }))
+        );
+
+        await Promise.all(
+          patientCourseAuditChecks
+            .filter((check) => check.courseId === courseId)
+            .map((check) => prismaDelegate(tx, "operationalAuditCheck").upsert({
+              where: { id: check.id },
+              create: {
+                id: check.id,
+                courseRef,
+                category: check.category,
+                label: check.label,
+                status: check.status,
+                required: check.required,
+                evidenceDocumentId: check.evidenceDocumentId,
+                notes: check.notes,
+                completedByUserId: check.completedByUserId,
+                completedAt: check.completedAt ? dateTime(check.completedAt) : null,
+                naReason: check.naReason
+              },
+              update: {
+                category: check.category,
+                label: check.label,
+                status: check.status,
+                required: check.required,
+                evidenceDocumentId: check.evidenceDocumentId,
+                notes: check.notes,
+                completedByUserId: check.completedByUserId,
+                completedAt: check.completedAt ? dateTime(check.completedAt) : null,
+                naReason: check.naReason
+              }
+            }))
+        );
+
+        await Promise.all(
+          courseFolderPlaceholders
+            .filter((folder) => folder.courseId === courseId)
+            .map((folder) => prismaDelegate(tx, "courseFolderPlaceholder").upsert({
+              where: { id: folder.id },
+              create: {
+                id: folder.id,
+                patientRef: folder.patientRef,
+                courseRef: folder.courseRef,
+                storageProvider: folder.storageProvider,
+                path: folder.path,
+                folders: folder.folders,
+                status: folder.status,
+                createdAt: dateTime(folder.createdAt)
+              },
+              update: {
+                patientRef: folder.patientRef,
+                courseRef: folder.courseRef,
+                storageProvider: folder.storageProvider,
+                path: folder.path,
+                folders: folder.folders,
+                status: folder.status
+              }
+            }))
+        );
+      }
+
+      await Promise.all(
+        patientRecordHistory
+          .filter((entry) => entry.patientRef === result.data.patientRef)
+          .map((entry) => prismaDelegate(tx, "patientRecordHistory").upsert({
+            where: { id: entry.id },
+            create: {
+              id: entry.id,
+              patientRef: entry.patientRef,
+              courseRef: entry.courseRef,
+              action: entry.action,
+              summary: entry.summary,
+              previousValue: entry.previousValue,
+              newValue: entry.newValue,
+              changedBy: entry.changedBy,
+              role: entry.role,
+              sessionId: entry.sessionId,
+              ipAddress: entry.ipAddress,
+              deviceId: entry.deviceId,
+              reason: entry.reason,
+              timestamp: dateTime(entry.timestamp)
+            },
+            update: {
+              courseRef: entry.courseRef,
+              action: entry.action,
+              summary: entry.summary,
+              previousValue: entry.previousValue,
+              newValue: entry.newValue,
+              changedBy: entry.changedBy,
+              role: entry.role,
+              sessionId: entry.sessionId,
+              ipAddress: entry.ipAddress,
+              deviceId: entry.deviceId,
+              reason: entry.reason,
+              timestamp: dateTime(entry.timestamp)
+            }
+          }))
+      );
+
+      await prismaDelegate(tx, "operationalAuditEvent").upsert({
+        where: { id: result.auditEvent.id },
+        create: {
+          id: result.auditEvent.id,
+          patientRef: result.auditEvent.patientRef,
+          userId: result.auditEvent.userId,
+          userName: result.auditEvent.userName,
+          role: result.auditEvent.role,
+          sessionId: result.auditEvent.sessionId,
+          ipAddress: result.auditEvent.ipAddress,
+          deviceId: result.auditEvent.deviceId,
+          action: result.auditEvent.action,
+          entityType: result.auditEvent.entityType,
+          entityId: result.auditEvent.entityId,
+          previousValue: result.auditEvent.previousValue,
+          newValue: result.auditEvent.newValue,
+          redacted: result.auditEvent.redacted,
+          timestamp: dateTime(result.auditEvent.timestamp),
+          reason: result.auditEvent.reason
+        },
+        update: {
+          patientRef: result.auditEvent.patientRef,
+          userId: result.auditEvent.userId,
+          userName: result.auditEvent.userName,
+          role: result.auditEvent.role,
+          sessionId: result.auditEvent.sessionId,
+          ipAddress: result.auditEvent.ipAddress,
+          deviceId: result.auditEvent.deviceId,
+          action: result.auditEvent.action,
+          entityType: result.auditEvent.entityType,
+          entityId: result.auditEvent.entityId,
+          previousValue: result.auditEvent.previousValue,
+          newValue: result.auditEvent.newValue,
+          redacted: result.auditEvent.redacted,
+          timestamp: dateTime(result.auditEvent.timestamp),
+          reason: result.auditEvent.reason
+        }
+      });
     });
 
     await phi.$transaction(async (tx) => {
       await prismaDelegate(tx, "patientPhi").upsert({
         where: { phiRecordId: result.data.phiRecordId },
         create: {
-          id: result.data.id,
+          id: patient.id,
           patientRef: result.data.patientRef,
           phiRecordId: result.data.phiRecordId,
-          firstName: "firstName" in input ? input.firstName : "",
-          lastName: "lastName" in input ? input.lastName : "",
-          mrn: "mrn" in input ? input.mrn : result.data.phiRecordId,
-          diagnosis: "diagnosis" in input ? input.diagnosis : "",
-          diagnosisCategory: result.data.diagnosisCategory,
-          location: "location" in input ? input.location : "",
-          physician: "physician" in input ? input.physician : "",
-          chartRoundsPhase: result.data.chartRoundsPhase,
-          status: result.data.status,
-          assignedStaff: result.data.assignedStaff,
-          activeCourseId: result.course?.courseRef ?? result.data.activeCourseRef,
-          nextAction: result.data.nextActionCategory,
-          flags: [],
-          notes: "notes" in input ? input.notes ?? "" : "",
-          checklist: result.data.checklist,
+          firstName: patient.firstName,
+          lastName: patient.lastName,
+          mrn: patient.mrn,
+          diagnosis: patient.diagnosis,
+          diagnosisCategory: patient.diagnosisCategory,
+          location: patient.location,
+          physician: patient.physician,
+          chartRoundsPhase: patient.chartRoundsPhase,
+          status: patient.status,
+          assignedStaff: patient.assignedStaff,
+          activeCourseId: patient.activeCourseId,
+          nextAction: patient.nextAction,
+          flags: patient.flags,
+          notes: patient.notes,
+          checklist: patient.checklist,
           lastUpdatedAt: updatedAt
         },
         update: {
-          diagnosisCategory: result.data.diagnosisCategory,
-          chartRoundsPhase: result.data.chartRoundsPhase,
-          status: result.data.status,
-          assignedStaff: result.data.assignedStaff,
-          nextAction: result.data.nextActionCategory,
-          checklist: result.data.checklist,
+          firstName: patient.firstName,
+          lastName: patient.lastName,
+          mrn: patient.mrn,
+          diagnosis: patient.diagnosis,
+          diagnosisCategory: patient.diagnosisCategory,
+          location: patient.location,
+          physician: patient.physician,
+          chartRoundsPhase: patient.chartRoundsPhase,
+          status: patient.status,
+          assignedStaff: patient.assignedStaff,
+          activeCourseId: patient.activeCourseId,
+          nextAction: patient.nextAction,
+          flags: patient.flags,
+          notes: patient.notes,
+          checklist: patient.checklist,
           lastUpdatedAt: updatedAt
         }
       });
+
+      if (course && courseRef) {
+        await prismaDelegate(tx, "treatmentCoursePhi").upsert({
+          where: { courseRef },
+          create: {
+            id: course.id,
+            courseRef,
+            patientId: patient.id,
+            diagnosis: course.diagnosis,
+            diagnosisCategory: course.diagnosisCategory,
+            protocolName: course.protocolName,
+            totalFractions: course.totalFractions,
+            currentFraction: course.currentFraction,
+            startDate: dateOnly(course.startDate),
+            endDate: optionalDate(course.endDate),
+            chartRoundsPhase: course.chartRoundsPhase,
+            status: course.status,
+            treatmentModality: course.treatmentModality,
+            treatmentType: course.treatmentType,
+            workflowDefinitionId: course.workflowDefinitionId,
+            bodyRegion: course.bodyRegion,
+            laterality: course.laterality,
+            coursePhase: course.coursePhase,
+            phaseOne: course.phaseOne,
+            phaseTwo: course.phaseTwo,
+            energy: course.energy,
+            applicator: course.applicator,
+            dose: course.dose,
+            targetDepth: course.targetDepth,
+            fieldDesign: course.fieldDesign,
+            notes: course.notes
+          },
+          update: {
+            diagnosis: course.diagnosis,
+            diagnosisCategory: course.diagnosisCategory,
+            protocolName: course.protocolName,
+            totalFractions: course.totalFractions,
+            currentFraction: course.currentFraction,
+            startDate: dateOnly(course.startDate),
+            endDate: optionalDate(course.endDate),
+            chartRoundsPhase: course.chartRoundsPhase,
+            status: course.status,
+            treatmentModality: course.treatmentModality,
+            treatmentType: course.treatmentType,
+            workflowDefinitionId: course.workflowDefinitionId,
+            bodyRegion: course.bodyRegion,
+            laterality: course.laterality,
+            coursePhase: course.coursePhase,
+            phaseOne: course.phaseOne,
+            phaseTwo: course.phaseTwo,
+            energy: course.energy,
+            applicator: course.applicator,
+            dose: course.dose,
+            targetDepth: course.targetDepth,
+            fieldDesign: course.fieldDesign,
+            notes: course.notes
+          }
+        });
+      }
     });
+  } catch {
+    throw new PatientPersistenceWriteError();
   } finally {
     await ops.$disconnect();
     await phi.$disconnect();
@@ -384,21 +836,39 @@ export const prismaPatientRegistrationRepository: PatientRegistrationRepository 
     return listPatientRecordHistory(patientRefOrId);
   },
   async createPatientTransaction(input, context) {
+    const snapshot = snapshotClinicalStore();
     const result = createPatient(input, context);
-    await persistMutationResult(input, result);
+    try {
+      await persistMutationResult(result);
+    } catch (error) {
+      restoreClinicalStore(snapshot);
+      throw error;
+    }
     return result;
   },
   async updatePatientTransaction(patientRefOrId, input, context) {
+    const snapshot = snapshotClinicalStore();
     const result = updatePatient(patientRefOrId, input, context);
     if (result) {
-      await persistMutationResult(input, result);
+      try {
+        await persistMutationResult(result);
+      } catch (error) {
+        restoreClinicalStore(snapshot);
+        throw error;
+      }
     }
     return result;
   },
   async updatePatientLifecycleTransaction(patientRefOrId, input, context) {
+    const snapshot = snapshotClinicalStore();
     const result = updatePatientLifecycle(patientRefOrId, input, context);
     if (result) {
-      await persistMutationResult(input, result);
+      try {
+        await persistMutationResult(result);
+      } catch (error) {
+        restoreClinicalStore(snapshot);
+        throw error;
+      }
     }
     return result;
   }
@@ -452,10 +922,18 @@ function failure<T>(status: number, message: string, errors?: string[]): Patient
 
 function safeFailure<T>(error: unknown): PatientServiceResponse<T> {
   if (error instanceof PatientRepositoryUnavailableError) {
-    return failure(503, "Patient persistence is not available.");
+    return failure(503, "Patient persistence is not available.", [
+      "Confirm OPS_DATABASE_URL, PHI_DATABASE_URL, generated Prisma clients, and PostgreSQL connectivity."
+    ]);
   }
 
-  return failure(500, "Patient mutation could not be completed.");
+  if (error instanceof PatientPersistenceWriteError) {
+    return failure(500, "Patient could not be saved to the configured database.", [
+      "The record was not accepted as saved. Check local OPS/PHI schema setup and retry."
+    ]);
+  }
+
+  return failure(500, "Patient request could not be completed safely.");
 }
 
 function assertPhiAction(context: PatientMutationContext) {

@@ -1,6 +1,6 @@
 # CureRays CRMS System Progress Tracker
 
-Last updated: 2026-06-12
+Last updated: 2026-06-13
 
 Owner: CureRays CRMS implementation team
 
@@ -144,8 +144,8 @@ Current inventory:
 
 ### Partially Functioning
 
-- `[~]` Patient registration: `POST /api/patients` and Add Patient UI are wired through a server-only registration service, but no persistent database transaction creates the patient/course/workflow/task/folder bundle.
-- `[~]` Patient record maintenance: `PATCH /api/patients/[id]` and Edit Patient UI are wired through the server-only registration service, but updates are in-memory only and there is no consent/history handling or persistent audit trail.
+- `[~]` Patient registration: `POST /api/patients` and guided Add Patient UI are wired through a server-only registration service. In Prisma mode, the transitional adapter now persists patient, course, operational bundle references, redacted history, folder placeholder, and redacted audit event where current OPS/PHI schemas support them.
+- `[~]` Patient record maintenance: `PATCH /api/patients/[id]` and guided Edit Patient UI are wired through the server-only registration service with optimistic concurrency, required change reason, redacted correction history, and transitional Prisma persistence. Production-grade consent/history policy and immutable audit infrastructure remain later-phase work.
 - `[~]` Course/workflow automation: canonical steps and automation rules are documented; generated task/document helpers exist; full "create course -> create steps/tasks/docs/folders" automation is not implemented as durable backend logic.
 - `[~]` Template registry: local files are normalized; Phase 4 pilot metadata, field maps, approval status, explicit deferrals, future placeholders, and source-hash checks exist. Live Drive sync and real generation remain later-phase work.
 - `[~]` Document lifecycle: pages and simulated render/sign/export state exist; no real DOCX/PPTX/XLSX/PDF generation, no eCW upload, no electronic signature integration, no immutable version store.
@@ -170,14 +170,14 @@ Current inventory:
 | Stage | Current readiness | What works now | What blocks production |
 |---|---:|---|---|
 | Login/session | 15% | Branded login UI routes to dashboard. | No real auth, no session validation, no MFA, no timeout, no role claims. |
-| Patient registration | 42% | Add Patient UI posts to a server-owned API path that validates required fields and duplicate MRNs, creates an in-memory patient/course/task/document bundle, returns tokenized output, and records redacted audit metadata. | No persistence; no real auth/session; no Prisma transaction; workflow-definition selection and folder placeholders are incomplete. |
+| Patient registration | 52% | Guided Add Patient UI posts to a server-owned API path that validates required fields and duplicate MRNs, creates the patient/course/task/document/workflow/audit/folder bundle, returns tokenized output, records redacted audit metadata, and persists the transitional OPS/PHI rows in Prisma mode where schemas support them. Successful creates open the new patient workspace. | No real auth/session; no distributed OPS/PHI transaction; immutable audit, production permissions, and full Prisma-native repository coverage remain incomplete. |
 | Patient registry | 65% | `/patients`, `/records`, phase pages, search/filter tables, patient workspace links. | Some client pages import PHI-bearing mock data; operational DTO standard not enforced everywhere; no backend pagination/query permissions. |
 | Patient profile/workspace | 68% | Patient workspace displays course, workflow, tasks, documents, fractions, planning, imaging, billing/audit, activity. | Mostly read-only except fraction/IGSRT-specific routes; PHI handling is prototype-only; no durable writes. |
 | Record update/maintenance | 44% | Edit Patient UI fetches PHI explicitly, patches through a guarded server service, validates duplicate MRNs, returns redacted operational output, and captures actor-shaped audit metadata. IGSRT simulation/prescription/fractions/doc statuses update in memory. | No DB transaction; no field-level validation policy; no immutable audit trail; user attribution still comes from prototype headers/placeholders. |
 | Course creation | 20% | Course concepts and mock courses exist. | No production create-course API/UI; no diagnosis/protocol workflow selection transaction. |
 | Workflow progression | 45% | Carepath steps, task/document requirements, blockers, and audit readiness are modeled and rendered. | No persistent workflow state machine; no guarded transitions; no due-date/escalation engine. |
 | Document generation | 35% | Simulated render/sign/export outputs exist. | No real template merge, output file write, Drive/eCW upload, signature provider, or lock/version enforcement. |
-| Treatment delivery/fractions | 58% | Strongest interactive slice: native fraction worksheet, calculations, approvals, revisions, voiding, registry table. | Clinical validation required; no persistence; no authenticated role enforcement; no machine/device integration. |
+| Treatment delivery/fractions | 60% | Strongest interactive slice: native fraction worksheet, review-first UI, calculations, approvals, revisions, voiding, registry table. | Clinical validation required; no persistence; no authenticated role enforcement; no machine/device integration. |
 | Billing/audit closeout | 35% | Mock billing rows, audit checks, readiness score, logs. | No real billing engine, payer/preauth validation, claim evidence lock, closeout gate, or immutable audit log. |
 
 Minimum "demo-ready" path today:
@@ -799,6 +799,7 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-13 | Improved patient registration durability and oldies-friendly patient/fraction workflows. | Added guided 4-step Add/Edit Patient UI, shared textarea primitive, Prisma-mode persistence for patient/course bundle references, PHI-safe actionable persistence errors with in-memory rollback on failed writes, Save & Open workspace flow, and review-first Fraction Log with hidden step-based Record Next Fraction flow. `npm run typecheck` passed. | Run lint, HIPAA, Phase 2, and fraction worksheet guardrails; continue production hardening for real auth, immutable audit, full Prisma-native repositories, and formal clinical validation. |
 | 2026-06-11 | Created initial system progress tracker from repo/docs/code audit. | Docs, routes, services, Prisma schemas, validation scripts, build output reviewed. | Use this as the working checklist for the next implementation phase. |
 | 2026-06-11 | Verified current checks. | Typecheck, lint, HIPAA guardrails, fraction worksheet fixture with `TMPDIR=/tmp`, and build passed. | Add `npm run verify` and CI. |
 | 2026-06-11 | Identified major go-live blockers. | Client PHI imports, in-memory state, auth header placeholder, simulated documents/storage, missing clinical validation. | Prioritize PHI/client boundary and persistent patient/course creation. |

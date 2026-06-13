@@ -3,6 +3,8 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
   Calculator,
   CheckCircle2,
   ClipboardCheck,
@@ -20,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DataTable } from "@/components/shared/data-table";
 import { FilterStrip } from "@/components/shared/filter-strip";
 import type {
@@ -67,6 +70,7 @@ type DraftFraction = {
 };
 
 type AdvancedPanel = "note" | "reference" | "billing";
+type EntryStep = "confirm" | "treatment" | "calculation";
 
 type ReasonRequest =
   | { type: "revision"; entryId: string; approvalType: FractionApprovalType }
@@ -249,6 +253,8 @@ export function FractionWorksheetPanel({
   const [entries, setEntries] = useState(initialEntries);
   const [schedule, setSchedule] = useState(scheduledFractions);
   const [draft, setDraft] = useState(() => buildInitialDraft(course, phases, initialEntries, scheduledFractions));
+  const [showEntryFlow, setShowEntryFlow] = useState(false);
+  const [entryStep, setEntryStep] = useState<EntryStep>("confirm");
   const [showAdvancedEntry, setShowAdvancedEntry] = useState(false);
   const [advancedPanel, setAdvancedPanel] = useState<AdvancedPanel>("note");
   const [selectedEntryId, setSelectedEntryId] = useState(initialEntries[0]?.id ?? "");
@@ -382,6 +388,8 @@ export function FractionWorksheetPanel({
     if (workspace?.courseFractions) {
       setDraft(buildInitialDraft(course, phases, workspace.courseFractions, workspace.treatmentFractions ?? schedule));
       setShowAdvancedEntry(false);
+      setShowEntryFlow(false);
+      setEntryStep("confirm");
     }
   }
 
@@ -482,6 +490,9 @@ export function FractionWorksheetPanel({
               </span>
               <div className="min-w-0">
                 <h3 className="font-heading text-lg font-bold text-[var(--color-text)]">{title}</h3>
+                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+                  {course.id.replace("COURSE-", "C")} | {course.protocolName}
+                </p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -519,193 +530,22 @@ export function FractionWorksheetPanel({
           ) : null}
         </div>
 
-        <div className="grid gap-4 p-4">
-          <form className="grid gap-4" onSubmit={addFraction}>
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className={labelClass}>Today&apos;s Fraction</p>
-                  <h4 className="mt-1 font-heading text-xl font-bold text-[var(--color-text)]">
-                    Fx {draft.fractionNumber || nextFractionNumber(entries)}
-                  </h4>
-                </div>
-                <Badge variant={preview.error ? "warning" : "success"}>
-                  {preview.error ? "Needs Attention" : "Ready"}
-                </Badge>
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-9">
-                <label className="grid gap-1">
-                  <span className={labelClass}>Fx</span>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={draft.fractionNumber}
-                    onChange={(event) => updateDraft("fractionNumber", event.target.value)}
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Date</span>
-                  <Input
-                    type="date"
-                    value={draft.date}
-                    onChange={(event) => updateDraft("date", event.target.value)}
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Phase</span>
-                  <Select value={draft.phase} onChange={(event) => applyPhaseDefaults(event.target.value)}>
-                    {phaseSummaries.map((phase) => (
-                      <option key={phase.phaseName} value={phase.phaseName}>
-                        {phase.phaseName}
-                      </option>
-                    ))}
-                  </Select>
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Energy</span>
-                  <Select value={draft.energyKv} onChange={(event) => updateDraft("energyKv", event.target.value)}>
-                    {energyOptions.map((energy) => (
-                      <option key={energy} value={energy}>
-                        {energy} kV
-                      </option>
-                    ))}
-                  </Select>
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Field</span>
-                  <Select value={draft.fieldSizeCm} onChange={(event) => updateDraft("fieldSizeCm", event.target.value)}>
-                    {fieldSizeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Dose</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={draft.dosePerFractionCgy}
-                    onChange={(event) => updateDraft("dosePerFractionCgy", event.target.value)}
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>DOT</span>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={draft.depthOfTargetMm}
-                    onChange={(event) => updateDraft("depthOfTargetMm", event.target.value)}
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>SSD</span>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={draft.ssdCm}
-                    onChange={(event) => updateDraft("ssdCm", event.target.value)}
-                  />
-                </label>
-                <label className="grid gap-1">
-                  <span className={labelClass}>Tech</span>
-                  <Input value={draft.technicianInitials} onChange={(event) => updateDraft("technicianInitials", event.target.value)} />
-                </label>
-              </div>
-
-              {showAdvancedEntry ? (
-                <div className="mt-3 grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-2 xl:grid-cols-5">
-                  <label className="grid gap-1 xl:col-span-2">
-                    <span className={labelClass}>Setup Comments</span>
-                    <Input
-                      value={draft.treatmentSetupComments}
-                      onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
-                    />
-                  </label>
-                  <label className="grid gap-1 xl:col-span-2">
-                    <span className={labelClass}>Notes</span>
-                    <Input value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className={labelClass}>Time</span>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={draft.treatmentTimeMinutes}
-                      onChange={(event) => updateDraft("treatmentTimeMinutes", event.target.value)}
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className={labelClass}>Override %</span>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      value={draft.isodoseToDotPercent}
-                      onChange={(event) => updateDraft("isodoseToDotPercent", event.target.value)}
-                    />
-                  </label>
-                  <label className="grid gap-1">
-                    <span className={labelClass}>Override Reason</span>
-                    <Input
-                      value={draft.isodoseOverrideReason}
-                      onChange={(event) => updateDraft("isodoseOverrideReason", event.target.value)}
-                    />
-                  </label>
-                </div>
-              ) : null}
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Button type="submit" disabled={Boolean(preview.error) || pendingAction === "addFraction-new"}>
-                  <Save className="h-4 w-4" aria-hidden="true" />
-                  {pendingAction === "addFraction-new" ? "Recording" : "Record Fraction"}
-                </Button>
-                <Button type="button" variant="secondary" onClick={() => setShowAdvancedEntry((current) => !current)}>
-                  <Calculator className="h-4 w-4" aria-hidden="true" />
-                  {showAdvancedEntry ? "Hide Advanced" : "Advanced Fields"}
-                </Button>
-              </div>
-            </div>
-          </form>
-
-          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className={labelClass}>Live Calculation</p>
-              <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "success" : "warning"}>
-                {(preview.entry?.calculationStatus ?? "pending").replaceAll("_", " ")}
-              </Badge>
-            </div>
-
-            {preview.error ? (
-              <div className="mt-3 rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] p-3 text-sm font-semibold text-[var(--color-error)]">
-                {preview.error}
-              </div>
-            ) : (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
-                <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
-                <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
-                <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
-              </div>
-            )}
-
-            {compactWarnings(preview.entry ?? undefined).length ? (
-              <div className="mt-3 grid gap-2">
-                {compactWarnings(preview.entry ?? undefined).map((warning) => (
-                  <div key={warning} className="flex gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
-                    <span>{warning}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+        <div className="grid gap-3 p-4 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <PreviewMetric label="Next Fraction" value={`Fx ${draft.fractionNumber || nextFractionNumber(entries)}`} />
+            <PreviewMetric label="History Rows" value={sortedEntries.length.toLocaleString()} />
+            <PreviewMetric label="Review Queue" value={reviewQueue.length.toLocaleString()} />
           </div>
+          <Button
+            type="button"
+            onClick={() => {
+              setShowEntryFlow(true);
+              setEntryStep("confirm");
+            }}
+          >
+            <Save className="h-4 w-4" aria-hidden="true" />
+            Record Next Fraction
+          </Button>
         </div>
       </Card>
 
@@ -793,12 +633,284 @@ export function FractionWorksheetPanel({
         </div>
       </Card>
 
+      {showEntryFlow ? (
+        <Card className="p-0">
+          <form className="grid gap-0" onSubmit={addFraction}>
+            <div className="border-b border-[var(--color-border-soft)] p-4">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <p className={labelClass}>Record Next Fraction</p>
+                  <h3 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                    Fx {draft.fractionNumber || nextFractionNumber(entries)}
+                  </h3>
+                </div>
+                <Badge variant={preview.error ? "warning" : "success"}>
+                  {preview.error ? "Needs Attention" : "Ready"}
+                </Badge>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                {[
+                  { id: "confirm" as EntryStep, label: "Confirm" },
+                  { id: "treatment" as EntryStep, label: "Treatment Values" },
+                  { id: "calculation" as EntryStep, label: "Calculation" }
+                ].map((step, index) => (
+                  <button
+                    key={step.id}
+                    type="button"
+                    className={`clinical-focus rounded-[var(--radius-md)] border px-3 py-2 text-left transition ${
+                      entryStep === step.id
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)]"
+                        : "border-[var(--color-border-soft)] bg-[var(--color-card)] hover:bg-[var(--color-hover)]"
+                    }`}
+                    onClick={() => setEntryStep(step.id)}
+                  >
+                    <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
+                    <span className="mt-1 block text-sm font-bold text-[var(--color-text)]">{step.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 p-4">
+              {entryStep === "confirm" ? (
+                <div className="grid gap-4">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Fx</span>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={draft.fractionNumber}
+                        onChange={(event) => updateDraft("fractionNumber", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Date</span>
+                      <Input
+                        type="date"
+                        value={draft.date}
+                        onChange={(event) => updateDraft("date", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Phase</span>
+                      <Select value={draft.phase} onChange={(event) => applyPhaseDefaults(event.target.value)}>
+                        {phaseSummaries.map((phase) => (
+                          <option key={phase.phaseName} value={phase.phaseName}>
+                            {phase.phaseName}
+                          </option>
+                        ))}
+                      </Select>
+                    </label>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <PreviewMetric label="Course" value={course.id.replace("COURSE-", "C")} />
+                    <PreviewMetric label="Protocol" value={course.protocolName} />
+                    <PreviewMetric label="Logged" value={`${sortedActiveEntries.length}/${course.totalFractions}`} />
+                  </div>
+                </div>
+              ) : null}
+
+              {entryStep === "treatment" ? (
+                <div className="grid gap-4">
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Energy</span>
+                      <Select value={draft.energyKv} onChange={(event) => updateDraft("energyKv", event.target.value)}>
+                        {energyOptions.map((energy) => (
+                          <option key={energy} value={energy}>
+                            {energy} kV
+                          </option>
+                        ))}
+                      </Select>
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Field</span>
+                      <Select value={draft.fieldSizeCm} onChange={(event) => updateDraft("fieldSizeCm", event.target.value)}>
+                        {fieldSizeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </Select>
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Dose</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={draft.dosePerFractionCgy}
+                        onChange={(event) => updateDraft("dosePerFractionCgy", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>DOT</span>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={draft.depthOfTargetMm}
+                        onChange={(event) => updateDraft("depthOfTargetMm", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>SSD</span>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={draft.ssdCm}
+                        onChange={(event) => updateDraft("ssdCm", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Tech</span>
+                      <Input value={draft.technicianInitials} onChange={(event) => updateDraft("technicianInitials", event.target.value)} />
+                    </label>
+                  </div>
+
+                  {showAdvancedEntry ? (
+                    <div className="grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-2 xl:grid-cols-5">
+                      <label className="grid gap-1 xl:col-span-2">
+                        <span className={labelClass}>Setup Comments</span>
+                        <Textarea
+                          rows={3}
+                          value={draft.treatmentSetupComments}
+                          onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
+                        />
+                      </label>
+                      <label className="grid gap-1 xl:col-span-2">
+                        <span className={labelClass}>Notes</span>
+                        <Textarea rows={3} value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
+                      </label>
+                      <label className="grid gap-1">
+                        <span className={labelClass}>Time</span>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          value={draft.treatmentTimeMinutes}
+                          onChange={(event) => updateDraft("treatmentTimeMinutes", event.target.value)}
+                        />
+                      </label>
+                      <label className="grid gap-1">
+                        <span className={labelClass}>Override %</span>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={draft.isodoseToDotPercent}
+                          onChange={(event) => updateDraft("isodoseToDotPercent", event.target.value)}
+                        />
+                      </label>
+                      <label className="grid gap-1 xl:col-span-2">
+                        <span className={labelClass}>Override Reason</span>
+                        <Textarea
+                          rows={3}
+                          value={draft.isodoseOverrideReason}
+                          onChange={(event) => updateDraft("isodoseOverrideReason", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <Button type="button" variant="secondary" onClick={() => setShowAdvancedEntry((current) => !current)}>
+                      <Calculator className="h-4 w-4" aria-hidden="true" />
+                      {showAdvancedEntry ? "Hide Advanced" : "Advanced Fields"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {entryStep === "calculation" ? (
+                <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className={labelClass}>Live Calculation</p>
+                    <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "success" : "warning"}>
+                      {(preview.entry?.calculationStatus ?? "pending").replaceAll("_", " ")}
+                    </Badge>
+                  </div>
+
+                  {preview.error ? (
+                    <div className="mt-3 rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] p-3 text-sm font-semibold text-[var(--color-error)]">
+                      {preview.error}
+                    </div>
+                  ) : (
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
+                      <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
+                      <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
+                      <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
+                    </div>
+                  )}
+
+                  {compactWarnings(preview.entry ?? undefined).length ? (
+                    <div className="mt-3 grid gap-2">
+                      {compactWarnings(preview.entry ?? undefined).map((warning) => (
+                        <div key={warning} className="flex gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
+                          <span>{warning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-border-soft)] p-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setShowEntryFlow(false);
+                  setEntryStep("confirm");
+                }}
+              >
+                Cancel
+              </Button>
+              <div className="flex flex-wrap gap-2">
+                {entryStep !== "confirm" ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setEntryStep(entryStep === "calculation" ? "treatment" : "confirm")}
+                  >
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                    Back
+                  </Button>
+                ) : null}
+                {entryStep !== "calculation" ? (
+                  <Button
+                    type="button"
+                    onClick={() => setEntryStep(entryStep === "confirm" ? "treatment" : "calculation")}
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={Boolean(preview.error) || pendingAction === "addFraction-new"}>
+                    <Save className="h-4 w-4" aria-hidden="true" />
+                    {pendingAction === "addFraction-new" ? "Recording" : "Record Fraction"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </Card>
+      ) : null}
+
       {reasonRequest ? (
         <Card>
           <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" onSubmit={submitReason}>
             <label className="grid gap-1">
               <span className={labelClass}>{reasonRequest.type === "void" ? "Void Reason" : `${reasonRequest.approvalType} Revision Reason`}</span>
-              <Input
+              <Textarea
+                rows={3}
                 value={reasonText}
                 onChange={(event) => setReasonText(event.target.value)}
                 placeholder={reasonRequest.type === "void" ? "Why this row should be voided" : "What needs correction before approval"}
