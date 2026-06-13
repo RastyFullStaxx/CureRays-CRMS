@@ -1,94 +1,88 @@
 export const dynamic = 'force-dynamic';
 
-import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Flag } from "lucide-react";
-import { PageStack } from '@/components/shared/page-stack';
-import { PageHeader } from '@/components/shared/page-header';
-import { StatGrid } from '@/components/shared/stat-grid';
-import { StatCard } from '@/components/shared/stat-card';
-import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
-import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
-import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
+import { CoursesCommandClient, type CourseCommandRow } from '@/components/courses/courses-command-client';
+import {
+  billingItems,
+  moduleSnapshot,
+  patientLabel,
+  patientMrn,
+  statusLabel,
+} from '@/lib/services/operational-page-service';
+
+function closeoutStatus(courseId: string) {
+  const auditChecks = moduleSnapshot.auditChecks.filter((check) => check.courseId === courseId);
+  const blocked = auditChecks.filter((check) => ['BLOCKED', 'OVERDUE', 'READY_FOR_REVIEW'].includes(check.status)).length;
+
+  if (blocked > 0) {
+    return `${blocked} audit items`;
+  }
+
+  return auditChecks.length ? 'Audit ready' : 'Audit pending';
+}
+
+function billingStatus(courseId: string) {
+  const linkedBilling = billingItems.filter((item) =>
+    moduleSnapshot.documents.some((document) => document.courseId === courseId && document.id === item.linkedDocumentId),
+  );
+  const blocked = linkedBilling.filter((item) => item.status === 'BLOCKED').length;
+
+  if (blocked > 0) {
+    return `${blocked} billing blockers`;
+  }
+
+  return linkedBilling.length ? `${linkedBilling.length} billing links` : 'Billing pending';
+}
 
 export default function CoursesPage() {
   const courses = moduleSnapshot.courses;
-  const active = courses.filter((course) => course.status !== "COMPLETED").length;
-  const upcoming = courses.filter((course) => course.simpleDashboardPhase === "UPCOMING").length;
-  const onTreatment = courses.filter((course) => course.simpleDashboardPhase === "ON_TREATMENT").length;
-  const post = courses.filter((course) => course.simpleDashboardPhase === "POST").length;
-  const blocked = courses.filter((course) => course.flagsIssues.length || course.status === "BLOCKED").length;
-  const rows: SerializedTableRow[] = courses.map((course) => ({
-    id: course.id,
-    course: course.id.replace("COURSE-", "C"),
-    courseNumber: course.courseNumber,
-    patient: patientLabel(course.patientId),
-    mrn: patientMrn(course.patientId),
-    diagnosis: course.diagnosisType,
-    diagnosisVariant: course.diagnosisType === "Skin" ? "info" : course.diagnosisType === "Arthritis" ? "success" : "primary",
-    site: course.treatmentSite,
-    location: course.location,
-    physician: course.physicianId ?? "Unassigned",
-    phase: phaseLabel(course.currentPhase),
-    phaseTone: statusTone(course.currentPhase),
-    status: statusLabel(course.status),
-    statusTone: statusTone(course.status),
-    startDate: course.startDate ?? "",
-    endDate: course.endDate ?? "",
-    nextAction: course.nextAction,
-    flags: course.flagsIssues.length > 0,
-    staff: course.assignedStaff.join(", "),
-  }));
+  const rows: CourseCommandRow[] = courses.map((course) => {
+    const workflowSteps = moduleSnapshot.workflowSteps.filter((step) => step.courseId === course.id);
+    const tasks = moduleSnapshot.tasks.filter((task) => task.courseId === course.id);
+    const documents = moduleSnapshot.documents.filter((document) => document.courseId === course.id);
+    const fractions = moduleSnapshot.fractions.filter((fraction) => fraction.courseId === course.id);
+    const plans = moduleSnapshot.plans.filter((plan) => plan.courseId === course.id);
+
+    return {
+      id: course.id,
+      patientId: course.patientId,
+      patient: patientLabel(course.patientId),
+      patientRef: patientMrn(course.patientId),
+      course: course.id.replace('COURSE-', 'C'),
+      courseNumber: course.courseNumber,
+      diagnosis: course.diagnosisType,
+      site: course.treatmentSite,
+      location: course.location,
+      physician: course.physicianId ?? 'Unassigned',
+      phase: course.currentPhase,
+      status: course.status,
+      startDate: course.startDate ?? '',
+      endDate: course.endDate ?? '',
+      nextAction: course.nextAction,
+      staff: course.assignedStaff.join(', '),
+      flags: course.flagsIssues,
+      workflowSteps: workflowSteps.length,
+      openTasks: tasks.filter((task) => !['COMPLETED', 'SIGNED', 'NOT_APPLICABLE'].includes(task.status)).length,
+      blockedTasks: tasks.filter((task) => ['BLOCKED', 'OVERDUE'].includes(task.status)).length,
+      documents: documents.length,
+      missingDocuments: documents.filter((document) => ['BLOCKED', 'MISSING_FIELDS', 'NOT_STARTED', 'PENDING'].includes(document.status)).length,
+      fractionsLogged: fractions.length,
+      totalFractions: moduleSnapshot.treatmentCourses.find((item) => item.id === course.id)?.totalFractions ?? 0,
+      planningStatus: plans.length ? statusLabel(plans[0].physicistReviewStatus) : 'Planning pending',
+      billingStatus: billingStatus(course.id),
+      auditStatus: closeoutStatus(course.id),
+    };
+  });
 
   return (
-    <PageStack>
-      <PageHeader
-        title="Courses"
-        subtitle="Manage treatment courses across all patients"
-        actions={
-          <>
-            <PrototypeActionButton label="Export" icon="calendar" kind="export" description="Prepare a tokenized course list for operations review." />
-            <PrototypeActionButton label="New Course" icon="plus" kind="create" variant="primary" description="Stage a new course bundle with workflow, task, document, folder, and audit placeholders." />
-          </>
-        }
-      />
-      <StatGrid>
-        <StatCard icon={ClipboardList} label="Active Courses" value={active} sub="Across patients" />
-        <StatCard icon={CalendarDays} label="Upcoming" value={upcoming} sub="Chart prep" tone="info" />
-        <StatCard icon={CheckCircle2} label="On Treatment" value={onTreatment} sub="Active delivery" tone="success" />
-        <StatCard icon={Flag} label="Post-Tx" value={post} sub="Summary and audit" tone="primary" />
-        <StatCard icon={AlertTriangle} label="Needs Action" value={blocked} sub="Blocked or flagged" tone="warning" />
-      </StatGrid>
-      <SerializedDataTable
-        columns={[
-          { key: 'course', label: 'Course', kind: 'primary', subKey: 'courseNumber' },
-          { key: 'patient', label: 'Patient', kind: 'primary' },
-          { key: 'mrn', label: 'MRN' },
-          { key: 'diagnosis', label: 'Diagnosis', kind: 'badge', variant: 'info' },
-          { key: 'site', label: 'Site' },
-          { key: 'location', label: 'Location', kind: 'muted' },
-          { key: 'physician', label: 'Physician' },
-          { key: 'phase', label: 'Phase', kind: 'status', toneKey: 'phaseTone' },
-          { key: 'status', label: 'Status', kind: 'status' },
-          { key: 'startDate', label: 'Start Date', kind: 'date' },
-          { key: 'endDate', label: 'End Date', kind: 'date' },
-          { key: 'nextAction', label: 'Next Action', kind: 'longText' },
-          { key: 'flags', label: 'Flags', kind: 'flag' },
-          { key: 'staff', label: 'Staff' },
-        ]}
-        rows={rows}
-        empty="No treatment courses are available."
-        emptyDescription="Courses will appear after a patient/course bundle is created."
-        pageSize={10}
-        search={{
-          placeholder: 'Search patient, MRN, diagnosis, course, or next action...',
-          keys: ['course', 'courseNumber', 'patient', 'mrn', 'diagnosis', 'site', 'location', 'physician', 'status', 'nextAction'],
-        }}
-        filters={[
-          { id: 'phase', label: 'Phase' },
-          { id: 'status', label: 'Status' },
-          { id: 'physician', label: 'Physician' },
-          { id: 'diagnosis', label: 'Diagnosis' },
-        ]}
-      />
-    </PageStack>
+    <CoursesCommandClient
+      rows={rows}
+      stats={{
+        active: courses.filter((course) => course.status !== 'COMPLETED').length,
+        upcoming: courses.filter((course) => course.simpleDashboardPhase === 'UPCOMING').length,
+        onTreatment: courses.filter((course) => course.simpleDashboardPhase === 'ON_TREATMENT').length,
+        post: courses.filter((course) => course.simpleDashboardPhase === 'POST').length,
+        blocked: courses.filter((course) => course.flagsIssues.length || course.status === 'BLOCKED').length,
+      }}
+    />
   );
 }

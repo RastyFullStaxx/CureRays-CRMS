@@ -122,8 +122,7 @@ function nowIso() {
 
 function repositoryModeFromEnv(): WorkflowRepositoryMode {
   const configuredMode = [
-    process.env.CURERAYS_WORKFLOW_REPOSITORY,
-    process.env.CURERAYS_PERSISTENCE_MODE
+    process.env.CURERAYS_WORKFLOW_REPOSITORY
   ]
     .map((value) => safeText(value).toLowerCase())
     .find(Boolean);
@@ -912,12 +911,32 @@ export async function listWorkflowCommandSnapshot(asOf?: string) {
   const repository = selectWorkflowTaskRepository();
   const role = "RAD_ONC" as PrototypeAccessRole;
 
+  try {
+    return {
+      patients: operationalPatients(),
+      treatmentCourses: operationalTreatmentCourses(),
+      workflowSteps: await repository.listWorkflowSteps(asOf),
+      tasks: await repository.listTasks(asOf),
+      queue: await repository.listQueue("ALL", role, asOf),
+      auditEvents: operationalAuditEvents(),
+      phiBoundary: {
+        roleHeader: PROTOTYPE_ROLE_HEADER,
+        patientIdentifiers: "Not returned from workflow/task command APIs",
+        operationalRecords: "Tokenized patientRef/courseRef records only"
+      }
+    };
+  } catch (error) {
+    if (!(error instanceof WorkflowRepositoryUnavailableError)) {
+      throw error;
+    }
+  }
+
   return {
     patients: operationalPatients(),
     treatmentCourses: operationalTreatmentCourses(),
-    workflowSteps: await repository.listWorkflowSteps(asOf),
-    tasks: await repository.listTasks(asOf),
-    queue: await repository.listQueue("ALL", role, asOf),
+    workflowSteps: await inMemoryWorkflowTaskRepository.listWorkflowSteps(asOf),
+    tasks: await inMemoryWorkflowTaskRepository.listTasks(asOf),
+    queue: await inMemoryWorkflowTaskRepository.listQueue("ALL", role, asOf),
     auditEvents: operationalAuditEvents(),
     phiBoundary: {
       roleHeader: PROTOTYPE_ROLE_HEADER,
