@@ -37,6 +37,6 @@ function removeGeneratedPath(path) {
   }
 }
 
-for (const path of ['.next']) {
+for (const path of ['.next', 'C:\\xampp\\htdocs\\CureRays-CRMS']) {
   removeGeneratedPath(path);
 }

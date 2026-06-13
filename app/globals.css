@@ -2538,62 +2538,223 @@ button, input, select, textarea {
    ============================================================ */
 
 .landing-page {
-  background: var(--color-bg);
+  --height-landing-control: 52px;
+  background:
+    linear-gradient(122deg, color-mix(in srgb, var(--color-card) 92%, transparent), transparent 56%),
+    linear-gradient(180deg, var(--color-bg), var(--color-bg-elevated));
   color: var(--color-text);
   isolation: isolate;
-  min-height: 100vh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
+}
+
+.landing-page::before,
+.landing-page::after,
+.landing-ambient {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.landing-page::before {
+  background:
+    linear-gradient(112deg, transparent 8%, color-mix(in srgb, var(--color-primary) 10%, transparent) 38%, transparent 64%),
+    linear-gradient(72deg, transparent 18%, color-mix(in srgb, var(--color-accent) 9%, transparent) 54%, transparent 82%);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.landing-page::after {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-card) 74%, transparent), transparent 58%),
+    linear-gradient(180deg, transparent 68%, color-mix(in srgb, var(--color-bg) 92%, transparent));
+  z-index: 1;
+}
+
+.landing-ambient {
+  animation: landing-aurora-shift 18s ease-in-out infinite alternate;
+  background:
+    linear-gradient(128deg, transparent 12%, color-mix(in srgb, var(--color-primary) 16%, transparent) 42%, transparent 72%),
+    linear-gradient(36deg, transparent 18%, color-mix(in srgb, var(--color-accent) 11%, transparent) 54%, transparent 84%);
+  filter: saturate(1.08);
+  inset: -18% -10%;
+  opacity: 0.78;
+  transform: translate3d(-2%, 0, 0);
+  z-index: 0;
+}
+
+.landing-orbit-canvas {
+  inset: 0;
+  opacity: 0.84;
+  pointer-events: none;
+  position: absolute;
+  transform: translate3d(8%, 0, 0);
+  z-index: 1;
+}
+
+.landing-orbit-canvas canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.landing-orbit-canvas-fallback {
+  background:
+    linear-gradient(118deg, transparent 24%, color-mix(in srgb, var(--color-primary) 12%, transparent) 48%, transparent 76%),
+    linear-gradient(58deg, transparent 30%, color-mix(in srgb, var(--color-accent) 8%, transparent) 62%, transparent 88%);
 }
 
 .landing-shell {
   align-items: center;
   display: grid;
-  gap: 2.5rem;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+  gap: clamp(2rem, 6vw, 5.5rem);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 500px);
   margin: 0 auto;
-  max-width: 80rem;
-  min-height: 100vh;
-  padding: 2.5rem 3rem;
+  max-width: 82rem;
+  min-height: 100dvh;
+  padding: clamp(2rem, 4.6vw, 4.25rem);
   position: relative;
   width: 100%;
-  z-index: 1;
+  z-index: 2;
 }
 
 .landing-copy {
   align-items: flex-start;
+  animation: landing-enter 0.74s cubic-bezier(0.16, 1, 0.3, 1) both;
   display: flex;
   flex-direction: column;
-  max-width: 42rem;
+  max-width: 43rem;
   min-width: 0;
 }
 
+.landing-logo {
+  height: auto;
+  width: clamp(210px, 21vw, 286px);
+}
+
+.landing-copy-block {
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+  max-width: 40rem;
+}
+
+.landing-title {
+  color: var(--color-text);
+  font-size: clamp(2.7rem, 5.8vw, 4.75rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: 0.98;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.landing-description {
+  color: var(--color-text-soft);
+  font-size: clamp(1rem, 1.25vw, 1.125rem);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.72;
+  margin: clamp(1.25rem, 2vw, 1.75rem) 0 0;
+  max-width: 38rem;
+}
+
 .landing-trust-list {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
+  gap: 0.625rem;
   list-style: none;
-  margin-left: 0;
-  padding-left: 0;
+  margin: clamp(1.8rem, 3vw, 2.6rem) 0 0;
+  padding: 0;
+}
+
+.landing-trust-item {
+  gap: 0.5rem;
+  min-height: 36px;
+  padding: 0.5rem 0.625rem;
+}
+
+.landing-trust-icon {
+  color: var(--color-primary);
+  display: grid;
+  flex: 0 0 auto;
+  height: 20px;
+  place-items: center;
+  width: 20px;
+}
+
+.landing-trust-icon svg {
+  height: 15px;
+  stroke-width: 2.2;
+  width: 15px;
 }
 
 .landing-card-wrap {
+  animation: landing-enter 0.82s 0.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+  justify-self: end;
   max-width: 520px;
   min-width: 0;
   width: 100%;
 }
 
 .landing-login-card {
-  background: var(--color-card);
-  border: var(--border-container);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--color-card) 90%, transparent), color-mix(in srgb, var(--color-bg-elevated) 78%, transparent)),
+    var(--color-card);
+  backdrop-filter: blur(26px) saturate(1.28);
+  -webkit-backdrop-filter: blur(26px) saturate(1.28);
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 3rem 2.5rem;
+  box-shadow:
+    var(--shadow-card),
+    0 28px 86px -52px color-mix(in srgb, var(--color-primary) 58%, transparent);
+  color: var(--color-text);
+  overflow: hidden;
+  padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3.2vw, 2.5rem);
+  position: relative;
+  width: 100%;
+}
+
+.landing-login-card::before {
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-card) 72%, transparent), transparent 34%);
+  content: "";
+  height: 1px;
+  inset: 0 0 auto;
+  position: absolute;
+}
+
+.landing-login-card h2 {
+  color: var(--color-text);
+  font-size: clamp(2.1rem, 3.2vw, 2.8rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.landing-login-subtitle {
+  color: var(--color-text-soft);
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.64;
+  margin: 0.9rem 0 0;
 }
 
 .landing-login-fields {
   display: grid;
   gap: 1.5rem;
+  margin-top: 2.4rem;
+}
+
+.landing-field-label {
+  color: var(--color-text);
+  display: grid;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-bold);
+  gap: 0.5rem;
 }
 
 .landing-input-wrap {
@@ -2601,124 +2762,263 @@ button, input, select, textarea {
   position: relative;
 }
 
+.landing-input-icon,
+.landing-password-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.landing-input-icon {
+  color: var(--color-text-muted);
+  height: 20px;
+  left: 1rem;
+  pointer-events: none;
+  width: 20px;
+}
+
 .landing-input {
-  border: var(--border-container);
+  background: color-mix(in srgb, var(--color-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 92%, transparent);
   border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 72%, transparent);
   color: var(--color-text);
-  min-height: 48px;
+  font-size: 1rem;
+  font-weight: var(--font-weight-semibold);
+  min-height: var(--height-landing-control);
+  padding: 0.75rem 1rem 0.75rem 3rem;
   width: 100%;
+}
+
+.landing-password-input {
+  padding-right: 3rem;
+}
+
+.landing-input::placeholder {
+  color: color-mix(in srgb, var(--color-text-muted) 76%, transparent);
+}
+
+.landing-input:focus {
+  border-color: var(--color-primary);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-card) 72%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.landing-password-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: grid;
+  height: 36px;
+  place-items: center;
+  right: 0.75rem;
+  width: 36px;
+}
+
+.landing-password-toggle svg {
+  height: 20px;
+  width: 20px;
+}
+
+.landing-password-toggle:hover,
+.landing-password-toggle:focus-visible {
+  background: var(--color-hover);
+  color: var(--color-primary);
 }
 
 .landing-submit {
-  background: var(--color-primary);
-  border: 0;
-  border-radius: var(--radius-md);
-  color: var(--color-primary-foreground);
-  cursor: pointer;
-  min-height: 48px;
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  height: var(--height-landing-control);
+  margin-top: 2rem;
+  min-height: var(--height-landing-control);
   width: 100%;
 }
 
-.landing-submit:hover {
-  background: var(--color-primary-dark);
+.landing-divider {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: grid;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  gap: 1rem;
+  grid-template-columns: 1fr auto 1fr;
+  margin: 2rem 0;
 }
 
-.brand-wave-background {
-  background: var(--color-bg);
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  position: absolute;
-  z-index: -1;
+.landing-divider-line {
+  background: var(--color-border);
+  height: 1px;
 }
 
-.wave-layer {
-  bottom: -2px;
-  height: 47vh;
-  left: -7vw;
-  min-height: 260px;
-  position: absolute;
-  width: 114vw;
-  will-change: transform;
+.landing-forgot-button {
+  margin: 0 auto;
 }
 
-.wave-layer-blue {
-  animation: wave-drift-a 26s ease-in-out infinite alternate;
-  bottom: -5vh;
+.landing-forgot-button svg {
+  height: 16px;
+  width: 16px;
 }
 
-.wave-layer-light {
-  animation: wave-drift-b 32s ease-in-out infinite alternate;
-  bottom: -1vh;
+.landing-secure-note {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  gap: 0.75rem;
+  justify-content: center;
+  line-height: 1.5;
+  margin: 2rem 0 0;
+  text-align: center;
 }
 
-.wave-layer-orange {
-  animation: wave-drift-c 22s ease-in-out infinite alternate;
-  bottom: 1vh;
+.landing-secure-note svg {
+  color: var(--color-primary);
+  flex: 0 0 auto;
+  height: 16px;
+  width: 16px;
 }
 
-.wave-layer-contours {
-  animation: wave-drift-d 30s ease-in-out infinite alternate;
-  bottom: -3vh;
-  height: 58vh;
-  opacity: 0.9;
+@keyframes landing-aurora-shift {
+  from {
+    transform: translate3d(-2%, 0, 0) scale(1.02);
+  }
+
+  to {
+    transform: translate3d(2%, -1.5%, 0) scale(1.05);
+  }
 }
 
-@keyframes wave-drift-a {
-  from { transform: translate3d(-2%, 1%, 0) scale(1.02); }
-  to   { transform: translate3d(2%, -2%, 0) scale(1.045); }
+@keyframes landing-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-@keyframes wave-drift-b {
-  from { transform: translate3d(2%, -1%, 0) scale(1.01); }
-  to   { transform: translate3d(-2%, 1.5%, 0) scale(1.035); }
-}
+@media (max-height: 760px) and (min-width: 1024px) {
+  .landing-shell {
+    padding-block: 2rem;
+  }
 
-@keyframes wave-drift-c {
-  from { transform: translate3d(-1%, -1%, 0) scale(1.01); }
-  to   { transform: translate3d(2.5%, 1%, 0) scale(1.03); }
-}
+  .landing-copy-block {
+    margin-top: 3rem;
+  }
 
-@keyframes wave-drift-d {
-  from { transform: translate3d(1%, 0, 0) scale(1.01); }
-  to   { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
+  .landing-title {
+    font-size: clamp(2.5rem, 5vw, 4.1rem);
+  }
+
+  .landing-login-fields {
+    margin-top: 1.9rem;
+  }
 }
 
 @media (max-width: 1023px) {
+  .landing-page {
+    overflow-y: auto;
+  }
+
+  .landing-page::after {
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-card) 72%, transparent), transparent 52%),
+      linear-gradient(180deg, transparent 70%, color-mix(in srgb, var(--color-bg) 92%, transparent));
+  }
+
   .landing-shell {
     grid-template-columns: 1fr;
     justify-items: center;
-    padding: 2.5rem 1.5rem 4rem;
+    min-height: 100dvh;
+    padding: 2.25rem 1.5rem 3rem;
   }
 
   .landing-copy {
     align-items: center;
+    max-width: 44rem;
     text-align: center;
   }
 
-  .wave-layer {
-    height: 38vh;
-    left: -18vw;
-    min-height: 220px;
-    width: 136vw;
+  .landing-copy-block {
+    margin-top: 3.25rem;
   }
 
-  .wave-layer-contours {
-    height: 44vh;
+  .landing-title {
+    font-size: clamp(2.4rem, 11vw, 4.25rem);
+    max-width: 11ch;
+  }
+
+  .landing-description {
+    max-width: 34rem;
+  }
+
+  .landing-trust-list {
+    justify-content: center;
+  }
+
+  .landing-card-wrap {
+    justify-self: center;
+    max-width: 500px;
+  }
+
+  .landing-orbit-canvas {
+    opacity: 0.58;
+    transform: translate3d(0, 8%, 0);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-shell {
+    padding-inline: 1rem;
+  }
+
+  .landing-logo {
+    width: min(238px, 72vw);
+  }
+
+  .landing-title {
+    max-width: 10ch;
+  }
+
+  .landing-trust-list {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-trust-item {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .landing-login-card {
+    padding: 1.5rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 1ms !important;
-  }
-
-  .wave-layer {
+  .landing-ambient,
+  .landing-card-wrap,
+  .landing-copy {
     animation: none;
     transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .landing-login-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--color-card);
   }
 }
 

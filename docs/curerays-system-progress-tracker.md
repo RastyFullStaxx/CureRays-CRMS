@@ -129,7 +129,7 @@ Current inventory:
 ### Functioning Now For Demo
 
 - `[x]` Local Next.js app builds and runs.
-- `[x]` Branded login/landing screen exists.
+- `[x]` Branded login/landing screen exists with a token-driven Clinical Aurora layout and decorative Three.js treatment-field canvas.
 - `[x]` Dashboard exists with telemetry-heavy operational views and now hydrates from local OPS/PHI PostgreSQL seed data when `CURERAYS_PERSISTENCE_MODE=prisma` is enabled.
 - `[x]` Patient registry, master records, upcoming, on-treatment, and post-treatment views display patient/course state from the shared store; server layout hydration can now load that store from local PostgreSQL before render.
 - `[x]` Patient workspace route exists and can show full-width workflow, tasks, clinical, planning, imaging, documents, fractions, billing/audit, and activity tabs for mock patients, with Course Signals available through a floating summary button instead of a right rail.
@@ -799,6 +799,7 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-14 | Redesigned the unauthenticated landing/login surface. | Replaced the old wave landing with a token-driven Clinical Aurora layout, added a client-only Three.js treatment-field canvas, kept login routing to `/dashboard`, preserved password reveal and secure-access copy, reused shared input/button primitives, and avoided PHI imports on the entry page. | Run verify, build, HIPAA guardrails, and browser visual checks for `/` across desktop/mobile, light/dark, reduced motion, and login routing. |
 | 2026-06-14 | Refined patient workspace UI, edit modal sizing, and compact pill tokens. | Removed duplicate patient header shortcuts, renamed the workspace Workflow tab to Carepath, expanded Edit Patient to the XL clinical modal without the section nav, added review-first Command tab cards and styled scroll regions, compacted badge token triplets into `clinical-pill` tone classes, normalized analytics and legacy text pills, and documented modal/scrollbar rules in `AGENTS.md` and the UI engineering rules. | Run typecheck, lint, Phase 2/6, fraction worksheet, HIPAA, and route guardrails; continue improving individual workspace tab workflows without adding new APIs in this UI-only pass. |
 | 2026-06-14 | Polished patient modals, fraction entry modal, and shared UI rules. | Added the must-read UI engineering rules doc, linked it from `AGENTS.md`, made badges solid soft-square primitives, replaced the Add Patient native file input with a tokenized DOCX picker, hid generated system references from registration, kept Edit Patient as a grouped full-form modal, and changed Record Next Fraction to a large three-column modal with visible advanced fields. | Validate with typecheck, lint, Phase 2/6, fraction worksheet, HIPAA, and route guardrails; continue formal clinical validation before production PHI use. |
 | 2026-06-14 | Added DOCX AVS/Intake assisted Add Patient prefill. | Added Step 0 upload/manual choice, server-owned `/api/patients/prefill`, in-memory DOCX XML extraction, detected-details review with identity confirmation, no file retention, and Phase 2 guardrail coverage. | Keep PDF/image/OCR, retained upload evidence, and production PHI document storage out of scope until auth, storage, audit, and BAA infrastructure are ready. |
