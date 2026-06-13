@@ -43,12 +43,15 @@ import {
   YAxis,
 } from 'recharts';
 import type {
+  CarepathHeatmapCell,
   DashboardMetric,
   DashboardPanel,
   DashboardSignalLink,
   DashboardSignalNode,
   DashboardSignalStageId,
   DashboardTelemetry,
+  DashboardTone,
+  SafetyMatrixCell,
 } from '@/lib/services/dashboard-telemetry-service';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 
@@ -452,6 +455,123 @@ function KpiStrip({ items }: { items: DashboardTelemetry['carepath']['metrics'] 
   );
 }
 
+type ClinicalMatrixDatum = {
+  x: number;
+  y: number;
+  value: number;
+  tone: DashboardTone;
+  detail: string;
+};
+
+function matrixGridStyle(columnCount: number): CSSProperties {
+  return {
+    gridTemplateColumns: `minmax(96px, 0.76fr) repeat(${columnCount}, minmax(42px, 1fr))`,
+  };
+}
+
+function ClinicalMatrix({
+  ariaLabel,
+  columns,
+  rows,
+  cells,
+}: {
+  ariaLabel: string;
+  columns: string[];
+  rows: string[];
+  cells: ClinicalMatrixDatum[];
+}) {
+  const cellMap = useMemo(() => {
+    const next = new Map<string, ClinicalMatrixDatum>();
+    cells.forEach((cell) => next.set(`${cell.x}:${cell.y}`, cell));
+    return next;
+  }, [cells]);
+
+  return (
+    <div className="clinical-matrix" role="table" aria-label={ariaLabel}>
+      <div className="clinical-matrix-grid" style={matrixGridStyle(columns.length)}>
+        <span className="clinical-matrix-corner" aria-hidden="true" />
+        {columns.map((column) => (
+          <span key={column} className="clinical-matrix-column-label">
+            {column}
+          </span>
+        ))}
+        {rows.map((row, y) => (
+          <div key={row} className="clinical-matrix-row" role="row">
+            <span className="clinical-matrix-row-label">{row}</span>
+            {columns.map((column, x) => {
+              const cell = cellMap.get(`${x}:${y}`) ?? {
+                x,
+                y,
+                value: 0,
+                tone: 'neutral' as DashboardTone,
+                detail: `${row} · ${column}: no open signal`,
+              };
+
+              return (
+                <span
+                  key={`${row}-${column}`}
+                  className="clinical-matrix-cell"
+                  data-empty={cell.value === 0 ? 'true' : 'false'}
+                  data-tone={cell.tone}
+                  title={cell.detail}
+                  aria-label={cell.detail}
+                >
+                  {cell.value > 0 ? cell.value : ''}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function carepathHeatmapTone(cell: CarepathHeatmapCell): DashboardTone {
+  if (cell.blocked + cell.overdue > 0) return 'error';
+  if (cell.needsReview > 0) return 'warning';
+  if (cell.value > 0) return 'info';
+  return 'neutral';
+}
+
+function PhaseOwnerMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const heatmap = telemetry.carepath.phaseOwnerHeatmap;
+
+  return (
+    <ClinicalMatrix
+      ariaLabel="Carepath phase by owner pressure matrix"
+      columns={heatmap.phases}
+      rows={heatmap.owners}
+      cells={heatmap.cells.map((cell) => ({
+        x: cell.phaseIndex,
+        y: cell.ownerIndex,
+        value: cell.value,
+        tone: carepathHeatmapTone(cell),
+        detail: `${cell.ownerLabel} · ${cell.phaseLabel}: ${cell.value} open, ${cell.blocked + cell.overdue} blocked or overdue, ${cell.needsReview} review`,
+      }))}
+    />
+  );
+}
+
+function SafetyMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const matrix = telemetry.risk.safetyMatrix;
+
+  return (
+    <ClinicalMatrix
+      ariaLabel="Clinical safety risk by carepath phase matrix"
+      columns={matrix.phases}
+      rows={matrix.domains}
+      cells={matrix.cells.map((cell: SafetyMatrixCell) => ({
+        x: cell.phaseIndex,
+        y: cell.domainIndex,
+        value: cell.value,
+        tone: cell.severity,
+        detail: `${cell.domain} · ${cell.phaseLabel}: ${cell.value} unresolved risk signals`,
+      }))}
+    />
+  );
+}
+
 function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
   return {
     backgroundColor: 'transparent',
@@ -501,154 +621,6 @@ function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardP
           color: 'gradient',
           opacity: 0.32,
           curveness: 0.55,
-        },
-      },
-    ],
-  };
-}
-
-function phaseOwnerHeatmapOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
-  const cells = telemetry.carepath.phaseOwnerHeatmap.cells;
-  const max = Math.max(...cells.map((cell) => cell.value + cell.blocked * 2 + cell.needsReview), 1);
-
-  return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      renderMode: 'richText',
-      borderColor: palette.border,
-      backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
-      formatter: (params: { data?: [number, number, number, number, number, string, string] }) => {
-        const data = params.data;
-        if (!data) {
-          return '';
-        }
-        return `${data[5]}\n${data[6]}\nOpen ${data[2]} · Blocked ${data[3]} · Review ${data[4]}`;
-      },
-    },
-    grid: { top: 14, right: 12, bottom: 54, left: 92 },
-    xAxis: {
-      type: 'category',
-      data: telemetry.carepath.phaseOwnerHeatmap.phases,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 28 },
-    },
-    yAxis: {
-      type: 'category',
-      data: telemetry.carepath.phaseOwnerHeatmap.owners,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700 },
-    },
-    visualMap: {
-      show: false,
-      min: 0,
-      max,
-      inRange: {
-        color: [palette.cardMuted, palette.info, palette.warning, palette.error],
-      },
-    },
-    series: [
-      {
-        type: 'heatmap',
-        data: cells.map((cell) => [
-          cell.phaseIndex,
-          cell.ownerIndex,
-          cell.value,
-          cell.blocked + cell.overdue,
-          cell.needsReview,
-          cell.phaseLabel,
-          cell.ownerLabel,
-        ]),
-        label: {
-          show: true,
-          formatter: (params: { data?: [number, number, number] }) => {
-            const data = params.data;
-            return data && data[2] > 0 ? `${data[2]}` : '';
-          },
-          color: palette.text,
-          fontSize: 10,
-          fontWeight: 800,
-        },
-        itemStyle: {
-          borderColor: palette.card,
-          borderWidth: 3,
-          borderRadius: 6,
-        },
-      },
-    ],
-  };
-}
-
-function safetyMatrixOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
-  const cells = telemetry.risk.safetyMatrix.cells;
-  const max = Math.max(...cells.map((cell) => cell.value), 1);
-
-  return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      renderMode: 'richText',
-      borderColor: palette.border,
-      backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
-      formatter: (params: { data?: [number, number, number, string, string] }) => {
-        const data = params.data;
-        if (!data) {
-          return '';
-        }
-        return `${data[3]}\n${data[4]}\nUnresolved risk ${data[2]}`;
-      },
-    },
-    grid: { top: 14, right: 10, bottom: 46, left: 104 },
-    xAxis: {
-      type: 'category',
-      data: telemetry.risk.safetyMatrix.phases,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 28 },
-    },
-    yAxis: {
-      type: 'category',
-      data: telemetry.risk.safetyMatrix.domains,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700 },
-    },
-    visualMap: {
-      show: false,
-      min: 0,
-      max,
-      inRange: {
-        color: [palette.cardMuted, palette.info, palette.warning, palette.error],
-      },
-    },
-    series: [
-      {
-        type: 'heatmap',
-        data: cells.map((cell) => [
-          cell.phaseIndex,
-          cell.domainIndex,
-          cell.value,
-          cell.domain,
-          cell.phaseLabel,
-        ]),
-        label: {
-          show: true,
-          formatter: (params: { data?: [number, number, number] }) => {
-            const data = params.data;
-            return data && data[2] > 0 ? `${data[2]}` : '';
-          },
-          color: palette.text,
-          fontSize: 10,
-          fontWeight: 800,
-        },
-        itemStyle: {
-          borderColor: palette.card,
-          borderWidth: 3,
-          borderRadius: 6,
         },
       },
     ],
@@ -710,9 +682,9 @@ function riskGraphOption(telemetry: DashboardTelemetry, palette: DashboardPalett
           },
         })),
         force: {
-          repulsion: 210,
-          edgeLength: [52, 110],
-          gravity: 0.08,
+          repulsion: 360,
+          edgeLength: [92, 168],
+          gravity: 0.045,
         },
         emphasis: {
           focus: 'adjacency',
@@ -729,18 +701,6 @@ function CarepathPulseSankey({ palette, telemetry }: { palette: DashboardPalette
   const option = useMemo(() => carepathSankeyOption(telemetry, palette), [palette, telemetry]);
 
   return <DashboardEChart className="dashboard-echart dashboard-echart-sankey" option={option} ariaLabel="Carepath pulse sankey" />;
-}
-
-function PhaseOwnerHeatmap({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
-  const option = useMemo(() => phaseOwnerHeatmapOption(telemetry, palette), [palette, telemetry]);
-
-  return <DashboardEChart className="dashboard-echart" option={option} ariaLabel="Carepath phase by owner heatmap" />;
-}
-
-function SafetyMatrixHeatmap({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
-  const option = useMemo(() => safetyMatrixOption(telemetry, palette), [palette, telemetry]);
-
-  return <DashboardEChart className="dashboard-echart" option={option} ariaLabel="Clinical safety matrix heatmap" />;
 }
 
 function RiskConstellationGraph({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
@@ -1026,6 +986,8 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
 }
 
 function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const summaryParts = telemetry.signal.summary.split(',').map((part) => part.trim()).filter(Boolean);
+
   return (
     <div className="dashboard-signal-overlay">
       <div className="dashboard-signal-load-panel">
@@ -1033,7 +995,11 @@ function SignalLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
           <strong>{telemetry.signal.loadPercent}%</strong>
           <span>Carepath Load</span>
         </div>
-        <p>{telemetry.signal.summary}</p>
+        <div className="dashboard-signal-summary-chips" aria-label={telemetry.signal.summary}>
+          {summaryParts.map((part) => (
+            <span key={part}>{part}</span>
+          ))}
+        </div>
       </div>
       <div className="dashboard-signal-stage-grid" aria-label="Carepath Stage Load">
         {telemetry.signal.stages.map((stage) => (
@@ -1105,7 +1071,7 @@ function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; 
       </div>
       <article className="dashboard-card dashboard-owner-heatmap-card">
         <SectionTitle icon={UsersRound} title="Phase x Owner Pressure" meta="Open Work By Workflow Lane And Accountable Role" />
-        <PhaseOwnerHeatmap telemetry={telemetry} palette={palette} />
+        <PhaseOwnerMatrix telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-audit-card">
         <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready Evidence Versus Open Evidence By Phase" />
@@ -1132,7 +1098,7 @@ function RiskDashboard({ palette, telemetry }: { palette: DashboardPalette; tele
       </article>
       <article className="dashboard-card dashboard-safety-matrix-card">
         <SectionTitle icon={Activity} title="Safety Matrix" meta="Risk Domains By Carepath Phase" />
-        <SafetyMatrixHeatmap telemetry={telemetry} palette={palette} />
+        <SafetyMatrix telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-fraction-watch-card">
         <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / Override Exceptions Only" />

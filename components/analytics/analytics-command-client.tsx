@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { EChartsCoreOption } from 'echarts/core';
 import {
@@ -270,6 +270,78 @@ function ChartFrame({
   );
 }
 
+type AnalyticsMatrixDatum = {
+  x: number;
+  y: number;
+  value: number;
+  tone: AnalyticsTone;
+  detail: string;
+};
+
+function analyticsMatrixGridStyle(columnCount: number): CSSProperties {
+  return {
+    gridTemplateColumns: `minmax(104px, 0.78fr) repeat(${columnCount}, minmax(42px, 1fr))`,
+  };
+}
+
+function AnalyticsMatrix({
+  ariaLabel,
+  columns,
+  rows,
+  cells,
+}: {
+  ariaLabel: string;
+  columns: string[];
+  rows: string[];
+  cells: AnalyticsMatrixDatum[];
+}) {
+  const cellMap = useMemo(() => {
+    const next = new Map<string, AnalyticsMatrixDatum>();
+    cells.forEach((cell) => next.set(`${cell.x}:${cell.y}`, cell));
+    return next;
+  }, [cells]);
+
+  return (
+    <div className="clinical-matrix analytics-matrix" role="table" aria-label={ariaLabel}>
+      <div className="clinical-matrix-grid" style={analyticsMatrixGridStyle(columns.length)}>
+        <span className="clinical-matrix-corner" aria-hidden="true" />
+        {columns.map((column) => (
+          <span key={column} className="clinical-matrix-column-label">
+            {column}
+          </span>
+        ))}
+        {rows.map((row, y) => (
+          <div key={row} className="clinical-matrix-row" role="row">
+            <span className="clinical-matrix-row-label">{row}</span>
+            {columns.map((column, x) => {
+              const cell = cellMap.get(`${x}:${y}`) ?? {
+                x,
+                y,
+                value: 0,
+                tone: 'neutral' as AnalyticsTone,
+                detail: `${row} · ${column}: no open signal`,
+              };
+
+              return (
+                <span
+                  key={`${row}-${column}`}
+                  className="clinical-matrix-cell"
+                  data-empty={cell.value === 0 ? 'true' : 'false'}
+                  data-tone={cell.tone}
+                  title={cell.detail}
+                  aria-label={cell.detail}
+                >
+                  {cell.value > 0 ? cell.value : ''}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function KpiStrip({ items }: { items: AnalyticsTelemetry['overview']['kpis'] }) {
   return (
     <div className="analytics-kpi-strip">
@@ -431,78 +503,6 @@ function sankeyOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsC
   };
 }
 
-function heatmapOption({
-  cells,
-  xLabels,
-  yLabels,
-  palette,
-}: {
-  cells: AnalyticsHeatmapCell[];
-  xLabels: string[];
-  yLabels: string[];
-  palette: Palette;
-}): EChartsCoreOption {
-  const max = Math.max(...cells.map((cell) => cell.value + cell.blocked * 2 + cell.review), 1);
-
-  return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      renderMode: 'richText',
-      borderColor: palette.border,
-      backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
-      formatter: (params: { data?: unknown }) => {
-        const data = Array.isArray(params.data) ? params.data : undefined;
-        if (!data) return '';
-        return `${data[5]}\n${data[6]}\nOpen ${data[2]} · Blocked ${data[3]} · Review ${data[4]}`;
-      },
-    },
-    grid: { top: 16, right: 16, bottom: 86, left: 116, containLabel: true },
-    xAxis: {
-      type: 'category',
-      data: xLabels,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700, rotate: 24 },
-    },
-    yAxis: {
-      type: 'category',
-      data: yLabels,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { color: palette.muted, fontSize: 10, fontWeight: 700 },
-    },
-    visualMap: {
-      show: false,
-      min: 0,
-      max,
-      inRange: { color: [palette.cardMuted, palette.info, palette.warning, palette.error] },
-    },
-    series: [
-      {
-        type: 'heatmap',
-        data: cells.map((cell) => [cell.x, cell.y, cell.value, cell.blocked, cell.review, cell.xLabel, cell.yLabel]),
-        label: {
-          show: true,
-          formatter: (params: { data?: unknown }) => {
-            const data = Array.isArray(params.data) ? params.data : undefined;
-            return data && Number(data[2]) > 0 ? `${data[2]}` : '';
-          },
-          color: palette.text,
-          fontSize: 10,
-          fontWeight: 800,
-        },
-        itemStyle: {
-          borderColor: palette.card,
-          borderWidth: 3,
-          borderRadius: 6,
-        },
-      },
-    ],
-  };
-}
-
 function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsCoreOption {
   return {
     backgroundColor: 'transparent',
@@ -517,10 +517,10 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
       {
         type: 'graph',
         layout: 'force',
-        left: '6%',
-        top: '10%',
-        right: '6%',
-        bottom: '10%',
+        left: '8%',
+        top: '12%',
+        right: '8%',
+        bottom: '12%',
         roam: false,
         draggable: false,
         data: telemetry.billingRisk.riskGraph.nodes.map((node) => ({
@@ -541,6 +541,9 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
             color: palette.text,
             fontSize: node.category === 'domain' ? 10 : 9,
             fontWeight: node.category === 'domain' ? 800 : 700,
+            lineHeight: 11,
+            overflow: 'break',
+            width: node.category === 'domain' ? 82 : 66,
           },
         })),
         links: telemetry.billingRisk.riskGraph.links.map((link) => ({
@@ -556,9 +559,9 @@ function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChar
         })),
         categories: [{ name: 'domain' }, { name: 'course' }],
         force: {
-          repulsion: 190,
-          edgeLength: [62, 126],
-          gravity: 0.1,
+          repulsion: 430,
+          edgeLength: [104, 190],
+          gravity: 0.045,
         },
         emphasis: {
           focus: 'adjacency',
@@ -823,12 +826,6 @@ function OverviewPanel({ dateRange, telemetry }: { dateRange: AnalyticsDateRange
 
 function WorkflowPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry; palette: Palette }) {
   const sankey = useMemo(() => sankeyOption(telemetry, palette), [palette, telemetry]);
-  const heatmap = useMemo(() => heatmapOption({
-    cells: telemetry.workflow.phaseOwnerHeatmap.cells,
-    xLabels: telemetry.workflow.phaseOwnerHeatmap.phases,
-    yLabels: telemetry.workflow.phaseOwnerHeatmap.owners,
-    palette,
-  }), [palette, telemetry]);
 
   return (
     <div className="analytics-panel analytics-panel-workflow">
@@ -852,7 +849,18 @@ function WorkflowPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry; 
         inspect="Staffing tab and tokenized inspection queue."
         className="analytics-heatmap-card"
       >
-        <DashboardEChart className="analytics-echart analytics-echart-heatmap" option={heatmap} ariaLabel="Analytics phase owner pressure heatmap" />
+        <AnalyticsMatrix
+          ariaLabel="Analytics phase owner pressure matrix"
+          columns={telemetry.workflow.phaseOwnerHeatmap.phases}
+          rows={telemetry.workflow.phaseOwnerHeatmap.owners}
+          cells={telemetry.workflow.phaseOwnerHeatmap.cells.map((cell: AnalyticsHeatmapCell) => ({
+            x: cell.x,
+            y: cell.y,
+            value: cell.value,
+            tone: cell.tone,
+            detail: `${cell.yLabel} · ${cell.xLabel}: ${cell.value} open, ${cell.blocked} blocked, ${cell.review} review`,
+          }))}
+        />
       </ChartFrame>
       <ChartFrame
         icon={BarChart3}
@@ -892,14 +900,7 @@ function TreatmentPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   );
 }
 
-function DocumentsPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry; palette: Palette }) {
-  const evidence = useMemo(() => heatmapOption({
-    cells: telemetry.documents.evidenceMatrix.cells,
-    xLabels: telemetry.documents.evidenceMatrix.phases,
-    yLabels: telemetry.documents.evidenceMatrix.domains,
-    palette,
-  }), [palette, telemetry]);
-
+function DocumentsPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
     <div className="analytics-panel analytics-panel-documents">
       <ChartFrame
@@ -933,7 +934,18 @@ function DocumentsPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry;
         inspect="Audit, billing, document, and fraction records."
         className="analytics-evidence-card"
       >
-        <DashboardEChart className="analytics-echart analytics-echart-heatmap" option={evidence} ariaLabel="Analytics audit evidence matrix" />
+        <AnalyticsMatrix
+          ariaLabel="Analytics audit evidence matrix"
+          columns={telemetry.documents.evidenceMatrix.phases}
+          rows={telemetry.documents.evidenceMatrix.domains}
+          cells={telemetry.documents.evidenceMatrix.cells.map((cell: AnalyticsHeatmapCell) => ({
+            x: cell.x,
+            y: cell.y,
+            value: cell.value,
+            tone: cell.tone,
+            detail: `${cell.yLabel} · ${cell.xLabel}: ${cell.value} evidence gaps, ${cell.review} signature review`,
+          }))}
+        />
       </ChartFrame>
       <TemplateCoverage telemetry={telemetry} />
       <InsightRail insights={telemetry.documents.insights} />
@@ -1015,7 +1027,7 @@ function ActivePanel({
 }) {
   if (activePanel === 'workflow') return <WorkflowPanel telemetry={telemetry} palette={palette} />;
   if (activePanel === 'treatment') return <TreatmentPanel telemetry={telemetry} />;
-  if (activePanel === 'documents') return <DocumentsPanel telemetry={telemetry} palette={palette} />;
+  if (activePanel === 'documents') return <DocumentsPanel telemetry={telemetry} />;
   if (activePanel === 'staffing') return <StaffingPanel telemetry={telemetry} />;
   if (activePanel === 'billing-risk') return <BillingRiskPanel telemetry={telemetry} palette={palette} />;
   return <OverviewPanel dateRange={dateRange} telemetry={telemetry} />;

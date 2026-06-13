@@ -682,6 +682,147 @@ button, input, select, textarea {
   min-height: 300px;
 }
 
+.clinical-matrix {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 0 2px;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+  width: 100%;
+}
+
+.clinical-matrix::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+
+.clinical-matrix::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.clinical-matrix::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.clinical-matrix::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.clinical-matrix-grid {
+  align-content: center;
+  display: grid;
+  gap: 8px 7px;
+  min-height: 100%;
+  min-width: 640px;
+  padding: 0 2px 12px;
+  width: 100%;
+}
+
+.clinical-matrix-row {
+  display: contents;
+}
+
+.clinical-matrix-corner {
+  min-height: 58px;
+}
+
+.clinical-matrix-column-label,
+.clinical-matrix-row-label {
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.12;
+}
+
+.clinical-matrix-column-label {
+  align-items: flex-end;
+  align-self: end;
+  display: flex;
+  justify-self: center;
+  min-height: 58px;
+  overflow: visible;
+  text-align: left;
+  transform: rotate(-28deg);
+  transform-origin: left bottom;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.clinical-matrix-row-label {
+  align-self: center;
+  justify-self: end;
+  max-width: 112px;
+  overflow: hidden;
+  padding-right: 5px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clinical-matrix-cell {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-primary) 70%, var(--color-card));
+  --matrix-cell-border: color-mix(in srgb, var(--color-primary) 42%, var(--color-border));
+  --matrix-cell-fg: var(--color-primary-foreground);
+  align-items: center;
+  aspect-ratio: 1;
+  background: var(--matrix-cell-bg);
+  border: 1px solid var(--matrix-cell-border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 34%, transparent);
+  color: var(--matrix-cell-fg);
+  display: inline-flex;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  justify-content: center;
+  justify-self: center;
+  line-height: 1;
+  min-width: 30px;
+  width: min(100%, 46px);
+}
+
+.clinical-matrix-cell[data-empty="true"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-card-muted) 46%, transparent);
+  --matrix-cell-border: color-mix(in srgb, var(--color-border-soft) 82%, transparent);
+  --matrix-cell-fg: transparent;
+  box-shadow: none;
+}
+
+.clinical-matrix-cell[data-tone="success"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-success) 74%, var(--color-card));
+  --matrix-cell-border: var(--color-success);
+  --matrix-cell-fg: var(--color-success-foreground);
+}
+
+.clinical-matrix-cell[data-tone="warning"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-warning) 76%, var(--color-card));
+  --matrix-cell-border: var(--color-warning);
+  --matrix-cell-fg: var(--color-warning-foreground);
+}
+
+.clinical-matrix-cell[data-tone="error"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-error) 78%, var(--color-card));
+  --matrix-cell-border: var(--color-error);
+  --matrix-cell-fg: var(--color-error-foreground);
+}
+
+.clinical-matrix-cell[data-tone="info"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-info) 76%, var(--color-card));
+  --matrix-cell-border: var(--color-info);
+  --matrix-cell-fg: var(--color-info-foreground);
+}
+
+.clinical-matrix-cell[data-tone="neutral"] {
+  --matrix-cell-bg: color-mix(in srgb, var(--color-text-muted) 18%, var(--color-card-muted));
+  --matrix-cell-border: color-mix(in srgb, var(--color-border) 82%, transparent);
+  --matrix-cell-fg: var(--color-text);
+}
+
 .dashboard-kpi-strip {
   display: grid;
   gap: 10px;
@@ -1185,21 +1326,21 @@ button, input, select, textarea {
   border: 0;
   border-radius: var(--radius-md);
   display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(164px, 0.34fr) minmax(0, 1fr);
-  min-height: 104px;
+  gap: 10px;
+  grid-template-columns: minmax(250px, 0.42fr) minmax(0, 1fr);
+  min-height: 94px;
   padding: 8px;
 }
 
 .dashboard-signal-load-panel {
-  align-content: center;
+  align-items: center;
   background: color-mix(in srgb, var(--color-card) 90%, transparent);
   border: 0;
   border-radius: var(--radius-md);
   box-shadow: 0 14px 34px color-mix(in srgb, var(--color-primary) 8%, transparent);
   display: grid;
-  gap: 6px;
-  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
   padding: 11px 12px;
   text-align: left;
@@ -1213,7 +1354,7 @@ button, input, select, textarea {
 }
 
 .dashboard-signal-load-value span,
-.dashboard-signal-load-panel p {
+.dashboard-signal-summary-chips span {
   color: var(--color-text-muted);
   font-size: 10px;
   font-weight: var(--font-weight-bold);
@@ -1234,15 +1375,27 @@ button, input, select, textarea {
   white-space: nowrap;
 }
 
-.dashboard-signal-load-panel p {
-  margin: 0;
-  max-width: none;
-  text-wrap: pretty;
+.dashboard-signal-summary-chips {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.dashboard-signal-summary-chips span {
+  background: color-mix(in srgb, var(--color-bg-elevated) 86%, transparent);
+  border-left: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  min-width: 0;
+  overflow: hidden;
+  padding: 6px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dashboard-signal-stage-grid {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   width: 100%;
 }
@@ -1253,11 +1406,11 @@ button, input, select, textarea {
   border: 0;
   border-radius: var(--radius-md);
   display: grid;
-  gap: 7px;
-  grid-template-columns: minmax(0, 1fr);
-  min-height: 58px;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 54px;
   min-width: 0;
-  padding: 9px;
+  padding: 9px 10px;
 }
 
 .dashboard-signal-stage-card div {
@@ -1290,11 +1443,11 @@ button, input, select, textarea {
   color: var(--color-text);
   display: inline-flex;
   font-family: var(--font-heading);
-  font-size: 23px;
+  font-size: 18px;
   justify-content: center;
   line-height: 1;
-  min-width: 38px;
-  padding: 6px 8px;
+  min-width: 34px;
+  padding: 6px 7px;
   width: fit-content;
 }
 
@@ -1929,6 +2082,7 @@ button, input, select, textarea {
   }
 
   .dashboard-signal-load-panel {
+    grid-template-columns: minmax(0, 1fr);
     min-height: 76px;
     width: 100%;
   }
@@ -1937,12 +2091,20 @@ button, input, select, textarea {
     font-size: clamp(32px, 10vw, 42px);
   }
 
-  .dashboard-signal-load-panel p {
-    font-size: 10px;
+  .dashboard-signal-summary-chips {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dashboard-signal-stage-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clinical-matrix-grid {
+    min-width: 560px;
+  }
+
+  .clinical-matrix-row-label {
+    max-width: 94px;
   }
 
   .dashboard-echart-sankey,
@@ -2863,7 +3025,7 @@ button, input, select, textarea {
   color: var(--color-text);
   font-family: var(--font-heading);
   font-size: clamp(14px, 1vw, 17px);
-  line-height: 1.05;
+  line-height: 1.12;
   margin: 0;
 }
 
@@ -2873,7 +3035,7 @@ button, input, select, textarea {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: var(--font-weight-semibold);
-  margin-top: 2px;
+  margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2897,12 +3059,19 @@ button, input, select, textarea {
   width: 100%;
 }
 
+.analytics-matrix {
+  min-height: var(--analytics-chart-default);
+  padding-bottom: 8px;
+}
+
 .analytics-chart-legend {
   border-top: 1px solid var(--color-border-soft);
   display: grid;
   flex-shrink: 0;
   gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 2px;
+  padding-bottom: 4px;
   padding-top: 10px;
 }
 
@@ -3227,9 +3396,9 @@ button, input, select, textarea {
 }
 
 .analytics-heatmap-card {
-  --analytics-chart-default: var(--analytics-chart-tall);
+  --analytics-chart-default: 370px;
   grid-area: heatmap;
-  min-height: 440px;
+  min-height: 480px;
 }
 
 .analytics-pareto-card {
@@ -3389,7 +3558,7 @@ button, input, select, textarea {
 .analytics-evidence-card {
   --analytics-chart-default: var(--analytics-chart-xl);
   grid-area: evidence;
-  min-height: 450px;
+  min-height: 500px;
 }
 
 .analytics-template-card {
@@ -3433,8 +3602,30 @@ button, input, select, textarea {
   min-height: 340px;
 }
 
+.analytics-provider-card .analytics-card-title {
+  margin-bottom: 4px;
+}
+
+.analytics-provider-card .analytics-card-title p {
+  margin-top: 5px;
+}
+
 .analytics-provider-row {
   grid-template-columns: minmax(0, 1fr) minmax(110px, 0.72fr) 52px;
+}
+
+.analytics-provider-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.analytics-provider-row span {
+  display: block;
+  line-height: 1.2;
+}
+
+.analytics-provider-row strong {
+  font-size: 15px;
 }
 
 .analytics-risk-card {
