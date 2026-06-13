@@ -85,11 +85,6 @@ function normalizePath(path) {
 const sourceFiles = [...listSourceFiles("app"), ...listSourceFiles("components"), ...listSourceFiles("lib")];
 const sourceFileSet = new Set(sourceFiles.map(normalizePath));
 
-function isClientFile(file) {
-  const source = read(file).trimStart();
-  return source.startsWith("'use client'") || source.startsWith('"use client"');
-}
-
 function resolveLocalImport(fromFile, specifier) {
   if (!specifier.startsWith("@/") && !specifier.startsWith(".")) {
     return null;

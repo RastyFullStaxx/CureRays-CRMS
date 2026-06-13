@@ -3,7 +3,6 @@ import {
   auditEvents,
   billingCodes,
   carepathTasks,
-  fractionLogEntries,
   generatedDocuments,
   latestGeneratedDocumentOutput,
   mappingRecords,
@@ -33,7 +32,7 @@ import type {
   WorkflowItemStatus,
   WorkflowStep
 } from "@/lib/types";
-import { carepathPhaseLabels, courseDocuments, courseFractions, courseTasks } from "@/lib/workflow";
+import { carepathPhaseLabels, courseDocuments } from "@/lib/workflow";
 
 const timestamp = "2026-04-26T10:00:00+08:00";
 

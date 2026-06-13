@@ -489,7 +489,7 @@ export function ensureCarepathTaskDueDates(
   });
 }
 
-function createAuditChecksForCourse(course: TreatmentCourse, timestamp: string): AuditCheck[] {
+function createAuditChecksForCourse(course: TreatmentCourse): AuditCheck[] {
   return [
     "Required documents generated",
     "Workflow N/A reasons documented",
@@ -1043,7 +1043,7 @@ function buildScheduledFractionsForCourse(courseId: string) {
   let cumulativeDose = 0;
 
   return prescription.phases.flatMap((phase, phaseIndex) =>
-    Array.from({ length: phase.totalFractions }, (_, index) => {
+    Array.from({ length: phase.totalFractions }, () => {
       fractionNumber += 1;
       const plannedDose = Math.round(phase.dosePerFractionGy * 100);
       cumulativeDose += plannedDose;
@@ -1575,14 +1575,6 @@ export function getIgsrtWorkspace(courseId = "COURSE-2401"): IgsrtWorkspace {
   };
 }
 
-function getWorkflowResponseForCourse(courseId: string) {
-  try {
-    return getIgsrtWorkspace(courseId);
-  } catch {
-    return getWorkflowSnapshot();
-  }
-}
-
 export function validatePatientCreateInput(input: Partial<PatientCreateInput>): PatientValidationResult {
   const requiredFields: Array<keyof PatientCreateInput> = [
     "firstName",
@@ -1726,7 +1718,7 @@ export function createPatient(
     ensureRequirementDocuments(patients, treatmentCourses, generatedDocuments);
     ensureRequirementTasks(patients, treatmentCourses, carepathTasks);
     ensureCarepathTaskDueDates(treatmentCourses, carepathTasks);
-    patientCourseAuditChecks.push(...createAuditChecksForCourse(course, timestamp));
+    patientCourseAuditChecks.push(...createAuditChecksForCourse(course));
     courseFolderPlaceholders.push(createFolderPlaceholderForCourse(course, timestamp));
     const auditEvent = addAuditEvent({
       ...patientAuditFields(auditContext),

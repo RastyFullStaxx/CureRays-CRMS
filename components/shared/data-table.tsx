@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -162,17 +162,13 @@ export function DataTable<T extends object>({
     });
   }, [filterValues, filters, query, rows, search]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [query, filterValues, rows]);
-
-  const paginated = pageSize > 0
-    ? filteredRows.slice((page - 1) * pageSize, page * pageSize)
-    : filteredRows;
-
   const totalPages = pageSize > 0
     ? Math.max(1, Math.ceil(filteredRows.length / pageSize))
     : 1;
+  const currentPage = Math.min(page, totalPages);
+  const paginated = pageSize > 0
+    ? filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : filteredRows;
 
   const hasError = Boolean(error);
   const showPagination = !hasError && pageSize > 0 && filteredRows.length > pageSize;
@@ -212,7 +208,10 @@ export function DataTable<T extends object>({
                     />
                     <Input
                       value={query}
-                      onChange={(event) => setQuery(event.target.value)}
+                      onChange={(event) => {
+                        setQuery(event.target.value);
+                        setPage(1);
+                      }}
                       placeholder={search.placeholder}
                       className="pl-9"
                       aria-label={search.placeholder}
@@ -223,7 +222,10 @@ export function DataTable<T extends object>({
                   <div key={filter.id} className="min-w-[152px] flex-[0_1_176px]">
                     <Select
                       value={filterValues[filter.id] ?? ''}
-                      onChange={(event) => setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }))}
+                      onChange={(event) => {
+                        setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }));
+                        setPage(1);
+                      }}
                       aria-label={filter.label}
                     >
                       <option value="">{filter.allLabel ?? `All ${filter.label}`}</option>
@@ -361,12 +363,12 @@ export function DataTable<T extends object>({
           style={{ paddingLeft: 'var(--space-1)', paddingRight: 'var(--space-1)' }}
         >
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}>
-            Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, filteredRows.length)} of {filteredRows.length}
+            Showing {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length}
           </p>
           <div className="flex items-center" style={{ gap: 'var(--space-1)' }}>
             <button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
+              disabled={currentPage === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               aria-label="Previous page"
               className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
               style={{ borderRadius: 'var(--radius-md)' }}
@@ -374,11 +376,11 @@ export function DataTable<T extends object>({
               <ChevronLeft size={16} />
             </button>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text)', paddingLeft: 'var(--space-1)', paddingRight: 'var(--space-1)' }}>
-              {page} / {totalPages}
+              {currentPage} / {totalPages}
             </span>
             <button
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              disabled={currentPage === totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               aria-label="Next page"
               className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
               style={{ borderRadius: 'var(--radius-md)' }}

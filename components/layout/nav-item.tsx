@@ -24,10 +24,6 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
   const isActive = !isSuppressed && (matches(href) || activeOn.some(matches));
 
   useEffect(() => {
-    setTooltipPosition(null);
-  }, [collapsed, pathname]);
-
-  useEffect(() => {
     if (!tooltipPosition) return undefined;
 
     const hideOnEscape = (event: KeyboardEvent) => {
@@ -62,6 +58,7 @@ export function NavItem({ href, icon: Icon, label, pathname, activeOn = [], inac
         aria-current={isActive ? 'page' : undefined}
         className={cn('sidebar-nav-link', isActive && 'is-active')}
         onBlur={hideTooltip}
+        onClick={hideTooltip}
         onFocus={showTooltip}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}

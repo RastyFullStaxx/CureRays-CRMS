@@ -1,9 +1,4 @@
-import { Database } from 'lucide-react';
-import { PageStack } from '@/components/shared/page-stack';
-import { PageHeader } from '@/components/shared/page-header';
-import { StatGrid } from '@/components/shared/stat-grid';
-import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
+import { RecordsCommandClient, type MasterRecordRow } from '@/components/records/records-command-client';
 import {
   carepathTasks,
   fractionLogEntries,
@@ -15,58 +10,48 @@ import {
 export default function RecordsPage() {
   const patients = operationalPatients();
   const treatmentCourses = operationalTreatmentCourses();
-  const rows = patients.map((patient) => {
+  const rows: MasterRecordRow[] = patients.map((patient) => {
     const course = treatmentCourses.find((c) => c.patientRef === patient.patientRef);
+    const courseTasks = carepathTasks.filter((task) => task.courseId === course?.id);
+    const courseDocuments = generatedDocuments.filter((document) => document.courseId === course?.id);
+    const courseFractions = fractionLogEntries.filter((fraction) => fraction.courseId === course?.id);
+    const checklistItems = Object.values(patient.checklist);
+    const readyChecklistItems = checklistItems.filter(Boolean);
+
     return {
       id: patient.id,
-      name: patient.displayLabel,
-      mrn: patient.patientRef,
+      patientId: patient.id,
+      patient: patient.displayLabel,
+      patientRef: patient.patientRef,
       diagnosis: patient.diagnosisCategory ?? '—',
-      phase: patient.chartRoundsPhase?.replace(/_/g, ' ') ?? '—',
+      phase: patient.chartRoundsPhase ?? '—',
       course: course ? course.id.replace('COURSE-', 'C') : '—',
-      fractions: fractionLogEntries.filter((f) => f.courseId === course?.id).length || '—',
-      documents: generatedDocuments.filter((d) => d.courseId === course?.id).length || '—',
+      courseId: course?.id ?? '—',
+      courseStatus: course?.status ?? '—',
+      coursePhase: course?.coursePhase ?? course?.chartRoundsPhase ?? '—',
+      fractions: courseFractions.length,
+      documents: courseDocuments.length,
+      openTasks: courseTasks.filter((task) => task.status !== 'COMPLETED' && task.status !== 'NOT_APPLICABLE').length,
       status: patient.chartRoundsPhase ?? '—',
+      nextAction: patient.nextActionCategory,
+      assignedStaff: patient.assignedStaff,
+      lastUpdatedAt: patient.lastUpdatedAt,
+      flags: patient.flags.map((flag) => `${flag.severity}: ${flag.summary}`),
+      checklistReady: readyChecklistItems.length,
+      checklistTotal: checklistItems.length,
     };
   });
 
   return (
-    <PageStack>
-      <PageHeader
-        title="Master Records"
-        subtitle="The controlled operational index for CureRays patients. Every workflow page should derive from these records."
-      />
-
-      <StatGrid>
-        <StatCard icon={Database} label="Total Records" value={patients.length} tone="primary" />
-        <StatCard icon={Database} label="Active Courses" value={treatmentCourses.length} tone="success" />
-        <StatCard icon={Database} label="Carepath Tasks" value={carepathTasks.length} />
-        <StatCard icon={Database} label="Documents" value={generatedDocuments.length} tone="info" />
-        <StatCard icon={Database} label="Fractions" value={fractionLogEntries.length} />
-      </StatGrid>
-
-      <DataTable
-        keyField="id"
-        columns={[
-          { key: 'name', label: 'Patient' },
-          { key: 'mrn', label: 'MRN' },
-          { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase' },
-          { key: 'course', label: 'Active Course' },
-          { key: 'fractions', label: 'Fractions' },
-          { key: 'documents', label: 'Documents' },
-          { key: 'status', label: 'Status' },
-        ]}
-        rows={rows}
-        empty="No master records are available."
-        emptyDescription="Tokenized operational records will appear after patient records are created."
-        search={{ placeholder: 'Search master records by name, MRN, diagnosis, or phase...', keys: ['name', 'mrn', 'diagnosis', 'phase', 'course', 'status'] }}
-        filters={[
-          { id: 'phase', label: 'Phase' },
-          { id: 'diagnosis', label: 'Diagnosis' },
-          { id: 'status', label: 'Status' },
-        ]}
-      />
-    </PageStack>
+    <RecordsCommandClient
+      rows={rows}
+      stats={{
+        totalRecords: patients.length,
+        activeCourses: treatmentCourses.length,
+        carepathTasks: carepathTasks.length,
+        documents: generatedDocuments.length,
+        fractions: fractionLogEntries.length,
+      }}
+    />
   );
 }

@@ -1,7 +1,6 @@
 import {
   Activity,
   AlertTriangle,
-  CalendarCheck,
   CheckCircle2,
   ClipboardCheck,
   Clock3,

@@ -197,32 +197,29 @@ function toOperationalStep(step: WorkflowStep, asOf?: string): OperationalWorkfl
   const linkedDocumentRef = step.linkedDocumentId
     ? generatedDocuments.find((document) => document.id === step.linkedDocumentId)?.id ?? step.linkedDocumentId
     : undefined;
-  const {
-    courseId: _courseId,
-    linkedDocumentId: _linkedDocumentId,
-    signedByUserId: _signedByUserId,
-    ...safeStep
-  } = step;
+  const { courseId, linkedDocumentId, signedByUserId, ...safeStep } = step;
+  void linkedDocumentId;
+  void signedByUserId;
 
   return {
     ...safeStep,
     status: stepStatusWithOverdue(step, asOf),
-    patientRef: patientRefForCourse(step.courseId),
-    courseRef: courseRef(step.courseId),
-    displayLabel: displayLabelForCourse(step.courseId),
+    patientRef: patientRefForCourse(courseId),
+    courseRef: courseRef(courseId),
+    displayLabel: displayLabelForCourse(courseId),
     linkedDocumentRef
   };
 }
 
 function toOperationalTask(task: CarepathTask, asOf?: string): OperationalTask {
-  const { courseId: _courseId, ...safeTask } = task;
+  const { courseId, ...safeTask } = task;
 
   return {
     ...safeTask,
     status: taskStatusWithOverdue(task, asOf),
-    patientRef: patientRefForCourse(task.courseId),
-    courseRef: courseRef(task.courseId),
-    displayLabel: displayLabelForCourse(task.courseId)
+    patientRef: patientRefForCourse(courseId),
+    courseRef: courseRef(courseId),
+    displayLabel: displayLabelForCourse(courseId)
   };
 }
 

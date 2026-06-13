@@ -30,7 +30,6 @@ import { useMemo, useState } from "react";
 import type {
   AuditCheck,
   AuditEvent,
-  CarepathWorkflowPhase,
   DocumentInstance,
   Patient,
   Task,
@@ -303,13 +302,6 @@ function imagingStatusLabel(status: string) {
     BLOCKED: "Missing"
   };
   return labels[status] ?? status.replaceAll("_", " ");
-}
-
-function imagingStatusTone(status: string) {
-  if (status === "COMPLETED" || status === "SIGNED") return "green";
-  if (status === "READY_FOR_REVIEW") return "orange";
-  if (status === "BLOCKED") return "red";
-  return "blue";
 }
 
 function imagingRecentUploadIcon(modality: string) {
@@ -622,7 +614,6 @@ export function TreatmentWorkspaceTab({ course, plan, fractions }: { course: Tre
   const dosePerFractionGy = Number.parseFloat(plan?.dosePerFraction ?? "2.5") || 2.5;
   const totalDoseGy = Number.parseFloat(plan?.totalDose ?? "50") || Math.round(dosePerFractionGy * course.totalFractions);
   const prescriptionLabel = `${Math.round(dosePerFractionGy * 100)} cGy × ${course.totalFractions}`;
-  const deliveredGy = Math.round(dosePerFractionGy * course.currentFraction);
   const nextFractionDate = "Apr 28, 2026";
   const treatmentLogRows = useMemo(() => {
     const actualByNumber = new Map(fractions.map((fraction) => [fraction.fractionNumber, fraction]));
@@ -1467,7 +1458,6 @@ export function WorkspaceTabRail({
   patient,
   tasks,
   documents,
-  checks,
   readiness
 }: {
   activeTab: string;
@@ -1475,7 +1465,6 @@ export function WorkspaceTabRail({
   patient: Patient;
   tasks: Task[];
   documents: DocumentInstance[];
-  checks: AuditCheck[];
   readiness: number;
 }) {
   if (activeTab === "carepath") {

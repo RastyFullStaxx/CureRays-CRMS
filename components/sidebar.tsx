@@ -92,30 +92,33 @@ const NAV_SECTIONS = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('curerays_sidebar_collapsed');
-    if (stored !== null) {
-      setCollapsed(stored === 'true');
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
     }
-  }, []);
 
-  useEffect(() => {
+    const stored = localStorage.getItem('curerays_sidebar_collapsed');
+    return stored === 'true';
+  });
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
     const stored = localStorage.getItem('curerays_darkmode');
-    const isDark = stored !== null
+    return stored !== null
       ? stored === 'true'
       : document.documentElement.classList.contains('dark');
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle('dark', isDark);
-  }, []);
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
 
   const toggleDarkMode = () => {
     const next = !darkMode;
     setDarkMode(next);
     localStorage.setItem('curerays_darkmode', next.toString());
-    document.documentElement.classList.toggle('dark', next);
   };
 
   const toggleCollapse = () => {

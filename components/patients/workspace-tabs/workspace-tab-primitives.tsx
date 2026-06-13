@@ -199,16 +199,16 @@ export function DonutSummary({
     purple: "var(--color-info)",
     slate: "var(--color-text-muted)"
   };
-  let cursor = 0;
   const total = Math.max(segments.reduce((sum, segment) => sum + segment.value, 0), 1);
-  const gradient = segments
-    .map((segment) => {
-      const start = cursor;
-      const end = cursor + (segment.value / total) * 100;
-      cursor = end;
-      return `${colorForTone[segment.tone]} ${start}% ${end}%`;
-    })
-    .join(", ");
+  const gradientParts = segments.reduce<{ cursor: number; stops: string[] }>((current, segment) => {
+    const start = current.cursor;
+    const end = start + (segment.value / total) * 100;
+    return {
+      cursor: end,
+      stops: [...current.stops, `${colorForTone[segment.tone]} ${start}% ${end}%`],
+    };
+  }, { cursor: 0, stops: [] });
+  const gradient = gradientParts.stops.join(", ");
 
   return (
     <SectionCard title={label}>

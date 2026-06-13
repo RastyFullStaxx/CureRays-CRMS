@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode, createContext as createContextType } from 'react';
+import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';

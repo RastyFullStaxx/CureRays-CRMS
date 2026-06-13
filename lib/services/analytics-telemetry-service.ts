@@ -19,7 +19,6 @@ import {
 } from '@/lib/clinical-store';
 import type {
   CarepathWorkflowPhase,
-  ResponsibleParty,
 } from '@/lib/types';
 import {
   auditReadinessScore,
@@ -420,12 +419,6 @@ function riskDomain(text: string) {
   return 'Workflow Handoff';
 }
 
-function phaseForCourse(chartPhase: string): CarepathWorkflowPhase {
-  if (chartPhase === 'ON_TREATMENT') return 'ON_TREATMENT';
-  if (chartPhase === 'POST') return 'POST_TX';
-  return 'CHART_PREP';
-}
-
 function makeInsights(asOf: Date): AnalyticsInsight[] {
   const base = generateAnalyticsInsights({
     patients: operationalPatients(),
@@ -625,7 +618,7 @@ function buildPhaseOwnerHeatmap() {
   };
 }
 
-function buildRoleLoad(asOf: Date): AnalyticsRoleLoad[] {
+function buildRoleLoad(): AnalyticsRoleLoad[] {
   const roleRows = workflowBottlenecksByParty(carepathTasks, generatedDocuments);
   const roleMap = new Map(roleRows.map((row) => [row.responsibleParty, row]));
 
@@ -1065,7 +1058,7 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
   const insights = makeInsights(asOf);
   const workflowSankey = buildWorkflowSankey();
   const phaseOwnerHeatmap = buildPhaseOwnerHeatmap();
-  const roleLoad = buildRoleLoad(asOf);
+  const roleLoad = buildRoleLoad();
   const treatmentSignals = buildTreatmentSignals();
   const evidenceMatrix = buildEvidenceMatrix();
   const riskGraph = buildRiskGraph();
