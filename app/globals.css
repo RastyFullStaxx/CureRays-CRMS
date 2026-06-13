@@ -2550,6 +2550,87 @@ button, input, select, textarea {
   position: relative;
 }
 
+.dashboard-neuron-field,
+.analytics-neuron-field {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 42%),
+    color-mix(in srgb, var(--color-card-muted) 44%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.neuron-signal-tooltip {
+  background:
+    linear-gradient(180deg, var(--color-surface-sheen-start), var(--color-surface-sheen-end)),
+    var(--color-card);
+  border: var(--border-container);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  gap: 4px;
+  max-width: min(230px, calc(100% - 24px));
+  min-width: 176px;
+  opacity: 0;
+  padding: 10px 11px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateY(4px) scale(0.98);
+  transition: opacity 140ms ease, transform 140ms ease;
+  z-index: 3;
+}
+
+.neuron-signal-tooltip[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.neuron-signal-tooltip[data-tone="success"] {
+  border-left-color: var(--color-success);
+}
+
+.neuron-signal-tooltip[data-tone="warning"] {
+  border-left-color: var(--color-warning);
+}
+
+.neuron-signal-tooltip[data-tone="error"] {
+  border-left-color: var(--color-error);
+}
+
+.neuron-signal-tooltip[data-tone="info"] {
+  border-left-color: var(--color-info);
+}
+
+.neuron-signal-tooltip[data-tone="neutral"] {
+  border-left-color: var(--color-text-muted);
+}
+
+.neuron-signal-tooltip span,
+.neuron-signal-tooltip em {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.neuron-signal-tooltip strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.neuron-signal-tooltip p {
+  color: var(--color-text-soft);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+}
+
 .landing-page::before,
 .landing-page::after,
 .landing-ambient {

@@ -45,6 +45,8 @@ import type {
   AnalyticsTone,
 } from '@/lib/services/analytics-telemetry-service';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
+import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
+import type { NeuronSignalLink, NeuronSignalNode } from '@/components/shared/neuron-signal-field';
 
 type AnalyticsCommandClientProps = {
   telemetry: AnalyticsTelemetry;
@@ -503,73 +505,42 @@ function sankeyOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsC
   };
 }
 
-function riskGraphOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsCoreOption {
+function constellationAnchor(index: number, total: number, category: 'course' | 'domain') {
+  const safeTotal = Math.max(total, 1);
+  const angle = (index / safeTotal) * Math.PI * 2 - Math.PI / 2;
+  const radiusX = category === 'domain' ? 0.28 : 0.17;
+  const radiusY = category === 'domain' ? 0.24 : 0.15;
+
   return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      renderMode: 'richText',
-      borderColor: palette.border,
-      backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
-    },
-    series: [
-      {
-        type: 'graph',
-        layout: 'force',
-        left: '8%',
-        top: '12%',
-        right: '8%',
-        bottom: '12%',
-        roam: false,
-        draggable: false,
-        data: telemetry.billingRisk.riskGraph.nodes.map((node) => ({
-          id: node.id,
-          name: node.name,
-          value: node.value,
-          category: node.category,
-          symbolSize: node.category === 'domain'
-            ? Math.max(28, Math.min(60, 30 + node.value * 3.8))
-            : Math.max(18, Math.min(44, 16 + node.value * 1.4)),
-          itemStyle: {
-            color: toneColor(node.tone, palette),
-            borderColor: palette.card,
-            borderWidth: 1,
-          },
-          label: {
-            show: true,
-            color: palette.text,
-            fontSize: node.category === 'domain' ? 10 : 9,
-            fontWeight: node.category === 'domain' ? 800 : 700,
-            lineHeight: 11,
-            overflow: 'break',
-            width: node.category === 'domain' ? 82 : 66,
-          },
-        })),
-        links: telemetry.billingRisk.riskGraph.links.map((link) => ({
-          source: link.source,
-          target: link.target,
-          value: link.value,
-          lineStyle: {
-            color: toneColor(link.tone, palette),
-            opacity: 0.38,
-            width: Math.max(1, Math.min(5, link.value / 3)),
-            curveness: 0.18,
-          },
-        })),
-        categories: [{ name: 'domain' }, { name: 'course' }],
-        force: {
-          repulsion: 430,
-          edgeLength: [104, 190],
-          gravity: 0.045,
-        },
-        emphasis: {
-          focus: 'adjacency',
-          lineStyle: { opacity: 0.74 },
-        },
-      },
-    ],
+    x: 0.5 + Math.cos(angle) * radiusX,
+    y: 0.5 + Math.sin(angle) * radiusY,
   };
+}
+
+function analyticsRiskNeuronField(telemetry: AnalyticsTelemetry) {
+  const domains = telemetry.billingRisk.riskGraph.nodes.filter((node) => node.category === 'domain');
+  const courses = telemetry.billingRisk.riskGraph.nodes.filter((node) => node.category === 'course');
+  const nodes: NeuronSignalNode[] = telemetry.billingRisk.riskGraph.nodes.map((node) => {
+    const peers = node.category === 'domain' ? domains : courses;
+    const index = peers.findIndex((peer) => peer.id === node.id);
+
+    return {
+      id: node.id,
+      label: node.name,
+      group: node.category === 'domain' ? 'domain' : 'course',
+      value: node.value,
+      tone: node.tone,
+      anchor: constellationAnchor(index, peers.length, node.category),
+    };
+  });
+  const links: NeuronSignalLink[] = telemetry.billingRisk.riskGraph.links.map((link) => ({
+    source: link.source,
+    target: link.target,
+    value: link.value,
+    tone: link.tone,
+  }));
+
+  return { links, nodes };
 }
 
 function RoleLoadChart({ rows }: { rows: AnalyticsRoleLoad[] }) {
@@ -984,8 +955,8 @@ function StaffingPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   );
 }
 
-function BillingRiskPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry; palette: Palette }) {
-  const graph = useMemo(() => riskGraphOption(telemetry, palette), [palette, telemetry]);
+function BillingRiskPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
+  const field = useMemo(() => analyticsRiskNeuronField(telemetry), [telemetry]);
 
   return (
     <div className="analytics-panel analytics-panel-billing">
@@ -998,7 +969,14 @@ function BillingRiskPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetr
         inspect="Workflow, treatment, documents, and billing/audit pages."
         className="analytics-risk-card"
       >
-        <DashboardEChart className="analytics-echart analytics-echart-graph" option={graph} ariaLabel="Analytics risk constellation graph" />
+        <div className="analytics-neuron-field analytics-echart analytics-echart-graph">
+          <NeuronSignalField
+            ariaLabel="Analytics risk constellation graph"
+            className="dashboard-signal-canvas"
+            links={field.links}
+            nodes={field.nodes}
+          />
+        </div>
       </ChartFrame>
       <article className="analytics-card analytics-billing-card">
         <SectionTitle icon={CheckCircle2} title="Billing Readiness" meta="Billing work state tied to evidence readiness" />
@@ -1029,7 +1007,7 @@ function ActivePanel({
   if (activePanel === 'treatment') return <TreatmentPanel telemetry={telemetry} />;
   if (activePanel === 'documents') return <DocumentsPanel telemetry={telemetry} />;
   if (activePanel === 'staffing') return <StaffingPanel telemetry={telemetry} />;
-  if (activePanel === 'billing-risk') return <BillingRiskPanel telemetry={telemetry} palette={palette} />;
+  if (activePanel === 'billing-risk') return <BillingRiskPanel telemetry={telemetry} />;
   return <OverviewPanel dateRange={dateRange} telemetry={telemetry} />;
 }
 

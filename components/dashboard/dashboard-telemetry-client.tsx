@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { EChartsCoreOption } from 'echarts/core';
 import {
@@ -19,16 +19,6 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
-  forceCenter,
-  forceCollide,
-  forceLink,
-  forceManyBody,
-  forceSimulation,
-  forceX,
-  forceY,
-} from 'd3-force';
-import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
-import {
   Area,
   Bar,
   CartesianGrid,
@@ -46,23 +36,17 @@ import type {
   CarepathHeatmapCell,
   DashboardMetric,
   DashboardPanel,
-  DashboardSignalLink,
-  DashboardSignalNode,
-  DashboardSignalStageId,
   DashboardTelemetry,
   DashboardTone,
   SafetyMatrixCell,
 } from '@/lib/services/dashboard-telemetry-service';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
+import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
+import type { NeuronSignalLink, NeuronSignalNode } from '@/components/shared/neuron-signal-field';
 
 type DashboardTelemetryClientProps = {
   telemetry: DashboardTelemetry;
 };
-
-type SignalSimulationNode = DashboardSignalNode & SimulationNodeDatum & {
-  phaseSeed: number;
-};
-type SignalSimulationLink = DashboardSignalLink & SimulationLinkDatum<SignalSimulationNode>;
 
 const panelTabs: Array<{ id: DashboardPanel; label: string }> = [
   { id: 'ops', label: 'Operations' },
@@ -156,242 +140,6 @@ function toneColor(tone: string, palette: DashboardPalette) {
   if (tone === 'info') return palette.info;
   if (tone === 'neutral') return palette.muted;
   return palette.primary;
-}
-
-function signalColor(group: DashboardSignalNode['group']) {
-  if (group === 'risk') return 'var(--color-error)';
-  if (group === 'document') return 'var(--color-info)';
-  if (group === 'stage') return 'var(--color-primary)';
-  if (group === 'task') return 'var(--color-accent)';
-  if (group === 'course') return 'var(--color-success)';
-  return 'var(--color-primary)';
-}
-
-const stageAnchors: Record<DashboardSignalStageId, { x: number; y: number }> = {
-  'chart-prep': { x: 0.36, y: 0.5 },
-  planning: { x: 0.48, y: 0.36 },
-  delivery: { x: 0.64, y: 0.5 },
-  closeout: { x: 0.52, y: 0.66 },
-};
-
-function anchorForNode(node: DashboardSignalNode) {
-  const stage = node.stage ? stageAnchors[node.stage] : undefined;
-  if (!stage) {
-    return { x: 0.5, y: 0.5 };
-  }
-
-  if (node.group === 'patient') {
-    return { x: stage.x - 0.08, y: stage.y + 0.03 };
-  }
-
-  if (node.group === 'course') {
-    return { x: stage.x + 0.08, y: stage.y + 0.02 };
-  }
-
-  if (node.group === 'document') {
-    return { x: Math.min(0.72, stage.x + 0.14), y: stage.y + 0.08 };
-  }
-
-  if (node.group === 'risk' || node.group === 'task') {
-    return { x: Math.min(0.7, stage.x + 0.12), y: Math.max(0.3, stage.y - 0.12) };
-  }
-
-  return stage;
-}
-
-function resolvedNode(value: string | number | SignalSimulationNode | undefined) {
-  return typeof value === 'object' && value !== null ? value : undefined;
-}
-
-function nodeRadius(node: DashboardSignalNode) {
-  if (node.group === 'stage') {
-    return Math.max(8, Math.min(15, 7 + node.value * 0.35));
-  }
-
-  if (node.group === 'patient') {
-    return Math.max(4.5, Math.min(8.5, 4 + node.value * 0.4));
-  }
-
-  if (node.group === 'course') {
-    return Math.max(4.5, Math.min(10, 4 + node.value * 0.18));
-  }
-
-  return Math.max(5, Math.min(10, 4 + node.value * 0.35));
-}
-
-function SignalField({ nodes, links }: { nodes: DashboardSignalNode[]; links: DashboardSignalLink[] }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
-    if (!canvas || !context) {
-      return undefined;
-    }
-
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let width = 1;
-    let height = 1;
-    let animationFrame = 0;
-    const initialRect = canvas.getBoundingClientRect();
-    width = Math.max(1, initialRect.width || canvas.clientWidth || 560);
-    height = Math.max(1, initialRect.height || canvas.clientHeight || 300);
-    const simulationNodes: SignalSimulationNode[] = nodes.map((node, index) => ({
-      ...node,
-      phaseSeed: index * 1.47,
-      x: anchorForNode(node).x * width + Math.cos(index * 1.7) * 24,
-      y: anchorForNode(node).y * height + Math.sin(index * 1.7) * 24,
-    }));
-    const simulationLinks: SignalSimulationLink[] = links.map((link) => ({ ...link }));
-    const centerForce = forceCenter<SignalSimulationNode>(width / 2, height / 2).strength(0.18);
-    const simulation = forceSimulation<SignalSimulationNode>(simulationNodes)
-      .force(
-        'link',
-        forceLink<SignalSimulationNode, SignalSimulationLink>(simulationLinks)
-          .id((node) => node.id)
-          .distance((link) => 28 + Math.max(1, 9 - link.value) * 5)
-          .strength(0.36),
-      )
-      .force('charge', forceManyBody<SignalSimulationNode>().strength((node) => (node.group === 'stage' ? -92 : -36)))
-      .force('collide', forceCollide<SignalSimulationNode>((node) => nodeRadius(node) + 9).strength(0.72))
-      .force('center', centerForce)
-      .force('x', forceX<SignalSimulationNode>((node) => anchorForNode(node).x * width).strength((node) => (node.group === 'stage' ? 0.42 : 0.18)))
-      .force('y', forceY<SignalSimulationNode>((node) => anchorForNode(node).y * height).strength((node) => (node.group === 'stage' ? 0.42 : 0.18)));
-
-    const draw = (time = 0) => {
-      const rect = canvas.getBoundingClientRect();
-      const scale = window.devicePixelRatio || 1;
-      width = Math.max(1, rect.width || canvas.clientWidth || width);
-      height = Math.max(1, rect.height || canvas.clientHeight || height);
-      centerForce.x(width / 2).y(height / 2);
-
-      if (canvas.width !== Math.floor(width * scale) || canvas.height !== Math.floor(height * scale)) {
-        canvas.width = Math.floor(width * scale);
-        canvas.height = Math.floor(height * scale);
-      }
-
-      context.setTransform(scale, 0, 0, scale, 0, 0);
-      context.clearRect(0, 0, width, height);
-
-      const primary = cssVar('--color-primary', 'CanvasText');
-      const text = cssVar('--color-text-muted', 'GrayText');
-      const card = cssVar('--color-card', 'Canvas');
-
-      context.save();
-      const glow = context.createRadialGradient(width * 0.48, height * 0.48, 20, width * 0.48, height * 0.48, Math.max(width, height) * 0.68);
-      glow.addColorStop(0, primary);
-      glow.addColorStop(1, card);
-      context.globalAlpha = 0.08;
-      context.fillStyle = glow;
-      context.fillRect(0, 0, width, height);
-      context.restore();
-
-      const renderPositions = new Map<string, { x: number; y: number }>();
-
-      simulationNodes.forEach((node) => {
-        const radius = nodeRadius(node);
-        const labelReserve = node.group === 'stage' || node.group === 'task' || node.group === 'document' || node.group === 'risk' ? 28 : 10;
-        const anchor = anchorForNode(node);
-        const anchorX = anchor.x * width;
-        const anchorY = anchor.y * height;
-        const orbitRadius = reduceMotion
-          ? 0
-          : node.group === 'stage'
-            ? 7
-            : node.group === 'patient'
-              ? 18
-              : node.group === 'course'
-                ? 15
-                : 11;
-        const orbitSpeed = node.group === 'stage' ? 2100 : node.group === 'patient' ? 1350 : 1650;
-        const orbitAngle = time / orbitSpeed + node.phaseSeed;
-        node.x = Math.min(Math.max(node.x ?? 0, radius + 12), width - radius - 12);
-        node.y = Math.min(Math.max(node.y ?? 0, radius + 12), height - radius - labelReserve);
-        const orbitX = Math.cos(orbitAngle) * orbitRadius;
-        const orbitY = Math.sin(orbitAngle) * orbitRadius;
-        const tetherX = ((node.x ?? anchorX) * 0.68) + (anchorX * 0.32);
-        const tetherY = ((node.y ?? anchorY) * 0.68) + (anchorY * 0.32);
-        renderPositions.set(node.id, {
-          x: Math.min(Math.max(tetherX + orbitX, radius + 12), width - radius - 12),
-          y: Math.min(Math.max(tetherY + orbitY, radius + 12), height - radius - labelReserve),
-        });
-      });
-
-      simulationLinks.forEach((link) => {
-        const source = resolvedNode(link.source);
-        const target = resolvedNode(link.target);
-        const sourcePosition = source ? renderPositions.get(source.id) : undefined;
-        const targetPosition = target ? renderPositions.get(target.id) : undefined;
-        if (!sourcePosition || !targetPosition) {
-          return;
-        }
-
-        context.beginPath();
-        context.moveTo(sourcePosition.x, sourcePosition.y);
-        context.lineTo(targetPosition.x, targetPosition.y);
-        context.strokeStyle = primary;
-        context.globalAlpha = Math.min(0.38, 0.1 + link.value / 42);
-        context.lineWidth = Math.max(1, Math.min(3.5, link.value / 7));
-        context.stroke();
-      });
-
-      context.globalAlpha = 1;
-      simulationNodes.forEach((node) => {
-        const position = renderPositions.get(node.id) ?? { x: node.x ?? 0, y: node.y ?? 0 };
-        const x = position.x;
-        const y = position.y;
-        const radius = nodeRadius(node);
-        const color = cssVar(signalColor(node.group).replace('var(', '').replace(')', ''), primary);
-        const pulse = reduceMotion ? 0 : (Math.sin(time / 620 + node.phaseSeed) + 1) / 2;
-
-        context.beginPath();
-        context.arc(x, y, radius + 6 + pulse * 4, 0, Math.PI * 2);
-        context.fillStyle = color;
-        context.globalAlpha = node.group === 'stage' ? 0.16 : 0.08 + pulse * 0.08;
-        context.fill();
-
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fillStyle = color;
-        context.globalAlpha = node.group === 'stage' ? 0.96 : 0.82;
-        context.fill();
-
-        if (node.group === 'stage' || node.group === 'task' || node.group === 'document' || node.group === 'risk') {
-          context.globalAlpha = 0.9;
-          context.fillStyle = text;
-          context.font = `700 10px ${cssVar('--font-body', 'Inter, sans-serif')}`;
-          context.textAlign = 'center';
-          context.fillText(node.label, x, y + radius + 14);
-        }
-      });
-    };
-
-    if (reduceMotion) {
-      simulation.tick(120);
-      draw();
-    } else {
-      simulation.on('tick', draw);
-      simulation.alpha(0.9).restart();
-      const animate = (time: number) => {
-        draw(time);
-        animationFrame = window.requestAnimationFrame(animate);
-      };
-      animationFrame = window.requestAnimationFrame(animate);
-    }
-
-    const handleResize = () => draw();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      if (animationFrame) {
-        window.cancelAnimationFrame(animationFrame);
-      }
-      simulation.stop();
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [links, nodes]);
-
-  return <canvas ref={canvasRef} className="dashboard-signal-canvas" aria-hidden="true" />;
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -627,74 +375,43 @@ function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardP
   };
 }
 
-function riskGraphOption(telemetry: DashboardTelemetry, palette: DashboardPalette): EChartsCoreOption {
+function constellationAnchor(index: number, total: number, category: 'course' | 'domain') {
+  const safeTotal = Math.max(total, 1);
+  const angle = (index / safeTotal) * Math.PI * 2 - Math.PI / 2;
+  const radiusX = category === 'domain' ? 0.28 : 0.17;
+  const radiusY = category === 'domain' ? 0.24 : 0.15;
+
   return {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      renderMode: 'richText',
-      borderColor: palette.border,
-      backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
-    },
-    legend: {
-      show: false,
-    },
-    series: [
-      {
-        type: 'graph',
-        layout: 'force',
-        roam: false,
-        draggable: false,
-        categories: [
-          { name: 'domain' },
-          { name: 'course' },
-        ],
-        data: telemetry.risk.riskGraph.nodes.map((node) => ({
-          id: node.id,
-          name: node.name,
-          value: node.value,
-          category: node.category,
-          symbolSize: node.category === 'domain'
-            ? Math.max(26, Math.min(58, 28 + node.value * 4))
-            : Math.max(18, Math.min(42, 16 + node.value * 1.6)),
-          itemStyle: {
-            color: toneColor(node.tone, palette),
-            borderColor: palette.card,
-            borderWidth: 1,
-          },
-          label: {
-            show: true,
-            color: palette.text,
-            fontSize: node.category === 'domain' ? 10 : 9,
-            fontWeight: node.category === 'domain' ? 800 : 700,
-          },
-        })),
-        links: telemetry.risk.riskGraph.links.map((link) => ({
-          source: link.source,
-          target: link.target,
-          value: link.value,
-          lineStyle: {
-            color: toneColor(link.tone, palette),
-            opacity: 0.34,
-            width: Math.max(1, Math.min(5, link.value / 3)),
-            curveness: 0.16,
-          },
-        })),
-        force: {
-          repulsion: 360,
-          edgeLength: [92, 168],
-          gravity: 0.045,
-        },
-        emphasis: {
-          focus: 'adjacency',
-          lineStyle: {
-            opacity: 0.72,
-          },
-        },
-      },
-    ],
+    x: 0.5 + Math.cos(angle) * radiusX,
+    y: 0.5 + Math.sin(angle) * radiusY,
   };
+}
+
+function dashboardRiskNeuronField(telemetry: DashboardTelemetry) {
+  const domains = telemetry.risk.riskGraph.nodes.filter((node) => node.category === 'domain');
+  const courses = telemetry.risk.riskGraph.nodes.filter((node) => node.category === 'course');
+  const nodes: NeuronSignalNode[] = telemetry.risk.riskGraph.nodes.map((node) => {
+    const peers = node.category === 'domain' ? domains : courses;
+    const index = peers.findIndex((peer) => peer.id === node.id);
+
+    return {
+      id: node.id,
+      label: node.name,
+      group: node.category === 'domain' ? 'domain' : 'course',
+      value: node.value,
+      detail: node.detail,
+      tone: node.tone,
+      anchor: constellationAnchor(index, peers.length, node.category),
+    };
+  });
+  const links: NeuronSignalLink[] = telemetry.risk.riskGraph.links.map((link) => ({
+    source: link.source,
+    target: link.target,
+    value: link.value,
+    tone: link.tone,
+  }));
+
+  return { links, nodes };
 }
 
 function CarepathPulseSankey({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
@@ -703,10 +420,19 @@ function CarepathPulseSankey({ palette, telemetry }: { palette: DashboardPalette
   return <DashboardEChart className="dashboard-echart dashboard-echart-sankey" option={option} ariaLabel="Carepath pulse sankey" />;
 }
 
-function RiskConstellationGraph({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
-  const option = useMemo(() => riskGraphOption(telemetry, palette), [palette, telemetry]);
+function RiskConstellationGraph({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const field = useMemo(() => dashboardRiskNeuronField(telemetry), [telemetry]);
 
-  return <DashboardEChart className="dashboard-echart dashboard-echart-graph" option={option} ariaLabel="Risk constellation graph" />;
+  return (
+    <div className="dashboard-neuron-field dashboard-echart dashboard-echart-graph">
+      <NeuronSignalField
+        ariaLabel="Risk constellation graph"
+        className="dashboard-signal-canvas"
+        links={field.links}
+        nodes={field.nodes}
+      />
+    </div>
+  );
 }
 
 function HandoffRunway({ telemetry }: { telemetry: DashboardTelemetry }) {
@@ -1023,7 +749,12 @@ function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
         <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized Patient-Course-Task Graph" />
         <div className="dashboard-signal-body">
           <div className="dashboard-signal-plot">
-            <SignalField nodes={telemetry.signal.nodes} links={telemetry.signal.links} />
+            <NeuronSignalField
+              ariaLabel="Live clinical signal field"
+              className="dashboard-signal-canvas"
+              links={telemetry.signal.links}
+              nodes={telemetry.signal.nodes}
+            />
           </div>
           <SignalLoad telemetry={telemetry} />
         </div>
@@ -1081,7 +812,7 @@ function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; 
   );
 }
 
-function RiskDashboard({ palette, telemetry }: { palette: DashboardPalette; telemetry: DashboardTelemetry }) {
+function RiskDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-panel dashboard-panel-risk" role="tabpanel" id="dashboard-panel-risk" aria-labelledby="dashboard-tab-risk">
       <article className="dashboard-card dashboard-safety-score-card">
@@ -1090,7 +821,7 @@ function RiskDashboard({ palette, telemetry }: { palette: DashboardPalette; tele
       </article>
       <article className="dashboard-card dashboard-risk-graph-card">
         <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized Course-To-Risk-Domain Graph" />
-        <RiskConstellationGraph telemetry={telemetry} palette={palette} />
+        <RiskConstellationGraph telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-intervention-card">
         <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-Priority Clinical Safety Actions" />
@@ -1143,7 +874,7 @@ export function DashboardTelemetryClient({ telemetry }: DashboardTelemetryClient
       <div className="dashboard-command-grid">
         {activePanel === 'ops' ? <OperationsDashboard telemetry={telemetry} /> : null}
         {activePanel === 'flow' ? <CarepathDashboard telemetry={telemetry} palette={palette} /> : null}
-        {activePanel === 'risk' ? <RiskDashboard telemetry={telemetry} palette={palette} /> : null}
+        {activePanel === 'risk' ? <RiskDashboard telemetry={telemetry} /> : null}
       </div>
     </section>
   );
