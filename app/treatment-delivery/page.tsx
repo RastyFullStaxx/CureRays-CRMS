@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
-import { Activity, AlertTriangle, CalendarDays, CheckCircle2, Clock3, Plus, ShieldCheck, UsersRound } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, Clock3, ShieldCheck, UsersRound } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
+import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { TreatmentDeliveryTabs } from '@/components/treatment-delivery/treatment-delivery-tabs';
@@ -20,6 +20,28 @@ export default function TreatmentDeliveryPage() {
   const held = fractions.filter((fraction) => fraction.status === "BLOCKED" || fraction.status === "OVERDUE").length || 2;
   const otvDue = fractions.filter((fraction) => fraction.otvRequired && !fraction.otvCompletedAt).length;
   const physicsDue = fractions.filter((fraction) => fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt).length;
+  const rows: SerializedTableRow[] = fractions.map((fraction, index) => {
+    const course = moduleSnapshot.treatmentCourses.find((item) => item.id === fraction.courseId);
+    const alerts = [
+      fraction.imageGuidanceStatus === "MISSING" ? "Image" : null,
+      fraction.otvRequired && !fraction.otvCompletedAt ? "OTV" : null,
+      fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt ? "Physics" : null,
+    ].filter(Boolean).join(", ") || "Clear";
+
+    return {
+      id: fraction.id,
+      patient: patientLabel(course?.patientId ?? ""),
+      course: fraction.courseId.replace("COURSE-", "C"),
+      fraction: `${fraction.fractionNumber} of ${course?.totalFractions ?? 20}`,
+      cumulativeDose: fraction.cumulativeDose,
+      apptTime: `${8 + index}:00 AM`,
+      room: index % 2 ? "Room 2" : "Room 1",
+      therapist: fraction.therapistId ?? "Unassigned",
+      status: statusLabel(fraction.status),
+      statusTone: statusTone(fraction.status),
+      alerts,
+    };
+  });
 
   return (
     <PageStack>
@@ -27,8 +49,8 @@ export default function TreatmentDeliveryPage() {
         title="Treatment Delivery"
         actions={
           <>
-            <Button variant="secondary" disabled><CalendarDays className="h-4 w-4" /> Today, May 6, 2026</Button>
-            <Button disabled><Plus className="h-4 w-4" /> Record Treatment</Button>
+            <PrototypeActionButton label="Today, May 6, 2026" icon="calendar" kind="schedule" description="Review the active treatment day and staged queue changes." />
+            <PrototypeActionButton label="Record Treatment" icon="plus" kind="review" variant="primary" description="Stage a treatment event here, or open a patient workspace Fractions tab for full worksheet entry." />
           </>
         }
       />
@@ -87,72 +109,31 @@ export default function TreatmentDeliveryPage() {
           ))}
         </div>
       </Card>
-      <DataTable
+      <SerializedDataTable
         columns={[
-          { key: 'patient', label: 'Patient', render: (row) => (
-            <span className="block truncate font-bold">{patientLabel(row.patientId)}</span>
-          )},
-          { key: 'course', label: 'Course', render: (row) => (
-            <span className="font-bold text-[var(--color-primary)]">{row.courseId.replace("COURSE-", "C")}</span>
-          )},
-          { key: 'fraction', label: 'Fraction', render: (row) => {
-            const course = moduleSnapshot.treatmentCourses.find((item) => item.id === row.courseId);
-            return `${row.fractionNumber} of ${course?.totalFractions ?? 20}`;
-          }},
-          { key: 'cumulativeDose', label: 'Cumulative Dose', render: (row) => `${row.cumulativeDose} cGy` },
+          { key: 'patient', label: 'Patient', kind: 'primary' },
+          { key: 'course', label: 'Course', kind: 'primary' },
+          { key: 'fraction', label: 'Fraction' },
+          { key: 'cumulativeDose', label: 'Cumulative Dose', suffix: 'cGy' },
           { key: 'apptTime', label: 'Appt Time' },
           { key: 'room', label: 'Room' },
-          { key: 'therapist', label: 'Therapist', render: (row) => row.therapistId ?? "Unassigned" },
-          { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
-          )},
-          { key: 'alerts', label: 'Alerts', render: (row) => (
-            <div className="flex flex-wrap gap-1">
-              {row.imageGuidanceStatus === "MISSING" ? <Badge variant="warning">IMG</Badge> : null}
-              {row.otvDue ? <Badge variant="warning">OTV</Badge> : null}
-              {row.physicsDue ? <Badge variant="info">PHYS</Badge> : null}
-              {row.imageGuidanceStatus !== "MISSING" && !row.otvDue && !row.physicsDue ? "-" : null}
-            </div>
-          )},
+          { key: 'therapist', label: 'Therapist' },
+          { key: 'status', label: 'Status', kind: 'status' },
+          { key: 'alerts', label: 'Alerts', kind: 'longText' },
         ]}
-        rows={fractions.map((fraction, index) => {
-          const course = moduleSnapshot.treatmentCourses.find((item) => item.id === fraction.courseId);
-          return {
-            id: fraction.id,
-            _index: index,
-            patientId: course?.patientId ?? "",
-            courseId: fraction.courseId,
-            fractionNumber: fraction.fractionNumber,
-            cumulativeDose: fraction.cumulativeDose,
-            apptTime: `${8 + index}:00 AM`,
-            room: index % 2 ? "Room 2" : "Room 1",
-            therapistId: fraction.therapistId,
-            status: fraction.status,
-            imageGuidanceStatus: fraction.imageGuidanceStatus,
-            otvDue: Boolean(fraction.otvRequired && !fraction.otvCompletedAt),
-            physicsDue: Boolean(fraction.physicsCheckRequired && !fraction.physicsCheckCompletedAt),
-          };
-        })}
+        rows={rows}
         empty="No treatment queue rows are available."
         emptyDescription="Scheduled fraction rows will appear after treatment delivery data is initialized."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, appointment, therapist, or fraction...',
-          getText: (row) => [
-            patientLabel(row.patientId),
-            row.courseId,
-            row.fractionNumber,
-            row.apptTime,
-            row.room,
-            row.therapistId,
-            statusLabel(row.status),
-          ].join(' '),
+          keys: ['patient', 'course', 'fraction', 'apptTime', 'room', 'therapist', 'status', 'alerts'],
         }}
         filters={[
           { id: 'room', label: 'Location' },
-          { id: 'therapistId', label: 'Therapist', getValue: (row) => row.therapistId ?? 'Unassigned' },
-          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
-          { id: 'alerts', label: 'Alerts', getValue: (row) => row.imageGuidanceStatus === "MISSING" ? 'Image' : row.otvDue ? 'OTV' : row.physicsDue ? 'Physics' : 'Clear' },
+          { id: 'therapist', label: 'Therapist' },
+          { id: 'status', label: 'Status' },
+          { id: 'alerts', label: 'Alerts' },
         ]}
       />
     </PageStack>

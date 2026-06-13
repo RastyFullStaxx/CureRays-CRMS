@@ -1,15 +1,13 @@
 export const dynamic = 'force-dynamic';
 
-import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Flag, Plus } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ClipboardList, Flag } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { moduleSnapshot, patientLabel, patientMrn, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
-import { mapTone } from "@/lib/status-utils";
 
 export default function CoursesPage() {
   const courses = moduleSnapshot.courses;
@@ -18,6 +16,27 @@ export default function CoursesPage() {
   const onTreatment = courses.filter((course) => course.simpleDashboardPhase === "ON_TREATMENT").length;
   const post = courses.filter((course) => course.simpleDashboardPhase === "POST").length;
   const blocked = courses.filter((course) => course.flagsIssues.length || course.status === "BLOCKED").length;
+  const rows: SerializedTableRow[] = courses.map((course) => ({
+    id: course.id,
+    course: course.id.replace("COURSE-", "C"),
+    courseNumber: course.courseNumber,
+    patient: patientLabel(course.patientId),
+    mrn: patientMrn(course.patientId),
+    diagnosis: course.diagnosisType,
+    diagnosisVariant: course.diagnosisType === "Skin" ? "info" : course.diagnosisType === "Arthritis" ? "success" : "primary",
+    site: course.treatmentSite,
+    location: course.location,
+    physician: course.physicianId ?? "Unassigned",
+    phase: phaseLabel(course.currentPhase),
+    phaseTone: statusTone(course.currentPhase),
+    status: statusLabel(course.status),
+    statusTone: statusTone(course.status),
+    startDate: course.startDate ?? "",
+    endDate: course.endDate ?? "",
+    nextAction: course.nextAction,
+    flags: course.flagsIssues.length > 0,
+    staff: course.assignedStaff.join(", "),
+  }));
 
   return (
     <PageStack>
@@ -26,8 +45,8 @@ export default function CoursesPage() {
         subtitle="Manage treatment courses across all patients"
         actions={
           <>
-            <Button variant="secondary" disabled><CalendarDays className="h-4 w-4" /> Export</Button>
-            <Button disabled><Plus className="h-4 w-4" /> New Course</Button>
+            <PrototypeActionButton label="Export" icon="calendar" kind="export" description="Prepare a tokenized course list for operations review." />
+            <PrototypeActionButton label="New Course" icon="plus" kind="create" variant="primary" description="Stage a new course bundle with workflow, task, document, folder, and audit placeholders." />
           </>
         }
       />
@@ -38,72 +57,36 @@ export default function CoursesPage() {
         <StatCard icon={Flag} label="Post-Tx" value={post} sub="Summary and audit" tone="primary" />
         <StatCard icon={AlertTriangle} label="Needs Action" value={blocked} sub="Blocked or flagged" tone="warning" />
       </StatGrid>
-      <DataTable
+      <SerializedDataTable
         columns={[
-          { key: 'course', label: 'Course', render: (row) => (
-            <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-primary)]">{row.id.replace("COURSE-", "C")}</p>
-              <p className="truncate text-[11px] text-[var(--color-text-muted)]">{row.courseNumber}</p>
-            </div>
-          )},
-          { key: 'patient', label: 'Patient', render: (row) => (
-            <span className="block truncate font-bold">{patientLabel(row.patientId)}</span>
-          )},
-          { key: 'mrn', label: 'MRN', render: (row) => patientMrn(row.patientId) },
-          { key: 'diagnosis', label: 'Diagnosis', render: (row) => (
-            <Badge variant={row.diagnosisType === "Skin" ? "info" : row.diagnosisType === "Arthritis" ? "success" : "primary"}>{row.diagnosisType}</Badge>
-          )},
-          { key: 'site', label: 'Site', render: (row) => (
-            <span className="block truncate">{row.treatmentSite}</span>
-          )},
-          { key: 'location', label: 'Location', render: (row) => (
-            <span className="block truncate text-[var(--color-text-muted)]">{row.location}</span>
-          )},
-          { key: 'physician', label: 'Physician', render: (row) => (
-            <span className="block truncate">{row.physicianId ?? "Unassigned"}</span>
-          )},
-          { key: 'phase', label: 'Phase', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.currentPhase))}>{phaseLabel(row.currentPhase)}</Badge>
-          )},
-          { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
-          )},
-          { key: 'startDate', label: 'Start Date', render: (row) => row.startDate ? new Date(row.startDate).toLocaleDateString() : "-" },
-          { key: 'endDate', label: 'End Date', render: (row) => row.endDate ? new Date(row.endDate).toLocaleDateString() : "-" },
-          { key: 'nextAction', label: 'Next Action', render: (row) => (
-            <span className="line-clamp-2">{row.nextAction}</span>
-          )},
-          { key: 'flags', label: 'Flags', render: (row) => (
-            row.flagsIssues.length ? <Flag className="h-4 w-4 text-[var(--color-error)]" aria-hidden="true" /> : <span className="text-[var(--color-text-muted)]">-</span>
-          )},
-          { key: 'staff', label: 'Staff', render: (row) => (
-            <span className="block truncate">{row.assignedStaff.join(", ")}</span>
-          )},
+          { key: 'course', label: 'Course', kind: 'primary', subKey: 'courseNumber' },
+          { key: 'patient', label: 'Patient', kind: 'primary' },
+          { key: 'mrn', label: 'MRN' },
+          { key: 'diagnosis', label: 'Diagnosis', kind: 'badge', variant: 'info' },
+          { key: 'site', label: 'Site' },
+          { key: 'location', label: 'Location', kind: 'muted' },
+          { key: 'physician', label: 'Physician' },
+          { key: 'phase', label: 'Phase', kind: 'status', toneKey: 'phaseTone' },
+          { key: 'status', label: 'Status', kind: 'status' },
+          { key: 'startDate', label: 'Start Date', kind: 'date' },
+          { key: 'endDate', label: 'End Date', kind: 'date' },
+          { key: 'nextAction', label: 'Next Action', kind: 'longText' },
+          { key: 'flags', label: 'Flags', kind: 'flag' },
+          { key: 'staff', label: 'Staff' },
         ]}
-        rows={courses}
+        rows={rows}
         empty="No treatment courses are available."
         emptyDescription="Courses will appear after a patient/course bundle is created."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, diagnosis, course, or next action...',
-          getText: (row) => [
-            row.id,
-            row.courseNumber,
-            patientLabel(row.patientId),
-            patientMrn(row.patientId),
-            row.diagnosisType,
-            row.treatmentSite,
-            row.location,
-            row.physicianId,
-            row.status,
-            row.nextAction,
-          ].join(' '),
+          keys: ['course', 'courseNumber', 'patient', 'mrn', 'diagnosis', 'site', 'location', 'physician', 'status', 'nextAction'],
         }}
         filters={[
-          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.currentPhase) },
-          { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
-          { id: 'physician', label: 'Physician', getValue: (row) => row.physicianId ?? 'Unassigned' },
-          { id: 'diagnosisType', label: 'Diagnosis' },
+          { id: 'phase', label: 'Phase' },
+          { id: 'status', label: 'Status' },
+          { id: 'physician', label: 'Physician' },
+          { id: 'diagnosis', label: 'Diagnosis' },
         ]}
       />
     </PageStack>

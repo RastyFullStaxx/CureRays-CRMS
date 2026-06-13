@@ -1,4 +1,4 @@
-import { Archive, CheckCircle2, FileText, Plus, ShieldCheck, Upload } from 'lucide-react';
+import { Archive, CheckCircle2, FileText, ShieldCheck } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
@@ -6,7 +6,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import {
   documentRequirements,
   fieldMapForRequirement,
@@ -120,8 +120,8 @@ export default function TemplatesPage() {
         subtitle="Phase 4 registry, field-map, approval, placeholder, and source-hash control"
         actions={
           <>
-            <Button variant="secondary" disabled><Upload className="h-4 w-4" /> Upload Template</Button>
-            <Button disabled><Plus className="h-4 w-4" /> Create Template</Button>
+            <PrototypeActionButton label="Upload Template" icon="upload" kind="upload" description="Stage a template source for registry review without syncing external storage." />
+            <PrototypeActionButton label="Create Template" icon="plus" kind="document" variant="primary" description="Create a prototype template requirement and field-map review item." />
           </>
         }
       />

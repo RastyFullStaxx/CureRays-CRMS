@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import { FileText } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from '@/components/shared/data-table';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { generatedDocuments, treatmentCourses } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, patientActiveCourse } from '@/lib/workflow';
@@ -36,6 +36,7 @@ export default async function PatientDocumentsPage({ params }: { params: Promise
       <PageHeader
         title="Documents"
         subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')}`}
+        actions={<PrototypeActionButton label="Generate Document" icon="file" kind="document" variant="primary" description="Queue a simulated document render for this patient course." />}
         breadcrumb={[
           { label: 'Patients', href: '/patients' },
           { label: patient.firstName + ' ' + patient.lastName, href: `/patients/${patient.id}` },

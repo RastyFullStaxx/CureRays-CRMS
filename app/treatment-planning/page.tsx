@@ -1,15 +1,13 @@
 export const dynamic = 'force-dynamic';
 
-import Link from "next/link";
-import { AlertTriangle, CalendarCheck2, ExternalLink, PenLine, Plus, Radiation, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CalendarCheck2, PenLine, Radiation, ShieldCheck } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
+import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
 import { Badge } from '@/components/ui/badge';
-import { Phase6PlanningActions } from "@/components/treatment-planning/phase6-planning-actions";
 import {
   getPhase6GateStatuses,
   getPhase6PlanningReadiness,
@@ -19,7 +17,6 @@ import {
   statusLabel,
   statusTone
 } from "@/lib/services/operational-page-service";
-import { mapTone } from "@/lib/status-utils";
 
 export default function TreatmentPlanningPage() {
   const plans = moduleSnapshot.plans.map((plan) => ({
@@ -34,13 +31,44 @@ export default function TreatmentPlanningPage() {
   const gated = plans.filter((plan) => plan.gates.imagingGateStatus.status === "BLOCKED").length;
   const clinicalValidationChecklist = plans[0]?.readiness.clinicalValidationChecklist;
   const clinicalGateBlocked = plans.filter((plan) => plan.readiness.clinicalValidationChecklist.productionUseBlocked).length;
+  const rows: SerializedTableRow[] = plans.map((plan) => ({
+    id: plan.id,
+    planId: plan.id,
+    patientCourse: `${patientLabel(plan.patientId)} / ${plan.courseId.replace("COURSE-", "C")}`,
+    diagnosis: plan.diagnosisType,
+    diagnosisTone: plan.diagnosisType === "Skin" ? "info" : "primary",
+    site: plan.site,
+    energy: plan.energy ?? "Pending",
+    applicator: plan.applicatorSize ?? "Pending",
+    doi: plan.depthOfInvasion ?? "Pending",
+    dose: plan.dosePerFraction ?? "Pending",
+    totalDose: plan.totalDose ?? "Pending",
+    fractions: plan.totalFractions ?? "Pending",
+    coverage: plan.percentDepthDose ? `${plan.percentDepthDose}%` : "Pending",
+    readiness: plan.readiness.status.replaceAll("_", " "),
+    readinessTone: plan.readiness.missingInputs.length ? "warning" : "info",
+    readinessNotes: plan.readiness.missingInputs.slice(0, 2).join(", ") || "Complete",
+    schedule: `${plan.readiness.scheduledFractions}/${plan.readiness.plannedFractions || plan.totalFractions || 0}`,
+    gates: `IMG ${plan.gates.imagingGateStatus.dueFractions.length}, PHYS ${plan.gates.physicsCheckDueStatus.dueFractions.length}, OTV ${plan.gates.otvDueStatus.dueFractions.length}`,
+    signoff: `${plan.readiness.clinicianSignoffStatus} (${plan.readiness.clinicalValidationChecklist.referenceVersion})`,
+    physics: statusLabel(plan.physicistReviewStatus),
+    physicsTone: statusTone(plan.physicistReviewStatus),
+    radOnc: statusLabel(plan.radOncSignatureStatus),
+    radOncTone: statusTone(plan.radOncSignatureStatus),
+    status: plan.lockedAt ? "Locked" : "In Progress",
+    statusTone: statusTone(plan.lockedAt ? "SIGNED" : "IN_PROGRESS"),
+    worksheetHref: `/patients/${plan.patientId}?tab=fractions`,
+    scheduleDescription: plan.readiness.missingInputs.length
+      ? `Planning schedule is blocked by ${plan.readiness.missingInputs.slice(0, 2).join(", ")}.`
+      : "Generate the demo schedule from prescription, clinical gates, and fraction cadence.",
+  }));
 
   return (
     <PageStack>
       <PageHeader
         title="Treatment Planning"
         subtitle="Plan creation, physics review, and signature routing"
-        actions={<Button disabled><Plus className="h-4 w-4" /> New Plan</Button>}
+        actions={<PrototypeActionButton label="New Plan" icon="plus" kind="create" variant="primary" description="Stage a treatment plan with prescription, review, and schedule gates." />}
       />
       <StatGrid>
         <StatCard icon={Radiation} label="Plans in Progress" value={plans.length - locked} sub="Open planning work" />
@@ -50,114 +78,50 @@ export default function TreatmentPlanningPage() {
         <StatCard icon={AlertTriangle} label="Gated" value={gated} sub="Imaging or review gates" tone="warning" />
         <StatCard icon={ShieldCheck} label="Clinical Gate" value={clinicalGateBlocked} sub="Production sign-off required" tone="warning" />
       </StatGrid>
-      <DataTable
+      <SerializedDataTable
         columns={[
-          { key: 'planId', label: 'Plan ID', render: (row) => (
-            <span className="font-bold text-[var(--color-primary)]">{row.id}</span>
-          )},
-          { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
-            <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
-          )},
-          { key: 'diagnosis', label: 'Diagnosis', render: (row) => (
-            <Badge variant={row.diagnosisType === "Skin" ? "info" : "primary"}>{row.diagnosisType}</Badge>
-          )},
-          { key: 'site', label: 'Site', render: (row) => (
-            <span className="block truncate">{row.site}</span>
-          )},
-          { key: 'energy', label: 'Energy', render: (row) => row.energy ?? "Pending" },
-          { key: 'applicator', label: 'Applicator', render: (row) => row.applicatorSize ?? "Pending" },
-          { key: 'doi', label: 'DOI', render: (row) => row.depthOfInvasion ?? "Pending" },
-          { key: 'dose', label: 'Dose', render: (row) => row.dosePerFraction ?? "Pending" },
-          { key: 'totalDose', label: 'Total Dose', render: (row) => row.totalDose ?? "Pending" },
-          { key: 'fractions', label: 'Fractions', render: (row) => row.totalFractions ?? "Pending" },
-          { key: 'coverage', label: 'Coverage', render: (row) => row.percentDepthDose ? `${row.percentDepthDose}%` : "Pending" },
-          { key: 'readiness', label: 'Readiness', render: (row) => (
-            <div className="grid gap-1">
-              <Badge variant={row.readiness.missingInputs.length ? "warning" : "info"}>
-                {row.readiness.status.replaceAll("_", " ")}
-              </Badge>
-              {row.readiness.missingInputs.length ? (
-                <span className="text-xs font-semibold text-[var(--color-text-muted)]">
-                  {row.readiness.missingInputs.slice(0, 2).join(", ")}
-                </span>
-              ) : null}
-            </div>
-          )},
-          { key: 'schedule', label: 'Schedule', render: (row) => (
-            <span className="font-semibold text-[var(--color-text)]">
-              {row.readiness.scheduledFractions}/{row.readiness.plannedFractions || row.totalFractions || 0}
-            </span>
-          )},
-          { key: 'gates', label: 'Gates', render: (row) => (
-            <div className="flex flex-wrap gap-1">
-              <Badge variant={row.gates.imagingGateStatus.status === "BLOCKED" ? "warning" : "success"}>
-                IMG {row.gates.imagingGateStatus.dueFractions.length}
-              </Badge>
-              <Badge variant={row.gates.physicsCheckDueStatus.dueFractions.length ? "warning" : "success"}>
-                PHYS {row.gates.physicsCheckDueStatus.dueFractions.length}
-              </Badge>
-              <Badge variant={row.gates.otvDueStatus.dueFractions.length ? "warning" : "success"}>
-                OTV {row.gates.otvDueStatus.dueFractions.length}
-              </Badge>
-            </div>
-          )},
-          { key: 'signoff', label: 'Sign-off', render: (row) => (
-            <div className="grid gap-1">
-              <Badge variant="warning">{row.readiness.clinicianSignoffStatus}</Badge>
-              <span className="text-xs font-semibold text-[var(--color-text-muted)]">
-                {row.readiness.clinicalValidationChecklist.referenceVersion}
-              </span>
-            </div>
-          )},
-          { key: 'physics', label: 'Physics', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.physicistReviewStatus))}>{statusLabel(row.physicistReviewStatus)}</Badge>
-          )},
-          { key: 'radOnc', label: 'Rad Onc', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.radOncSignatureStatus))}>{statusLabel(row.radOncSignatureStatus)}</Badge>
-          )},
-          { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(statusTone(row.lockedAt ? "SIGNED" : "IN_PROGRESS"))}>{row.lockedAt ? "Locked" : "In Progress"}</Badge>
-          )},
-          { key: 'actions', label: 'Actions', render: (row) => (
-            <div className="flex flex-wrap items-center gap-2">
-              {!row.readiness.scheduleGenerated ? (
-                <Phase6PlanningActions courseId={row.courseId} disabled={row.readiness.missingInputs.length > 0} />
-              ) : null}
-              <Link href={`/patients/${row.patientId}?tab=fractions`}>
-                <Button type="button" size="sm" variant="secondary">
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                  Worksheet
-                </Button>
-              </Link>
-            </div>
-          )},
+          { key: 'planId', label: 'Plan ID', kind: 'primary' },
+          { key: 'patientCourse', label: 'Patient / Course' },
+          { key: 'diagnosis', label: 'Diagnosis', kind: 'status', toneKey: 'diagnosisTone' },
+          { key: 'site', label: 'Site', kind: 'longText' },
+          { key: 'energy', label: 'Energy' },
+          { key: 'applicator', label: 'Applicator' },
+          { key: 'doi', label: 'DOI' },
+          { key: 'dose', label: 'Dose' },
+          { key: 'totalDose', label: 'Total Dose' },
+          { key: 'fractions', label: 'Fractions' },
+          { key: 'coverage', label: 'Coverage' },
+          { key: 'readiness', label: 'Readiness', kind: 'status', toneKey: 'readinessTone' },
+          { key: 'readinessNotes', label: 'Missing Inputs', kind: 'longText' },
+          { key: 'schedule', label: 'Schedule' },
+          { key: 'gates', label: 'Gates', kind: 'longText' },
+          { key: 'signoff', label: 'Sign-off', kind: 'longText' },
+          { key: 'physics', label: 'Physics', kind: 'status', toneKey: 'physicsTone' },
+          { key: 'radOnc', label: 'Rad Onc', kind: 'status', toneKey: 'radOncTone' },
+          { key: 'status', label: 'Status', kind: 'status' },
+          {
+            key: 'actions',
+            label: 'Actions',
+            kind: 'actions',
+            actions: [
+              { label: 'Schedule', icon: 'calendar', kind: 'schedule', descriptionKey: 'scheduleDescription' },
+              { label: 'Worksheet', hrefKey: 'worksheetHref' },
+            ],
+          },
         ]}
-        rows={plans}
+        rows={rows}
         empty="No treatment plans are available."
         emptyDescription="Plan rows will appear after course planning data is initialized."
         pageSize={10}
         search={{
           placeholder: 'Search patient, MRN, diagnosis, site, energy, or plan status...',
-          getText: (row) => [
-            row.id,
-            patientLabel(row.patientId),
-            row.courseId,
-            row.diagnosisType,
-            row.site,
-            row.energy,
-            row.applicatorSize,
-            row.readiness.status,
-            row.readiness.missingInputs.join(' '),
-            row.physicistReviewStatus,
-            row.radOncSignatureStatus,
-            row.lockedAt ? 'Locked' : 'In Progress',
-          ].join(' '),
+          keys: ['planId', 'patientCourse', 'diagnosis', 'site', 'energy', 'applicator', 'readiness', 'readinessNotes', 'physics', 'radOnc', 'status'],
         }}
         filters={[
-          { id: 'diagnosisType', label: 'Diagnosis' },
-          { id: 'status', label: 'Status', getValue: (row) => row.lockedAt ? 'Locked' : 'In Progress' },
-          { id: 'physics', label: 'Physics', getValue: (row) => statusLabel(row.physicistReviewStatus) },
-          { id: 'radOnc', label: 'Rad Onc', getValue: (row) => statusLabel(row.radOncSignatureStatus) },
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'status', label: 'Status' },
+          { id: 'physics', label: 'Physics' },
+          { id: 'radOnc', label: 'Rad Onc' },
         ]}
       />
       {clinicalValidationChecklist ? (

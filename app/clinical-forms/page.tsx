@@ -1,23 +1,32 @@
 export const dynamic = 'force-dynamic';
 
-import { CheckCircle2, Eye, FileText, NotebookTabs, PenLine, Plus, RefreshCw, Route, Workflow } from "lucide-react";
+import { CheckCircle2, FileText, NotebookTabs, PenLine, RefreshCw, Route } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { clinicalDocumentRows, moduleSnapshot, patientLabel, patientMrn, statusLabel, statusTone } from "@/lib/services/operational-page-service";
+import { clinicalDocumentRows, patientLabel, patientMrn, statusLabel, statusTone } from "@/lib/services/operational-page-service";
 import { handJointRows } from '@/lib/services/operational-page-service';
-import { mapTone } from "@/lib/status-utils";
 
 export default function ClinicalFormsPage() {
   const documents = clinicalDocumentRows;
-  const templates = moduleSnapshot.clinicalFormTemplates;
   const missingFields = documents.filter((document) => document.status === "BLOCKED" || document.status === "NOT_STARTED").length;
+  const rows: SerializedTableRow[] = documents.map((document) => ({
+    id: document.id,
+    title: document.title,
+    patient: patientLabel(document.patientId),
+    mrn: patientMrn(document.patientId),
+    formType: document.formType,
+    phase: document.phase,
+    status: statusLabel(document.status),
+    statusTone: statusTone(document.status),
+    lastUpdated: document.generatedAt ?? "Pending",
+    assignedStaff: document.assignedStaff,
+  }));
 
   return (
     <ScrollArea axis="y" className="flex-1 pr-1">
@@ -25,7 +34,7 @@ export default function ClinicalFormsPage() {
         <PageHeader
           title="Clinical Forms"
           subtitle="Structured clinical documentation and form management"
-          actions={<Button disabled><Plus className="h-4 w-4" /> New Clinical Form</Button>}
+          actions={<PrototypeActionButton label="New Clinical Form" icon="plus" kind="create" variant="primary" description="Stage a structured clinical form from the active template registry." />}
         />
         <StatGrid>
           <StatCard icon={NotebookTabs} label="Drafts" value={documents.filter((document) => document.status === "NOT_STARTED").length || 8} sub="Structured forms" />
@@ -35,51 +44,33 @@ export default function ClinicalFormsPage() {
           <StatCard icon={RefreshCw} label="Existing Documents" value={documents.length} sub="Editable through fields" />
         </StatGrid>
         <div className="min-h-[520px] flex-none" style={{ marginTop: '-1px' }}>
-          <DataTable
+          <SerializedDataTable
             className="min-h-[520px] flex-none"
             columns={[
-              { key: 'title', label: 'Document Name', render: (row) => (
-                <span className="block truncate font-bold text-[var(--color-primary)]">{row.title}</span>
-              )},
-              { key: 'patient', label: 'Patient', render: (row) => (
-                <span className="block truncate">{patientLabel(row.patientId)}</span>
-              )},
-              { key: 'mrn', label: 'MRN', render: (row) => patientMrn(row.patientId) },
+              { key: 'title', label: 'Document Name', kind: 'primary' },
+              { key: 'patient', label: 'Patient' },
+              { key: 'mrn', label: 'MRN' },
               { key: 'formType', label: 'Form Type' },
-              { key: 'phase', label: 'Phase', render: (row) => (
-                <Badge variant="info">{row.phase}</Badge>
-              )},
-              { key: 'status', label: 'Status', render: (row) => (
-                <Badge variant={mapTone(statusTone(row.status))}>{statusLabel(row.status)}</Badge>
-              )},
-              { key: 'lastUpdated', label: 'Last Updated', render: (row) => row.generatedAt ?? "Pending" },
+              { key: 'phase', label: 'Phase', kind: 'badge', variant: 'info' },
+              { key: 'status', label: 'Status', kind: 'status' },
+              { key: 'lastUpdated', label: 'Last Updated' },
               { key: 'assignedStaff', label: 'Assigned Staff' },
-              { key: 'actions', label: 'Actions', render: () => (
-                <div className="flex flex-wrap gap-1.5">
-                  <Button variant="secondary" size="sm" disabled><Eye className="h-3.5 w-3.5" /> Open</Button>
-                  <Button variant="secondary" size="sm" disabled><PenLine className="h-3.5 w-3.5" /> Edit Fields</Button>
-                </div>
-              )},
+              { key: 'actions', label: 'Actions', kind: 'actions', actions: [
+                { label: 'Open', icon: 'eye', kind: 'review', description: 'Open a PHI-safe form review panel for this demo row.' },
+                { label: 'Edit Fields', icon: 'pen', kind: 'review', description: 'Stage structured field edits before document regeneration.' },
+              ]},
             ]}
-            rows={documents}
+            rows={rows}
             empty="No clinical forms are available."
             emptyDescription="Structured forms will appear after document instances are generated."
             pageSize={10}
             search={{
               placeholder: 'Search form, document, patient, MRN, status, or reviewer...',
-              getText: (row) => [
-                row.title,
-                patientLabel(row.patientId),
-                patientMrn(row.patientId),
-                row.formType,
-                row.phase,
-                statusLabel(row.status),
-                row.assignedStaff,
-              ].join(' '),
+              keys: ['title', 'patient', 'mrn', 'formType', 'phase', 'status', 'assignedStaff'],
             }}
             filters={[
               { id: 'formType', label: 'Form Type' },
-              { id: 'status', label: 'Status', getValue: (row) => statusLabel(row.status) },
+              { id: 'status', label: 'Status' },
               { id: 'phase', label: 'Phase' },
               { id: 'assignedStaff', label: 'Reviewer' },
             ]}

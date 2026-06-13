@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
 import { DataTable } from '@/components/shared/data-table';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { FractionWorksheetPanel } from '@/components/fraction-worksheet-panel';
 import type {
   AuditCheck,
@@ -235,7 +236,7 @@ export function PatientWorkspace({
               </p>
             </div>
           }
-          toolbarActions={<Button type="button" variant="secondary" disabled>Advance step</Button>}
+          toolbarActions={<PrototypeActionButton label="Advance step" icon="play" kind="review" description="Stage a workflow step advancement after reviewing blockers and signatures." />}
           columns={[
             { key: 'step', label: 'Step', render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.step}</span> },
             { key: 'phase', label: 'Phase', render: (row) => <Badge variant="primary">{row.phase}</Badge> },
@@ -275,7 +276,7 @@ export function PatientWorkspace({
               <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{urgentTasks.length} high-priority item(s)</p>
             </div>
           }
-          toolbarActions={<Button type="button" variant="secondary" disabled>Create task</Button>}
+          toolbarActions={<PrototypeActionButton label="Create task" icon="plus" kind="create" description="Stage a course task with role ownership and due date." />}
           columns={[
             { key: 'title', label: 'Task', render: (row) => <span className="font-bold">{row.title}</span> },
             { key: 'priority', label: 'Priority', render: (row) => <Badge variant={row.priority === 'URGENT' ? 'error' : row.priority === 'HIGH' ? 'warning' : 'default'}>{row.priority}</Badge> },
@@ -311,7 +312,7 @@ export function PatientWorkspace({
                   Review available forms before generating or editing clinical notes.
                 </p>
               </div>
-              <Button type="button" variant="secondary" disabled>Open form builder</Button>
+              <PrototypeActionButton label="Open form builder" icon="file" kind="create" description="Open a prototype structured-form workflow for this course." />
             </div>
           </Card>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -434,7 +435,7 @@ export function PatientWorkspace({
               <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{missingImageFractions.length} missing image gate(s)</p>
             </div>
           }
-          toolbarActions={<Button type="button" variant="secondary" disabled>Attach image</Button>}
+          toolbarActions={<PrototypeActionButton label="Attach image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
           columns={[
             { key: 'category', label: 'Image / Evidence', render: (row) => <span className="font-bold">{row.category}</span> },
             { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.phase)}</Badge> },
@@ -469,7 +470,7 @@ export function PatientWorkspace({
               <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{unsignedDocs.length} unsigned document(s)</p>
             </div>
           }
-          toolbarActions={<Button type="button" variant="secondary" disabled>Generate document</Button>}
+          toolbarActions={<PrototypeActionButton label="Generate document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
           columns={[
             { key: 'title', label: 'Document', render: (row) => <span className="font-bold">{row.title}</span> },
             { key: 'category', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.category)}</Badge> },
@@ -577,9 +578,7 @@ export function PatientWorkspace({
                 Start here to see what needs attention before opening a form or recording treatment.
               </p>
             </div>
-            <Button type="button" variant="secondary" disabled>
-              Prototype actions
-            </Button>
+            <PrototypeActionButton label="Prototype actions" icon="settings" kind="review" description="Run a local demo action after reviewing this course command board." />
           </div>
           <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
             <ReviewTile

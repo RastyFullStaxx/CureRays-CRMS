@@ -1,18 +1,32 @@
 export const dynamic = 'force-dynamic';
 
-import { Camera, FileImage, Image as ImageIcon, Plus, Upload } from "lucide-react";
+import { Camera, FileImage, Image as ImageIcon, Upload } from "lucide-react";
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
-import { DataTable } from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { moduleSnapshot, patientLabel, phaseLabel } from "@/lib/services/operational-page-service";
 
 export default function ImagingPage() {
   const assets = moduleSnapshot.imagingAssets;
   const categories = moduleSnapshot.imagingCategories;
+  const rows: SerializedTableRow[] = assets.map((asset) => {
+    const modality = asset.category.includes("X-ray") ? "X-ray" : asset.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo";
+    return {
+      id: asset.id,
+      preview: "Image",
+      name: asset.category,
+      patientCourse: `${patientLabel(asset.patientId)} / ${asset.courseId.replace("COURSE-", "C")}`,
+      modality,
+      phase: phaseLabel(asset.phase),
+      uploaded: asset.uploadedAt ?? "",
+      uploader: asset.uploadedByUserId ?? "Unassigned",
+      status: asset.uploadedAt ? "Tagged" : "Queued",
+      statusTone: asset.uploadedAt ? "green" : "orange",
+    };
+  });
 
   return (
     <PageStack>
@@ -21,8 +35,8 @@ export default function ImagingPage() {
         subtitle="Manage imaging assets and required categories"
         actions={
           <>
-            <Button variant="secondary" disabled><Upload className="h-4 w-4" /> Upload Imaging</Button>
-            <Button disabled><Plus className="h-4 w-4" /> New Imaging Study</Button>
+            <PrototypeActionButton label="Upload Imaging" icon="upload" kind="upload" description="Stage imaging evidence with category and phase metadata." />
+            <PrototypeActionButton label="New Imaging Study" icon="plus" kind="create" variant="primary" description="Create a prototype imaging study record linked to a course phase." />
           </>
         }
       />
@@ -33,50 +47,29 @@ export default function ImagingPage() {
         <StatCard icon={ImageIcon} label="Clinical Photos" value={assets.filter((asset) => asset.category.toLowerCase().includes("lesion")).length} sub="Skin evidence" tone="warning" />
         <StatCard icon={Upload} label="Missing Required" value={Math.max(categories.length - assets.length, 0)} sub="Asset gaps" tone="error" />
       </StatGrid>
-      <DataTable
+      <SerializedDataTable
         columns={[
-          { key: 'preview', label: 'Preview', render: () => (
-            <span className="grid h-10 w-10 place-items-center rounded-lg" style={{ background: 'color-mix(in srgb, var(--color-primary) 9%, var(--color-card))', color: 'var(--color-primary)' }}>
-              <ImageIcon className="h-5 w-5" />
-            </span>
-          )},
-          { key: 'name', label: 'Study Name', render: (row) => (
-            <span className="block truncate font-bold text-[var(--color-primary)]">{row.category}</span>
-          )},
-          { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
-            <span className="block truncate">{patientLabel(row.patientId)} / {row.courseId.replace("COURSE-", "C")}</span>
-          )},
-          { key: 'modality', label: 'Modality', render: (row) => (
-            <Badge variant="info">{row.category.includes("X-ray") ? "X-ray" : row.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo"}</Badge>
-          )},
-          { key: 'phase', label: 'Phase', render: (row) => (
-            <Badge variant="info">{phaseLabel(row.phase)}</Badge>
-          )},
-          { key: 'uploaded', label: 'Uploaded', render: (row) => row.uploadedAt ? new Date(row.uploadedAt).toLocaleDateString() : "Pending" },
-          { key: 'uploader', label: 'Uploader', render: (row) => row.uploadedByUserId ?? "Unassigned" },
-          { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={row.uploadedAt ? "success" : "warning"}>{row.uploadedAt ? "Tagged" : "Queued"}</Badge>
-          )},
+          { key: 'preview', label: 'Preview', kind: 'icon' },
+          { key: 'name', label: 'Study Name', kind: 'primary' },
+          { key: 'patientCourse', label: 'Patient / Course' },
+          { key: 'modality', label: 'Modality', kind: 'badge', variant: 'info' },
+          { key: 'phase', label: 'Phase', kind: 'badge', variant: 'info' },
+          { key: 'uploaded', label: 'Uploaded', kind: 'date' },
+          { key: 'uploader', label: 'Uploader' },
+          { key: 'status', label: 'Status', kind: 'status' },
         ]}
-        rows={assets}
+        rows={rows}
         empty="No imaging assets are available."
         emptyDescription="Tagged imaging evidence will appear after assets are attached to a course."
         pageSize={10}
         search={{
           placeholder: 'Search modality, category, phase, patient, uploader, or status...',
-          getText: (row) => [
-            row.category,
-            patientLabel(row.patientId),
-            row.courseId,
-            phaseLabel(row.phase),
-            row.uploadedByUserId,
-            row.uploadedAt ? 'Tagged' : 'Queued',
-          ].join(' '),
+          keys: ['name', 'patientCourse', 'modality', 'phase', 'uploader', 'status'],
         }}
         filters={[
-          { id: 'modality', label: 'Modality', getValue: (row) => row.category.includes("X-ray") ? "X-ray" : row.category.includes("Ultrasound") ? "Ultrasound" : "Clinical Photo" },
-          { id: 'phase', label: 'Phase', getValue: (row) => phaseLabel(row.phase) },
-          { id: 'status', label: 'Status', getValue: (row) => row.uploadedAt ? 'Tagged' : 'Queued' },
+          { id: 'modality', label: 'Modality' },
+          { id: 'phase', label: 'Phase' },
+          { id: 'status', label: 'Status' },
         ]}
       />
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">

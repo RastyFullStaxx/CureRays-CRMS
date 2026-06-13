@@ -10,6 +10,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
@@ -223,14 +224,8 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
               <ArrowRight className="h-4 w-4" />
               Advance
             </Button>
-            <Button type="button" variant="secondary" disabled>
-              <FileText className="h-4 w-4" />
-              Export
-            </Button>
-            <Button type="button" variant="secondary" disabled>
-              <Pencil className="h-4 w-4" />
-              Customize
-            </Button>
+            <PrototypeActionButton label="Export" icon="file" kind="export" description="Prepare a tokenized workflow status export." />
+            <PrototypeActionButton label="Customize" icon="pen" kind="settings" description="Stage workflow definition changes for admin review." />
           </>
         }
       />
