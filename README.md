@@ -22,10 +22,11 @@ Current project status as of 2026-06-14: active prototype development with local
 - Mock/in-memory workflow data used for frontend prototyping, with local PostgreSQL hydration now available for server-rendered prototype views.
 - Patient-course centered product documentation under `docs/`.
 - Dashboard and module planning for patient queues, patient workspace, workflow, tasks, documents, treatment planning, treatment delivery, billing, audit, analytics, settings, and security logs.
-- Guided Add Patient flow with stable sequential steps, optional external MRN, generated CRMS patient reference, and Save & Open workspace behavior.
-- Grouped Edit Patient flow with required change reason and guarded server-side update handling.
-- Patient workspace Fractions tab with history-first review, modal Record Next Fraction flow, modal fraction details/actions, and Treatment Delivery registry deep-links.
+- Guided Add Patient flow with stable sequential steps, optional external MRN, DOCX AVS/Intake prefill review, and Save & Open workspace behavior.
+- Grouped Edit Patient flow with section navigation, required change reason, and guarded server-side update handling.
+- Patient workspace Fractions tab with history-first review, three-column modal Record Next Fraction flow, modal fraction details/actions, and Treatment Delivery registry deep-links.
 - Floating Course Signals summary in the patient workspace instead of a persistent right rail.
+- Token-first UI engineering rules in `docs/curerays-ui-engineering-rules.md` for consistent CureRays clinical surfaces.
 - Repository documentation for product context, workflow model, page plan, data model, file storage, Drive template registry, and automation rules.
 - Prisma schemas, generated clients, local schema SQL, and local seed data for separated OPS and PHI databases.
 - HIPAA-aware development guardrails and a `npm run test:hipaa` script.

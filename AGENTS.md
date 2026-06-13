@@ -34,6 +34,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
+- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
 - **TypeScript**: Strict mode enabled in `tsconfig.json`. Prefer explicit types over inference. No `any`.
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).

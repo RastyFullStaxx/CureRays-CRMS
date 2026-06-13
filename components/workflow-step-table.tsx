@@ -1,16 +1,17 @@
 import { CheckCircle2, FileText } from "lucide-react";
 import { StaticDataTable } from "@/components/shared/static-data-table";
 import { ResponsiblePartyBadge } from "@/components/badges";
+import { Badge } from "@/components/ui/badge";
 import type { WorkflowStep } from "@/lib/types";
 import { carepathPhaseLabels } from "@/lib/workflow";
 
 function statusPill(status: WorkflowStep["status"]) {
   const tone = ["COMPLETED", "SIGNED", "UPLOADED", "CLOSED"].includes(status)
-    ? "bg-emerald-500/10 text-emerald-700"
+    ? "success"
     : ["BLOCKED", "OVERDUE"].includes(status)
-      ? "bg-rose-500/10 text-rose-700"
-      : "bg-curerays-blue/10 text-curerays-blue";
-  return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${tone}`}>{status.replaceAll("_", " ")}</span>;
+      ? "error"
+      : "primary";
+  return <Badge variant={tone}>{status.replaceAll("_", " ")}</Badge>;
 }
 
 export function WorkflowStepTable({ steps }: { steps: WorkflowStep[] }) {

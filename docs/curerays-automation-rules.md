@@ -2,6 +2,10 @@
 
 These rules should be implemented as real backend/state logic when persistence and integrations are ready. The current frontend pass exposes service boundaries and placeholders.
 
+## UI Engineering Guardrail
+
+Before Codex or a developer changes user-facing UI, read `docs/curerays-ui-engineering-rules.md`. Reuse CureRays tokens and shared primitives, keep workflows review-first for older staff, and update `docs/curerays-system-progress-tracker.md` when behavior or readiness changes.
+
 ## Patient Registration Prefill
 
 AVS / Intake prefill is assistive only. If staff upload a DOCX file before manual entry, the backend may extract draft patient details in memory and prefill the Add Patient flow, but staff must confirm identity and review all detected fields before saving. Uploaded prefill files must not be retained in prototype mode, and CRMS must not generate the official external MRN.

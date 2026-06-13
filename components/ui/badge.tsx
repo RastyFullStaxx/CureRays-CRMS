@@ -8,19 +8,19 @@ type BadgeProps = {
 };
 
 const variantClasses = {
-  default: 'bg-[var(--color-bg-elevated)] text-[var(--color-text-muted)] ring-[var(--color-border-soft)]',
-  success: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)] ring-[color-mix(in_srgb,var(--color-success)_22%,transparent)]',
-  warning: 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] ring-[color-mix(in_srgb,var(--color-accent)_24%,transparent)]',
-  error: 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] text-[var(--color-error)] ring-[color-mix(in_srgb,var(--color-error)_22%,transparent)]',
-  info: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] text-[var(--color-info)] ring-[color-mix(in_srgb,var(--color-info)_22%,transparent)]',
-  primary: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)] ring-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]',
+  default: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
+  success: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
+  warning: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
+  error: 'bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]',
+  info: 'bg-[var(--color-badge-info-bg)] text-[var(--color-badge-info-fg)] ring-[var(--color-badge-info-border)]',
+  primary: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
 };
 
 export function Badge({ variant = 'default', children, className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold leading-none ring-1',
+        'clinical-pill whitespace-nowrap px-2.5 py-1 text-[11px] ring-1',
         variantClasses[variant],
         className
       )}

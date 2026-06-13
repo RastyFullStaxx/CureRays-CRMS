@@ -1,11 +1,12 @@
 import { ReceiptText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { BillingCode } from "@/lib/types";
 
-const readinessStyles: Record<BillingCode["readinessStatus"], string> = {
-  READY: "text-emerald-700 bg-emerald-500/10",
-  NEEDS_REVIEW: "text-curerays-dark-plum bg-curerays-amber/30",
-  BLOCKED: "text-rose-700 bg-rose-500/10",
-  NOT_APPLICABLE: "text-curerays-plum bg-curerays-plum/10"
+const readinessVariants: Record<BillingCode["readinessStatus"], "default" | "success" | "warning" | "error" | "info" | "primary"> = {
+  READY: "success",
+  NEEDS_REVIEW: "warning",
+  BLOCKED: "error",
+  NOT_APPLICABLE: "default"
 };
 
 export function BillingCodePanel({ codes }: { codes: BillingCode[] }) {
@@ -30,9 +31,9 @@ export function BillingCodePanel({ codes }: { codes: BillingCode[] }) {
                   {code.description}
                 </p>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold ${readinessStyles[code.readinessStatus]}`}>
+              <Badge variant={readinessVariants[code.readinessStatus]}>
                 {code.readinessStatus.replaceAll("_", " ")}
-              </span>
+              </Badge>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-semibold text-curerays-indigo">
               <span className="rounded-lg bg-white/58 p-2">{code.frequency}</span>

@@ -3,8 +3,6 @@
 import { type FormEvent, useMemo, useState } from "react";
 import {
   AlertTriangle,
-  ArrowLeft,
-  ArrowRight,
   Calculator,
   CheckCircle2,
   ClipboardList,
@@ -68,7 +66,6 @@ type DraftFraction = {
   isodoseOverrideReason: string;
 };
 
-type EntryStep = "confirm" | "treatment" | "calculation";
 type AdvancedPanel = "note" | "reference" | "billing";
 
 type ReasonRequest =
@@ -236,27 +233,18 @@ function compactWarnings(entry: FractionLogEntry | undefined) {
   return entry?.calculationMeta?.warnings ?? [];
 }
 
-function entryStepMissing(draft: DraftFraction, step: EntryStep) {
-  if (step === "confirm") {
-    return [
-      ["Fx", draft.fractionNumber],
-      ["Date", draft.date],
-      ["Phase", draft.phase]
-    ].filter(([, value]) => !String(value).trim()).map(([label]) => label);
-  }
-
-  if (step === "treatment") {
-    return [
-      ["Energy", draft.energyKv],
-      ["Field", draft.fieldSizeCm],
-      ["Dose", draft.dosePerFractionCgy],
-      ["DOT", draft.depthOfTargetMm],
-      ["SSD", draft.ssdCm],
-      ["Tech", draft.technicianInitials]
-    ].filter(([, value]) => !String(value).trim()).map(([label]) => label);
-  }
-
-  return [];
+function requiredFractionFieldsMissing(draft: DraftFraction) {
+  return [
+    ["Fx", draft.fractionNumber],
+    ["Date", draft.date],
+    ["Phase", draft.phase],
+    ["Energy", draft.energyKv],
+    ["Field", draft.fieldSizeCm],
+    ["Dose", draft.dosePerFractionCgy],
+    ["DOT", draft.depthOfTargetMm],
+    ["SSD", draft.ssdCm],
+    ["Tech", draft.technicianInitials]
+  ].filter(([, value]) => !String(value).trim()).map(([label]) => label);
 }
 
 export function FractionWorksheetPanel({
@@ -276,8 +264,6 @@ export function FractionWorksheetPanel({
   const [schedule, setSchedule] = useState(scheduledFractions);
   const [draft, setDraft] = useState(() => buildInitialDraft(course, phases, initialEntries, scheduledFractions));
   const [showEntryFlow, setShowEntryFlow] = useState(false);
-  const [entryStep, setEntryStep] = useState<EntryStep>("confirm");
-  const [showAdvancedEntry, setShowAdvancedEntry] = useState(false);
   const [advancedPanel, setAdvancedPanel] = useState<AdvancedPanel | null>(null);
   const [selectedEntryId, setSelectedEntryId] = useState(initialEntries[0]?.id ?? "");
   const [correctionEntryId, setCorrectionEntryId] = useState<string | null>(null);
@@ -399,9 +385,7 @@ export function FractionWorksheetPanel({
 
     if (workspace?.courseFractions) {
       setDraft(buildInitialDraft(course, phases, workspace.courseFractions, workspace.treatmentFractions ?? schedule));
-      setShowAdvancedEntry(false);
       setShowEntryFlow(false);
-      setEntryStep("confirm");
     }
   }
 
@@ -491,7 +475,7 @@ export function FractionWorksheetPanel({
     }
   }
 
-  const activeEntryMissing = entryStepMissing(draft, entryStep);
+  const missingFractionFields = requiredFractionFieldsMissing(draft);
 
   return (
     <div className="grid gap-4">
@@ -509,96 +493,83 @@ export function FractionWorksheetPanel({
       {showEntryFlow ? (
         <Modal
           open={showEntryFlow}
-          onClose={() => {
-            setShowEntryFlow(false);
-            setEntryStep("confirm");
-          }}
+          onClose={() => setShowEntryFlow(false)}
           title="Record Next Fraction"
-          width="var(--width-clinical-modal-lg)"
-          height="var(--height-clinical-modal)"
+          width="var(--width-clinical-modal-xl)"
+          height="var(--height-clinical-modal-xl)"
           contentClassName="flex flex-col"
         >
           <form className="clinical-modal-frame flex-1" onSubmit={addFraction}>
-            <div className="border-b border-[var(--color-border-soft)] p-4">
+            <div className="border-b border-[var(--color-border-soft)] pb-4">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <p className={labelClass}>Record Next Fraction</p>
                   <h3 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
                     Fx {draft.fractionNumber || nextFractionNumber(entries)}
                   </h3>
+                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                    Confirm the course, enter treatment values, and review the live calculation before recording.
+                  </p>
                 </div>
                 <Badge variant={preview.error ? "warning" : "success"}>
                   {preview.error ? "Needs Attention" : "Ready"}
                 </Badge>
               </div>
-
-              <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                {[
-                  { id: "confirm" as EntryStep, label: "Confirm" },
-                  { id: "treatment" as EntryStep, label: "Treatment Values" },
-                  { id: "calculation" as EntryStep, label: "Calculation" }
-                ].map((step, index) => (
-                  <button
-                    key={step.id}
-                    type="button"
-                    className={`clinical-focus rounded-[var(--radius-md)] border px-3 py-2 text-left transition ${
-                      entryStep === step.id
-                        ? "border-[var(--color-primary)] bg-[var(--color-primary-soft)]"
-                        : "border-[var(--color-border-soft)] bg-[var(--color-card)] hover:bg-[var(--color-hover)]"
-                    }`}
-                    onClick={() => setEntryStep(step.id)}
-                  >
-                    <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
-                    <span className="mt-1 block text-sm font-bold text-[var(--color-text)]">{step.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="clinical-modal-body grid content-start gap-4 py-4">
-              {entryStep === "confirm" ? (
-                <div className="grid gap-4">
-                  <div className="grid gap-3 md:grid-cols-3">
-                    <label className="grid gap-1">
-                      <span className={labelClass}>Fx</span>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={draft.fractionNumber}
-                        onChange={(event) => updateDraft("fractionNumber", event.target.value)}
-                      />
-                    </label>
-                    <label className="grid gap-1">
-                      <span className={labelClass}>Date</span>
-                      <Input
-                        type="date"
-                        value={draft.date}
-                        onChange={(event) => updateDraft("date", event.target.value)}
-                      />
-                    </label>
-                    <label className="grid gap-1">
-                      <span className={labelClass}>Phase</span>
-                      <Select value={draft.phase} onChange={(event) => applyPhaseDefaults(event.target.value)}>
-                        {phaseSummaries.map((phase) => (
-                          <option key={phase.phaseName} value={phase.phaseName}>
-                            {phase.phaseName}
-                          </option>
-                        ))}
-                      </Select>
-                    </label>
-                  </div>
+              {missingFractionFields.length ? (
+                <div className="clinical-muted-surface p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  Complete {missingFractionFields.join(", ")} before recording.
+                </div>
+              ) : null}
 
-                  <div className="grid gap-3 sm:grid-cols-3">
+              <div className="clinical-fraction-entry-grid">
+                <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div>
+                    <p className={labelClass}>Step 1</p>
+                    <h4 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Confirm</h4>
+                  </div>
+                  <label className="grid gap-1">
+                    <span className={labelClass}>Fx</span>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={draft.fractionNumber}
+                      onChange={(event) => updateDraft("fractionNumber", event.target.value)}
+                    />
+                  </label>
+                  <label className="grid gap-1">
+                    <span className={labelClass}>Date</span>
+                    <Input
+                      type="date"
+                      value={draft.date}
+                      onChange={(event) => updateDraft("date", event.target.value)}
+                    />
+                  </label>
+                  <label className="grid gap-1">
+                    <span className={labelClass}>Phase</span>
+                    <Select value={draft.phase} onChange={(event) => applyPhaseDefaults(event.target.value)}>
+                      {phaseSummaries.map((phase) => (
+                        <option key={phase.phaseName} value={phase.phaseName}>
+                          {phase.phaseName}
+                        </option>
+                      ))}
+                    </Select>
+                  </label>
+                  <div className="grid gap-2">
                     <PreviewMetric label="Course" value={course.id.replace("COURSE-", "C")} />
                     <PreviewMetric label="Protocol" value={course.protocolName} />
                     <PreviewMetric label="Logged" value={`${sortedActiveEntries.length}/${course.totalFractions}`} />
                   </div>
-                </div>
-              ) : null}
+                </section>
 
-              {entryStep === "treatment" ? (
-                <div className="grid gap-4">
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+                <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div>
+                    <p className={labelClass}>Step 2</p>
+                    <h4 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Treatment Values</h4>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <label className="grid gap-1">
                       <span className={labelClass}>Energy</span>
                       <Select value={draft.energyKv} onChange={(event) => updateDraft("energyKv", event.target.value)}>
@@ -652,70 +623,44 @@ export function FractionWorksheetPanel({
                       <span className={labelClass}>Tech</span>
                       <Input value={draft.technicianInitials} onChange={(event) => updateDraft("technicianInitials", event.target.value)} />
                     </label>
+                    <label className="grid gap-1 sm:col-span-2">
+                      <span className={labelClass}>Time</span>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={draft.treatmentTimeMinutes}
+                        onChange={(event) => updateDraft("treatmentTimeMinutes", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1 sm:col-span-2">
+                      <span className={labelClass}>Setup Comments</span>
+                      <Textarea
+                        rows={3}
+                        value={draft.treatmentSetupComments}
+                        onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1 sm:col-span-2">
+                      <span className={labelClass}>Notes</span>
+                      <Textarea rows={3} value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
+                    </label>
                   </div>
+                </section>
 
-                  {showAdvancedEntry ? (
-                    <div className="grid gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-2 xl:grid-cols-5">
-                      <label className="grid gap-1 xl:col-span-2">
-                        <span className={labelClass}>Setup Comments</span>
-                        <Textarea
-                          rows={3}
-                          value={draft.treatmentSetupComments}
-                          onChange={(event) => updateDraft("treatmentSetupComments", event.target.value)}
-                        />
-                      </label>
-                      <label className="grid gap-1 xl:col-span-2">
-                        <span className={labelClass}>Notes</span>
-                        <Textarea rows={3} value={draft.notes} onChange={(event) => updateDraft("notes", event.target.value)} />
-                      </label>
-                      <label className="grid gap-1">
-                        <span className={labelClass}>Time</span>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          value={draft.treatmentTimeMinutes}
-                          onChange={(event) => updateDraft("treatmentTimeMinutes", event.target.value)}
-                        />
-                      </label>
-                      <label className="grid gap-1">
-                        <span className={labelClass}>Override %</span>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          value={draft.isodoseToDotPercent}
-                          onChange={(event) => updateDraft("isodoseToDotPercent", event.target.value)}
-                        />
-                      </label>
-                      <label className="grid gap-1 xl:col-span-2">
-                        <span className={labelClass}>Override Reason</span>
-                        <Textarea
-                          rows={3}
-                          value={draft.isodoseOverrideReason}
-                          onChange={(event) => updateDraft("isodoseOverrideReason", event.target.value)}
-                        />
-                      </label>
+                <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className={labelClass}>Step 3</p>
+                      <h4 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Calculation Review</h4>
                     </div>
-                  ) : null}
-
-                  <div>
-                    <Button type="button" variant="secondary" onClick={() => setShowAdvancedEntry((current) => !current)}>
-                      <Calculator className="h-4 w-4" aria-hidden="true" />
-                      {showAdvancedEntry ? "Hide Advanced" : "Advanced Fields"}
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-
-              {entryStep === "calculation" ? (
-                <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className={labelClass}>Live Calculation</p>
                     <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "success" : "warning"}>
                       {(preview.entry?.calculationStatus ?? "pending").replaceAll("_", " ")}
                     </Badge>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className={labelClass}>Live Calculation</p>
                   </div>
 
                   {preview.error ? (
@@ -723,7 +668,7 @@ export function FractionWorksheetPanel({
                       {preview.error}
                     </div>
                   ) : (
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
                       <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
                       <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
@@ -731,8 +676,30 @@ export function FractionWorksheetPanel({
                     </div>
                   )}
 
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="grid gap-1">
+                      <span className={labelClass}>Override %</span>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={draft.isodoseToDotPercent}
+                        onChange={(event) => updateDraft("isodoseToDotPercent", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1 sm:col-span-2">
+                      <span className={labelClass}>Override Reason</span>
+                      <Textarea
+                        rows={3}
+                        value={draft.isodoseOverrideReason}
+                        onChange={(event) => updateDraft("isodoseOverrideReason", event.target.value)}
+                      />
+                    </label>
+                  </div>
+
                   {compactWarnings(preview.entry ?? undefined).length ? (
-                    <div className="mt-3 grid gap-2">
+                    <div className="grid gap-2">
                       {compactWarnings(preview.entry ?? undefined).map((warning) => (
                         <div key={warning} className="flex gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
                           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
@@ -741,8 +708,8 @@ export function FractionWorksheetPanel({
                       ))}
                     </div>
                   ) : null}
-                </div>
-              ) : null}
+                </section>
+              </div>
             </div>
 
             <div className="clinical-modal-footer">
@@ -750,41 +717,15 @@ export function FractionWorksheetPanel({
                 type="button"
                 variant="ghost"
                 className="clinical-action"
-                onClick={() => {
-                  setShowEntryFlow(false);
-                  setEntryStep("confirm");
-                }}
+                onClick={() => setShowEntryFlow(false)}
               >
                 Cancel
               </Button>
               <div className="flex flex-wrap gap-2">
-                {entryStep !== "confirm" ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="clinical-action"
-                    onClick={() => setEntryStep(entryStep === "calculation" ? "treatment" : "confirm")}
-                  >
-                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                    Back
-                  </Button>
-                ) : null}
-                {entryStep !== "calculation" ? (
-                  <Button
-                    type="button"
-                    className="clinical-action"
-                    disabled={activeEntryMissing.length > 0}
-                    onClick={() => setEntryStep(entryStep === "confirm" ? "treatment" : "calculation")}
-                  >
-                    Continue
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Button>
-                ) : (
-                  <Button type="submit" className="clinical-action-lg" disabled={Boolean(preview.error) || pendingAction === "addFraction-new"}>
-                    <Save className="h-4 w-4" aria-hidden="true" />
-                    {pendingAction === "addFraction-new" ? "Recording" : "Record Fraction"}
-                  </Button>
-                )}
+                <Button type="submit" className="clinical-action-lg" disabled={missingFractionFields.length > 0 || Boolean(preview.error) || pendingAction === "addFraction-new"}>
+                  <Save className="h-4 w-4" aria-hidden="true" />
+                  {pendingAction === "addFraction-new" ? "Recording" : "Record Fraction"}
+                </Button>
               </div>
             </div>
           </form>
@@ -922,10 +863,7 @@ export function FractionWorksheetPanel({
               <Button
                 type="button"
                 size="sm"
-                onClick={() => {
-                  setShowEntryFlow(true);
-                  setEntryStep("confirm");
-                }}
+                onClick={() => setShowEntryFlow(true)}
               >
                 <Save className="h-3.5 w-3.5" aria-hidden="true" />
                 Record Next Fraction

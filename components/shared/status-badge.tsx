@@ -6,24 +6,24 @@ type StatusBadgeProps = {
 };
 
 const statusStyles: Record<string, string> = {
-  ACTIVE: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
-  ON_HOLD: 'bg-[color-mix(in_srgb,var(--color-warning)_12%,transparent)] text-[var(--color-warning)]',
-  PAUSED: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
-  BLOCKED: 'bg-[color-mix(in_srgb,var(--color-error)_12%,transparent)] text-[var(--color-error)]',
-  COMPLETED: 'bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] text-[var(--color-success)]',
-  PENDING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
-  IN_PROGRESS: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
-  UPCOMING: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
-  ON_TREATMENT: 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]',
-  POST: 'bg-[var(--color-card-muted)] text-[var(--color-text-muted)]',
+  ACTIVE: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
+  ON_HOLD: 'bg-[var(--color-badge-warning-bg)] text-[var(--color-badge-warning-fg)] ring-[var(--color-badge-warning-border)]',
+  PAUSED: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
+  BLOCKED: 'bg-[var(--color-badge-error-bg)] text-[var(--color-badge-error-fg)] ring-[var(--color-badge-error-border)]',
+  COMPLETED: 'bg-[var(--color-badge-success-bg)] text-[var(--color-badge-success-fg)] ring-[var(--color-badge-success-border)]',
+  PENDING: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
+  IN_PROGRESS: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
+  UPCOMING: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
+  ON_TREATMENT: 'bg-[var(--color-badge-primary-bg)] text-[var(--color-badge-primary-fg)] ring-[var(--color-badge-primary-border)]',
+  POST: 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]',
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const style = statusStyles[status] ?? 'bg-[var(--color-hover)] text-[var(--color-text-muted)]';
+  const style = statusStyles[status] ?? 'bg-[var(--color-badge-default-bg)] text-[var(--color-badge-default-fg)] ring-[var(--color-badge-default-border)]';
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap',
+        'clinical-pill px-2 py-0.5 text-xs ring-1 whitespace-nowrap',
         style,
         className
       )}

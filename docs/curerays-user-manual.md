@@ -236,7 +236,6 @@ Use Patients to find, create, and maintain patient records.
    - First name
    - Last name
    - External MRN, if it already exists in the EMR or registration system
-   - Review the generated CRMS patient reference shown by the system
 6. Complete Clinical Basics:
    - Diagnosis category
    - Diagnosis
@@ -253,7 +252,7 @@ Use Patients to find, create, and maintain patient records.
 8. Review the final summary.
 9. Save.
 
-External MRN is optional in CRMS because it may be assigned by the EMR or registration system outside this prototype. CRMS always generates its own internal patient reference so staff can identify the record even when an external MRN is not available yet.
+External MRN is optional in CRMS because it may be assigned by the EMR or registration system outside this prototype. CRMS still keeps internal system identifiers for routing, audit, and persistence, but staff should treat the clinic/EMR MRN as an external identifier only.
 
 AVS / Intake upload is assistive only. Uploaded DOCX files are read for draft prefill and are not stored by CRMS in this prototype. Staff must review and edit detected details before saving.
 
@@ -264,7 +263,7 @@ After saving, the system creates the patient record, active course, workflow ste
 1. Open Patients.
 2. Find the patient.
 3. Select Edit.
-4. Review the grouped edit form and update only the fields that need correction.
+4. Review the grouped edit form. Use the section navbar to jump between Identity, Clinical, Course, and Change Reason while keeping the full form visible.
 5. Enter the required change reason.
 6. Save.
 
@@ -591,7 +590,7 @@ Use the Fractions tab in the patient workspace to review and record daily treatm
 1. Open the patient workspace and select Fractions, or follow a Treatment Delivery link to the patient's Fractions tab.
 2. Review the Fraction History table and any pending alerts first.
 3. Select Record Next Fraction from the table toolbar.
-4. Confirm:
+4. In the three-column modal, confirm:
    - Fraction number
    - Date
    - Phase
@@ -603,8 +602,8 @@ Use the Fractions tab in the patient workspace to review and record daily treatm
    - DOT
    - SSD
    - Technician initials
-6. Use Advanced Fields when needed for setup comments, notes, treatment time, override percentage, or override reason.
-7. Review the Live Calculation section.
+6. Complete visible advanced fields when needed, including setup comments, notes, treatment time, override percentage, and override reason.
+7. Review the Calculation Review column.
 8. Resolve any warning that blocks recording.
 9. Select Record Fraction.
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type FormEvent, type MouseEvent, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type MouseEvent, type ReactNode, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -47,6 +47,7 @@ type PatientFormState = PatientCreateInput & {
 };
 
 type FormStep = 'start' | 'detected' | 'identity' | 'clinical' | 'course' | 'review';
+type EditSectionId = 'identity' | 'clinical' | 'course' | 'reason';
 type PatientFieldId =
   | keyof PatientFormState
   | 'initialCourse.protocol'
@@ -194,13 +195,6 @@ function focusPatientField(field: PatientFieldId | undefined) {
     );
     target?.focus();
   }, 0);
-}
-
-function nextCrmsReference(rows: PatientRegistryRow[]) {
-  const numericIds = rows
-    .map((row) => Number(row.id.replace(/^CR-/, '')))
-    .filter(Number.isFinite);
-  return `CR-${Math.max(2400, ...numericIds) + 1}`;
 }
 
 function Field({
@@ -390,6 +384,10 @@ function CourseFields({
 
 export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   const router = useRouter();
+  const editIdentityRef = useRef<HTMLDivElement>(null);
+  const editClinicalRef = useRef<HTMLDivElement>(null);
+  const editCourseRef = useRef<HTMLDivElement>(null);
+  const editReasonRef = useRef<HTMLDivElement>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [formStep, setFormStep] = useState<FormStep>('identity');
   const [form, setForm] = useState<PatientFormState>(blankForm);
@@ -407,7 +405,12 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   const activeStepIndex = formSteps.findIndex((step) => step.id === formStep);
   const isEdit = modalMode === 'edit' && Boolean(editingPhiId);
   const isCreate = modalMode === 'create';
-  const crmsReferencePreview = useMemo(() => nextCrmsReference(rows), [rows]);
+  const editSections: Array<{ id: EditSectionId; label: string; ref: RefObject<HTMLDivElement | null> }> = [
+    { id: 'identity', label: 'Identity', ref: editIdentityRef },
+    { id: 'clinical', label: 'Clinical', ref: editClinicalRef },
+    { id: 'course', label: 'Course', ref: editCourseRef },
+    { id: 'reason', label: 'Change Reason', ref: editReasonRef },
+  ];
 
   const metrics = useMemo(() => {
     return {
@@ -433,6 +436,10 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         [key]: value,
       },
     }));
+  };
+
+  const scrollToEditSection = (sectionRef: RefObject<HTMLDivElement | null>) => {
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const openCreate = () => {
@@ -768,6 +775,18 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                 </div>
                 <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
+              <nav className="clinical-section-nav mt-3" aria-label="Edit patient sections">
+                {editSections.map((section) => (
+                  <button
+                    key={section.id}
+                    type="button"
+                    className="clinical-focus clinical-section-nav-button"
+                    onClick={() => scrollToEditSection(section.ref)}
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </nav>
             </div>
           ) : null}
 
@@ -793,16 +812,26 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                         </p>
                       </div>
                     </div>
-                    <Input
-                      className="mt-4"
-                      type="file"
-                      accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      disabled={prefillPending}
-                      onChange={(event) => {
-                        void uploadPrefillFile(event.target.files?.[0]);
-                        event.target.value = '';
-                      }}
-                    />
+                    <div className="clinical-file-picker mt-4">
+                      <label className="clinical-file-picker-label" htmlFor="patient-prefill-docx-input">
+                        <Upload className="h-4 w-4" aria-hidden="true" />
+                        Choose DOCX
+                      </label>
+                      <span className="clinical-file-picker-name" title={prefillFileName || undefined}>
+                        {prefillPending ? 'Reading selected DOCX...' : prefillFileName || 'No file selected'}
+                      </span>
+                      <input
+                        id="patient-prefill-docx-input"
+                        className="sr-only"
+                        type="file"
+                        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        disabled={prefillPending}
+                        onChange={(event) => {
+                          void uploadPrefillFile(event.target.files?.[0]);
+                          event.target.value = '';
+                        }}
+                      />
+                    </div>
                     <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">
                       DOCX only. File is not stored after extraction.
                     </p>
@@ -901,13 +930,9 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                   <Field label="Last name" field="lastName" required>
                     <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
                   </Field>
-                  <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional. Use the EMR/registration MRN only when it already exists. CRMS will generate its own patient reference.">
+                  <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional. Use the EMR/registration MRN only when it already exists.">
                     <Input value={form.mrn} onChange={(event) => updateForm('mrn', event.target.value)} />
                   </Field>
-                </div>
-                <div className="clinical-muted-surface p-3">
-                  <p className="clinical-label">Generated CRMS Reference</p>
-                  <p className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{crmsReferencePreview}</p>
                 </div>
               </div>
             ) : null}
@@ -923,7 +948,6 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
             {isCreate && formStep === 'review' ? (
               <div className="grid gap-4">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <ReviewRow label="CRMS Reference" value={crmsReferencePreview} />
                   <ReviewRow label="External MRN" value={form.mrn || 'Not recorded'} />
                   <ReviewRow label="Patient" value={`${form.firstName} ${form.lastName}`} />
                   <ReviewRow label="Diagnosis" value={`${diagnosisLabels[form.diagnosisCategory]} | ${form.diagnosis}`} />
@@ -940,7 +964,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
             {isEdit ? (
               <div className="grid gap-4">
                 <div className="grid gap-4 xl:grid-cols-2">
-                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div ref={editIdentityRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                     <p className="font-heading text-base font-bold text-[var(--color-text)]">Patient Identity</p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field label="First name" field="firstName" required>
@@ -954,18 +978,20 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
                       </Field>
                     </div>
                   </div>
-                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <div ref={editClinicalRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                     <p className="font-heading text-base font-bold text-[var(--color-text)]">Clinical Basics</p>
                     <ClinicalFields form={form} updateForm={updateForm} compact />
                   </div>
                 </div>
-                <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                <div ref={editCourseRef} className="grid scroll-mt-3 gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                   <p className="font-heading text-base font-bold text-[var(--color-text)]">Course Setup</p>
                   <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} compact />
                 </div>
-                <Field label="Change reason" field="changeReason" required>
-                  <Textarea rows={3} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
-                </Field>
+                <div ref={editReasonRef} className="scroll-mt-3">
+                  <Field label="Change reason" field="changeReason" required>
+                    <Textarea rows={3} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
+                  </Field>
+                </div>
               </div>
             ) : null}
           </div>
