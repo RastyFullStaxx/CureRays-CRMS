@@ -2,23 +2,28 @@
 
 ## Project
 
-Next.js 14 App Router + React 18 + TypeScript + Tailwind CSS 3.
+Next.js 16 App Router + React 19 + TypeScript + Tailwind CSS 3.
 A patient-course centered clinical operations system for CureRays Radiation Medicine. Mock-data-driven frontend prototype designed to replace manual Google Drive-based workflows.
 
 ## Quick Commands
 
 ```bash
 npm run dev          # Start Next.js dev server
-npm run build        # Production build (Next.js)
+npm run build        # Production build (next build)
 npm run start        # Start production server
-npm run lint         # ESLint (next/core-web-vitals)
+npm run lint         # ESLint CLI (next/core-web-vitals + TypeScript)
 npm run typecheck    # TypeScript type checking (tsc --noEmit)
+npm run verify       # Fast prototype gate: typecheck + lint
+npm run test:guardrails # Phase + HIPAA guardrail scripts
+npm run test:full    # Full suite: verify + build + all guardrails
 npm run test:hipaa   # HIPAA guardrails validation
 ```
 
 ## Testing
 
-- No formal test framework is configured yet. The project currently has one validation script: `scripts/hipaa-guardrails.mjs` which checks PHI exposure.
+- No formal test framework is configured yet. Phase guardrail scripts in `scripts/` validate feature completeness for each phase.
+- `npm run verify` is intentionally lightweight for prototype feature work and only runs `typecheck + lint`.
+- `npm run test:guardrails` runs the phase scripts plus HIPAA boundaries. `npm run test:full` runs `verify + build + all guardrails`.
 - Mock data in `lib/mock-data.ts` should be validated against TypeScript types in `lib/types.ts`.
 - Prisma schemas exist but are not queried by the UI — all data is in-memory mock data.
 - When adding a testing framework (Jest, Vitest, Playwright):
@@ -29,7 +34,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
-- **ESLint**: `next/core-web-vitals` preset. Run `npm run lint` before committing.
+- **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
 - **TypeScript**: Strict mode enabled in `tsconfig.json`. Prefer explicit types over inference. No `any`.
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).
 - **EditorConfig**: Use 2 spaces, UTF-8, LF line endings.
@@ -76,7 +81,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 - The UI currently uses **mock data** from `lib/mock-data.ts`, not Prisma queries.
 - The `lib/hipaa.ts` utility provides PHI redaction functions.
-- Run `npm run test:hipaa` to validate PHI boundaries.
+- Run `npm run test:hipaa` or `npm run test:guardrails` to validate PHI boundaries. These checks are preserved but are not part of the daily lightweight `verify` gate.
 
 ### Key Files
 
@@ -236,7 +241,7 @@ Never hardcode hex values in components. Always reference tokens:
 
 ## Environment
 
-- Node.js 18+, npm 9+.
+- Node.js 20.19+ required by the current Next.js/ESLint stack. Use the repo Node version files when available. npm 9+.
 - No database required for local development — all data is in-memory mock data.
 - PostgreSQL required only when connecting Prisma to real databases.
 - `.env.example` has all keys — copy to `.env` and fill for local work if needed.

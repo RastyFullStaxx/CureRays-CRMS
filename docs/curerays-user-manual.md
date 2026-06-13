@@ -225,33 +225,36 @@ Use Patients to find, create, and maintain patient records.
 
 1. Open Patients.
 2. Select Add Patient.
-3. Enter patient details:
+3. Complete Patient Identity:
    - First name
    - Last name
    - MRN
+4. Complete Clinical Basics:
    - Diagnosis category
    - Diagnosis
    - Location or treatment site
    - Physician
    - Assigned staff
    - Initial phase and status
-   - Next action and notes, if known
-4. Enter initial course details:
+5. Complete Course Setup:
    - Protocol
    - Body region or site
    - Laterality, if applicable
    - Planned fractions and course details required by the form
-5. Save.
+   - Next action and notes, if known
+6. Review the final summary.
+7. Save.
 
-After saving, the system creates the patient record, active course, workflow steps, initial tasks, document requirements, audit checks, and course file locations.
+After saving, the system creates the patient record, active course, workflow steps, initial tasks, document requirements, audit checks, and course file locations. The new patient workspace opens after a successful save.
 
 ### Edit A Patient Record
 
 1. Open Patients.
 2. Find the patient.
 3. Select Edit.
-4. Update only the fields that need correction.
-5. Save.
+4. Move through the guided sections and update only the fields that need correction.
+5. Enter the change reason on Review & Save.
+6. Save.
 
 The system records correction history. Do not use patient notes to hide corrections that should be made in structured fields.
 
@@ -573,21 +576,24 @@ Use the fraction worksheet to record daily treatment details.
 ### Record A Fraction
 
 1. Open the patient's Fraction Log or the worksheet from Treatment Planning.
-2. Confirm you are on the correct patient and course.
-3. Enter:
+2. Review the course context, Review Queue, alerts, Fraction History, and selected note/detail first.
+3. Select Record Next Fraction.
+4. Confirm:
    - Fraction number
    - Date
    - Phase
+   - Correct patient and course context
+5. Enter Treatment Values:
    - Energy
    - Field
    - Dose
    - DOT
    - SSD
    - Technician initials
-4. Use Advanced Fields when needed for setup comments, notes, treatment time, override percentage, or override reason.
-5. Review the Live Calculation section.
-6. Resolve any warning that blocks recording.
-7. Select Record Fraction.
+6. Use Advanced Fields when needed for setup comments, notes, treatment time, override percentage, or override reason.
+7. Review the Live Calculation section.
+8. Resolve any warning that blocks recording.
+9. Select Record Fraction.
 
 ### Review And Approve A Fraction
 

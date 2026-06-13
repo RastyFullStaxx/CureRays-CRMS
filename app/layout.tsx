@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 
 export const metadata: Metadata = {
   title: "CureRays CWS",
@@ -18,11 +19,13 @@ try {
 } catch (error) {}
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: ReactNode;
 }>) {
+  await hydrateClinicalStoreFromDatabase();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

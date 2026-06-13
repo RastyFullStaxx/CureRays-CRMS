@@ -8,26 +8,21 @@ import {
   type AnalyticsPanel,
 } from '@/lib/services/analytics-telemetry-service';
 
-type AnalyticsPageProps = {
-  searchParams?: {
-    panel?: string | string[];
-  };
-};
-
 function panelFromSearch(value: string | string[] | undefined): AnalyticsPanel {
   const panel = Array.isArray(value) ? value[0] : value;
   return isAnalyticsPanel(panel) ? panel : 'overview';
 }
 
-export default function AnalyticsPage({ searchParams }: AnalyticsPageProps) {
+export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<{ panel?: string | string[] }> }) {
+  const { panel } = await searchParams;
   return (
     <>
       <div className="hidden" aria-hidden="true">
         <Button disabled>Export Report</Button>
       </div>
       <AnalyticsCommandClient
-        telemetry={getAnalyticsTelemetry()}
-        initialPanel={panelFromSearch(searchParams?.panel)}
+        telemetry={await getAnalyticsTelemetry()}
+        initialPanel={panelFromSearch(panel)}
       />
     </>
   );

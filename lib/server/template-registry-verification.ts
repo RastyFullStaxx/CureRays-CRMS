@@ -16,7 +16,7 @@ export type TemplateSourceHashVerification = {
 };
 
 function fileSha256(relativePath: string) {
-  const absolutePath = join(process.cwd(), relativePath);
+  const absolutePath = join(/*turbopackIgnore: true*/ process.cwd(), relativePath);
   if (!existsSync(absolutePath)) {
     return undefined;
   }

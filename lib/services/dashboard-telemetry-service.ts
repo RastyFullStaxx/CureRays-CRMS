@@ -17,6 +17,7 @@ import {
   orderedResponsibleParties,
   responsiblePartyLabels,
 } from '@/lib/workflow';
+import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
 import type {
   CarepathTaskStatus,
   CarepathWorkflowPhase,
@@ -942,7 +943,9 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
   };
 }
 
-export function getDashboardTelemetry(): DashboardTelemetry {
+export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
+  await hydrateClinicalStoreFromDatabase();
+
   const patients = operationalPatients();
   const courses = operationalTreatmentCourses();
   const appointments = operationalAppointments();

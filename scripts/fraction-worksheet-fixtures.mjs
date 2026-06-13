@@ -17,7 +17,25 @@ const compiled = ts.transpileModule(source, {
     skipLibCheck: true
   }
 }).outputText;
-const tempDir = await mkdtemp(path.join(tmpdir(), "curerays-fraction-worksheet-"));
+async function createFixtureTempDir() {
+  const roots = [...new Set([process.env.TMPDIR, tmpdir(), "/tmp"].filter(Boolean))];
+  let lastError;
+
+  for (const rootPath of roots) {
+    try {
+      return await mkdtemp(path.join(rootPath, "curerays-fraction-worksheet-"));
+    } catch (error) {
+      lastError = error;
+      if (!["EACCES", "ENOENT", "EPERM", "EROFS"].includes(error?.code)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+const tempDir = await createFixtureTempDir();
 const modulePath = path.join(tempDir, "fraction-worksheet-service.mjs");
 await writeFile(modulePath, compiled, "utf8");
 

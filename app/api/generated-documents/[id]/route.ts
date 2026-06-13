@@ -32,20 +32,22 @@ function documentMutationAccessFromRequest(request: NextRequest, reason: string)
   return session ? { role: session.role, reason } : null;
 }
 
-export function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const access = phiAccessFromRequest(request, "Read generated PHI document");
   if (!access) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 
   try {
-    return documentResponse(readGeneratedDocumentLifecycle(access, params.id));
+    return documentResponse(readGeneratedDocumentLifecycle(access, id));
   } catch {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const body = await request.json();
   const action = String(body.action ?? "render");
   const access = documentMutationAccessFromRequest(request, `Generated document action: ${action}`);
@@ -57,19 +59,19 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   try {
     const result =
       action === "sign" || action === "signDocument"
-        ? signGeneratedDocumentLifecycle(access, params.id)
+        ? signGeneratedDocumentLifecycle(access, id)
         : action === "export"
-          ? exportGeneratedDocumentLifecycle(access, params.id)
+          ? exportGeneratedDocumentLifecycle(access, id)
           : action === "confirmEcwUpload"
-            ? confirmGeneratedDocumentEcwUploadLifecycle(access, params.id, {
+            ? confirmGeneratedDocumentEcwUploadLifecycle(access, id, {
                 externalReference: body.externalReference,
                 reason: body.reason
               })
             : action === "voidOutput"
-              ? voidGeneratedDocumentOutputLifecycle(access, params.id, { reason: body.reason })
+              ? voidGeneratedDocumentOutputLifecycle(access, id, { reason: body.reason })
               : action === "recordManualEditException"
-                ? recordGeneratedDocumentManualEditExceptionLifecycle(access, params.id, { reason: body.reason })
-                : renderGeneratedDocumentLifecycle(access, params.id, safeOutputFormat(body.format));
+                ? recordGeneratedDocumentManualEditExceptionLifecycle(access, id, { reason: body.reason })
+                : renderGeneratedDocumentLifecycle(access, id, safeOutputFormat(body.format));
 
     return documentResponse(result);
   } catch {
