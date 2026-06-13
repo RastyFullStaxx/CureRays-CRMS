@@ -170,7 +170,7 @@ export type InitialCourseCreateInput = {
 export type PatientCreateInput = {
   firstName: string;
   lastName: string;
-  mrn: string;
+  mrn?: string;
   diagnosis: string;
   diagnosisCategory: DiagnosisCategory;
   location: string;

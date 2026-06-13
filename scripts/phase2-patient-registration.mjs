@@ -129,6 +129,7 @@ for (const expected of [
 ]) {
   assertIncludes(types, expected, `Phase 2 type contract must include ${expected}`);
 }
+assertIncludes(types, "mrn?: string", "PatientCreateInput.mrn must stay optional for EMR-owned external MRN policy");
 
 for (const expected of [
   "model OperationalWorkflowStep",
@@ -145,6 +146,7 @@ for (const expected of [
 for (const expected of ["workflowDefinitionId", "bodyRegion", "laterality", "coursePhase"]) {
   assertIncludes(phiSchema, expected, `PHI course schema must include ${expected}`);
 }
+assertIncludes(phiSchema, "mrn              String?", "PHI patient schema must allow missing external MRN");
 
 assertIncludes(packageJson, '"@prisma/client"', "package.json must include Prisma client runtime dependency");
 assertIncludes(packageJson, '"prisma:generate:ops"', "package.json must expose OPS Prisma generation");
@@ -228,6 +230,12 @@ const listed = await service.listOperationalPatientRecords();
 assert.equal(listed.ok, true, "Operational list should succeed");
 assert.ok(listed.body.patients.some((patient) => patient.patientRef === created.body.data.patientRef), "Operational list should include created patient");
 
+const noMrnInput = registrationInput("NO-MRN");
+delete noMrnInput.mrn;
+const noMrn = await service.registerPatient(noMrnInput, createContext);
+assert.equal(noMrn.ok, true, "Registration without external MRN should succeed");
+assert.ok(noMrn.body.data.patientRef, "Registration without external MRN should still return a CRMS patient reference");
+
 const readContext = context("phi:read", "Phase 2 read");
 const editDto = await service.getPatientEditRecord(created.body.data.phiRecordId, readContext);
 assert.equal(editDto.ok, true, "Guarded edit DTO read should succeed");
@@ -272,9 +280,9 @@ assert.equal(lifecycle.body.course.status, "COMPLETED", "Completion should be mo
 
 const duplicateCounts = bundleCounts();
 const duplicate = await service.registerPatient(registrationInput("SKIN"), createContext);
-assert.equal(duplicate.ok, false, "Duplicate MRN should fail");
-assert.equal(duplicate.status, 400, "Duplicate MRN should return 400");
-assert.deepEqual(bundleCounts(), duplicateCounts, "Duplicate MRN must not leave a partial bundle");
+assert.equal(duplicate.ok, false, "Duplicate external MRN should fail");
+assert.equal(duplicate.status, 400, "Duplicate external MRN should return 400");
+assert.deepEqual(bundleCounts(), duplicateCounts, "Duplicate external MRN must not leave a partial bundle");
 
 const arthritis = await service.registerPatient(registrationInput("ARTH-HAND", "ARTHRITIS", { bodyRegion: "HAND", protocol: "Joint" }), createContext);
 assert.equal(arthritis.ok, true, "Arthritis registration should succeed");

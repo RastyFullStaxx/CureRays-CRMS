@@ -271,7 +271,6 @@ function validationErrorsForRequiredPatientFields(input: Partial<PatientCreateIn
   const requiredFields: Array<keyof PatientCreateInput> = [
     "firstName",
     "lastName",
-    "mrn",
     "diagnosis",
     "diagnosisCategory",
     "location",
@@ -690,7 +689,7 @@ async function persistMutationResult(result: PatientCourseMutationResult) {
           phiRecordId: result.data.phiRecordId,
           firstName: patient.firstName,
           lastName: patient.lastName,
-          mrn: patient.mrn,
+          mrn: patient.mrn || null,
           diagnosis: patient.diagnosis,
           diagnosisCategory: patient.diagnosisCategory,
           location: patient.location,
@@ -708,7 +707,7 @@ async function persistMutationResult(result: PatientCourseMutationResult) {
         update: {
           firstName: patient.firstName,
           lastName: patient.lastName,
-          mrn: patient.mrn,
+          mrn: patient.mrn || null,
           diagnosis: patient.diagnosis,
           diagnosisCategory: patient.diagnosisCategory,
           location: patient.location,
@@ -809,12 +808,12 @@ export const prismaPatientRegistrationRepository: PatientRegistrationRepository 
     const errors = validationErrorsForRequiredPatientFields(input);
     const phi = loadPrismaClient(".prisma/phi-client");
     try {
-      if (input.mrn) {
+      if (safeText(input.mrn)) {
         const duplicate = await prismaDelegate(phi, "patientPhi").findUnique({
-          where: { mrn: input.mrn }
+          where: { mrn: safeText(input.mrn) }
         });
         if (duplicate) {
-          errors.push("MRN must be unique.");
+          errors.push("External MRN must be unique.");
         }
       }
     } finally {

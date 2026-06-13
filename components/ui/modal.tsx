@@ -4,16 +4,23 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { cn } from '@/lib/workflow';
 
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
-  width?: number;
+  width?: number | string;
+  height?: number | string;
+  contentClassName?: string;
 };
 
-export function Modal({ open, onClose, title, children, width = 480 }: ModalProps) {
+function dimension(value: number | string | undefined) {
+  return typeof value === 'number' ? `${value}px` : value;
+}
+
+export function Modal({ open, onClose, title, children, width = 480, height, contentClassName }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,16 +47,17 @@ export function Modal({ open, onClose, title, children, width = 480 }: ModalProp
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className="bg-[var(--color-card)]"
+        className={cn('bg-[var(--color-card)]', contentClassName)}
         style={{
-          width,
+          width: dimension(width),
+          height: dimension(height),
           maxWidth: '90vw',
           maxHeight: '95vh',
           borderRadius: 'var(--radius-lg)',
           border: 'var(--border-container)',
           boxShadow: 'var(--shadow-card)',
           padding: 'var(--space-card)',
-          overflow: 'auto',
+          overflow: height ? 'hidden' : 'auto',
         }}
       >
         {title && (

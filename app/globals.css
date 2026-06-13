@@ -38,6 +38,7 @@
   --color-success:      #22C55E;
   --color-warning:      #F59E0B;
   --color-error:        #EF4444;
+  --color-error-foreground: #FFFFFF;
   --color-info:         #3B82F6;
 
   /* --- Typography --- */
@@ -117,6 +118,11 @@
   --height-btn:            40px;
   --height-btn-sm:         34px;
   --height-input:          40px;
+  --height-clinical-modal: min(760px, calc(100dvh - 48px));
+  --width-clinical-modal: min(920px, calc(100vw - 32px));
+  --width-clinical-modal-lg: min(1080px, calc(100vw - 32px));
+  --width-action: 132px;
+  --width-action-lg: 172px;
   --height-table-row:      44px;
   --height-table-header:   40px;
   --width-sidebar:         240px;
@@ -151,6 +157,7 @@
   --color-success:      #34D399;
   --color-warning:      #FBBF24;
   --color-error:        #F87171;
+  --color-error-foreground: #07111F;
   --color-info:         #60A5FA;
 
   --shadow-card:
@@ -249,6 +256,58 @@ button, input, select, textarea {
 
 .clinical-focus:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.clinical-modal-frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+}
+
+.clinical-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.clinical-modal-footer {
+  align-items: center;
+  border-top: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: space-between;
+  padding-top: var(--space-2);
+}
+
+.clinical-action {
+  min-width: var(--width-action);
+}
+
+.clinical-action-lg {
+  min-width: var(--width-action-lg);
+}
+
+.clinical-alert-error {
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 22%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+}
+
+.clinical-alert-success {
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 22%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--color-success);
+}
+
+.clinical-floating-action {
+  bottom: clamp(16px, 2vw, 28px);
+  position: fixed;
+  right: clamp(16px, 2vw, 28px);
+  z-index: 40;
 }
 
 .glass-panel {

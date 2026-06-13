@@ -11,7 +11,7 @@ const variantClasses = {
   primary: 'border border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] shadow-[0_10px_22px_-18px_var(--color-primary)] hover:bg-[var(--color-primary-dark)]',
   secondary: 'border border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-primary)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary-soft)]',
   ghost: 'border border-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)]',
-  danger: 'border border-[var(--color-error)] bg-[var(--color-error)] text-white hover:brightness-95',
+  danger: 'border border-[var(--color-error)] bg-[var(--color-error)] text-[var(--color-error-foreground)] hover:brightness-95',
 };
 
 const sizeClasses = {

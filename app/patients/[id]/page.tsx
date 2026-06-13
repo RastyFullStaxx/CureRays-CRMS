@@ -5,6 +5,7 @@ import {
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
+  prescriptions,
   treatmentCourses,
 } from '@/lib/services/operational-page-service';
 import {
@@ -22,8 +23,15 @@ import {
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 
-export default async function PatientProfilePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PatientProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ tab?: string }>;
+}) {
   const { id } = await params;
+  const query = await searchParams;
   const patient = findPatientPhi(id, systemPhiAccess('Render patient workspace page'));
 
   if (!patient) {
@@ -37,11 +45,13 @@ export default async function PatientProfilePage({ params }: { params: Promise<{
   }
 
   const domainCourse = getCourses().find((item) => item.id === course.id);
+  const prescription = prescriptions.find((item) => item.courseId === course.id);
 
   return (
     <PatientWorkspace
       patient={patient}
       course={course}
+      initialTab={query?.tab === 'fractions' ? 'fractions' : undefined}
       domainCourse={domainCourse}
       carepathTasks={courseTasks(course.id, carepathTasks)}
       generatedDocuments={courseDocuments(course.id, generatedDocuments)}
@@ -52,6 +62,7 @@ export default async function PatientProfilePage({ params }: { params: Promise<{
       clinicalFormTemplates={clinicalFormTemplates}
       treatmentPlans={getTreatmentPlans().filter((plan) => plan.courseId === course.id)}
       treatmentFractions={getTreatmentFractions().filter((fraction) => fraction.courseId === course.id)}
+      prescriptionPhases={prescription?.phases ?? []}
       planningReadiness={getPhase6PlanningReadiness(course.id)}
       images={imagingAssets.filter((image) => image.courseId === course.id)}
       auditChecks={auditChecks.filter((check) => check.courseId === course.id)}

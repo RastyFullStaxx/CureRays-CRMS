@@ -1587,7 +1587,6 @@ export function validatePatientCreateInput(input: Partial<PatientCreateInput>): 
   const requiredFields: Array<keyof PatientCreateInput> = [
     "firstName",
     "lastName",
-    "mrn",
     "diagnosis",
     "diagnosisCategory",
     "location",
@@ -1600,7 +1599,7 @@ export function validatePatientCreateInput(input: Partial<PatientCreateInput>): 
 
   const mrn = textInput(input.mrn).toLowerCase();
   if (mrn && patients.some((patient) => patient.mrn.toLowerCase() === mrn)) {
-    errors.push("MRN must be unique.");
+    errors.push("External MRN must be unique.");
   }
 
   if (
@@ -1629,7 +1628,7 @@ export function validatePatientUpdateInput(
     mrn &&
     patients.some((patient, index) => index !== patientIndex && patient.mrn.toLowerCase() === mrn)
   ) {
-    errors.push("MRN must be unique.");
+    errors.push("External MRN must be unique.");
   }
 
   const patient = patients[patientIndex];

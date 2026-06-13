@@ -45,6 +45,7 @@ type DataTableProps<T extends object> = {
   onRowClick?: (row: T) => void;
   toolbar?: ReactNode;
   toolbarPrefix?: ReactNode;
+  toolbarActions?: ReactNode;
   search?: DataTableSearch<T>;
   filters?: Array<DataTableFilter<T>>;
   className?: string;
@@ -121,6 +122,7 @@ export function DataTable<T extends object>({
   onRowClick,
   toolbar,
   toolbarPrefix,
+  toolbarActions,
   search,
   filters = [],
   className = '',
@@ -129,7 +131,7 @@ export function DataTable<T extends object>({
   const [query, setQuery] = useState('');
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
-  const activeToolbar = toolbar || search || filters.length > 0 || toolbarPrefix;
+  const activeToolbar = toolbar || search || filters.length > 0 || toolbarPrefix || toolbarActions;
 
   const filterOptions = useMemo(() => {
     return filters.reduce<Record<string, FacetOption[]>>((optionsById, filter) => {
@@ -242,6 +244,7 @@ export function DataTable<T extends object>({
                     Reset
                   </button>
                 )}
+                {toolbarActions ? <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">{toolbarActions}</div> : null}
               </div>
             )}
           </div>

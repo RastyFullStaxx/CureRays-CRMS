@@ -6,8 +6,8 @@ import {
   Activity,
   AlertTriangle,
   ArrowLeft,
+  Bell,
   CalendarDays,
-  CheckCircle2,
   ClipboardList,
   FileCheck2,
   FileText,
@@ -21,7 +21,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Modal } from '@/components/ui/modal';
 import { DataTable } from '@/components/shared/data-table';
+import { FractionWorksheetPanel } from '@/components/fraction-worksheet-panel';
 import type {
   AuditCheck,
   AuditEvent,
@@ -34,6 +36,7 @@ import type {
   ImagingAsset,
   Patient,
   Phase6PlanningReadiness,
+  PrescriptionPhase,
   Task,
   TreatmentCourse,
   TreatmentFraction,
@@ -49,6 +52,7 @@ import {
   formatDate,
   responsiblePartyLabels,
 } from '@/lib/workflow';
+import { patientRef } from '@/lib/hipaa';
 
 type WorkspaceTab =
   | 'command'
@@ -65,6 +69,7 @@ type WorkspaceTab =
 type PatientWorkspaceProps = {
   patient: Patient;
   course: TreatmentCourse;
+  initialTab?: WorkspaceTab;
   domainCourse?: Course;
   carepathTasks: CarepathTask[];
   generatedDocuments: GeneratedDocument[];
@@ -75,6 +80,7 @@ type PatientWorkspaceProps = {
   clinicalFormTemplates: ClinicalFormTemplate[];
   treatmentPlans: TreatmentPlan[];
   treatmentFractions: TreatmentFraction[];
+  prescriptionPhases: PrescriptionPhase[];
   planningReadiness: Phase6PlanningReadiness;
   images: ImagingAsset[];
   auditChecks: AuditCheck[];
@@ -153,13 +159,10 @@ function SectionTitle({ title, action }: { title: string; action?: React.ReactNo
   );
 }
 
-function ApprovalBadge({ approved, label }: { approved: boolean; label: string }) {
-  return <Badge variant={approved ? 'success' : 'warning'}>{label}</Badge>;
-}
-
 export function PatientWorkspace({
   patient,
   course,
+  initialTab = 'command',
   domainCourse,
   carepathTasks,
   generatedDocuments,
@@ -170,12 +173,14 @@ export function PatientWorkspace({
   clinicalFormTemplates,
   treatmentPlans,
   treatmentFractions,
+  prescriptionPhases,
   planningReadiness,
   images,
   auditChecks,
   auditEvents,
 }: PatientWorkspaceProps) {
-  const [activeTab, setActiveTab] = useState<WorkspaceTab>('command');
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialTab);
+  const [signalsOpen, setSignalsOpen] = useState(false);
   const currentPlan = treatmentPlans[0];
   const carepath = carepathProgress(carepathTasks);
   const docs = documentProgress(generatedDocuments);
@@ -417,7 +422,15 @@ export function PatientWorkspace({
     }
 
     if (activeTab === 'fractions') {
-      return <FractionWorkspace entries={fractionEntries} course={course} />;
+      return (
+        <FractionWorksheetPanel
+          initialEntries={fractionEntries}
+          course={course}
+          phases={prescriptionPhases}
+          scheduledFractions={treatmentFractions}
+          title="Fractions"
+        />
+      );
     }
 
     if (activeTab === 'billing-audit') {
@@ -552,13 +565,17 @@ export function PatientWorkspace({
     otvDueFractions,
     planningReadiness.clinicianSignoffStatus,
     physicsDueFractions,
+    prescriptionPhases,
     readiness,
     scheduledFractions.length,
     tasks,
+    treatmentFractions,
     unsignedDocs.length,
     urgentTasks,
     workflowSteps,
   ]);
+
+  const signalCount = urgentTasks.length + blockedSteps.length + unsignedDocs.length + openChecks.length;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -576,13 +593,13 @@ export function PatientWorkspace({
                 <Badge variant="primary">PHI controlled</Badge>
               </div>
               <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
-                MRN {patient.mrn} · {patient.diagnosisSummary ?? patient.diagnosis} · {patient.location}
+                CRMS {patientRef(patient.id)} · External MRN {patient.mrn || 'not recorded'} · {patient.diagnosisSummary ?? patient.diagnosis} · {patient.location}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href={`/patients/${patient.id}/carepath`}><Button variant="secondary">Carepath</Button></Link>
               <Link href={`/patients/${patient.id}/documents`}><Button variant="secondary">Documents</Button></Link>
-              <Link href={`/patients/${patient.id}/fraction-log`}><Button>Fraction Log</Button></Link>
+              <Button type="button" onClick={() => setActiveTab('fractions')}>Fractions</Button>
             </div>
           </div>
         </div>
@@ -632,7 +649,7 @@ export function PatientWorkspace({
               className={cn(
                 'clinical-focus inline-flex h-10 min-w-fit items-center gap-2 rounded-[var(--radius-md)] px-3 text-sm font-bold transition',
                 activeTab === tab.id
-                  ? 'bg-[var(--color-primary)] text-white'
+                  ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
                   : 'text-[var(--color-text-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)]',
               )}
             >
@@ -643,8 +660,19 @@ export function PatientWorkspace({
         })}
       </div>
 
-      <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="min-h-0 flex-1">
         <div className="min-w-0">{tabContent}</div>
+      </section>
+
+      <div className="clinical-floating-action">
+        <Button type="button" className="shadow-[var(--shadow-card)]" onClick={() => setSignalsOpen(true)}>
+          <Bell className="h-4 w-4" aria-hidden="true" />
+          Course Signals
+          <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
+        </Button>
+      </div>
+
+      <Modal open={signalsOpen} onClose={() => setSignalsOpen(false)} title="Course Signals" width={520}>
         <ContextRail
           urgentTasks={urgentTasks.length}
           blockedSteps={blockedSteps.length}
@@ -653,74 +681,7 @@ export function PatientWorkspace({
           readiness={readiness}
           nextAction={patient.nextAction}
         />
-      </section>
-    </div>
-  );
-}
-
-function FractionWorkspace({ entries, course }: { entries: FractionLogEntry[]; course: TreatmentCourse }) {
-  const complete = entries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
-  const next = entries.find((entry) => !entry.mdApproval || !entry.dotApproval);
-  const cumulativeDose = entries.at(-1)?.cumulativeDose ?? 0;
-  const phaseOne = entries.filter((entry) => entry.phase.toLowerCase().includes('phase i')).length;
-  const phaseTwo = entries.length - phaseOne;
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <SectionTitle title="Fractionation Record" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <Metric label="Completed" value={`${complete}/${course.totalFractions}`} detail="MD + DOT approved" />
-          <Metric label="Cumulative Dose" value={`${cumulativeDose} cGy`} detail="Delivered dose" />
-          <Metric label="Phase I" value={phaseOne} detail={course.phaseOne ?? 'Protocol phase'} />
-          <Metric label="Phase II" value={phaseTwo} detail={course.phaseTwo ?? 'Boost / closeout'} />
-          <Metric label="Next Due" value={next ? `Fx ${next.fractionNumber}` : 'Complete'} detail={next ? formatDate(next.date) : 'All logged'} />
-        </div>
-        <div className="mt-4">
-          <ProgressLine value={Math.round((complete / Math.max(course.totalFractions, 1)) * 100)} />
-        </div>
-      </Card>
-
-      <DataTable
-        keyField="id"
-        pageSize={0}
-        columns={[
-          { key: 'fraction', label: 'Fx' },
-          { key: 'date', label: 'Date' },
-          { key: 'phase', label: 'Phase' },
-          { key: 'energy', label: 'Energy' },
-          { key: 'ssd', label: 'SSD / Applicator' },
-          { key: 'dose', label: 'Dose' },
-          { key: 'cumulative', label: 'Cumulative' },
-          { key: 'depth', label: 'Depth' },
-          { key: 'isodose', label: 'Isodose' },
-          { key: 'approvals', label: 'Approvals', render: (row) => (
-            <div className="flex flex-wrap gap-1">
-              <ApprovalBadge approved={row.md} label="MD" />
-              <ApprovalBadge approved={row.dot} label="DOT" />
-            </div>
-          ) },
-          { key: 'review', label: 'Review', render: (row) => <Badge variant={row.md && row.dot ? 'success' : 'warning'}>{row.md && row.dot ? 'Complete' : 'Needs Review'}</Badge> },
-          { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
-        ]}
-        rows={entries.map((entry) => ({
-          id: entry.id,
-          fraction: entry.fractionNumber,
-          date: formatDate(entry.date),
-          phase: entry.phase,
-          energy: entry.energy,
-          ssd: entry.ssd,
-          dose: `${entry.dosePerFraction} cGy`,
-          cumulative: `${entry.cumulativeDose} cGy`,
-          depth: entry.depthOfTarget,
-          isodose: `${entry.isodosePercent}%`,
-          md: entry.mdApproval,
-          dot: entry.dotApproval,
-          notes: entry.notes,
-        }))}
-        empty="No fraction rows are available for this patient course."
-        emptyDescription="Fraction rows will appear after treatment delivery entries are recorded."
-      />
+      </Modal>
     </div>
   );
 }

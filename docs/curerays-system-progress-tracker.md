@@ -1,6 +1,6 @@
 # CureRays CRMS System Progress Tracker
 
-Last updated: 2026-06-13
+Last updated: 2026-06-14
 
 Owner: CureRays CRMS implementation team
 
@@ -36,7 +36,7 @@ Current overall assessment:
 
 Plain answer to the question "pwede na ba from patient registration to record maintenance and updating?":
 
-The system can run locally and can demonstrate the patient-course operating model with mock or locally seeded PostgreSQL data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit patient-course bundles through guarded PHI actions, select workflow definitions from intake course fields, create workflow/task/document/audit/folder placeholders with rollback checks, record redacted correction history with optimistic concurrency, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows.
+The system can run locally and can demonstrate the patient-course operating model with mock or locally seeded PostgreSQL data. It can list tokenized patient records, open patient workspaces, show course/workflow/document/fraction/billing/audit state, create and edit patient-course bundles through guarded PHI actions, select workflow definitions from intake course fields, create workflow/task/document/audit/folder placeholders with rollback checks, record redacted correction history with optimistic concurrency, render simulated document previews, sign simulated documents, and update/approve/void fraction worksheet rows from the patient workspace Fractions tab.
 
 It is ready to pilot the Phase 2 patient-registration-to-maintenance path with strictly de-identified or synthetic data. Patient creation and update are owned by a server-only service with a repository contract, memory fallback, opt-in Prisma OPS/PHI persistence adapter, tokenized responses, workflow bundle post-conditions, server-owned prototype session claims, and redacted correction history. Local OPS/PHI PostgreSQL tables can now be created and seeded, and server-rendered pages can hydrate the prototype store from PostgreSQL before rendering dashboards, analytics, reports, and other store-backed views. It is still not ready for live PHI clinical use because real authentication/session management, production deployment controls, immutable audit infrastructure, full PHI client-boundary hardening, and full Prisma-native mutation coverage remain later-phase blockers. So: pwede na for internal demo and de-identified pilot workflow alignment; hindi pa pwede for live PHI clinical use.
 
@@ -103,7 +103,7 @@ Verification run on 2026-06-12:
 
 Current inventory:
 
-- 34 App Router page files.
+- 33 App Router page files.
 - 7 API route files.
 - 63 component TSX files.
 - 17 service files under `lib/services`.
@@ -132,10 +132,10 @@ Current inventory:
 - `[x]` Branded login/landing screen exists.
 - `[x]` Dashboard exists with telemetry-heavy operational views and now hydrates from local OPS/PHI PostgreSQL seed data when `CURERAYS_PERSISTENCE_MODE=prisma` is enabled.
 - `[x]` Patient registry, master records, upcoming, on-treatment, and post-treatment views display patient/course state from the shared store; server layout hydration can now load that store from local PostgreSQL before render.
-- `[x]` Patient workspace route exists and can show workflow, tasks, clinical, planning, imaging, documents, fractions, billing/audit, and activity tabs for mock patients.
+- `[x]` Patient workspace route exists and can show full-width workflow, tasks, clinical, planning, imaging, documents, fractions, billing/audit, and activity tabs for mock patients, with Course Signals available through a floating summary button instead of a right rail.
 - `[x]` Workflow pages show canonical Carepath steps and blockers from mock/generated or locally seeded PostgreSQL-backed state.
 - `[x]` Task, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
-- `[x]` IGSRT fraction worksheet can add, update, approve, request revision, and void rows against in-memory state.
+- `[x]` IGSRT fraction worksheet can add, update, approve, request revision, and void rows against in-memory state from the patient workspace Fractions tab.
 - `[x]` Fraction worksheet calculations have a fixture script and preserve a "clinical validation required" warning.
 - `[x]` Generated document render/sign flows exist as simulated outputs from structured state.
 - `[x]` Operational workflow API returns tokenized operational data.
@@ -144,8 +144,8 @@ Current inventory:
 
 ### Partially Functioning
 
-- `[~]` Patient registration: `POST /api/patients` and guided Add Patient UI are wired through a server-only registration service. In Prisma mode, the transitional adapter now persists patient, course, operational bundle references, redacted history, folder placeholder, and redacted audit event where current OPS/PHI schemas support them.
-- `[~]` Patient record maintenance: `PATCH /api/patients/[id]` and guided Edit Patient UI are wired through the server-only registration service with optimistic concurrency, required change reason, redacted correction history, and transitional Prisma persistence. Production-grade consent/history policy and immutable audit infrastructure remain later-phase work.
+- `[~]` Patient registration: `POST /api/patients` and guided Add Patient UI are wired through a server-only registration service. The form uses a stable sequential modal, gates each step by required information, treats external MRN as optional, and shows the generated CRMS patient reference before save. In Prisma mode, the transitional adapter now persists patient, course, operational bundle references, redacted history, folder placeholder, and redacted audit event where current OPS/PHI schemas support them.
+- `[~]` Patient record maintenance: `PATCH /api/patients/[id]` and grouped Edit Patient UI are wired through the server-only registration service with optimistic concurrency, required change reason, redacted correction history, duplicate external-MRN handling, and transitional Prisma persistence. Production-grade consent/history policy and immutable audit infrastructure remain later-phase work.
 - `[~]` Course/workflow automation: canonical steps and automation rules are documented; generated task/document helpers exist; full "create course -> create steps/tasks/docs/folders" automation is not implemented as durable backend logic.
 - `[~]` Template registry: local files are normalized; Phase 4 pilot metadata, field maps, approval status, explicit deferrals, future placeholders, and source-hash checks exist. Live Drive sync and real generation remain later-phase work.
 - `[~]` Document lifecycle: pages and simulated render/sign/export state exist; no real DOCX/PPTX/XLSX/PDF generation, no eCW upload, no electronic signature integration, no immutable version store.
@@ -170,14 +170,14 @@ Current inventory:
 | Stage | Current readiness | What works now | What blocks production |
 |---|---:|---|---|
 | Login/session | 15% | Branded login UI routes to dashboard. | No real auth, no session validation, no MFA, no timeout, no role claims. |
-| Patient registration | 52% | Guided Add Patient UI posts to a server-owned API path that validates required fields and duplicate MRNs, creates the patient/course/task/document/workflow/audit/folder bundle, returns tokenized output, records redacted audit metadata, and persists the transitional OPS/PHI rows in Prisma mode where schemas support them. Successful creates open the new patient workspace. | No real auth/session; no distributed OPS/PHI transaction; immutable audit, production permissions, and full Prisma-native repository coverage remain incomplete. |
+| Patient registration | 54% | Guided Add Patient UI posts to a server-owned API path that validates required fields, allows optional external MRN, checks duplicate MRN only when provided, creates the patient/course/task/document/workflow/audit/folder bundle, returns tokenized output, records redacted audit metadata, and persists the transitional OPS/PHI rows in Prisma mode where schemas support them. Successful creates open the new patient workspace and show the generated CRMS reference. | No real auth/session; no distributed OPS/PHI transaction; immutable audit, production permissions, and full Prisma-native repository coverage remain incomplete. |
 | Patient registry | 65% | `/patients`, `/records`, phase pages, search/filter tables, patient workspace links. | Some client pages import PHI-bearing mock data; operational DTO standard not enforced everywhere; no backend pagination/query permissions. |
-| Patient profile/workspace | 68% | Patient workspace displays course, workflow, tasks, documents, fractions, planning, imaging, billing/audit, activity. | Mostly read-only except fraction/IGSRT-specific routes; PHI handling is prototype-only; no durable writes. |
-| Record update/maintenance | 44% | Edit Patient UI fetches PHI explicitly, patches through a guarded server service, validates duplicate MRNs, returns redacted operational output, and captures actor-shaped audit metadata. IGSRT simulation/prescription/fractions/doc statuses update in memory. | No DB transaction; no field-level validation policy; no immutable audit trail; user attribution still comes from prototype headers/placeholders. |
+| Patient profile/workspace | 70% | Patient workspace displays full-width course, workflow, tasks, documents, fractions, planning, imaging, billing/audit, and activity tabs, opens directly to Fractions from `?tab=fractions`, and exposes Course Signals through a floating summary modal. | Mostly read-only except fraction/IGSRT-specific routes; PHI handling is prototype-only; no durable writes. |
+| Record update/maintenance | 46% | Edit Patient UI fetches PHI explicitly, shows a grouped full-form edit modal, requires change reason, patches through a guarded server service, validates duplicate external MRNs when provided, returns redacted operational output, and captures actor-shaped audit metadata. IGSRT simulation/prescription/fractions/doc statuses update in memory. | No DB transaction; no field-level validation policy; no immutable audit trail; user attribution still comes from prototype headers/placeholders. |
 | Course creation | 20% | Course concepts and mock courses exist. | No production create-course API/UI; no diagnosis/protocol workflow selection transaction. |
 | Workflow progression | 45% | Carepath steps, task/document requirements, blockers, and audit readiness are modeled and rendered. | No persistent workflow state machine; no guarded transitions; no due-date/escalation engine. |
 | Document generation | 35% | Simulated render/sign/export outputs exist. | No real template merge, output file write, Drive/eCW upload, signature provider, or lock/version enforcement. |
-| Treatment delivery/fractions | 60% | Strongest interactive slice: native fraction worksheet, review-first UI, calculations, approvals, revisions, voiding, registry table. | Clinical validation required; no persistence; no authenticated role enforcement; no machine/device integration. |
+| Treatment delivery/fractions | 62% | Strongest interactive slice: native fraction worksheet now lives in the patient workspace Fractions tab, opens history-first, records new fractions through a modal mini-flow, and keeps calculations, approvals, revisions, voiding, and the treatment-delivery registry table. | Clinical validation required; no persistence; no authenticated role enforcement; no machine/device integration. |
 | Billing/audit closeout | 35% | Mock billing rows, audit checks, readiness score, logs. | No real billing engine, payer/preauth validation, claim evidence lock, closeout gate, or immutable audit log. |
 
 Minimum "demo-ready" path today:
@@ -325,9 +325,9 @@ What is already done:
 - `[x]` `patientRef`, `courseRef`, and `phiRecordId` helpers exist.
 - `[x]` Redacted audit events are created for in-memory create/update operations with actor-shaped metadata fields.
 - `[x]` `/patients` renders tokenized operational DTOs by default and no longer imports raw `patients`.
-- `[x]` Add Patient UI posts to a validated create-patient API path.
-- `[x]` Edit Patient UI fetches PHI only after explicit user action and patches through the guarded API.
-- `[x]` Required-field validation and duplicate MRN checks exist in the prototype API/store path.
+- `[x]` Add Patient UI posts to a validated create-patient API path through a stable, sequential modal with gated steps.
+- `[x]` Edit Patient UI fetches PHI only after explicit user action and patches through the guarded API from a grouped full-form modal.
+- `[x]` Required-field validation and duplicate external-MRN checks exist in the prototype API/store path. External MRN is optional; CRMS generates its own patient reference.
 - `[x]` Patient creation accepts initial-course fields: protocol, body region/site, laterality, modality, total fractions, and start date.
 - `[x]` Patient creation selects workflow definitions by diagnosis/protocol/body region/modality with universal fallback.
 - `[x]` Patient creation creates course, workflow steps, tasks, document requirements, audit checks, and folder placeholders as one checked bundle.
@@ -344,7 +344,7 @@ Remaining checklist:
 - `[!]` Remove PHI-bearing patient data from all client bundles before production. `/patients` is hardened, but patient workspaces and other prototype paths still intentionally render PHI after server-side lookup.
 - `[x]` Wire Add Patient UI to a validated create-patient form.
 - `[x]` Wire Edit Patient UI to `PATCH /api/patients/[id]`.
-- `[x]` Add patient search, duplicate checking, MRN uniqueness checks, and required-field validation.
+- `[x]` Add patient search, duplicate checking, optional external-MRN uniqueness checks, generated CRMS reference display, and required-field validation.
 - `[x]` Create course creation flow as part of registration with initial-course fields.
 - `[x]` On course creation, select the workflow definition by diagnosis/protocol/body region/laterality/modality.
 - `[x]` On course creation, create workflow steps, tasks, document requirements, initial audit checks, and folder placeholders in one checked bundle with in-memory rollback.
@@ -519,10 +519,10 @@ What is already done:
 
 - `[x]` Treatment plan, prescription, prescription phase, and fraction log types exist.
 - `[x]` IGSRT simulation order and prescription in-memory update flows exist.
-- `[x]` Native fraction worksheet UI exists.
+- `[x]` Native fraction worksheet UI exists inside the patient workspace Fractions tab.
 - `[x]` `fraction-worksheet-service.ts` includes reference curves for 50/70/100 kV, lookup logic, manual override handling, cumulative dose calculations, approval state, correction handling, revision handling, void handling, billing row generation, and isodose note generation.
 - `[x]` Fraction worksheet fixture script passes with `TMPDIR=/tmp`.
-- `[x]` Fraction log registry page exists.
+- `[x]` Treatment Delivery fraction log registry page exists and deep-links to the patient workspace Fractions tab.
 - `[x]` Treatment delivery pages exist.
 - `[x]` Clinical validation warning is present in calculation metadata.
 - `[x]` Fraction worksheet reference data has a prototype reference version stored in calculation metadata.
@@ -535,7 +535,7 @@ What is already done:
 - `[x]` `/api/igsrt` supports `generateFractionSchedule`, `linkFractionImage`, `recordPhysicsCheck`, and `recordOtvCheck` in addition to the existing simulation, prescription, document, and fraction actions.
 - `[x]` Treatment Planning page shows Phase 6 readiness, missing inputs, schedule coverage, imaging/OTV/physics gates, and worksheet links.
 - `[x]` Patient Planning tab shows schedule coverage, missing imaging, OTV due, physics due, logged fraction count, and the clinical validation warning.
-- `[x]` Native fraction worksheet consumes scheduled fraction defaults, exposes IMG/OTV/PHYS gate badges, links prototype imaging evidence, and disables DOT approval while required imaging is missing.
+- `[x]` Native fraction worksheet consumes scheduled fraction defaults, opens history-first, moves new-fraction entry and details into modals, exposes IMG/OTV/PHYS gate badges, links prototype imaging evidence, and disables DOT approval while required imaging is missing.
 - `[x]` Historical corrections recalculate dependent active rows and reset downstream approvals when cumulative totals change.
 - `[x]` Voided rows remain retained for history and are excluded from active recalculation paths.
 - `[x]` Route-level `/api/igsrt` mutation authorization covers fraction approval and revision requests in addition to creation, correction, voiding, schedule, imaging, OTV, and physics actions.
@@ -799,6 +799,7 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-14 | Cleaned up patient Add/Edit and fraction workspace UX around older-staff usability. | Add Patient now uses fixed-size guided steps with validation gating, optional external MRN, and generated CRMS reference review; Edit Patient uses one grouped full-form modal with required change reason; patient workspace tabs are full-width with a floating Course Signals modal; patient-level fraction work moved to the Fractions tab with history-first table, modal Record Next Fraction flow, and modal details/actions. | Run the requested validation suite and continue formal clinical validation, production auth/session work, immutable audit, and persistent fraction storage before live PHI use. |
 | 2026-06-13 | Improved patient registration durability and oldies-friendly patient/fraction workflows. | Added guided 4-step Add/Edit Patient UI, shared textarea primitive, Prisma-mode persistence for patient/course bundle references, PHI-safe actionable persistence errors with in-memory rollback on failed writes, Save & Open workspace flow, and review-first Fraction Log with hidden step-based Record Next Fraction flow. `npm run typecheck` passed. | Run lint, HIPAA, Phase 2, and fraction worksheet guardrails; continue production hardening for real auth, immutable audit, full Prisma-native repositories, and formal clinical validation. |
 | 2026-06-11 | Created initial system progress tracker from repo/docs/code audit. | Docs, routes, services, Prisma schemas, validation scripts, build output reviewed. | Use this as the working checklist for the next implementation phase. |
 | 2026-06-11 | Verified current checks. | Typecheck, lint, HIPAA guardrails, fraction worksheet fixture with `TMPDIR=/tmp`, and build passed. | Add `npm run verify` and CI. |

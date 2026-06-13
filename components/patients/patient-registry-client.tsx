@@ -44,9 +44,17 @@ type PatientFormState = PatientCreateInput & {
 };
 
 type FormStep = 'identity' | 'clinical' | 'course' | 'review';
+type PatientFieldId =
+  | keyof PatientFormState
+  | 'initialCourse.protocol'
+  | 'initialCourse.bodyRegion'
+  | 'initialCourse.treatmentModality'
+  | 'initialCourse.totalFractions'
+  | 'changeReason';
+type FieldCheck = { label: string; complete: boolean; field: PatientFieldId };
 
 const formSteps: Array<{ id: FormStep; label: string; detail: string }> = [
-  { id: 'identity', label: 'Patient Identity', detail: 'Name and MRN' },
+  { id: 'identity', label: 'Patient Identity', detail: 'Name and reference' },
   { id: 'clinical', label: 'Clinical Basics', detail: 'Diagnosis and team' },
   { id: 'course', label: 'Course Setup', detail: 'Initial treatment course' },
   { id: 'review', label: 'Review & Save', detail: 'Confirm before saving' },
@@ -132,35 +140,34 @@ function formFromPatient(patient: PatientEditDto): PatientFormState {
   };
 }
 
-function checksForStep(form: PatientFormState, step: FormStep, isEdit: boolean, changeReason: string) {
+function checksForStep(form: PatientFormState, step: FormStep, isEdit: boolean, changeReason: string): FieldCheck[] {
   if (step === 'identity') {
     return [
-      { label: 'First name', complete: requiredText(form.firstName) },
-      { label: 'Last name', complete: requiredText(form.lastName) },
-      { label: 'MRN', complete: requiredText(form.mrn) },
+      { label: 'First name', complete: requiredText(form.firstName), field: 'firstName' },
+      { label: 'Last name', complete: requiredText(form.lastName), field: 'lastName' },
     ];
   }
 
   if (step === 'clinical') {
     return [
-      { label: 'Diagnosis', complete: requiredText(form.diagnosis) },
-      { label: 'Location', complete: requiredText(form.location) },
-      { label: 'Physician', complete: requiredText(form.physician) },
-      { label: 'Assigned staff', complete: requiredText(form.assignedStaff) },
+      { label: 'Diagnosis', complete: requiredText(form.diagnosis), field: 'diagnosis' },
+      { label: 'Location', complete: requiredText(form.location), field: 'location' },
+      { label: 'Physician', complete: requiredText(form.physician), field: 'physician' },
+      { label: 'Assigned staff', complete: requiredText(form.assignedStaff), field: 'assignedStaff' },
     ];
   }
 
   if (step === 'course') {
     return [
-      { label: 'Protocol', complete: requiredText(form.initialCourse?.protocol) },
-      { label: 'Body region', complete: requiredText(form.initialCourse?.bodyRegion) },
-      { label: 'Fractions', complete: Number(form.initialCourse?.totalFractions ?? 0) > 0 },
-      { label: 'Modality', complete: requiredText(form.initialCourse?.treatmentModality) },
+      { label: 'Protocol', complete: requiredText(form.initialCourse?.protocol), field: 'initialCourse.protocol' },
+      { label: 'Body region', complete: requiredText(form.initialCourse?.bodyRegion), field: 'initialCourse.bodyRegion' },
+      { label: 'Fractions', complete: Number(form.initialCourse?.totalFractions ?? 0) > 0, field: 'initialCourse.totalFractions' },
+      { label: 'Modality', complete: requiredText(form.initialCourse?.treatmentModality), field: 'initialCourse.treatmentModality' },
     ];
   }
 
   return isEdit
-    ? [{ label: 'Change reason', complete: requiredText(changeReason) }]
+    ? [{ label: 'Change reason', complete: requiredText(changeReason), field: 'changeReason' }]
     : [];
 }
 
@@ -169,26 +176,50 @@ function firstInvalidStep(form: PatientFormState, isEdit: boolean, changeReason:
 }
 
 function missingLabels(form: PatientFormState, step: FormStep, isEdit: boolean, changeReason: string) {
-  return checksForStep(form, step, isEdit, changeReason)
-    .filter((check) => !check.complete)
-    .map((check) => check.label);
+  return missingChecks(form, step, isEdit, changeReason).map((check) => check.label);
+}
+
+function missingChecks(form: PatientFormState, step: FormStep, isEdit: boolean, changeReason: string) {
+  return checksForStep(form, step, isEdit, changeReason).filter((check) => !check.complete);
+}
+
+function focusPatientField(field: PatientFieldId | undefined) {
+  if (!field) return;
+  window.setTimeout(() => {
+    const target = document.querySelector<HTMLElement>(
+      `[data-patient-field="${field}"] input, [data-patient-field="${field}"] select, [data-patient-field="${field}"] textarea`
+    );
+    target?.focus();
+  }, 0);
+}
+
+function nextCrmsReference(rows: PatientRegistryRow[]) {
+  const numericIds = rows
+    .map((row) => Number(row.id.replace(/^CR-/, '')))
+    .filter(Number.isFinite);
+  return `CR-${Math.max(2400, ...numericIds) + 1}`;
 }
 
 function Field({
   label,
   required = false,
+  field,
+  helper,
   className = '',
   children,
 }: {
   label: string;
   required?: boolean;
+  field?: PatientFieldId;
+  helper?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <label className={`grid gap-1.5 text-xs font-bold text-[var(--color-text-muted)] ${className}`}>
+    <label data-patient-field={field} className={`grid gap-1.5 text-xs font-bold text-[var(--color-text-muted)] ${className}`}>
       <span>{label}{required ? <span className="ml-1 text-[var(--color-error)]">*</span> : null}</span>
       {children}
+      {helper ? <span className="text-[11px] font-semibold leading-4 text-[var(--color-text-muted)]">{helper}</span> : null}
     </label>
   );
 }
@@ -198,6 +229,122 @@ function ReviewRow({ label, value }: { label: string; value: ReactNode }) {
     <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2">
       <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">{label}</p>
       <div className="mt-1 text-sm font-semibold text-[var(--color-text)]">{value || '—'}</div>
+    </div>
+  );
+}
+
+type PatientFormUpdater = <K extends keyof PatientFormState>(key: K, value: PatientFormState[K]) => void;
+type CourseFormUpdater = <K extends keyof NonNullable<PatientFormState['initialCourse']>>(
+  key: K,
+  value: NonNullable<PatientFormState['initialCourse']>[K]
+) => void;
+
+function ClinicalFields({
+  form,
+  updateForm,
+  compact = false,
+}: {
+  form: PatientFormState;
+  updateForm: PatientFormUpdater;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`grid gap-3 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-2'}`}>
+      <Field label="Diagnosis category" required>
+        <Select value={form.diagnosisCategory} onChange={(event) => updateForm('diagnosisCategory', event.target.value as DiagnosisCategory)}>
+          <option value="SKIN_CANCER">Skin Cancer</option>
+          <option value="ARTHRITIS">Arthritis</option>
+          <option value="DUPUYTRENS">Dupuytren&apos;s</option>
+        </Select>
+      </Field>
+      <Field label="Phase" required>
+        <Select value={form.chartRoundsPhase} onChange={(event) => updateForm('chartRoundsPhase', event.target.value as ChartRoundsPhase)}>
+          <option value="UPCOMING">Upcoming</option>
+          <option value="ON_TREATMENT">On Treatment</option>
+          <option value="POST">Post-Treatment</option>
+        </Select>
+      </Field>
+      <Field label="Diagnosis" field="diagnosis" required className="sm:col-span-2">
+        <Input value={form.diagnosis} onChange={(event) => updateForm('diagnosis', event.target.value)} />
+      </Field>
+      <Field label="Location" field="location" required>
+        <Input value={form.location} onChange={(event) => updateForm('location', event.target.value)} />
+      </Field>
+      <Field label="Physician" field="physician" required>
+        <Input value={form.physician} onChange={(event) => updateForm('physician', event.target.value)} />
+      </Field>
+      <Field label="Assigned staff" field="assignedStaff" required>
+        <Input value={form.assignedStaff} onChange={(event) => updateForm('assignedStaff', event.target.value)} />
+      </Field>
+      <Field label="Status" required>
+        <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as PatientStatus)}>
+          <option value="ACTIVE">Active</option>
+          <option value="ON_HOLD">On Hold</option>
+          <option value="PAUSED">Paused</option>
+        </Select>
+      </Field>
+    </div>
+  );
+}
+
+function CourseFields({
+  form,
+  updateForm,
+  updateInitialCourse,
+  compact = false,
+}: {
+  form: PatientFormState;
+  updateForm: PatientFormUpdater;
+  updateInitialCourse: CourseFormUpdater;
+  compact?: boolean;
+}) {
+  const gridColumns = compact ? 'xl:grid-cols-2' : 'xl:grid-cols-3';
+  return (
+    <div className={`grid gap-3 sm:grid-cols-2 ${gridColumns}`}>
+      <Field label="Protocol" field="initialCourse.protocol" required>
+        <Select value={form.initialCourse?.protocol ?? 'IGSRT'} onChange={(event) => updateInitialCourse('protocol', event.target.value)}>
+          <option value="IGSRT">Skin Cancer IGSRT</option>
+          <option value="Joint">Arthritis Joint</option>
+          <option value="Dupuytren's">Dupuytren&apos;s</option>
+          <option value="Universal">Universal</option>
+        </Select>
+      </Field>
+      <Field label="Body region" field="initialCourse.bodyRegion" required>
+        <Select value={form.initialCourse?.bodyRegion ?? 'SITE'} onChange={(event) => updateInitialCourse('bodyRegion', event.target.value)}>
+          <option value="SITE">Site</option>
+          <option value="HAND">Hand</option>
+          <option value="FOOT">Foot</option>
+          <option value="KNEE">Knee</option>
+        </Select>
+      </Field>
+      <Field label="Laterality">
+        <Select value={form.initialCourse?.laterality ?? 'UNSPECIFIED'} onChange={(event) => updateInitialCourse('laterality', event.target.value)}>
+          <option value="UNSPECIFIED">Unspecified</option>
+          <option value="LEFT">Left</option>
+          <option value="RIGHT">Right</option>
+          <option value="BILATERAL">Bilateral</option>
+        </Select>
+      </Field>
+      <Field label="Modality" field="initialCourse.treatmentModality" required>
+        <Input value={form.initialCourse?.treatmentModality ?? ''} onChange={(event) => updateInitialCourse('treatmentModality', event.target.value)} />
+      </Field>
+      <Field label="Fractions" field="initialCourse.totalFractions" required>
+        <Input
+          type="number"
+          min={1}
+          value={form.initialCourse?.totalFractions ?? 0}
+          onChange={(event) => updateInitialCourse('totalFractions', Number(event.target.value))}
+        />
+      </Field>
+      <Field label="Start date">
+        <Input type="date" value={form.initialCourse?.startDate ?? ''} onChange={(event) => updateInitialCourse('startDate', event.target.value)} />
+      </Field>
+      <Field label="Next action" className="xl:col-span-3">
+        <Input value={form.nextAction ?? ''} onChange={(event) => updateForm('nextAction', event.target.value)} />
+      </Field>
+      <Field label="Notes" className="xl:col-span-3">
+        <Textarea rows={3} value={form.notes ?? ''} onChange={(event) => updateForm('notes', event.target.value)} />
+      </Field>
     </div>
   );
 }
@@ -216,7 +363,8 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
 
   const activeStepIndex = formSteps.findIndex((step) => step.id === formStep);
   const isEdit = modalMode === 'edit' && Boolean(editingPhiId);
-  const currentMissing = missingLabels(form, formStep, isEdit, changeReason);
+  const isCreate = modalMode === 'create';
+  const crmsReferencePreview = useMemo(() => nextCrmsReference(rows), [rows]);
 
   const metrics = useMemo(() => {
     return {
@@ -293,9 +441,10 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   };
 
   const goNext = () => {
-    const invalid = missingLabels(form, formStep, isEdit, changeReason);
+    const invalid = missingChecks(form, formStep, isEdit, changeReason);
     if (invalid.length) {
-      setError(`Complete ${invalid.join(', ')} before continuing.`);
+      setError(`Complete ${invalid.map((item) => item.label).join(', ')} before continuing.`);
+      focusPatientField(invalid[0]?.field);
       return;
     }
 
@@ -312,8 +461,10 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
     event.preventDefault();
     const invalidStep = firstInvalidStep(form, isEdit, changeReason);
     if (invalidStep) {
+      const invalid = missingChecks(form, invalidStep, isEdit, changeReason);
       setFormStep(invalidStep);
-      setError(`Complete ${missingLabels(form, invalidStep, isEdit, changeReason).join(', ')} before saving.`);
+      setError(`Complete ${invalid.map((item) => item.label).join(', ')} before saving.`);
+      focusPatientField(invalid[0]?.field);
       return;
     }
 
@@ -355,6 +506,13 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
     } finally {
       setPending(false);
     }
+  };
+
+  const canOpenCreateStep = (targetIndex: number) => {
+    if (targetIndex <= activeStepIndex) return true;
+    return formSteps
+      .slice(0, targetIndex)
+      .every((step) => missingChecks(form, step.id, false, changeReason).length === 0);
   };
 
   return (
@@ -440,206 +598,156 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         empty="No operational patient records found."
       />
 
-      <Modal open={modalMode !== null} onClose={closeModal} title={modalMode === 'edit' ? 'Edit Patient Record' : 'Add Patient'} width={780}>
-        <form className="grid gap-4" onSubmit={submitForm}>
-          <div className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-            <div className="grid gap-2 sm:grid-cols-4">
-              {formSteps.map((step, index) => {
-                const missing = missingLabels(form, step.id, isEdit, changeReason).length;
-                const active = step.id === formStep;
-                const complete = missing === 0;
-                return (
-                  <button
-                    key={step.id}
-                    type="button"
-                    className={`clinical-focus rounded-[var(--radius-md)] border px-3 py-3 text-left transition ${
-                      active
-                        ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]'
-                        : 'border-[var(--color-border-soft)] bg-[var(--color-card)] hover:bg-[var(--color-hover)]'
-                    }`}
-                    onClick={() => setFormStep(step.id)}
-                  >
-                    <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
-                    <span className="mt-1 block text-sm font-bold text-[var(--color-text)]">{step.label}</span>
-                    <span className="mt-1 block text-xs font-semibold text-[var(--color-text-muted)]">{complete ? step.detail : `${missing} field${missing === 1 ? '' : 's'} left`}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {error ? (
-            <div className="rounded-[var(--radius-md)] border border-[color-mix(in_srgb,var(--color-error)_22%,transparent)] bg-[color-mix(in_srgb,var(--color-error)_8%,transparent)] p-3 text-sm font-semibold text-[var(--color-error)]">
-              {error}
-            </div>
-          ) : null}
-
-          {formStep === 'identity' ? (
-            <div className="grid gap-4">
-              <div>
-                <p className="font-heading text-xl font-bold text-[var(--color-text)]">Patient Identity</p>
-                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">{currentMissing.length ? `${currentMissing.length} required field${currentMissing.length === 1 ? '' : 's'} left` : 'Ready for clinical basics'}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="First name" required>
-                  <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
-                </Field>
-                <Field label="Last name" required>
-                  <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
-                </Field>
-                <Field label="MRN" required className="sm:col-span-2">
-                  <Input value={form.mrn} onChange={(event) => updateForm('mrn', event.target.value)} />
-                </Field>
+      <Modal
+        open={modalMode !== null}
+        onClose={closeModal}
+        title={modalMode === 'edit' ? 'Edit Patient Record' : 'Add Patient'}
+        width={isEdit ? 'var(--width-clinical-modal-lg)' : 'var(--width-clinical-modal)'}
+        height="var(--height-clinical-modal)"
+        contentClassName="flex flex-col"
+      >
+        <form className="clinical-modal-frame flex-1" onSubmit={submitForm}>
+          {isCreate ? (
+            <div className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
+              <div className="grid gap-2 sm:grid-cols-4">
+                {formSteps.map((step, index) => {
+                  const missing = missingLabels(form, step.id, false, changeReason).length;
+                  const active = step.id === formStep;
+                  const complete = missing === 0;
+                  const canOpen = canOpenCreateStep(index);
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      disabled={!canOpen || pending}
+                      className={`clinical-focus min-h-[74px] rounded-[var(--radius-md)] border px-3 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                        active
+                          ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]'
+                          : 'border-[var(--color-border-soft)] bg-[var(--color-card)] hover:bg-[var(--color-hover)]'
+                      }`}
+                      onClick={() => canOpen && setFormStep(step.id)}
+                    >
+                      <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
+                      <span className="mt-1 block text-sm font-bold text-[var(--color-text)]">{step.label}</span>
+                      <span className="mt-1 block text-xs font-semibold text-[var(--color-text-muted)]">{complete ? 'Ready' : 'Needs required info'}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          ) : null}
-
-          {formStep === 'clinical' ? (
-            <div className="grid gap-4">
-              <div>
-                <p className="font-heading text-xl font-bold text-[var(--color-text)]">Clinical Basics</p>
-                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">{currentMissing.length ? `${currentMissing.length} required field${currentMissing.length === 1 ? '' : 's'} left` : 'Ready for course setup'}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Diagnosis category" required>
-                  <Select value={form.diagnosisCategory} onChange={(event) => updateForm('diagnosisCategory', event.target.value as DiagnosisCategory)}>
-                    <option value="SKIN_CANCER">Skin Cancer</option>
-                    <option value="ARTHRITIS">Arthritis</option>
-                    <option value="DUPUYTRENS">Dupuytren&apos;s</option>
-                  </Select>
-                </Field>
-                <Field label="Phase" required>
-                  <Select value={form.chartRoundsPhase} onChange={(event) => updateForm('chartRoundsPhase', event.target.value as ChartRoundsPhase)}>
-                    <option value="UPCOMING">Upcoming</option>
-                    <option value="ON_TREATMENT">On Treatment</option>
-                    <option value="POST">Post-Treatment</option>
-                  </Select>
-                </Field>
-                <Field label="Diagnosis" required className="sm:col-span-2">
-                  <Input value={form.diagnosis} onChange={(event) => updateForm('diagnosis', event.target.value)} />
-                </Field>
-                <Field label="Location" required>
-                  <Input value={form.location} onChange={(event) => updateForm('location', event.target.value)} />
-                </Field>
-                <Field label="Physician" required>
-                  <Input value={form.physician} onChange={(event) => updateForm('physician', event.target.value)} />
-                </Field>
-                <Field label="Assigned staff" required>
-                  <Input value={form.assignedStaff} onChange={(event) => updateForm('assignedStaff', event.target.value)} />
-                </Field>
-                <Field label="Status" required>
-                  <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as PatientStatus)}>
-                    <option value="ACTIVE">Active</option>
-                    <option value="ON_HOLD">On Hold</option>
-                    <option value="PAUSED">Paused</option>
-                  </Select>
-                </Field>
-              </div>
-            </div>
-          ) : null}
-
-          {formStep === 'course' ? (
-            <div className="grid gap-4">
-              <div>
-                <p className="font-heading text-xl font-bold text-[var(--color-text)]">Course Setup</p>
-                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">{currentMissing.length ? `${currentMissing.length} required field${currentMissing.length === 1 ? '' : 's'} left` : 'Ready for review'}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <Field label="Protocol" required>
-                  <Select value={form.initialCourse?.protocol ?? 'IGSRT'} onChange={(event) => updateInitialCourse('protocol', event.target.value)}>
-                    <option value="IGSRT">Skin Cancer IGSRT</option>
-                    <option value="Joint">Arthritis Joint</option>
-                    <option value="Dupuytren's">Dupuytren&apos;s</option>
-                    <option value="Universal">Universal</option>
-                  </Select>
-                </Field>
-                <Field label="Body region" required>
-                  <Select value={form.initialCourse?.bodyRegion ?? 'SITE'} onChange={(event) => updateInitialCourse('bodyRegion', event.target.value)}>
-                    <option value="SITE">Site</option>
-                    <option value="HAND">Hand</option>
-                    <option value="FOOT">Foot</option>
-                    <option value="KNEE">Knee</option>
-                  </Select>
-                </Field>
-                <Field label="Laterality">
-                  <Select value={form.initialCourse?.laterality ?? 'UNSPECIFIED'} onChange={(event) => updateInitialCourse('laterality', event.target.value)}>
-                    <option value="UNSPECIFIED">Unspecified</option>
-                    <option value="LEFT">Left</option>
-                    <option value="RIGHT">Right</option>
-                    <option value="BILATERAL">Bilateral</option>
-                  </Select>
-                </Field>
-                <Field label="Modality" required>
-                  <Input value={form.initialCourse?.treatmentModality ?? ''} onChange={(event) => updateInitialCourse('treatmentModality', event.target.value)} />
-                </Field>
-                <Field label="Fractions" required>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={form.initialCourse?.totalFractions ?? 0}
-                    onChange={(event) => updateInitialCourse('totalFractions', Number(event.target.value))}
-                  />
-                </Field>
-                <Field label="Start date">
-                  <Input type="date" value={form.initialCourse?.startDate ?? ''} onChange={(event) => updateInitialCourse('startDate', event.target.value)} />
-                </Field>
-                <Field label="Next action" className="xl:col-span-3">
-                  <Input value={form.nextAction ?? ''} onChange={(event) => updateForm('nextAction', event.target.value)} />
-                </Field>
-                <Field label="Notes" className="xl:col-span-3">
-                  <Textarea rows={3} value={form.notes ?? ''} onChange={(event) => updateForm('notes', event.target.value)} />
-                </Field>
-              </div>
-            </div>
-          ) : null}
-
-          {formStep === 'review' ? (
-            <div className="grid gap-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-heading text-xl font-bold text-[var(--color-text)]">Review & Save</p>
-                  <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">{isEdit ? 'Correction history will stay redacted.' : 'Saving creates the patient-course bundle.'}</p>
+          ) : (
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[var(--color-text)]">All editable fields are shown together.</p>
+                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Save requires a change reason and validates stale edits before updating.</p>
                 </div>
-                <Badge variant={currentMissing.length ? 'warning' : 'success'}>{currentMissing.length ? 'Needs reason' : 'Ready'}</Badge>
+                <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
+            </div>
+          )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <ReviewRow label="Patient" value={`${form.firstName} ${form.lastName}`} />
-                <ReviewRow label="MRN" value={form.mrn} />
-                <ReviewRow label="Diagnosis" value={`${diagnosisLabels[form.diagnosisCategory]} | ${form.diagnosis}`} />
-                <ReviewRow label="Team" value={`${form.physician} | ${form.assignedStaff}`} />
-                <ReviewRow label="Phase / Status" value={`${phaseLabels[form.chartRoundsPhase]} | ${statusLabels[form.status]}`} />
-                <ReviewRow label="Course" value={`${form.initialCourse?.protocol ?? '—'} | ${form.initialCourse?.bodyRegion ?? '—'} | ${form.initialCourse?.totalFractions ?? 0} fx`} />
+          <div className="clinical-modal-body grid content-start gap-4 py-4">
+            {error ? (
+              <div className="clinical-alert-error p-3 text-sm font-semibold" role="alert">
+                {error}
               </div>
+            ) : null}
 
-              {isEdit ? (
-                <Field label="Change reason" required>
+            {isCreate && formStep === 'identity' ? (
+              <div className="grid gap-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="First name" field="firstName" required>
+                    <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
+                  </Field>
+                  <Field label="Last name" field="lastName" required>
+                    <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
+                  </Field>
+                  <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional. Use the EMR/registration MRN only when it already exists. CRMS will generate its own patient reference.">
+                    <Input value={form.mrn} onChange={(event) => updateForm('mrn', event.target.value)} />
+                  </Field>
+                </div>
+                <div className="clinical-muted-surface p-3">
+                  <p className="clinical-label">Generated CRMS Reference</p>
+                  <p className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{crmsReferencePreview}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {isCreate && formStep === 'clinical' ? (
+              <ClinicalFields form={form} updateForm={updateForm} />
+            ) : null}
+
+            {isCreate && formStep === 'course' ? (
+              <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} />
+            ) : null}
+
+            {isCreate && formStep === 'review' ? (
+              <div className="grid gap-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <ReviewRow label="CRMS Reference" value={crmsReferencePreview} />
+                  <ReviewRow label="External MRN" value={form.mrn || 'Not recorded'} />
+                  <ReviewRow label="Patient" value={`${form.firstName} ${form.lastName}`} />
+                  <ReviewRow label="Diagnosis" value={`${diagnosisLabels[form.diagnosisCategory]} | ${form.diagnosis}`} />
+                  <ReviewRow label="Team" value={`${form.physician} | ${form.assignedStaff}`} />
+                  <ReviewRow label="Phase / Status" value={`${phaseLabels[form.chartRoundsPhase]} | ${statusLabels[form.status]}`} />
+                  <ReviewRow label="Course" value={`${form.initialCourse?.protocol ?? '—'} | ${form.initialCourse?.bodyRegion ?? '—'} | ${form.initialCourse?.totalFractions ?? 0} fx`} />
+                </div>
+                <div className="clinical-muted-surface p-3 text-xs font-semibold text-[var(--color-text-muted)]">
+                  Prototype PHI action uses server-owned session claims. Mutation responses and correction history stay redacted.
+                </div>
+              </div>
+            ) : null}
+
+            {isEdit ? (
+              <div className="grid gap-4">
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                    <p className="font-heading text-base font-bold text-[var(--color-text)]">Patient Identity</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field label="First name" field="firstName" required>
+                        <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
+                      </Field>
+                      <Field label="Last name" field="lastName" required>
+                        <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
+                      </Field>
+                      <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional external/EMR identifier. Leave blank if it is not assigned yet.">
+                        <Input value={form.mrn} onChange={(event) => updateForm('mrn', event.target.value)} />
+                      </Field>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                    <p className="font-heading text-base font-bold text-[var(--color-text)]">Clinical Basics</p>
+                    <ClinicalFields form={form} updateForm={updateForm} compact />
+                  </div>
+                </div>
+                <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                  <p className="font-heading text-base font-bold text-[var(--color-text)]">Course Setup</p>
+                  <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} compact />
+                </div>
+                <Field label="Change reason" field="changeReason" required>
                   <Textarea rows={3} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
                 </Field>
-              ) : null}
-
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
-                Prototype PHI action uses server-owned session claims. Mutation responses and correction history stay redacted.
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-border-soft)] pt-3">
-            <Button type="button" variant="ghost" disabled={pending} onClick={closeModal}>Cancel</Button>
+          <div className="clinical-modal-footer">
+            <Button type="button" variant="ghost" className="clinical-action" disabled={pending} onClick={closeModal}>Cancel</Button>
             <div className="flex flex-wrap gap-2">
-              {activeStepIndex > 0 ? (
-                <Button type="button" variant="secondary" disabled={pending} onClick={goBack}>
+              {isCreate && activeStepIndex > 0 ? (
+                <Button type="button" variant="secondary" className="clinical-action" disabled={pending} onClick={goBack}>
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                   Back
                 </Button>
               ) : null}
-              {activeStepIndex < formSteps.length - 1 ? (
-                <Button type="button" disabled={pending} onClick={goNext}>
+              {isCreate && activeStepIndex < formSteps.length - 1 ? (
+                <Button type="button" className="clinical-action" disabled={pending || missingChecks(form, formStep, false, changeReason).length > 0} onClick={goNext}>
                   Continue
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={pending}>
+                <Button type="submit" className="clinical-action-lg" disabled={pending}>
                   {pending ? <Save className="h-4 w-4" aria-hidden="true" /> : <CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
                   {pending ? 'Saving' : isEdit ? 'Save Changes' : 'Save & Open'}
                 </Button>

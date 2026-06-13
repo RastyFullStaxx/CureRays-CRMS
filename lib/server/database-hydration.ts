@@ -132,7 +132,7 @@ type PhiPatientRow = {
   phiRecordId: string;
   firstName: string;
   lastName: string;
-  mrn: string;
+  mrn: string | null;
   diagnosis: string;
   diagnosisCategory: DiagnosisCategory;
   location: string;
@@ -366,7 +366,7 @@ function mapPatient(row: PhiPatientRow): Patient {
     id: row.id,
     firstName: row.firstName,
     lastName: row.lastName,
-    mrn: row.mrn,
+    mrn: row.mrn ?? "",
     diagnosis: row.diagnosis,
     diagnosisCategory: row.diagnosisCategory,
     location: row.location,

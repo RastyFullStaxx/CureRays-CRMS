@@ -32,7 +32,7 @@ model PatientPhi {
   phiRecordId      String             @unique
   firstName        String
   lastName         String
-  mrn              String             @unique
+  mrn              String?            @unique
   diagnosis        String
   diagnosisCategory DiagnosisCategory
   location         String

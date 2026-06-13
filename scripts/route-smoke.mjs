@@ -42,8 +42,7 @@ const secondaryRoutes = [
 const dynamicExamples = [
   { route: "/patients/PHI-CR2401", file: "app/patients/[id]/page.tsx" },
   { route: "/patients/PHI-CR2401/carepath", file: "app/patients/[id]/carepath/page.tsx" },
-  { route: "/patients/PHI-CR2401/documents", file: "app/patients/[id]/documents/page.tsx" },
-  { route: "/patients/PHI-CR2401/fraction-log", file: "app/patients/[id]/fraction-log/page.tsx" }
+  { route: "/patients/PHI-CR2401/documents", file: "app/patients/[id]/documents/page.tsx" }
 ];
 
 function routeToPageFile(route) {

@@ -79,7 +79,7 @@ export function getFractionLogRegistryRows(): FractionLogRegistryRow[] {
 
       return {
         id: entry.id,
-        href: `/patients/${patient?.phiRecordId ?? course?.patientRef ?? "missing"}/fraction-log`,
+        href: `/patients/${patient?.phiRecordId ?? course?.patientRef ?? "missing"}?tab=fractions`,
         patientRef: patient?.patientRef ?? "PREF-MISSING",
         courseRef: course?.courseRef ?? entry.courseId.replace("COURSE-", "CREF-"),
         courseId: entry.courseId,

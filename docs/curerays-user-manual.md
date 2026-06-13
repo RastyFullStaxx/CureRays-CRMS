@@ -225,10 +225,11 @@ Use Patients to find, create, and maintain patient records.
 
 1. Open Patients.
 2. Select Add Patient.
-3. Complete Patient Identity:
+3. Complete the guided Patient Identity step:
    - First name
    - Last name
-   - MRN
+   - External MRN, if it already exists in the EMR or registration system
+   - Review the generated CRMS patient reference shown by the system
 4. Complete Clinical Basics:
    - Diagnosis category
    - Diagnosis
@@ -245,6 +246,8 @@ Use Patients to find, create, and maintain patient records.
 6. Review the final summary.
 7. Save.
 
+External MRN is optional in CRMS because it may be assigned by the EMR or registration system outside this prototype. CRMS always generates its own internal patient reference so staff can identify the record even when an external MRN is not available yet.
+
 After saving, the system creates the patient record, active course, workflow steps, initial tasks, document requirements, audit checks, and course file locations. The new patient workspace opens after a successful save.
 
 ### Edit A Patient Record
@@ -252,8 +255,8 @@ After saving, the system creates the patient record, active course, workflow ste
 1. Open Patients.
 2. Find the patient.
 3. Select Edit.
-4. Move through the guided sections and update only the fields that need correction.
-5. Enter the change reason on Review & Save.
+4. Review the grouped edit form and update only the fields that need correction.
+5. Enter the required change reason.
 6. Save.
 
 The system records correction history. Do not use patient notes to hide corrections that should be made in structured fields.
@@ -281,7 +284,6 @@ Use Command for a quick course summary.
 
 It shows:
 
-- Course signals
 - Urgent tasks
 - Blocked steps
 - Unsigned documents
@@ -291,6 +293,8 @@ It shows:
 - Next action
 
 Start here when you open a patient and need to know what matters most.
+
+The main tab content uses the full workspace width. The Course Signals floating button is available on the workspace so staff can open urgent tasks, blockers, unsigned documents, audit checks, readiness, and next action without losing the current tab.
 
 ### Workflow Tab
 
@@ -571,13 +575,13 @@ Do not approve a fraction if required imaging evidence is missing.
 
 ## 16. Fraction Worksheet
 
-Use the fraction worksheet to record daily treatment details.
+Use the Fractions tab in the patient workspace to review and record daily treatment details. The default view is history-first: staff should review the course context, alerts, prior fractions, notes, approvals, and warnings before recording a new entry.
 
 ### Record A Fraction
 
-1. Open the patient's Fraction Log or the worksheet from Treatment Planning.
-2. Review the course context, Review Queue, alerts, Fraction History, and selected note/detail first.
-3. Select Record Next Fraction.
+1. Open the patient workspace and select Fractions, or follow a Treatment Delivery link to the patient's Fractions tab.
+2. Review the Fraction History table and any pending alerts first.
+3. Select Record Next Fraction from the table toolbar.
 4. Confirm:
    - Fraction number
    - Date
@@ -597,8 +601,9 @@ Use the fraction worksheet to record daily treatment details.
 
 ### Review And Approve A Fraction
 
-1. Go to the Review Queue.
-2. Review warnings, imaging state, calculation status, and dose details.
+1. Open the Fractions tab.
+2. Select Details for the fraction row.
+3. Review warnings, imaging state, calculation status, notes, and dose details.
 3. If image guidance is missing, link or complete the imaging evidence first.
 4. Select DOT Approve when DOT review is complete.
 5. Select MD Approve when physician review is complete.

@@ -11,7 +11,7 @@ CureRays Clinical Workflow System (CWS) is a patient-course centered clinical op
 
 The system is not a generic healthcare dashboard. Its purpose is to become the operational command center for CureRays treatment workflows: intake, consultation, chart prep, simulation, treatment planning, treatment delivery, documentation, billing readiness, audit, and closeout.
 
-Current project status as of 2026-06-12: active prototype development with local OPS/PHI PostgreSQL bootstrap available. The current direction is focused on reliable workflow visibility, template/document mapping, phase-based patient tracking, task ownership, audit readiness, and a careful transition from mock/in-memory state to server-owned persistence before deeper production automation is added.
+Current project status as of 2026-06-14: active prototype development with local OPS/PHI PostgreSQL bootstrap available. The current direction is focused on reliable workflow visibility, guided patient registration and maintenance, workspace-centered fraction review, template/document mapping, phase-based patient tracking, task ownership, audit readiness, and a careful transition from mock/in-memory state to server-owned persistence before deeper production automation is added.
 
 ## Current Standing
 
@@ -22,6 +22,10 @@ Current project status as of 2026-06-12: active prototype development with local
 - Mock/in-memory workflow data used for frontend prototyping, with local PostgreSQL hydration now available for server-rendered prototype views.
 - Patient-course centered product documentation under `docs/`.
 - Dashboard and module planning for patient queues, patient workspace, workflow, tasks, documents, treatment planning, treatment delivery, billing, audit, analytics, settings, and security logs.
+- Guided Add Patient flow with stable sequential steps, optional external MRN, generated CRMS patient reference, and Save & Open workspace behavior.
+- Grouped Edit Patient flow with required change reason and guarded server-side update handling.
+- Patient workspace Fractions tab with history-first review, modal Record Next Fraction flow, modal fraction details/actions, and Treatment Delivery registry deep-links.
+- Floating Course Signals summary in the patient workspace instead of a persistent right rail.
 - Repository documentation for product context, workflow model, page plan, data model, file storage, Drive template registry, and automation rules.
 - Prisma schemas, generated clients, local schema SQL, and local seed data for separated OPS and PHI databases.
 - HIPAA-aware development guardrails and a `npm run test:hipaa` script.
@@ -197,7 +201,7 @@ Planned module responsibilities:
 - Clinical Forms: structured form templates that can later generate documents.
 - Treatment Planning: planning parameters, prescription state, dose/depth reference mapping, physics review, and Rad Onc review.
 - Imaging: image categories, upload metadata, phase/fraction links, and audit evidence.
-- Treatment Delivery: active treatment queue and fractionation table.
+- Treatment Delivery: active treatment queue and fractionation registry that opens the patient workspace Fractions tab.
 - Documents: template registry, generated document instances, lifecycle state, versions, signatures, exports, and eCW upload placeholders.
 - Billing / Coding: planned, completed, and billed quantities plus documentation readiness.
 - Audit & QA: course closeout validation, missing evidence, N/A reasons, signatures, and final readiness.

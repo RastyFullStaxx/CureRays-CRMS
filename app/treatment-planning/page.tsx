@@ -123,7 +123,7 @@ export default function TreatmentPlanningPage() {
               {!row.readiness.scheduleGenerated ? (
                 <Phase6PlanningActions courseId={row.courseId} disabled={row.readiness.missingInputs.length > 0} />
               ) : null}
-              <Link href={`/patients/${row.patientId}/fraction-log`}>
+              <Link href={`/patients/${row.patientId}?tab=fractions`}>
                 <Button type="button" size="sm" variant="secondary">
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                   Worksheet

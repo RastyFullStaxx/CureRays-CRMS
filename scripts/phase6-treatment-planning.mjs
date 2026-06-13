@@ -149,7 +149,8 @@ for (const expected of [
   "scheduledFractions",
   "linkFractionImage",
   "Image missing",
-  "IMG {missingImageCount}",
+  "Record Next Fraction",
+  "Fraction Details",
   "Link imaging evidence before DOT approval"
 ]) {
   assertIncludes(worksheetPanel, expected, `Fraction worksheet panel must include ${expected}`);
@@ -158,11 +159,14 @@ for (const expected of [
 for (const expected of [
   '"/treatment-planning"',
   '"/treatment-delivery"',
-  '"/treatment-delivery/fraction-logs"',
-  '"/patients/PHI-CR2401/fraction-log"'
+  '"/treatment-delivery/fraction-logs"'
 ]) {
   assertIncludes(routeSmoke, expected, `Route smoke must cover ${expected}`);
 }
+
+assertIncludes(patientWorkspace, "initialTab", "Patient workspace must support direct tab selection");
+assertIncludes(patientWorkspace, "FractionWorksheetPanel", "Patient workspace Fractions tab must host the worksheet workflow");
+assertIncludes(patientWorkspace, "Course Signals", "Patient workspace must expose course signals through the floating action");
 
 assertIncludes(packageJson, '"test:phase6"', "package.json must expose npm run test:phase6");
 assertIncludes(packageJson, "npm run test:phase6", "npm run verify must include Phase 6 guardrails");
