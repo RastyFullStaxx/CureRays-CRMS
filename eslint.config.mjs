@@ -14,6 +14,8 @@ export default defineConfig([
   },
   globalIgnores([
     '.next/**',
+    '**/.next/**',
+    'C:\\xampp\\htdocs\\CureRays-CRMS/**',
     'out/**',
     'build/**',
     'next-env.d.ts',

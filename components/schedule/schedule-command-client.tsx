@@ -95,7 +95,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
   const providers = new Set(appointmentRows.map((appointment) => appointment.staff)).size;
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Schedule"
         subtitle="Appointment calendar, staff lanes, and workflow-linked timing"
@@ -241,46 +241,48 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
             Filtered weekly calendar with workflow-linked appointment blocks.
           </p>
         </div>
-        <div className="grid grid-cols-[56px_repeat(7,minmax(120px,1fr))] overflow-hidden border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
-          <div className="p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
-          {gridDays.map((day) => (
-            <div key={day.key} className="border-l p-2 text-center text-xs font-bold text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
-              {day.label}
-            </div>
-          ))}
-          {hours.map((hour, row) => (
-            <div key={hour} className="contents">
-              <div className="border-t p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
-              {gridDays.map((day) => {
-                const dayAppointments = filteredAppointments.filter((appointment) => appointment.scheduleDay === day.key && hourIndex(appointment.time) === row);
-                return (
-                  <div key={`${day.key}-${hour}`} className="min-h-[92px] border-l border-t p-2" style={{ borderColor: 'var(--color-border-soft)' }}>
-                    <div className="grid gap-2">
-                      {dayAppointments.map((appointment) => (
-                        <button
-                          key={appointment.id}
-                          type="button"
-                          onClick={() => setSelectedAppointmentId(appointment.id)}
-                          className="clinical-focus rounded-[var(--radius-md)] border p-2 text-left"
-                          style={{
-                            background: appointment.appointmentType === 'TREATMENT_FRACTION'
-                              ? 'color-mix(in srgb, var(--color-success) 8%, var(--color-card))'
-                              : 'color-mix(in srgb, var(--color-info) 8%, var(--color-card))',
-                            borderColor: appointment.id === selectedAppointment?.id ? 'var(--color-primary)' : 'var(--color-border-soft)',
-                          }}
-                        >
-                          <p className="truncate text-xs font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
-                          <p className="mt-1 truncate text-[11px] font-bold text-[var(--color-primary)]">{appointment.title}</p>
-                          <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{appointment.time}</p>
-                        </button>
-                      ))}
+        <ScrollArea axis="x">
+          <div className="grid min-w-[980px] grid-cols-[56px_repeat(7,minmax(132px,1fr))] border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
+            <div className="p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
+            {gridDays.map((day) => (
+              <div key={day.key} className="border-l p-2 text-center text-xs font-bold text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+                {day.label}
+              </div>
+            ))}
+            {hours.map((hour, row) => (
+              <div key={hour} className="contents">
+                <div className="border-t p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
+                {gridDays.map((day) => {
+                  const dayAppointments = filteredAppointments.filter((appointment) => appointment.scheduleDay === day.key && hourIndex(appointment.time) === row);
+                  return (
+                    <div key={`${day.key}-${hour}`} className="min-h-[92px] border-l border-t p-2" style={{ borderColor: 'var(--color-border-soft)' }}>
+                      <div className="grid gap-2">
+                        {dayAppointments.map((appointment) => (
+                          <button
+                            key={appointment.id}
+                            type="button"
+                            onClick={() => setSelectedAppointmentId(appointment.id)}
+                            className="clinical-focus rounded-[var(--radius-md)] border p-2 text-left"
+                            style={{
+                              background: appointment.appointmentType === 'TREATMENT_FRACTION'
+                                ? 'color-mix(in srgb, var(--color-success) 8%, var(--color-card))'
+                                : 'color-mix(in srgb, var(--color-info) 8%, var(--color-card))',
+                              borderColor: appointment.id === selectedAppointment?.id ? 'var(--color-primary)' : 'var(--color-border-soft)',
+                            }}
+                          >
+                            <p className="truncate text-xs font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
+                            <p className="mt-1 truncate text-[11px] font-bold text-[var(--color-primary)]">{appointment.title}</p>
+                            <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{appointment.time}</p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </Card>
     </PageStack>
   );

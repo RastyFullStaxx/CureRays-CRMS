@@ -127,7 +127,7 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
   }
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Courses"
         subtitle="Course command center for carepath progression, evidence readiness, and handoffs"
@@ -157,6 +157,51 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
         <StatCard icon={FolderKanban} label="Post-Tx" value={stats.post} sub="Summary and audit" tone="primary" />
         <StatCard icon={AlertTriangle} label="Needs Action" value={stats.blocked} sub="Blocked or flagged" tone="warning" />
       </StatGrid>
+
+      <DataTable
+        keyField="id"
+        className="min-h-[620px]"
+        onRowClick={(row) => setSelectedId(row.id)}
+        columns={[
+          {
+            key: 'course',
+            label: 'Course',
+            render: (row) => (
+              <div className="flex flex-col">
+                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                  {row.course}
+                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                </span>
+                <span className="text-[11px] text-[var(--color-text-muted)]">{row.courseNumber}</span>
+              </div>
+            ),
+          },
+          { key: 'patient', label: 'Patient' },
+          { key: 'diagnosis', label: 'Diagnosis' },
+          { key: 'site', label: 'Site' },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={badgeForPhase(row.phase)}>{cleanLabel(row.phase)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.status)}>{cleanLabel(row.status)}</Badge> },
+          { key: 'openTasks', label: 'Open Tasks' },
+          { key: 'missingDocuments', label: 'Doc Gaps' },
+          { key: 'fractionsLogged', label: 'Fx Logged' },
+          { key: 'nextAction', label: 'Next Action' },
+        ]}
+        rows={rows}
+        empty="No treatment courses are available."
+        emptyDescription="Courses will appear after a patient/course bundle is created."
+        pageSize={10}
+        search={{
+          placeholder: 'Search course, patient token, diagnosis, site, staff, phase, or next action...',
+          keys: ['course', 'courseNumber', 'patient', 'patientRef', 'diagnosis', 'site', 'location', 'physician', 'phase', 'status', 'nextAction', 'staff'],
+        }}
+        filters={[
+          { id: 'phase', label: 'Phase' },
+          { id: 'status', label: 'Status' },
+          { id: 'physician', label: 'Physician' },
+          { id: 'diagnosis', label: 'Diagnosis' },
+          { id: 'staff', label: 'Staff' },
+        ]}
+      />
 
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -256,50 +301,6 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
           </div>
         ) : null}
       </section>
-
-      <DataTable
-        keyField="id"
-        onRowClick={(row) => setSelectedId(row.id)}
-        columns={[
-          {
-            key: 'course',
-            label: 'Course',
-            render: (row) => (
-              <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
-                  {row.course}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
-                </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.courseNumber}</span>
-              </div>
-            ),
-          },
-          { key: 'patient', label: 'Patient' },
-          { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'site', label: 'Site' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={badgeForPhase(row.phase)}>{cleanLabel(row.phase)}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.status)}>{cleanLabel(row.status)}</Badge> },
-          { key: 'openTasks', label: 'Open Tasks' },
-          { key: 'missingDocuments', label: 'Doc Gaps' },
-          { key: 'fractionsLogged', label: 'Fx Logged' },
-          { key: 'nextAction', label: 'Next Action' },
-        ]}
-        rows={rows}
-        empty="No treatment courses are available."
-        emptyDescription="Courses will appear after a patient/course bundle is created."
-        pageSize={10}
-        search={{
-          placeholder: 'Search course, patient token, diagnosis, site, staff, phase, or next action...',
-          keys: ['course', 'courseNumber', 'patient', 'patientRef', 'diagnosis', 'site', 'location', 'physician', 'phase', 'status', 'nextAction', 'staff'],
-        }}
-        filters={[
-          { id: 'phase', label: 'Phase' },
-          { id: 'status', label: 'Status' },
-          { id: 'physician', label: 'Physician' },
-          { id: 'diagnosis', label: 'Diagnosis' },
-          { id: 'staff', label: 'Staff' },
-        ]}
-      />
 
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">

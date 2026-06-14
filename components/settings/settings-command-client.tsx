@@ -98,7 +98,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
   }
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Settings"
         subtitle="Configure prototype policies, security posture, workflow defaults, and integration readiness"
@@ -119,7 +119,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
               Review before changing settings
             </h2>
           </div>
-          <div className="grid gap-2">
+          <div className="scrollbar-soft grid max-h-[540px] gap-2 overflow-y-auto pr-1">
             {categories.map((category, index) => {
               const Icon = icons[index] ?? Settings;
               const active = index === selectedIndex;

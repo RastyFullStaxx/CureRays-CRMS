@@ -98,7 +98,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
   );
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title={titleForMode(mode)}
         subtitle={subtitleForMode(mode)}
@@ -157,7 +157,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
           onRowClick={(row) => setSelectedId(row.id)}
         />
 
-        <Card className="min-h-0">
+        <Card className="min-h-[560px]">
           {selected ? (
             <div className="grid gap-4">
               <div className="flex items-start justify-between gap-3">

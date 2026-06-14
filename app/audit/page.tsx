@@ -1,88 +1,113 @@
 export const dynamic = 'force-dynamic';
 
-import { AlertTriangle, CheckCircle2, FileWarning, PenLine, ShieldCheck } from "lucide-react";
-import { PageStack } from '@/components/shared/page-stack';
-import { PageHeader } from '@/components/shared/page-header';
-import { StatGrid } from '@/components/shared/stat-grid';
-import { StatCard } from '@/components/shared/stat-card';
-import { SerializedDataTable, type SerializedTableRow } from '@/components/shared/serialized-data-table';
-import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
-import { moduleSnapshot, patientLabel, phaseLabel, statusLabel, statusTone } from "@/lib/services/operational-page-service";
+import { AuditCommandClient, type AuditCommandRow } from '@/components/audit/audit-command-client';
+import {
+  billingItems,
+  moduleSnapshot,
+  patientLabel,
+  patientMrn,
+  phaseLabel,
+  statusLabel,
+} from '@/lib/services/operational-page-service';
+
+function readinessLabel(score: number) {
+  if (score >= 86) return 'Ready';
+  if (score >= 72) return 'Review';
+  return 'Blocked';
+}
+
+function readinessScore(input: {
+  blockedChecks: number;
+  missingDocuments: number;
+  unsignedDocuments: number;
+  billingOpen: number;
+  openTasks: number;
+  fractionGaps: number;
+}) {
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        100
+          - input.blockedChecks * 14
+          - input.missingDocuments * 10
+          - input.unsignedDocuments * 8
+          - input.billingOpen * 8
+          - input.openTasks * 4
+          - input.fractionGaps * 5,
+      ),
+    ),
+  );
+}
 
 export default function AuditPage() {
-  const blockers = moduleSnapshot.auditChecks.filter((check) => ["BLOCKED", "OVERDUE", "READY_FOR_REVIEW"].includes(check.status));
-  const courses = moduleSnapshot.courses;
-  const signedMissing = moduleSnapshot.generatedDocuments.filter((document) => document.signReviewState !== "SIGNED").length;
-  const rows: SerializedTableRow[] = courses.map((course, index) => {
-    const auditPct = Math.max(58, 96 - index * 7);
+  const rows: AuditCommandRow[] = moduleSnapshot.courses.map((course) => {
+    const checks = moduleSnapshot.auditChecks.filter((check) => check.courseId === course.id);
+    const documents = moduleSnapshot.generatedDocuments.filter((document) => document.courseId === course.id);
+    const billing = billingItems.filter((item) => item.courseId === course.id);
+    const fractions = moduleSnapshot.fractions.filter((fraction) => fraction.courseId === course.id);
+    const tasks = moduleSnapshot.tasks.filter((task) => task.courseId === course.id);
+
+    const requiredChecks = checks.filter((check) => check.required).length;
+    const openChecks = checks.filter((check) => !['COMPLETED', 'SIGNED', 'UPLOADED', 'NOT_APPLICABLE'].includes(check.status)).length;
+    const blockedChecks = checks.filter((check) => ['BLOCKED', 'OVERDUE', 'MISSING_FIELDS'].includes(check.status)).length;
+    const missingDocuments = documents.filter((document) => !document.auditReady).length;
+    const unsignedDocuments = documents.filter((document) => document.signReviewState !== 'SIGNED').length;
+    const billingOpen = billing.filter((item) => !['COMPLETED', 'NOT_APPLICABLE'].includes(item.status) || item.completedQuantity < item.plannedQuantity).length;
+    const fractionGaps = fractions.filter((fraction) => !['COMPLETED', 'SIGNED', 'NOT_APPLICABLE'].includes(fraction.status)).length;
+    const openTasks = tasks.filter((task) => !['COMPLETED', 'SIGNED', 'NOT_APPLICABLE'].includes(task.status)).length;
+    const readinessPct = readinessScore({
+      blockedChecks,
+      missingDocuments,
+      unsignedDocuments,
+      billingOpen,
+      openTasks,
+      fractionGaps,
+    });
+
     return {
       id: course.id,
-      course: course.id.replace("COURSE-", "C"),
+      patientId: course.patientId,
       patient: patientLabel(course.patientId),
+      patientRef: patientMrn(course.patientId),
+      courseId: course.id,
+      course: course.id.replace('COURSE-', 'C'),
       diagnosis: course.diagnosisType,
       phase: phaseLabel(course.currentPhase),
-      auditPct,
-      readiness: auditPct > 85 ? "Ready" : auditPct > 70 ? "Review" : "Blocked",
-      documents: course.flagsIssues.length || index % 3 ? "Missing Items" : "Complete",
-      missing: course.flagsIssues.length || (index % 3),
-      billing: index % 3 ? "Review" : "Ready",
-      billingTone: index % 3 ? "orange" : "green",
-      signature: index % 2 ? "Pending" : "Complete",
-      signatureTone: index % 2 ? "orange" : "green",
-      followUp: index % 2 ? "Needed" : "Scheduled",
       status: statusLabel(course.status),
-      statusTone: statusTone(course.status),
-      flags: course.flagsIssues.join(" "),
+      readiness: readinessLabel(readinessPct),
+      readinessPct,
+      requiredChecks,
+      openChecks,
+      blockedChecks,
+      missingDocuments,
+      unsignedDocuments,
+      billingOpen,
+      fractionGaps,
+      openTasks,
+      followUp: openTasks > 0 ? 'Needed' : 'Scheduled',
+      nextAction: course.nextAction,
+      flags: course.flagsIssues,
     };
   });
 
+  const averageReadiness = rows.length
+    ? Math.round(rows.reduce((total, row) => total + row.readinessPct, 0) / rows.length)
+    : 0;
+
   return (
-    <PageStack>
-      <PageHeader
-        title="Audit"
-        subtitle="Closeout readiness, blockers, and compliance checks"
-        actions={
-          <>
-            <PrototypeActionButton label="Export Audit Report" icon="upload" kind="export" description="Prepare a tokenized audit packet for closeout review." />
-            <PrototypeActionButton label="Run Audit Check" icon="play" kind="review" variant="primary" description="Run a simulated closeout readiness check against the visible course rows." />
-          </>
-        }
-      />
-      <StatGrid>
-        <StatCard icon={ShieldCheck} label="Ready for Audit" value={courses.filter((course) => course.currentPhase === "AUDIT").length} sub="Closeout queue" />
-        <StatCard icon={AlertTriangle} label="Blocked" value={blockers.length} sub="Needs remediation" tone="error" />
-        <StatCard icon={PenLine} label="Missing Signatures" value={signedMissing} sub="Provider queue" tone="warning" />
-        <StatCard icon={FileWarning} label="Missing Documents" value={5} sub="Evidence gaps" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Ready for Billing" value={9} sub="Audit aligned" tone="success" />
-      </StatGrid>
-      <SerializedDataTable
-        columns={[
-          { key: 'course', label: 'Course', kind: 'primary' },
-          { key: 'patient', label: 'Patient' },
-          { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase', kind: 'badge', variant: 'info' },
-          { key: 'auditPct', label: 'Audit %', kind: 'progress' },
-          { key: 'missing', label: 'Missing Items' },
-          { key: 'billing', label: 'Billing', kind: 'status', toneKey: 'billingTone' },
-          { key: 'signature', label: 'Signature', kind: 'status', toneKey: 'signatureTone' },
-          { key: 'followUp', label: 'Follow-up' },
-          { key: 'status', label: 'Status', kind: 'status' },
-        ]}
-        rows={rows}
-        empty="No courses are available for audit."
-        emptyDescription="Audit readiness rows will appear after treatment courses are initialized."
-        pageSize={10}
-        search={{
-          placeholder: 'Search course, patient, diagnosis, blocker, document, or audit check...',
-          keys: ['course', 'patient', 'diagnosis', 'phase', 'status', 'flags'],
-        }}
-        filters={[
-          { id: 'readiness', label: 'Readiness' },
-          { id: 'documents', label: 'Documents' },
-          { id: 'billing', label: 'Billing' },
-          { id: 'status', label: 'Status' },
-        ]}
-      />
-    </PageStack>
+    <AuditCommandClient
+      rows={rows}
+      stats={{
+        total: rows.length,
+        closeoutQueue: rows.filter((row) => ['Audit', 'Post Tx'].includes(row.phase)).length,
+        blockedChecks: rows.reduce((total, row) => total + row.blockedChecks, 0),
+        missingDocuments: rows.reduce((total, row) => total + row.missingDocuments, 0),
+        unsignedDocuments: rows.reduce((total, row) => total + row.unsignedDocuments, 0),
+        billingOpen: rows.reduce((total, row) => total + row.billingOpen, 0),
+        averageReadiness,
+      }}
+    />
   );
 }

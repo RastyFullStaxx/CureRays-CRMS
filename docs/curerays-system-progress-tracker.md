@@ -28,10 +28,10 @@ Update rules:
 
 Current overall assessment:
 
-- Overall system completion: 61%
-- Local prototype/app shell readiness: 87%
-- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 76%
-- Real clinic pilot readiness with strictly de-identified or synthetic data: 56%
+- Overall system completion: 65%
+- Local prototype/app shell readiness: 93%
+- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 86%
+- Real clinic pilot readiness with strictly de-identified or synthetic data: 57%
 - Production readiness for real PHI/ePHI: 31%
 
 Plain answer to the question "pwede na ba from patient registration to record maintenance and updating?":
@@ -141,6 +141,7 @@ Current inventory:
 - `[x]` Patient workspace route exists and can show full-width workflow, tasks, clinical, planning, imaging, documents, fractions, billing/audit, and activity tabs for mock patients, with Course Signals available through a floating summary button instead of a right rail.
 - `[x]` Workflow pages show canonical Carepath steps and blockers from mock/generated or locally seeded PostgreSQL-backed state.
 - `[x]` Task, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
+- `[x]` Courses, Billing, Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery now use selected-row command surfaces with evidence panels, local PHI-free staged action ledgers, and route links into the patient workspace/carepath/document/fraction/admin flow.
 - `[x]` IGSRT fraction worksheet can add, update, approve, request revision, and void rows against in-memory state from the patient workspace Fractions tab.
 - `[x]` Fraction worksheet calculations have a fixture script and preserve a "clinical validation required" warning.
 - `[x]` Generated document render/sign flows exist as simulated outputs from structured state.
@@ -184,8 +185,8 @@ Current inventory:
 | Course creation | 20% | Course concepts and mock courses exist. | No production create-course API/UI; no diagnosis/protocol workflow selection transaction. |
 | Workflow progression | 45% | Carepath steps, task/document requirements, blockers, and audit readiness are modeled and rendered. | No persistent workflow state machine; no guarded transitions; no due-date/escalation engine. |
 | Document generation | 35% | Simulated render/sign/export outputs exist. | No real template merge, output file write, Drive/eCW upload, signature provider, or lock/version enforcement. |
-| Treatment delivery/fractions | 62% | Strongest interactive slice: native fraction worksheet now lives in the patient workspace Fractions tab, opens history-first, records new fractions through a large three-column modal, and keeps calculations, approvals, revisions, voiding, and the treatment-delivery registry table. | Clinical validation required; no persistence; no authenticated role enforcement; no machine/device integration. |
-| Billing/audit closeout | 35% | Mock billing rows, audit checks, readiness score, logs. | No real billing engine, payer/preauth validation, claim evidence lock, closeout gate, or immutable audit log. |
+| Treatment delivery/fractions | 68% | Strongest interactive slice: native fraction worksheet now lives in the patient workspace Fractions tab, opens history-first, records new fractions through a large three-column modal, keeps calculations, approvals, revisions, voiding, and the treatment-delivery registry table. Treatment Planning and Treatment Delivery now have command surfaces for plan parameters, schedule readiness, clinical gates, validation checklist, daily queue review, image/OTV/physics evidence, worksheet handoff, and staged PHI-free planning/delivery decisions. | Clinical validation required; no durable production persistence; no authenticated role enforcement; no machine/device integration. |
+| Billing/audit closeout | 43% | Billing and Audit now have evidence-first command surfaces with selected-row review, document/fraction/task/billing/audit evidence panels, PHI-free staged local decisions, readiness scoring, and tokenized logs. | No real billing engine, payer/preauth validation, claim evidence lock, closeout gate, or immutable audit log. |
 
 Minimum "demo-ready" path today:
 
@@ -531,6 +532,7 @@ What is already done:
 - `[x]` Fraction worksheet fixture script passes with `TMPDIR=/tmp`.
 - `[x]` Treatment Delivery fraction log registry page exists and deep-links to the patient workspace Fractions tab.
 - `[x]` Treatment delivery pages exist.
+- `[x]` Treatment Delivery main queue now uses a selected-treatment command surface with active treatment cards, delivery table, dose/image/OTV/physics/worksheet evidence, workspace/worksheet/imaging/fraction-log links, and a PHI-free staged delivery decision ledger.
 - `[x]` Clinical validation warning is present in calculation metadata.
 - `[x]` Fraction worksheet reference data has a prototype reference version stored in calculation metadata.
 - `[x]` Fixture script asserts reference version and "clinical validation required" metadata.
@@ -541,6 +543,7 @@ What is already done:
 - `[x]` Server-owned Phase 6 workflow service exists for schedule generation, image linking, OTV/physics checks, and fraction mutation wrappers.
 - `[x]` `/api/igsrt` supports `generateFractionSchedule`, `linkFractionImage`, `recordPhysicsCheck`, and `recordOtvCheck` in addition to the existing simulation, prescription, document, and fraction actions.
 - `[x]` Treatment Planning page shows Phase 6 readiness, missing inputs, schedule coverage, imaging/OTV/physics gates, and worksheet links.
+- `[x]` Treatment Planning page now uses a selected-plan command surface with plan parameter evidence, schedule readiness, missing-input review, imaging/OTV/physics gate cards, clinical validation checklist, workspace/carepath/worksheet/imaging links, and a PHI-free staged planning decision ledger.
 - `[x]` Patient Planning tab shows schedule coverage, missing imaging, OTV due, physics due, logged fraction count, and the clinical validation warning.
 - `[x]` Native fraction worksheet consumes scheduled fraction defaults, opens history-first, moves new-fraction entry and details into modals, exposes IMG/OTV/PHYS gate badges, links prototype imaging evidence, and disables DOT approval while required imaging is missing.
 - `[x]` Historical corrections recalculate dependent active rows and reset downstream approvals when cumulative totals change.
@@ -575,7 +578,7 @@ Pre-mortem:
 
 ### Phase 7: Billing, Coding, Audit, And Closeout
 
-Current completion: 38%
+Current completion: 44%
 
 Goal: make billing readiness and audit closeout enforceable, traceable, and evidence-backed.
 
@@ -583,10 +586,13 @@ What is already done:
 
 - `[x]` Billing code and billing item types exist.
 - `[x]` Billing page displays planned/completed/billed quantities from mock data.
+- `[x]` Billing page now supports selected-item evidence review, document/fraction/audit links, and a PHI-free staged decision ledger for demo closeout review.
 - `[x]` Audit check types exist.
 - `[x]` Audit page displays readiness, blockers, checks, and evidence-like rows.
+- `[x]` Audit page now derives closeout readiness from checks, generated documents, signatures, billing, fractions, tasks, and course flags, with a selected-course evidence review panel.
 - `[x]` `auditReadinessScore()` calculates readiness from tasks, documents, and fractions.
 - `[x]` Audit/security log pages show tokenized/redacted event tables.
+- `[x]` Clinical Forms and Imaging now expose selected-row evidence review surfaces that feed the billing/audit demo path through documents, signatures, imaging categories, and fraction links.
 - `[x]` Carepath PreAuth Audit template sources are tracked as mapping-in-progress.
 - `[x]` Server-only closeout readiness helper centralizes blockers across documents, signatures, fractions, billing items, audit checks, and final audit eligibility.
 
@@ -594,12 +600,12 @@ Remaining checklist:
 
 - `[ ]` Define billing code master and real code applicability rules.
 - `[ ]` Model payer/preauthorization status and required evidence.
-- `[ ]` Link billing items to documents, tasks, treatment fractions, and signatures.
+- `[~]` Link billing items to documents, tasks, treatment fractions, and signatures. Prototype command surfaces now show these relationships for review; durable enforced claim/evidence locking remains future work.
 - `[~]` Implement closeout gate: treatment summary, follow-up, billing, required docs, signatures, images, N/A reasons, and final Carepath audit sign. Readiness evaluation exists; close/lock mutation is still not implemented.
 - `[ ]` Implement final audit sign and course close/lock.
 - `[ ]` Add immutable audit events for all closeout actions.
-- `[ ]` Add billing/audit exception workflow with reason, owner, due date, and resolution.
-- `[ ]` Add reporting for blocked audits, missing docs, missing signatures, missing billing evidence, and overdue follow-ups.
+- `[~]` Add billing/audit exception workflow with reason, owner, due date, and resolution. Local PHI-free staged decisions exist; persisted exception ownership/due dates remain.
+- `[~]` Add reporting for blocked audits, missing docs, missing signatures, missing billing evidence, and overdue follow-ups. Prototype command surfaces expose these counts; durable reporting and exports remain.
 - `[ ]` Add tests for closeout readiness and blocked/exception cases.
 
 Pre-mortem:
@@ -806,6 +812,13 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-14 | Upgraded Treatment Delivery into a daily queue command surface and refreshed tracker percentages/checklists. | Added `TreatmentDeliveryCommandClient` and slimmed `/treatment-delivery` into a server-prepared data wrapper that passes scheduled fraction rows, tokenized patient/course context, room/therapist timing, dose progress, image guidance, OTV, physics, and worksheet state into the client. The page now supports active treatment cards, selected-treatment review, workspace/worksheet/imaging/fraction-log navigation, and local PHI-free staged delivery decisions. Updated overall/demo readiness percentages plus the Phase 6 and end-to-end readiness checklist text. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/treatment-delivery` returned 200. | Run a broader landing-to-admin demo pass, then address any visual/route gaps found during that sweep. |
+| 2026-06-14 | Upgraded Treatment Planning into a selected-plan readiness command surface and refreshed tracker percentages/checklists. | Added `TreatmentPlanningCommandClient` and slimmed `/treatment-planning` into a server-prepared data wrapper that passes plan parameters, Phase 6 readiness, missing inputs, schedule coverage, imaging/OTV/physics gates, and clinical validation checklist evidence into the client. The page now supports selected-plan review, workspace/carepath/worksheet/imaging navigation, local PHI-free staged planning decisions, and keeps page-level scrolling with a taller table. Updated overall/demo readiness percentages plus Phase 6 and end-to-end readiness checklist text. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/treatment-planning` returned 200. | Continue with the Treatment Delivery main queue command-surface polish, then run a broader landing-to-admin demo pass. |
+| 2026-06-14 | Upgraded Imaging into an evidence review command surface. | Added `ImagingCommandClient` and slimmed `/imaging` into a server-prepared data wrapper that joins imaging assets to tokenized patient/course context, phase labels, upload references, and fraction-link counts. The page now supports selected-asset review, prototype preview placeholder, file/phase/fraction/note evidence cards, workspace/carepath/document/audit navigation, required-category gap matrix, and a PHI-free staged imaging decision ledger. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/imaging` returned 200 and rendered Imaging/evidence content. | Continue the command-surface pass for Treatment Planning and Treatment Delivery, then run a broader landing-to-admin demo pass. |
+| 2026-06-14 | Upgraded Clinical Forms into a structured documentation command surface. | Added `ClinicalFormsCommandClient` and slimmed `/clinical-forms` into a server-prepared data wrapper that joins document-instance rows with generated-document signature/audit metadata. The page now supports selected-form review, mapped-field/signature/regeneration/workflow-route evidence cards, workspace/carepath/document/template navigation, a tokenized structured field editor, hand-joint mapping capture, and a PHI-free staged form decision ledger. Removed the old hardcoded static patient preview. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/clinical-forms` returned 200 and rendered Clinical Forms/structured content. | Continue the command-surface pass for Imaging, Treatment Planning, and Treatment Delivery while preserving page-level scroll and selected-row evidence panels. |
+| 2026-06-14 | Upgraded Audit into a closeout command surface. | Added `AuditCommandClient` and slimmed `/audit` into a server-prepared data wrapper that derives readiness from course audit checks, generated documents, signatures, billing items, fraction logs, open tasks, and course flags. The page now supports selected-course closeout review, checklist/document/billing/treatment/task evidence cards, patient workspace/carepath/document/fraction/billing/security-log navigation, local PHI-free staged audit decisions, and tokenized export/run-check prototype actions. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/audit` returned 200 and rendered Audit/closeout content. | Continue the command-surface pass for Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery while preserving scrollable full-page review surfaces. |
+| 2026-06-14 | Upgraded Billing/Coding into an evidence-first command surface. | Added `BillingCommandClient` and slimmed `/billing` into a server-prepared data wrapper that joins billing items to tokenized patient/course context, linked documents, fraction counts, and audit status. The page now supports selected billing-item review, quantity/document/fraction/closeout evidence panels, workspace/document/fraction/audit navigation, and a PHI-free staged billing decision ledger. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/billing` returned 200. The lint config now ignores nested generated `.next` output so Windows-path Turbopack artifacts do not enter source linting. | Continue the command-surface pass for Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery. |
+| 2026-06-14 | Fixed long-page scrolling and route layout clipping across key demo tabs. | Kept the global fixed-height app shell intact and opted long command pages into `scrollbar-soft` page-level scrolling. Moved the Courses table above selected-course review and raised its table height, added scrollable page bodies for Schedule, Treatment Planning, Templates, Settings, and Security Logs, wrapped the Schedule week grid in horizontal scroll, raised Treatment Planning and Template table heights, constrained the Settings category list with its own soft scrollbar, and prevented Security Log selected-event clipping. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live route probes on `127.0.0.1:3012` returned 200 for `/courses`, `/schedule`, `/treatment-planning`, `/templates`, `/settings`, and `/security-logs`. | Continue the broader demo-completion pass by upgrading the remaining table-heavy operational pages into command surfaces, prioritizing Billing, Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery. |
 | 2026-06-14 | Upgraded Courses into a carepath command center instead of a passive registry table. | Added `CoursesCommandClient` and slimmed `/courses` into a server-prepared data shell. The route now supports selected-course review, carepath/task/document/fraction/billing/audit evidence counts, workspace/carepath/document/fraction navigation, local PHI-free staged course decisions, and tokenized course export/new-course prototype actions. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `curl -I http://127.0.0.1:3012/courses` returned 200. | Continue hardening remaining table-heavy operational pages such as Billing, Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery into richer command surfaces where the demo still feels passive. |
 | 2026-06-14 | Verified the upgraded prototype with a full production build. | Initial sandboxed `npm run build` hit a Turbopack worker/process permission panic while processing `app/globals.css`; rerunning the same command outside the sandbox completed successfully. Build compiled, ran TypeScript, generated all 18 static pages after automatic retries for several slower pages, and produced the app route manifest covering landing, dashboard, patient routes, workflow/IGSRT/templates, treatment delivery/fraction logs, reports, settings, users/roles, templates, audit/security logs, and APIs. | Continue with live browser demo verification across landing, patient workspace, workflow, treatment delivery, and admin tabs when localhost checks are available; consider marking slow prerender pages dynamic if build retries become a recurring local issue. |
 | 2026-06-14 | Removed verified-dead legacy patient workspace tab and static-table code. | Route audit showed the live patient workspace uses `components/patients/patient-workspace.tsx`, while the old `components/patients/workspace-tabs/*` subtree was unreferenced and still contained obsolete right-rail and placeholder patterns. Deleted that subtree, removed unused `AuditChecklist`, `DocumentList`, and the now-orphaned `StaticDataTable` primitive. Follow-up `rg` found no remaining references to `StaticDataTable`, `workspace-tabs`, `AuditChecklist`, `DocumentList`, or `RightRailCard`. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed. | Continue the route-by-route demo audit for any remaining passive route sections, then perform the live landing-to-admin browser pass when localhost checks are available. |

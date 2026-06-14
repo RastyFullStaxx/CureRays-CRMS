@@ -124,7 +124,7 @@ export function TemplatesCommandClient({
   }
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Templates"
         subtitle="Phase 4 registry, field-map, approval, placeholder, and source-hash control"
@@ -147,7 +147,7 @@ export function TemplatesCommandClient({
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[560px]"
+          className="min-h-[520px]"
           columns={[
             { key: 'name', label: 'Template Source', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
             { key: 'fileType', label: 'File' },
@@ -181,7 +181,7 @@ export function TemplatesCommandClient({
           onRowClick={selectSource}
         />
 
-        <Card className="min-h-0">
+        <Card className="min-h-[520px]">
           {selected ? (
             <div className="grid gap-4">
               <div className="flex items-start justify-between gap-3">
@@ -257,7 +257,7 @@ export function TemplatesCommandClient({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[440px]"
+          className="min-h-[520px]"
           columns={[
             { key: 'requirement', label: 'Document Requirement' },
             { key: 'phase', label: 'Phase' },
