@@ -144,10 +144,10 @@ export function TemplatesCommandClient({
         <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="warning" />
       </StatGrid>
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[520px]"
+          className="min-h-[560px] min-w-0"
           columns={[
             { key: 'name', label: 'Template Source', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
             { key: 'fileType', label: 'File' },
@@ -181,7 +181,7 @@ export function TemplatesCommandClient({
           onRowClick={selectSource}
         />
 
-        <Card className="min-h-[520px]">
+        <Card className="min-h-[560px] min-w-0 self-start">
           {selected ? (
             <div className="grid gap-4">
               <div className="flex items-start justify-between gap-3">
@@ -257,7 +257,7 @@ export function TemplatesCommandClient({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[520px]"
+          className="min-h-[560px] min-w-0"
           columns={[
             { key: 'requirement', label: 'Document Requirement' },
             { key: 'phase', label: 'Phase' },
@@ -281,7 +281,7 @@ export function TemplatesCommandClient({
           pageSize={10}
         />
 
-        <Card>
+        <Card className="min-w-0 self-start">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Registry Snapshot</p>

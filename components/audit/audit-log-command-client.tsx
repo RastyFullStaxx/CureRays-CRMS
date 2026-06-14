@@ -120,10 +120,10 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
         <StatCard icon={AlertTriangle} label="System Changes" value={systemEvents || 2} sub="Admin-sensitive" tone={systemEvents ? 'error' : 'info'} />
       </StatGrid>
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[560px]"
+          className="min-h-[600px] min-w-0"
           columns={[
             { key: 'timestamp', label: 'Timestamp', render: (row) => formatDateTime(row.timestamp) },
             { key: 'userName', label: 'User', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.userName}</span> },
@@ -157,9 +157,9 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
           onRowClick={(row) => setSelectedId(row.id)}
         />
 
-        <Card className="min-h-[560px]">
+        <Card className="min-h-[600px] min-w-0 self-start">
           {selected ? (
-            <div className="grid gap-4">
+            <div className="grid min-w-0 gap-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Event</p>
@@ -204,12 +204,12 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
                 </div>
               </div>
 
-              <label className="grid gap-1">
+              <label className="grid min-w-0 gap-1">
                 <span className="clinical-label">Review Note</span>
-                <Textarea rows={4} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} />
+                <Textarea rows={4} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} className="max-w-full resize-none" />
               </label>
 
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="flex min-w-0 flex-wrap justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={() => setReviewNote('Reviewed for demo audit trail. No PHI values exposed.')}>
                   Reset Note
                 </Button>
@@ -219,9 +219,9 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
                 </Button>
               </div>
 
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+              <div className="min-w-0 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <p className="clinical-label">Reviewed Events</p>
-                <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                <p className="mt-2 break-words text-sm font-bold text-[var(--color-text)]">
                   {reviewedIds.length ? reviewedIds.join(', ') : 'No events reviewed yet.'}
                 </p>
               </div>

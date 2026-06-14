@@ -147,7 +147,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
         </div>
       </Card>
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.25fr)_360px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,360px)]">
         <Card className="min-h-[280px]">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -188,7 +188,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
           </ScrollArea>
         </Card>
 
-        <Card>
+        <Card className="min-w-0 self-start">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Visit</p>
@@ -234,15 +234,15 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
         </Card>
       </div>
 
-      <Card className="overflow-hidden" style={{ padding: '0' }}>
+      <Card className="min-h-[720px] min-w-0 overflow-hidden" style={{ padding: '0' }}>
         <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
           <h2 className="font-heading text-base font-bold text-[var(--color-text)]">May 4 - May 10, 2026</h2>
           <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
             Filtered weekly calendar with workflow-linked appointment blocks.
           </p>
         </div>
-        <ScrollArea axis="x">
-          <div className="grid min-w-[980px] grid-cols-[56px_repeat(7,minmax(132px,1fr))] border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
+        <ScrollArea axis="both" className="max-h-[calc(100dvh-96px)]">
+          <div className="grid min-w-[1080px] grid-cols-[64px_repeat(7,minmax(144px,1fr))] border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
             <div className="p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
             {gridDays.map((day) => (
               <div key={day.key} className="border-l p-2 text-center text-xs font-bold text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
@@ -255,7 +255,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                 {gridDays.map((day) => {
                   const dayAppointments = filteredAppointments.filter((appointment) => appointment.scheduleDay === day.key && hourIndex(appointment.time) === row);
                   return (
-                    <div key={`${day.key}-${hour}`} className="min-h-[92px] border-l border-t p-2" style={{ borderColor: 'var(--color-border-soft)' }}>
+                    <div key={`${day.key}-${hour}`} className="min-h-[104px] border-l border-t p-2" style={{ borderColor: 'var(--color-border-soft)' }}>
                       <div className="grid gap-2">
                         {dayAppointments.map((appointment) => (
                           <button

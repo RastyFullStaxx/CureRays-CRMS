@@ -28,9 +28,9 @@ Update rules:
 
 Current overall assessment:
 
-- Overall system completion: 65%
-- Local prototype/app shell readiness: 93%
-- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 86%
+- Overall system completion: 66%
+- Local prototype/app shell readiness: 94%
+- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 87%
 - Real clinic pilot readiness with strictly de-identified or synthetic data: 57%
 - Production readiness for real PHI/ePHI: 31%
 
@@ -83,10 +83,12 @@ Repository and docs reviewed:
 - `scripts/route-smoke.mjs`
 - `.github/workflows/verify.yml`
 
-Verification run on 2026-06-12:
+Verification highlights through 2026-06-14:
 
 - `[x]` `npm run typecheck` passed.
 - `[x]` `npm run lint` passed cleanly after the 2026-06-14 prototype cleanup pass.
+- `[x]` `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed after the 2026-06-14 Schedule/Templates/Settings/Security Logs layout-containment pass; route smoke covered 32 routes.
+- `[x]` Local Node 22 dev server on `127.0.0.1:3011` returned `200 OK` for `/schedule`, `/templates`, `/settings`, and `/security-logs` after the same layout-containment pass. The default shell Node remains 18.19.1, so use `.tools/node-v22.14.0-linux-x64/bin/node` or another Node 20.19+ runtime for live demo checks.
 - `[x]` `npm run typecheck` and `npm run lint` passed after the 2026-06-14 workflow/fraction command UI pass and API resilience update.
 - `[x]` `npm run test:routes` passed after the same update: 32 routes checked.
 - `[x]` `npm run build` passed after the same update when run outside the sandboxed Turbopack worker restriction.
@@ -142,6 +144,7 @@ Current inventory:
 - `[x]` Workflow pages show canonical Carepath steps and blockers from mock/generated or locally seeded PostgreSQL-backed state.
 - `[x]` Task, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
 - `[x]` Courses, Billing, Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery now use selected-row command surfaces with evidence panels, local PHI-free staged action ledgers, and route links into the patient workspace/carepath/document/fraction/admin flow.
+- `[x]` Schedule, Templates, Settings, Audit Logs, and Security Logs have scroll-contained long command surfaces: weekly calendar and table-heavy regions keep shared soft scrollbars, selected-review side panels self-start instead of overlapping adjacent tables, and long review notes/ledgers wrap inside their cards.
 - `[x]` IGSRT fraction worksheet can add, update, approve, request revision, and void rows against in-memory state from the patient workspace Fractions tab.
 - `[x]` Fraction worksheet calculations have a fixture script and preserve a "clinical validation required" warning.
 - `[x]` Generated document render/sign flows exist as simulated outputs from structured state.
@@ -812,6 +815,7 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-14 | Relieved Schedule, Templates, Settings, and Security Logs overflow from the screenshot pass. | Adjusted `ScheduleCommandClient` so the selected-visit panel no longer competes with the appointment/calendar region, made the weekly calendar taller with both-axis soft scrolling, and widened calendar lanes. Adjusted `TemplatesCommandClient` table/detail grids to self-start with larger table heights so stacked registry/requirement tables no longer visually overlap. Lengthened the Settings "Review before changing settings" list with its own soft scrollbar. Constrained Security Log selected-event review notes and reviewed-event IDs so fields wrap inside the card. `npm run typecheck`, `npm run lint`, `npm run verify`, and `npm run test:routes` passed; local Node 22 dev server returned `200 OK` for `/schedule`, `/templates`, `/settings`, and `/security-logs` on `127.0.0.1:3011`. | Continue the broader landing-to-admin browser visual pass and interaction pass across patient workspace, schedule, documents, templates, settings, users/roles, audit logs, and security logs. |
 | 2026-06-14 | Upgraded Treatment Delivery into a daily queue command surface and refreshed tracker percentages/checklists. | Added `TreatmentDeliveryCommandClient` and slimmed `/treatment-delivery` into a server-prepared data wrapper that passes scheduled fraction rows, tokenized patient/course context, room/therapist timing, dose progress, image guidance, OTV, physics, and worksheet state into the client. The page now supports active treatment cards, selected-treatment review, workspace/worksheet/imaging/fraction-log navigation, and local PHI-free staged delivery decisions. Updated overall/demo readiness percentages plus the Phase 6 and end-to-end readiness checklist text. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/treatment-delivery` returned 200. | Run a broader landing-to-admin demo pass, then address any visual/route gaps found during that sweep. |
 | 2026-06-14 | Upgraded Treatment Planning into a selected-plan readiness command surface and refreshed tracker percentages/checklists. | Added `TreatmentPlanningCommandClient` and slimmed `/treatment-planning` into a server-prepared data wrapper that passes plan parameters, Phase 6 readiness, missing inputs, schedule coverage, imaging/OTV/physics gates, and clinical validation checklist evidence into the client. The page now supports selected-plan review, workspace/carepath/worksheet/imaging navigation, local PHI-free staged planning decisions, and keeps page-level scrolling with a taller table. Updated overall/demo readiness percentages plus Phase 6 and end-to-end readiness checklist text. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/treatment-planning` returned 200. | Continue with the Treatment Delivery main queue command-surface polish, then run a broader landing-to-admin demo pass. |
 | 2026-06-14 | Upgraded Imaging into an evidence review command surface. | Added `ImagingCommandClient` and slimmed `/imaging` into a server-prepared data wrapper that joins imaging assets to tokenized patient/course context, phase labels, upload references, and fraction-link counts. The page now supports selected-asset review, prototype preview placeholder, file/phase/fraction/note evidence cards, workspace/carepath/document/audit navigation, required-category gap matrix, and a PHI-free staged imaging decision ledger. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; live `127.0.0.1:3012/imaging` returned 200 and rendered Imaging/evidence content. | Continue the command-surface pass for Treatment Planning and Treatment Delivery, then run a broader landing-to-admin demo pass. |

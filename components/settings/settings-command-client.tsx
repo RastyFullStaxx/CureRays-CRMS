@@ -111,15 +111,15 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
         <StatCard icon={CheckCircle2} label="Staged Changes" value={appliedCount} sub="This demo session" tone={appliedCount ? 'success' : 'primary'} />
       </StatGrid>
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(300px,0.72fr)_minmax(0,1.28fr)]">
-        <Card className="min-h-0">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
+        <Card className="min-w-0 self-start">
           <div className="mb-4">
             <p className="clinical-label">Configuration Areas</p>
             <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">
               Review before changing settings
             </h2>
           </div>
-          <div className="scrollbar-soft grid max-h-[540px] gap-2 overflow-y-auto pr-1">
+          <div className="scrollbar-soft grid max-h-[calc(100dvh-260px)] min-h-[620px] gap-2 overflow-y-auto pr-1">
             {categories.map((category, index) => {
               const Icon = icons[index] ?? Settings;
               const active = index === selectedIndex;
@@ -155,7 +155,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
           </div>
         </Card>
 
-        <Card className="min-h-0">
+        <Card className="min-w-0 self-start">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Setting</p>

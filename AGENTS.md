@@ -128,6 +128,7 @@ components/
 9. **Clinical modals use the largest appropriate shared modal token** — avoid unnecessary scrolling by grouping fields into balanced sections before adding another internal scroll area
 10. **Every scrollable UI uses the shared styled scrollbar** — apply `scrollbar-soft` or a shared class that maps to the same scrollbar tokens
 11. **Status text uses shared pill primitives** — no ad hoc translucent rounded pills; use `Badge`, `StatusBadge`, or `clinical-pill` tone classes
+12. **Long command pages must contain their own overflow** — schedule calendars, template registries, settings review lists, audit/security selected-event panels, and other table-heavy admin surfaces should use page-level `scrollbar-soft` plus self-starting grids/cards so detail panels never overlap adjacent tables or escape their containers
 
 ### Page Pattern
 
@@ -254,6 +255,7 @@ Never hardcode hex values in components. Always reference tokens:
 
 - Don't use `min-h-screen` on the outer shell — use `h-screen overflow-hidden` with flex
 - Don't forget `flex-1 min-h-0` on DataTable wrapper for proper height chain
+- Don't let long admin/detail panels rely on the fixed AppShell viewport alone — add explicit soft-scroll regions, `min-w-0`, and `self-start` containment where tables sit beside review cards
 - Don't mix Tailwind color classes with CSS token colors — pick one system (use tokens)
 - Don't add comments to code unless explicitly asked
 - Don't add `'use client'` unless the component actually needs browser APIs, hooks, or event handlers
