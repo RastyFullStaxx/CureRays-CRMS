@@ -473,6 +473,8 @@ button, input, select, textarea {
   display: flex;
   flex-shrink: 0;
   gap: 2px;
+  max-width: min(64vw, 520px);
+  overflow-x: auto;
   padding: 3px;
 }
 
@@ -500,14 +502,41 @@ button, input, select, textarea {
   gap: 10px;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
 }
 
 .dashboard-panel {
   display: grid;
   gap: 10px;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.dashboard-command-grid::-webkit-scrollbar,
+.dashboard-command-tabs::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+
+.dashboard-command-grid::-webkit-scrollbar-track,
+.dashboard-command-tabs::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.dashboard-command-grid::-webkit-scrollbar-thumb,
+.dashboard-command-tabs::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.dashboard-command-grid::-webkit-scrollbar-thumb:hover,
+.dashboard-command-tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .dashboard-panel-ops {
@@ -3304,7 +3333,7 @@ button, input, select, textarea {
 }
 
 .analytics-command[data-active-panel="overview"] .analytics-command-body {
-  overflow: hidden;
+  overflow: auto;
 }
 
 .analytics-panel {
