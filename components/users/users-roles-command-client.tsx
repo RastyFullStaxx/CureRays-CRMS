@@ -211,7 +211,7 @@ export function UsersRolesCommandClient({
   );
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Users & Roles"
         subtitle="Manage system users, role assignments, and permission matrices"

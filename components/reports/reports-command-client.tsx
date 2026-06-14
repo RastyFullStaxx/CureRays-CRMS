@@ -93,7 +93,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
   const primaryKpis = kpis.slice(0, 4);
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Reports"
         subtitle="Operational report workbench for carepath, treatment, document, billing, and risk review"
@@ -230,6 +230,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
 
       <DataTable
         keyField="id"
+        className="min-h-[460px]"
         onRowClick={(row) => setSelectedId(row.id)}
         columns={[
           { key: 'title', label: 'Report Pack', render: (row) => (

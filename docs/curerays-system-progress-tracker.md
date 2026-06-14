@@ -28,9 +28,9 @@ Update rules:
 
 Current overall assessment:
 
-- Overall system completion: 66%
-- Local prototype/app shell readiness: 94%
-- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 87%
+- Overall system completion: 68%
+- Local prototype/app shell readiness: 96%
+- End-to-end demo workflow readiness using mock/database-seeded de-identified data: 89%
 - Real clinic pilot readiness with strictly de-identified or synthetic data: 57%
 - Production readiness for real PHI/ePHI: 31%
 
@@ -98,6 +98,8 @@ Verification highlights through 2026-06-14:
 - `[x]` Prisma OPS and PHI schemas validated on 2026-06-14 with `prisma validate`; generated clients exist under `node_modules/.prisma/ops-client` and `node_modules/.prisma/phi-client`.
 - `[!]` Local PostgreSQL was not reachable from this WSL/sandbox shell at `localhost:5432` during the 2026-06-14 probe (`P1001`). pgAdmin/schema setup may still be correct on the host, but the demo shell cannot currently query that socket. Read-only demo APIs now fall back to seeded in-memory operational data when Prisma is selected but unreachable; mutation paths still report persistence failures instead of pretending database writes succeeded.
 - `[x]` Live API smoke on `http://127.0.0.1:3012` passed for `/api/patients`, `/api/patients/PHI-CR2401`, `/api/workflow`, `/api/tasks`, `/api/igsrt?courseId=COURSE-2401`, and `/api/generated-documents/DOC-2401-SIM` with the `x-curerays-role: ADMIN` prototype role header.
+- `[x]` `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed after adding the database-hydration fallback cache. A live Node 22 dev server on `127.0.0.1:3012` returned 200 for 35 landing, patient, workflow, treatment, document, billing, audit, reporting, settings, template, users/roles, security-log, and cohort routes; a warm recheck of the previously slow dev-compile routes returned 200 in roughly 200-1200 ms after first compile.
+- `[x]` `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed after the all-command-surface scroll normalization pass. A warm live check on `127.0.0.1:3012` returned 200 for `/patients`, `/records`, `/documents`, `/reports`, `/tasks`, `/workflow`, `/workflow/templates`, `/workflow/igsrt`, `/users-roles`, `/upcoming`, `/on-treatment`, `/post`, `/patients/PHI-CR2401/carepath`, `/patients/PHI-CR2401/documents`, and `/treatment-delivery/fraction-logs`.
 - `[x]` `npm run test:phase0` passed.
 - `[x]` `npm run test:hipaa` passed.
 - `[x]` `TMPDIR=/tmp npm run test:fraction-worksheet` passed. The plain script initially tried to write to the Windows temp folder, which is read-only in this sandbox, so the stable local command should set `TMPDIR=/tmp` when needed.
@@ -148,6 +150,7 @@ Current inventory:
 - `[x]` Task, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, reports, analytics, templates, settings, users/roles, audit logs, and security logs pages exist.
 - `[x]` Courses, Billing, Audit, Clinical Forms, Imaging, Treatment Planning, and Treatment Delivery now use selected-row command surfaces with evidence panels, local PHI-free staged action ledgers, and route links into the patient workspace/carepath/document/fraction/admin flow.
 - `[x]` Schedule, Templates, Settings, Audit Logs, and Security Logs have scroll-contained long command surfaces: weekly calendar and table-heavy regions keep shared soft scrollbars, selected-review side panels self-start instead of overlapping adjacent tables, and long review notes/ledgers wrap inside their cards.
+- `[x]` Patient registry, records, documents, reports, tasks, workflow, workflow templates, IGSRT, users/roles, phase cohorts, patient carepath/documents, and treatment-delivery fraction logs now opt into page-level `scrollbar-soft` scrolling so long demo content stays reachable inside the fixed app shell.
 - `[x]` Shared DataTable lists no longer paginate; every matching row is available through the table's fixed-height styled scroll area after search/filtering.
 - `[x]` Shared DataTable filter toolbars stay on one row by dynamically shrinking the prefix, search field, filter selects, reset action, and toolbar actions instead of wrapping into stacked rows.
 - `[x]` Documents, Templates, Settings, and Security Logs now use taller fixed review/list regions where the main table and selected detail panels visually align without leaving large dead gaps in the demo viewport.
@@ -625,7 +628,7 @@ Pre-mortem:
 
 ### Phase 8: Persistence, APIs, And Data Boundaries
 
-Current completion: 42%
+Current completion: 43%
 
 Goal: replace in-memory mock state with durable OPS/PHI persistence and server-owned APIs.
 
@@ -640,6 +643,7 @@ What is already done:
 - `[x]` Local seed command exists: `npm run prisma:seed`.
 - `[x]` Local seed data populates every current OPS/PHI Prisma model with synthetic/de-identified demo rows.
 - `[x]` Server-only database hydration helper loads PostgreSQL rows into the shared clinical store before server-rendered pages render, with memory fallback.
+- `[x]` Database hydration caches successful PostgreSQL hydration and short-lived empty/unreachable fallback results during the dev server process, so a missing or unreachable local PostgreSQL socket does not repeatedly slow every demo route render.
 - `[x]` Dashboard, Analytics, and Reports telemetry now await database hydration before building chart payloads.
 - `[x]` API routes exist for workflow, patients, IGSRT, and generated documents.
 - `[x]` Operational redaction helpers exist.
@@ -760,7 +764,7 @@ These should be treated as release gates, not optional cleanup.
 - `[!]` No immutable audit trail: audit events are in-memory and use placeholder actors.
 - `[!]` No real document/file integration: generated output is simulated.
 - `[!]` No clinical validation for calculation logic.
-- `[~]` Add Patient/Edit Patient are wired for de-identified pilot workflows with memory fallback and opt-in Prisma persistence; many other visible action buttons remain disabled placeholders or are not wired to production workflows.
+- `[~]` Add Patient/Edit Patient are wired for de-identified pilot workflows with memory fallback and opt-in Prisma persistence; broader route actions are now demo-local and PHI-safe, but most are not production-persistent workflows yet.
 
 ## Recommended Execution Order
 
@@ -771,7 +775,7 @@ Target completion outcome: prototype stays buildable, clear, and honest.
 - `[ ]` Add this tracker to the team update ritual.
 - `[x]` Add `npm run verify`.
 - `[~]` Expand HIPAA guardrails to catch client imports of `clinical-store` PHI data. Transitive runtime import checks exist; prototype PHI client allowlist remains.
-- `[~]` Mark or wire non-functional action buttons.
+- `[x]` Mark or wire non-functional action buttons for the prototype demo. Remaining production persistence/integration work is tracked by phase.
 - `[x]` Refactor patient registry to use operational/server DTOs instead of client PHI imports.
 - `[x]` Decide whether to use the richer `PatientsRegistry` component or the simpler shared `DataTable` page.
 - `[x]` Add demo-only banner.
@@ -821,6 +825,8 @@ Target completion outcome: real PHI/ePHI go-live readiness.
 
 | Date | Update | Evidence | Next action |
 |---|---|---|---|
+| 2026-06-14 | Normalized page-level scrolling across the remaining command/demo surfaces. | Added `scrollbar-soft overflow-y-auto pb-1 pr-1` to the remaining long PageStack command surfaces: patient registry, master records, documents, reports, tasks, workflow, workflow templates, users/roles, phase cohorts, patient carepath/documents, IGSRT tools, and treatment-delivery fraction logs. Added stable table heights on patient registry, records, documents, reports, tasks, workflow, phase cohorts, and patient documents so the fixed app shell keeps tables/review regions usable instead of clipping. Updated readiness percentages to 68% overall, 96% local prototype/app shell, and 89% end-to-end demo workflow. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed. Warm live checks on `127.0.0.1:3012` returned 200 for 15 touched routes across patient, records, documents, reports, tasks, workflow, users/roles, cohorts, and treatment-delivery fraction logs. | Continue a browser visual/interaction pass, focusing next on patient workspace tabs and any custom analytics/dashboard surfaces that do not use PageStack. |
+| 2026-06-14 | Optimized demo hydration fallback and completed a broad landing-to-admin live route sweep. | Added a process-wide database-hydration cache in `lib/server/database-hydration.ts` so successful PostgreSQL hydration and short-lived empty/unreachable fallback states are reused during the dev server process instead of retrying the same unavailable local socket on every page. Updated readiness percentages to 67% overall, 95% local prototype/app shell, and 88% end-to-end demo workflow. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed. Live Node 22 dev server on `127.0.0.1:3012` returned 200 for 35 routes across landing, dashboard, patients, courses, workflow, tasks, schedule, treatment delivery/fraction logs, clinical forms, treatment planning, imaging, documents, billing, audit, analytics, reports, users/roles, templates, workflow templates/IGSRT, settings, audit/security logs, records, phase cohorts, and patient workspace subroutes. A warm recheck of the slowest first-compile routes returned 200 in roughly 200-1200 ms after initial compile. | Continue the browser visual/interaction pass from landing through patient workspace and admin tabs, then prioritize production persistence/auth/audit hardening rather than raising PHI readiness. |
 | 2026-06-14 | Filled the remaining admin/document table and review-panel gaps from the screenshot pass. | Expanded the Security Logs review table and selected-event panel to matched taller regions, shortened its toolbar action to `Export`, raised the Documents list viewport, expanded Settings `Selected Setting` through a taller change-note field, and shortened the Templates registry action to `Export`. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; route smoke covered 32 routes. | Continue live browser visual checks across Documents, Templates, Settings, and Security Logs at the demo zoom/viewport size. |
 | 2026-06-14 | Kept shared table filter strips to a single responsive row. | Updated `components/shared/data-table.tsx` so the default toolbar uses a non-wrapping min-width-aware flex row. Toolbar prefix, search input, select filters, reset action, and toolbar actions now shrink within the row instead of forcing filter controls onto a second line. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; route smoke covered 32 routes. | Continue live visual checks on the widest filter strips, especially Templates and Workflow Templates, and tune per-page control labels if a very narrow viewport needs more compression. |
 | 2026-06-14 | Removed shared table pagination in favor of fixed-height table scrolling. | Updated `components/shared/data-table.tsx` so DataTable no longer slices rows by page or shows the previous count/arrow pagination footer. Existing `pageSize` values now control the table viewport height only, preserving the earlier table sizes while all filtered rows remain available through the internal `scrollbar-soft` table body. `npm run typecheck`, `npm run lint`, and `npm run test:routes` passed; route smoke covered 32 routes. | Continue live visual checks on table-heavy pages and keep `pageSize` values tuned as viewport-height controls. |

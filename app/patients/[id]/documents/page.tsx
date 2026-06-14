@@ -32,7 +32,7 @@ export default async function PatientDocumentsPage({ params }: { params: Promise
   }));
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Documents"
         subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')}`}
@@ -46,6 +46,7 @@ export default async function PatientDocumentsPage({ params }: { params: Promise
 
       <DataTable
         keyField="id"
+        className="min-h-[560px]"
         columns={[
           { key: 'name', label: 'Document' },
           { key: 'category', label: 'Category' },

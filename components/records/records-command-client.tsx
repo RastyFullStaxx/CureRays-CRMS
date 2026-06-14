@@ -102,7 +102,7 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
   };
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Master Records"
         subtitle="Controlled operational index for record maintenance, course alignment, and carepath follow-through"
@@ -225,6 +225,7 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
 
       <DataTable
         keyField="id"
+        className="min-h-[560px]"
         onRowClick={(row) => setSelectedId(row.id)}
         columns={[
           {

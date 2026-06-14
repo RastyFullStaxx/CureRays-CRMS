@@ -6,7 +6,7 @@ export default function TreatmentDeliveryFractionLogsPage() {
   const rows = getFractionLogRegistryRows();
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <FractionLogCommandClient rows={rows} />
     </PageStack>
   );

@@ -616,7 +616,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   };
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Patients"
         subtitle="Tokenized operational registry with authorized patient record access."
@@ -643,6 +643,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
 
       <DataTable
         keyField="patientRef"
+        className="min-h-[620px]"
         columns={[
           { key: 'displayLabel', label: 'Patient', render: (row) => (
             <div className="min-w-0">

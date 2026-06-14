@@ -121,7 +121,7 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
   };
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title={title}
         subtitle={subtitle}
@@ -244,6 +244,7 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
 
       <DataTable
         keyField="id"
+        className="min-h-[560px]"
         onRowClick={(row) => setSelectedId(row.id)}
         columns={[
           {

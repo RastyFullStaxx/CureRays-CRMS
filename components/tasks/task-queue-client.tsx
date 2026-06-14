@@ -196,7 +196,7 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
   };
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Tasks"
         subtitle="Role-aware Carepath queues with guarded assignment, status, blocked, N/A, and reopen commands."
@@ -242,6 +242,7 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
 
       <DataTable
         keyField="id"
+        className="min-h-[560px]"
         columns={[
           { key: 'task', label: 'Task', render: (row) => (
             <div className="min-w-0">

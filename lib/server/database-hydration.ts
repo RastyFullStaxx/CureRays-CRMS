@@ -235,7 +235,22 @@ type PhiFractionRow = {
   notes: string;
 };
 
-let hydrated = false;
+type HydrationSource = 'cache' | 'memory' | 'empty-database' | 'postgres' | 'memory-fallback';
+
+type HydrationCacheState = {
+  hydrated: boolean;
+  source?: HydrationSource;
+  checkedAt?: number;
+};
+
+const hydrationCacheKey = Symbol.for('curerays.databaseHydrationState');
+const hydrationRetryMs = 60_000;
+
+const hydrationCache = ((globalThis as typeof globalThis & {
+  [hydrationCacheKey]?: HydrationCacheState;
+})[hydrationCacheKey] ??= { hydrated: false });
+
+let hydrated = hydrationCache.hydrated;
 
 function loadClient(moduleName: '.prisma/ops-client' | '.prisma/phi-client'): PrismaClientLike {
   const requireFn = eval('require') as NodeRequire;
@@ -543,12 +558,29 @@ function mapAuditEvent(row: OpsAuditEventRow): AuditEvent {
 }
 
 export async function hydrateClinicalStoreFromDatabase(options: { force?: boolean } = {}) {
-  if (hydrated && !options.force) {
+  if ((hydrated || hydrationCache.hydrated) && !options.force) {
+    hydrated = true;
     return { hydrated: true, source: 'cache' as const };
   }
 
   if (process.env.CURERAYS_PERSISTENCE_MODE !== 'prisma') {
+    hydrationCache.hydrated = false;
+    hydrationCache.source = 'memory';
+    hydrationCache.checkedAt = Date.now();
     return { hydrated: false, source: 'memory' as const };
+  }
+
+  if (
+    !options.force &&
+    hydrationCache.checkedAt &&
+    hydrationCache.source &&
+    hydrationCache.source !== 'postgres' &&
+    Date.now() - hydrationCache.checkedAt < hydrationRetryMs
+  ) {
+    return {
+      hydrated: false,
+      source: hydrationCache.source === 'empty-database' ? 'empty-database' as const : 'memory-fallback' as const,
+    };
   }
 
   try {
@@ -556,6 +588,9 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
     const { opsPatients, opsCourses, tasks, documents, opsAuditEvents, phiPatients, phiCourses, phiFractions } = rows;
 
     if (opsPatients.length === 0 || opsCourses.length === 0 || phiPatients.length === 0 || phiCourses.length === 0) {
+      hydrationCache.hydrated = false;
+      hydrationCache.source = 'empty-database';
+      hydrationCache.checkedAt = Date.now();
       return { hydrated: false, source: 'empty-database' as const };
     }
 
@@ -576,8 +611,14 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
     }))));
 
     hydrated = true;
+    hydrationCache.hydrated = true;
+    hydrationCache.source = 'postgres';
+    hydrationCache.checkedAt = Date.now();
     return { hydrated: true, source: 'postgres' as const };
   } catch {
+    hydrationCache.hydrated = false;
+    hydrationCache.source = 'memory-fallback';
+    hydrationCache.checkedAt = Date.now();
     return { hydrated: false, source: 'memory-fallback' as const };
   }
 }

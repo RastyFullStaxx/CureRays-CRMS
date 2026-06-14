@@ -207,7 +207,7 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
   };
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Workflow"
         subtitle="Guarded Carepath command center for course phase advancement and step control."
@@ -258,6 +258,7 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
 
       <DataTable
         keyField="id"
+        className="min-h-[620px]"
         columns={[
           { key: 'step', label: 'Step', render: (row) => (
             <div className="min-w-0">

@@ -95,7 +95,7 @@ export default function IgsrtWorkflowPage() {
   ];
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <IgsrtCommandClient summary={summary} documents={documents} gates={gates} />
 
       <FractionWorksheetPanel

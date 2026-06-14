@@ -25,7 +25,7 @@ export default async function PatientCarepathPage({ params }: { params: Promise<
   const workflowSteps = getWorkflowSteps(course.id);
 
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Carepath"
         subtitle={`${patient.firstName} ${patient.lastName} | ${course.id.replace('COURSE-', 'C')}`}

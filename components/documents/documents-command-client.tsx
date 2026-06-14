@@ -52,7 +52,7 @@ type DocumentsCommandClientProps = {
 
 export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClientProps) {
   return (
-    <PageStack>
+    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Documents"
         subtitle="Document management, signatures, and eCW uploads"
@@ -71,6 +71,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
         <StatCard icon={Upload} label="Uploaded/eCW" value={metrics.uploaded} sub="External upload" />
       </StatGrid>
       <DataTable
+        className="min-h-[720px]"
         columns={[
           { key: 'doc', label: 'Document', render: (row) => (
             <span className="block truncate font-bold text-[var(--color-primary)]">{row.title}</span>
