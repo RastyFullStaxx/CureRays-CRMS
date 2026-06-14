@@ -144,10 +144,10 @@ export function TemplatesCommandClient({
         <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="warning" />
       </StatGrid>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[560px] min-w-0"
+          className="min-h-[640px] min-w-0"
           columns={[
             { key: 'name', label: 'Template Source', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
             { key: 'fileType', label: 'File' },
@@ -169,7 +169,7 @@ export function TemplatesCommandClient({
               </p>
             </div>
           }
-          toolbarActions={<PrototypeActionButton label="Export Registry" icon="download" kind="export" size="sm" description="Prepare a PHI-free template registry export." />}
+          toolbarActions={<PrototypeActionButton label="Export" icon="download" kind="export" size="sm" description="Prepare a PHI-free template registry export." />}
           search={{ placeholder: 'Search sources, status, approval, hash, or path...', keys: ['name', 'fileType', 'registryStatus', 'approval', 'hash', 'disposition', 'sourcePath'] }}
           filters={[
             { id: 'fileType', label: 'File Type' },
@@ -181,9 +181,9 @@ export function TemplatesCommandClient({
           onRowClick={selectSource}
         />
 
-        <Card className="min-h-[560px] min-w-0 self-start">
+        <Card className="flex min-h-[640px] min-w-0 flex-col">
           {selected ? (
-            <div className="grid gap-4">
+            <div className="flex h-full min-h-0 flex-col gap-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Source</p>
@@ -225,7 +225,7 @@ export function TemplatesCommandClient({
                 )}
               </div>
 
-              <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
+              <div className="mt-auto grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <label className="grid gap-1">
                   <span className="clinical-label">Review Disposition</span>
                   <Select value={reviewDisposition} onChange={(event) => setReviewDisposition(event.target.value)}>
@@ -238,7 +238,7 @@ export function TemplatesCommandClient({
                 </label>
                 <label className="grid gap-1">
                   <span className="clinical-label">Registry Review Note</span>
-                  <Textarea rows={4} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} />
+                  <Textarea rows={8} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} className="min-h-[152px] resize-none" />
                 </label>
                 <div className="flex justify-end">
                   <Button type="button" onClick={stageReview}>
@@ -254,10 +254,10 @@ export function TemplatesCommandClient({
         </Card>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[560px] min-w-0"
+          className="min-h-[600px] min-w-0"
           columns={[
             { key: 'requirement', label: 'Document Requirement' },
             { key: 'phase', label: 'Phase' },
@@ -281,7 +281,7 @@ export function TemplatesCommandClient({
           pageSize={10}
         />
 
-        <Card className="min-w-0 self-start">
+        <Card className="min-h-[600px] min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Registry Snapshot</p>

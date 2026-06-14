@@ -129,6 +129,7 @@ components/
 10. **Every scrollable UI uses the shared styled scrollbar** — apply `scrollbar-soft` or a shared class that maps to the same scrollbar tokens
 11. **Status text uses shared pill primitives** — no ad hoc translucent rounded pills; use `Badge`, `StatusBadge`, or `clinical-pill` tone classes
 12. **Long command pages must contain their own overflow** — schedule calendars, template registries, settings review lists, audit/security selected-event panels, and other table-heavy admin surfaces should use page-level `scrollbar-soft` plus self-starting grids/cards so detail panels never overlap adjacent tables or escape their containers
+13. **Balance paired layouts to leave no dead gaps** — when a table sits beside a selected-detail/review card, or stacked tables share a row with summary panels, plan the heights together. Expand the useful region first, such as table viewport rows, review-note textareas, selected-detail bodies, or snapshot panels, and then rely on styled scrolling for overflow so adjacent containers visually align instead of leaving large empty gaps or uneven bottoms.
 
 ### Page Pattern
 

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { AlertTriangle, Search } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
@@ -127,7 +127,6 @@ export function DataTable<T extends object>({
   filters = [],
   className = '',
 }: DataTableProps<T>) {
-  const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
@@ -162,18 +161,13 @@ export function DataTable<T extends object>({
     });
   }, [filterValues, filters, query, rows, search]);
 
-  const totalPages = pageSize > 0
-    ? Math.max(1, Math.ceil(filteredRows.length / pageSize))
-    : 1;
-  const currentPage = Math.min(page, totalPages);
-  const paginated = pageSize > 0
-    ? filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    : filteredRows;
-
   const hasError = Boolean(error);
-  const showPagination = !hasError && pageSize > 0 && filteredRows.length > pageSize;
-  const isEmpty = !loading && !hasError && paginated.length === 0;
+  const isEmpty = !loading && !hasError && filteredRows.length === 0;
   const hasActiveFilters = query.trim() || Object.values(filterValues).some(Boolean);
+  const viewportRows = pageSize > 0 ? pageSize : undefined;
+  const tableViewportHeight = viewportRows
+    ? `calc(var(--height-table-header) + (${viewportRows} * var(--height-table-row)))`
+    : undefined;
 
   const clearFilters = () => {
     setQuery('');
@@ -198,20 +192,21 @@ export function DataTable<T extends object>({
             }}
           >
             {toolbar ?? (
-              <div className="flex flex-wrap items-center" style={{ gap: 'var(--space-1)' }}>
-                {toolbarPrefix}
+              <div className="flex min-w-0 flex-nowrap items-center overflow-hidden" style={{ gap: 'var(--space-1)' }}>
+                {toolbarPrefix ? (
+                  <div className="min-w-0 flex-[0_1_150px] [&>*]:!min-w-0">
+                    {toolbarPrefix}
+                  </div>
+                ) : null}
                 {search && (
-                  <label className="relative min-w-[220px] flex-[1_1_280px]">
+                  <label className="relative min-w-[180px] flex-[2_1_220px]">
                     <Search
                       aria-hidden="true"
                       className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]"
                     />
                     <Input
                       value={query}
-                      onChange={(event) => {
-                        setQuery(event.target.value);
-                        setPage(1);
-                      }}
+                      onChange={(event) => setQuery(event.target.value)}
                       placeholder={search.placeholder}
                       className="pl-9"
                       aria-label={search.placeholder}
@@ -219,13 +214,10 @@ export function DataTable<T extends object>({
                   </label>
                 )}
                 {filters.map((filter) => (
-                  <div key={filter.id} className="min-w-[152px] flex-[0_1_176px]">
+                  <div key={filter.id} className="min-w-[112px] flex-[1_1_128px]">
                     <Select
                       value={filterValues[filter.id] ?? ''}
-                      onChange={(event) => {
-                        setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }));
-                        setPage(1);
-                      }}
+                      onChange={(event) => setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }))}
                       aria-label={filter.label}
                     >
                       <option value="">{filter.allLabel ?? `All ${filter.label}`}</option>
@@ -246,18 +238,21 @@ export function DataTable<T extends object>({
                     Reset
                   </button>
                 )}
-                {toolbarActions ? <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2">{toolbarActions}</div> : null}
+                {toolbarActions ? <div className="ml-auto flex min-w-0 shrink-[1] grow-0 basis-auto flex-nowrap items-center gap-2 overflow-hidden">{toolbarActions}</div> : null}
               </div>
             )}
           </div>
         )}
 
         <div
-          className="scrollbar-soft flex-1 min-h-0 w-full overflow-x-auto"
+          className="scrollbar-soft min-h-0 w-full overflow-x-auto"
           style={{
             overflowY: isEmpty || loading || hasError ? 'hidden' : 'auto',
             display: 'flex',
             flexDirection: 'column',
+            flex: tableViewportHeight ? '0 0 auto' : 1,
+            height: tableViewportHeight,
+            maxHeight: tableViewportHeight,
           }}
         >
           <table className="w-full border-collapse" style={{ flexShrink: 0 }}>
@@ -291,7 +286,7 @@ export function DataTable<T extends object>({
 
             {!isEmpty && !loading && !hasError && (
               <tbody>
-                {paginated.map((row) => (
+                {filteredRows.map((row) => (
                   <tr
                     key={rowKey(row, keyField)}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -357,39 +352,6 @@ export function DataTable<T extends object>({
         </div>
       </div>
 
-      {showPagination && (
-        <div
-            className="flex items-center justify-between shrink-0"
-          style={{ paddingLeft: 'var(--space-1)', paddingRight: 'var(--space-1)' }}
-        >
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}>
-            Showing {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length}
-          </p>
-          <div className="flex items-center" style={{ gap: 'var(--space-1)' }}>
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              aria-label="Previous page"
-              className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
-              style={{ borderRadius: 'var(--radius-md)' }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text)', paddingLeft: 'var(--space-1)', paddingRight: 'var(--space-1)' }}>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              aria-label="Next page"
-              className="clinical-focus flex h-8 w-8 items-center justify-center text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-hover)] disabled:cursor-not-allowed disabled:opacity-30"
-              style={{ borderRadius: 'var(--radius-md)' }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -111,7 +111,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
         <StatCard icon={CheckCircle2} label="Staged Changes" value={appliedCount} sub="This demo session" tone={appliedCount ? 'success' : 'primary'} />
       </StatGrid>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(320px,0.72fr)_minmax(0,1.28fr)]">
         <Card className="min-w-0 self-start">
           <div className="mb-4">
             <p className="clinical-label">Configuration Areas</p>
@@ -155,7 +155,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
           </div>
         </Card>
 
-        <Card className="min-w-0 self-start">
+        <Card className="flex min-h-[712px] min-w-0 flex-col">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Setting</p>
@@ -167,7 +167,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
             </Badge>
           </div>
 
-          <div className="mt-4 grid gap-4">
+          <div className="mt-4 flex flex-1 flex-col gap-4">
             <div className="grid gap-3 lg:grid-cols-2">
               <label className="grid gap-1">
                 <span className="clinical-label">Primary Configuration</span>
@@ -211,7 +211,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
 
             <label className="grid gap-1">
               <span className="clinical-label">Change Reason / Notes</span>
-              <Textarea rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} />
+              <Textarea rows={12} value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-[232px] resize-none" />
             </label>
 
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">

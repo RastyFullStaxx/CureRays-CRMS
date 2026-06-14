@@ -122,7 +122,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
         rows={rows}
         empty="No documents are available."
         emptyDescription="Generated, signed, and uploaded document records will appear after course document requirements are initialized."
-        pageSize={10}
+        pageSize={17}
         search={{
           placeholder: 'Search document, patient, course, category, signature, or eCW status...',
           getText: (row) => [

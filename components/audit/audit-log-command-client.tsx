@@ -120,10 +120,10 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
         <StatCard icon={AlertTriangle} label="System Changes" value={systemEvents || 2} sub="Admin-sensitive" tone={systemEvents ? 'error' : 'info'} />
       </StatGrid>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
         <DataTable
           keyField="id"
-          className="min-h-[600px] min-w-0"
+          className="min-h-[740px] min-w-0"
           columns={[
             { key: 'timestamp', label: 'Timestamp', render: (row) => formatDateTime(row.timestamp) },
             { key: 'userName', label: 'User', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.userName}</span> },
@@ -139,7 +139,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
           toolbarPrefix={toolbarPrefix}
           toolbarActions={
             <PrototypeActionButton
-              label="Export Current View"
+              label="Export"
               icon="download"
               kind="export"
               size="sm"
@@ -153,11 +153,11 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
             { id: 'action', label: 'Action' },
             { id: 'domain', label: 'Domain', options: eventDomains.map((domain) => ({ label: domain, value: domain })), getValue: domainFor },
           ]}
-          pageSize={12}
+          pageSize={15}
           onRowClick={(row) => setSelectedId(row.id)}
         />
 
-        <Card className="min-h-[600px] min-w-0 self-start">
+        <Card className="min-h-[740px] min-w-0">
           {selected ? (
             <div className="grid min-w-0 gap-4">
               <div className="flex items-start justify-between gap-3">
