@@ -1,6 +1,7 @@
 generator opsClient {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/ops-client"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
 }
 
 datasource opsDb {
