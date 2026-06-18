@@ -7,12 +7,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   Bell,
-  CalendarDays,
   ClipboardList,
   FileCheck2,
-  FileText,
-  Image as ImageIcon,
-  NotebookTabs,
   Radiation,
   Route,
   ShieldCheck,
@@ -57,6 +53,10 @@ import { patientRef } from '@/lib/hipaa';
 
 type WorkspaceTab =
   | 'command'
+  | 'carepath'
+  | 'treatment'
+  | 'documents-billing'
+  | 'activity'
   | 'workflow'
   | 'tasks'
   | 'clinical'
@@ -64,8 +64,7 @@ type WorkspaceTab =
   | 'imaging'
   | 'documents'
   | 'fractions'
-  | 'billing-audit'
-  | 'activity';
+  | 'billing-audit';
 
 type PatientWorkspaceProps = {
   patient: Patient;
@@ -89,15 +88,10 @@ type PatientWorkspaceProps = {
 };
 
 const tabs: Array<{ id: WorkspaceTab; label: string; icon: typeof ClipboardList }> = [
-  { id: 'command', label: 'Command', icon: Activity },
-  { id: 'workflow', label: 'Carepath', icon: Route },
-  { id: 'tasks', label: 'Tasks', icon: ClipboardList },
-  { id: 'clinical', label: 'Clinical', icon: NotebookTabs },
-  { id: 'planning', label: 'Planning', icon: Radiation },
-  { id: 'imaging', label: 'Imaging', icon: ImageIcon },
-  { id: 'documents', label: 'Documents', icon: FileText },
-  { id: 'fractions', label: 'Fractions', icon: CalendarDays },
-  { id: 'billing-audit', label: 'Billing / Audit', icon: WalletCards },
+  { id: 'command', label: 'Overview', icon: Activity },
+  { id: 'carepath', label: 'Carepath', icon: Route },
+  { id: 'treatment', label: 'Treatment', icon: Radiation },
+  { id: 'documents-billing', label: 'Documents & Billing', icon: WalletCards },
   { id: 'activity', label: 'Activity', icon: ShieldCheck },
 ];
 
@@ -108,9 +102,9 @@ function patientDisplayName(patient: Patient) {
 const phaseOrder = ['Consult', 'Chart Prep', 'Simulation', 'Planning', 'On Tx', 'Post', 'Audit'];
 
 function statusVariant(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'ACTIVE', 'CLOSED'].includes(status)) return 'success';
-  if (['BLOCKED', 'OVERDUE', 'MISSING_FIELDS', 'ON_HOLD'].includes(status)) return 'error';
-  if (['READY_FOR_REVIEW', 'NEEDS_REVIEW', 'PENDING', 'IN_PROGRESS'].includes(status)) return 'warning';
+  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'ACTIVE', 'CLOSED', 'READY', 'EXPORTED', 'LOCKED'].includes(status)) return 'success';
+  if (['BLOCKED', 'OVERDUE', 'MISSING_FIELDS', 'ON_HOLD', 'VOIDED'].includes(status)) return 'error';
+  if (['READY_FOR_REVIEW', 'NEEDS_REVIEW', 'PENDING', 'IN_PROGRESS', 'DRAFT'].includes(status)) return 'warning';
   if (['UPCOMING', 'NOT_STARTED'].includes(status)) return 'info';
   return 'default';
 }
@@ -222,44 +216,97 @@ export function PatientWorkspace({
   const clinicalValidationChecklist = planningReadiness.clinicalValidationChecklist;
 
   const tabContent = useMemo(() => {
-    if (activeTab === 'workflow') {
+    if (activeTab === 'carepath') {
       return (
-        <DataTable
-          keyField="id"
-          pageSize={0}
-          className="min-h-[440px]"
-          toolbarPrefix={
-            <div className="min-w-[240px] flex-1">
-              <p className="clinical-label">Carepath Review</p>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
-                {blockedSteps.length ? `${blockedSteps.length} blocked step(s) need attention` : 'No blocked carepath steps'}
-              </p>
+        <div className="grid min-w-0 gap-4">
+          <Card compact>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="clinical-label">Carepath</p>
+                <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">Steps and work items together</h2>
+                <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+                  Workflow shows where the course is. Tasks show what someone needs to complete next.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={blockedSteps.length ? 'warning' : 'success'}>{blockedSteps.length} blocked steps</Badge>
+                <Badge variant={urgentTasks.length ? 'warning' : 'success'}>{urgentTasks.length} priority tasks</Badge>
+              </div>
             </div>
-          }
-          toolbarActions={<PrototypeActionButton label="Advance step" icon="play" kind="review" description="Stage a workflow step advancement after reviewing blockers and signatures." />}
-          columns={[
-            { key: 'step', label: 'Step', render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.step}</span> },
-            { key: 'phase', label: 'Phase', render: (row) => <Badge variant="primary">{row.phase}</Badge> },
-            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
-            { key: 'role', label: 'Owner' },
-            { key: 'due', label: 'Due / Trigger' },
-            { key: 'signature', label: 'Signature', render: (row) => row.signature ? <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Required'}</Badge> : '-' },
-            { key: 'blocker', label: 'Blocker', render: (row) => row.blocker || '-' },
-          ]}
-          rows={workflowSteps.map((step) => ({
-            id: step.id,
-            step: `${step.stepNumber}. ${step.stepName}`,
-            phase: carepathPhaseLabels[step.phase],
-            status: step.status,
-            role: responsiblePartyLabels[step.responsibleRole],
-            due: step.dueDate ?? step.triggerEvent,
-            signature: step.requiresSignature,
-            signed: Boolean(step.signedAt),
-            blocker: step.blockers[0],
-          }))}
-          empty="No workflow steps are available for this patient course."
-          emptyDescription="Carepath steps will appear after the course workflow is initialized."
-        />
+          </Card>
+
+          <DataTable
+            keyField="id"
+            pageSize={0}
+            className="min-h-[360px]"
+            minTableWidth="1180px"
+            toolbarPrefix={
+              <div className="min-w-[240px] flex-1">
+                <p className="clinical-label">Course Path</p>
+                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                  {blockedSteps.length ? `${blockedSteps.length} blocked step(s) need attention` : 'No blocked carepath steps'}
+                </p>
+              </div>
+            }
+            toolbarActions={<PrototypeActionButton label="Advance step" icon="play" kind="review" description="Stage a workflow step advancement after reviewing blockers and signatures." />}
+            columns={[
+              { key: 'step', label: 'Step', render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.step}</span> },
+              { key: 'phase', label: 'Phase', render: (row) => <Badge variant="primary">{row.phase}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+              { key: 'role', label: 'Owner' },
+              { key: 'due', label: 'Due / Trigger' },
+              { key: 'signature', label: 'Signature', render: (row) => row.signature ? <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Required'}</Badge> : '-' },
+              { key: 'blocker', label: 'Blocker', render: (row) => row.blocker || '-' },
+            ]}
+            rows={workflowSteps.map((step) => ({
+              id: step.id,
+              step: `${step.stepNumber}. ${step.stepName}`,
+              phase: carepathPhaseLabels[step.phase],
+              status: step.status,
+              role: responsiblePartyLabels[step.responsibleRole],
+              due: step.dueDate ?? step.triggerEvent,
+              signature: step.requiresSignature,
+              signed: Boolean(step.signedAt),
+              blocker: step.blockers[0],
+            }))}
+            empty="No workflow steps are available for this patient course."
+            emptyDescription="Carepath steps will appear after the course workflow is initialized."
+          />
+
+          <DataTable
+            keyField="id"
+            pageSize={0}
+            className="min-h-[360px]"
+            minTableWidth="1080px"
+            search={{ placeholder: 'Search work items...', keys: ['title', 'owner', 'description'] }}
+            toolbarPrefix={
+              <div className="min-w-[220px]">
+                <p className="clinical-label">Work Items</p>
+                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{urgentTasks.length} high-priority item(s)</p>
+              </div>
+            }
+            toolbarActions={<PrototypeActionButton label="Create work item" icon="plus" kind="create" description="Stage a course task with role ownership and due date." />}
+            columns={[
+              { key: 'title', label: 'Work Item', render: (row) => <span className="font-bold">{row.title}</span> },
+              { key: 'priority', label: 'Priority', render: (row) => <Badge variant={row.priority === 'URGENT' ? 'error' : row.priority === 'HIGH' ? 'warning' : 'default'}>{row.priority}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+              { key: 'owner', label: 'Owner' },
+              { key: 'due', label: 'Due' },
+              { key: 'description', label: 'Action', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.description}</span> },
+            ]}
+            rows={tasks.map((task) => ({
+              id: task.id,
+              title: task.title,
+              priority: task.priority,
+              status: task.status,
+              owner: task.assignedUserId ?? responsiblePartyLabels[task.assignedRole],
+              due: task.dueDate ? formatDate(task.dueDate) : 'No due date',
+              description: task.description,
+            }))}
+            empty="No work items are available for this patient course."
+            emptyDescription="Work rows will appear after carepath automation creates them."
+          />
+        </div>
       );
     }
 
@@ -269,6 +316,7 @@ export function PatientWorkspace({
           keyField="id"
           pageSize={0}
           className="min-h-[440px]"
+          minTableWidth="1080px"
           search={{ placeholder: 'Search tasks...', keys: ['title', 'owner', 'description'] }}
           toolbarPrefix={
             <div className="min-w-[220px]">
@@ -297,6 +345,128 @@ export function PatientWorkspace({
           empty="No tasks are available for this patient course."
           emptyDescription="Task rows will appear after carepath automation creates work items."
         />
+      );
+    }
+
+    if (activeTab === 'documents-billing') {
+      return (
+        <div className="grid min-w-0 gap-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <Card compact>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="clinical-label">Documents & Billing</p>
+                  <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">Evidence, signatures, and closeout readiness</h2>
+                  <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+                    Keep required forms, generated documents, billing evidence, and audit checks together for this course.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={unsignedDocs.length ? 'warning' : 'success'}>{unsignedDocs.length} unsigned</Badge>
+                  <Badge variant={openChecks.length ? 'warning' : 'success'}>{openChecks.length} open checks</Badge>
+                </div>
+              </div>
+            </Card>
+
+            <Card compact>
+              <SectionTitle title="Closeout Readiness" />
+              <Metric label="Readiness" value={`${readiness}%`} detail="Tasks, documents, fractions" />
+              <div className="mt-3">
+                <ProgressLine value={readiness} />
+              </div>
+            </Card>
+          </div>
+
+          <DataTable
+            keyField="id"
+            pageSize={0}
+            className="min-h-[360px]"
+            minTableWidth="1240px"
+            search={{ placeholder: 'Search documents...', keys: ['title', 'category', 'status'] }}
+            toolbarPrefix={
+              <div className="min-w-[220px]">
+                <p className="clinical-label">Course Documents</p>
+                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{unsignedDocs.length} unsigned document(s)</p>
+              </div>
+            }
+            toolbarActions={<PrototypeActionButton label="Generate document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
+            columns={[
+              { key: 'title', label: 'Document', render: (row) => <span className="font-bold">{row.title}</span> },
+              { key: 'category', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.category)}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+              { key: 'output', label: 'Output', render: (row) => (
+                <div className="flex flex-wrap gap-1">
+                  <Badge variant={row.outputStatus ? statusVariant(row.outputStatus) : 'default'}>{row.outputStatus ? titleCase(row.outputStatus) : 'No Output'}</Badge>
+                  {row.manualEditExceptionAt ? <Badge variant="warning">Manual Edit</Badge> : null}
+                </div>
+              ) },
+              { key: 'version', label: 'Version' },
+              { key: 'signed', label: 'Signature', render: (row) => <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Pending'}</Badge> },
+              { key: 'ecw', label: 'eCW', render: (row) => <Badge variant={row.uploadedToEcwAt || row.ecwUploadReference ? 'success' : 'default'}>{row.uploadedToEcwAt || row.ecwUploadReference ? 'Uploaded' : 'Pending'}</Badge> },
+              { key: 'updated', label: 'Updated' },
+            ]}
+            rows={documents.map((document) => ({
+              id: document.id,
+              title: document.title,
+              category: document.category,
+              status: document.status,
+              outputStatus: document.latestOutputStatus,
+              manualEditExceptionAt: document.manualEditExceptionAt,
+              version: `v${document.version}`,
+              signed: Boolean(document.signedAt),
+              uploadedToEcwAt: document.uploadedToEcwAt,
+              ecwUploadReference: document.ecwUploadReference,
+              updated: document.generatedAt ? formatDate(document.generatedAt) : 'Pending',
+            }))}
+            empty="No document records are available for this patient course."
+            emptyDescription="Generated or uploaded documents will appear after document requirements are initialized."
+          />
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Card>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <SectionTitle title="Clinical Forms" />
+                <PrototypeActionButton label="Open form builder" icon="file" kind="create" description="Open a prototype structured-form workflow for this course." />
+              </div>
+              <div className="mt-3 grid gap-2">
+                {clinicalFormTemplates.slice(0, 4).map((template) => (
+                  <div key={template.id} className="clinical-muted-surface flex items-center justify-between gap-3 px-3 py-2">
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-bold text-[var(--color-text)]">{template.name}</span>
+                      <span className="text-xs font-semibold text-[var(--color-text-muted)]">{template.diagnosisType}</span>
+                    </span>
+                    <Badge variant={template.active ? 'success' : 'default'}>{template.active ? 'Active' : 'Inactive'}</Badge>
+                  </div>
+                ))}
+                {clinicalFormTemplates.length === 0 ? (
+                  <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+                    No clinical form templates are available for this workspace.
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+
+            <Card>
+              <SectionTitle title="Audit Checks" />
+              <div className="scrollbar-soft max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                {auditChecks.map((check) => (
+                  <div key={check.id} className="clinical-muted-surface flex items-center justify-between gap-3 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[var(--color-text)]">{check.label}</p>
+                      <p className="text-xs font-semibold text-[var(--color-text-muted)]">{check.category}</p>
+                    </div>
+                    <Badge variant={statusVariant(check.status)}>{titleCase(check.status)}</Badge>
+                  </div>
+                ))}
+                {auditChecks.length === 0 ? (
+                  <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+                    No audit checks are available for this patient course.
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          </div>
+        </div>
       );
     }
 
@@ -341,6 +511,124 @@ export function PatientWorkspace({
               </div>
             ) : null}
           </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'treatment') {
+      return (
+        <div className="grid min-w-0 gap-4">
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Card>
+              <SectionTitle title="Treatment Plan" />
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <Metric label="Site" value={currentPlan?.site ?? course.diagnosis} />
+                <Metric label="Energy" value={currentPlan?.energy ?? course.energy ?? 'Pending'} />
+                <Metric label="Applicator" value={currentPlan?.applicatorSize ?? course.applicator ?? 'Pending'} />
+                <Metric label="Coverage" value={currentPlan?.percentDepthDose ? `${currentPlan.percentDepthDose}%` : 'Pending'} />
+                <Metric label="Dose / Fx" value={currentPlan?.dosePerFraction ?? course.dose ?? 'Pending'} />
+                <Metric label="Fractions" value={currentPlan?.totalFractions ?? course.totalFractions} />
+                <Metric label="Target Depth" value={currentPlan?.depthOfInvasion ?? course.targetDepth ?? 'Pending'} />
+                <Metric label="Plan Lock" value={currentPlan?.lockedAt ? 'Locked' : 'Open'} />
+              </div>
+            </Card>
+            <Card>
+              <SectionTitle title="Treatment Gates" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Metric label="Schedule" value={`${scheduledFractions.length}/${course.totalFractions}`} />
+                <Metric label="Logged Fractions" value={fractionEntries.length} />
+                <Metric label="Missing Imaging" value={missingImageFractions.length ? `${missingImageFractions.length} Missing` : 'Clear'} />
+                <Metric label="OTV Due" value={otvDueFractions.length} />
+                <Metric label="Physics Due" value={physicsDueFractions.length} />
+                <Metric label="Cumulative Dose" value={`${cumulativeDose} cGy`} />
+              </div>
+              <div className="mt-4 grid gap-2 md:grid-cols-3">
+                <ReadinessStrip label="Missing Imaging" values={missingImageFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+                <ReadinessStrip label="OTV" values={otvDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+                <ReadinessStrip label="Physics" values={physicsDueFractions.map((fraction) => `Fx ${fraction.fractionNumber}`)} />
+              </div>
+            </Card>
+          </div>
+
+          <Card>
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <SectionTitle title="Phase 6 Readiness" />
+              <Badge variant="warning">Clinical Validation Required</Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <Metric label="Schedule" value={`${scheduledFractions.length}/${course.totalFractions}`} />
+              <Metric label="Imaging Gates" value={missingImageFractions.length ? `${missingImageFractions.length} Missing` : 'Clear'} />
+              <Metric label="OTV Due" value={otvDueFractions.length} />
+              <Metric label="Physics Due" value={physicsDueFractions.length} />
+              <Metric label="Logged Fractions" value={fractionEntries.length} />
+            </div>
+            <div className="mt-4 clinical-muted-surface p-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="clinical-label">Clinical Sign-Off Gate</p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                    Reference {clinicalValidationChecklist.referenceVersion}
+                  </p>
+                </div>
+                <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'warning' : 'success'}>
+                  {planningReadiness.clinicianSignoffStatus}
+                </Badge>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {clinicalValidationChecklist.items.map((item) => (
+                  <div key={item.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-bold text-[var(--color-text)]">{item.label}</p>
+                      <Badge variant="warning">{item.status}</Badge>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">
+                      {responsiblePartyLabels[item.ownerRole]} evidence required before production use.
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <DataTable
+            keyField="id"
+            pageSize={0}
+            className="min-h-[320px]"
+            minTableWidth="980px"
+            search={{ placeholder: 'Search imaging evidence...', keys: ['category', 'phase', 'notes'] }}
+            toolbarPrefix={
+              <div className="min-w-[220px]">
+                <p className="clinical-label">Imaging Evidence</p>
+                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{missingImageFractions.length} missing image gate(s)</p>
+              </div>
+            }
+            toolbarActions={<PrototypeActionButton label="Attach image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
+            columns={[
+              { key: 'category', label: 'Image / Evidence', render: (row) => <span className="font-bold">{row.category}</span> },
+              { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.phase)}</Badge> },
+              { key: 'uploaded', label: 'Uploaded' },
+              { key: 'uploader', label: 'Uploaded By' },
+              { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
+            ]}
+            rows={images.map((image) => ({
+              id: image.id,
+              category: image.category,
+              phase: image.phase,
+              uploaded: image.uploadedAt ? formatDate(image.uploadedAt) : 'Pending',
+              uploader: image.uploadedByUserId ?? 'Unassigned',
+              notes: image.notes ?? 'No notes',
+            }))}
+            empty="No imaging evidence is available for this patient course."
+            emptyDescription="Tagged imaging assets will appear after they are attached to the course."
+          />
+
+          <FractionWorksheetPanel
+            initialEntries={fractionEntries}
+            course={course}
+            phases={prescriptionPhases}
+            scheduledFractions={treatmentFractions}
+            title="Fraction Worksheet"
+          />
         </div>
       );
     }
@@ -428,6 +716,7 @@ export function PatientWorkspace({
           keyField="id"
           pageSize={0}
           className="min-h-[440px]"
+          minTableWidth="980px"
           search={{ placeholder: 'Search imaging...', keys: ['category', 'phase', 'notes'] }}
           toolbarPrefix={
             <div className="min-w-[220px]">
@@ -463,6 +752,7 @@ export function PatientWorkspace({
           keyField="id"
           pageSize={0}
           className="min-h-[440px]"
+          minTableWidth="1080px"
           search={{ placeholder: 'Search documents...', keys: ['title', 'category', 'status'] }}
           toolbarPrefix={
             <div className="min-w-[220px]">
@@ -568,7 +858,7 @@ export function PatientWorkspace({
     }
 
     return (
-      <div className="grid gap-4">
+      <div className="grid min-w-0 gap-4">
         <Card>
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -733,6 +1023,7 @@ export function PatientWorkspace({
     clinicalFormTemplates,
     course,
     currentPlan,
+    cumulativeDose,
     docs.percent,
     documents,
     fractionEntries,

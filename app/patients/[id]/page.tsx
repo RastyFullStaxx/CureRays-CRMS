@@ -22,6 +22,7 @@ import {
 } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
+import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
 
 export default async function PatientProfilePage({
   params,
@@ -32,6 +33,14 @@ export default async function PatientProfilePage({
 }) {
   const { id } = await params;
   const query = await searchParams;
+  const persistenceMode = (process.env.CURERAYS_PATIENT_REPOSITORY ?? process.env.CURERAYS_PERSISTENCE_MODE ?? "")
+    .trim()
+    .toLowerCase();
+  const usePrismaStore = persistenceMode === "prisma" || persistenceMode === "prisma-ready";
+
+  await hydrateClinicalStoreFromDatabase({
+    force: usePrismaStore
+  });
   const patient = findPatientPhi(id, systemPhiAccess('Render patient workspace page'));
 
   if (!patient) {
@@ -46,12 +55,23 @@ export default async function PatientProfilePage({
 
   const domainCourse = getCourses().find((item) => item.id === course.id);
   const prescription = prescriptions.find((item) => item.courseId === course.id);
+  const requestedTab = query?.tab;
+  const initialTab =
+    requestedTab === 'carepath' || requestedTab === 'workflow' || requestedTab === 'tasks'
+      ? 'carepath'
+      : requestedTab === 'treatment' || requestedTab === 'planning' || requestedTab === 'imaging' || requestedTab === 'fractions'
+        ? 'treatment'
+        : requestedTab === 'documents-billing' || requestedTab === 'documents' || requestedTab === 'clinical' || requestedTab === 'billing-audit'
+          ? 'documents-billing'
+          : requestedTab === 'activity'
+            ? 'activity'
+            : undefined;
 
   return (
     <PatientWorkspace
       patient={patient}
       course={course}
-      initialTab={query?.tab === 'fractions' ? 'fractions' : undefined}
+      initialTab={initialTab}
       domainCourse={domainCourse}
       carepathTasks={courseTasks(course.id, carepathTasks)}
       generatedDocuments={courseDocuments(course.id, generatedDocuments)}

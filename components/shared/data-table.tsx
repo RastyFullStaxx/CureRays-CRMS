@@ -48,6 +48,7 @@ type DataTableProps<T extends object> = {
   toolbarActions?: ReactNode;
   search?: DataTableSearch<T>;
   filters?: Array<DataTableFilter<T>>;
+  minTableWidth?: string;
   className?: string;
 };
 
@@ -125,6 +126,7 @@ export function DataTable<T extends object>({
   toolbarActions,
   search,
   filters = [],
+  minTableWidth,
   className = '',
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
@@ -168,6 +170,12 @@ export function DataTable<T extends object>({
   const tableViewportHeight = viewportRows
     ? `calc(var(--height-table-header) + (${viewportRows} * var(--height-table-row)))`
     : undefined;
+  const tableMinWidth = minTableWidth ?? (
+    columns.length >= 9 ? '1280px' :
+    columns.length >= 7 ? '1120px' :
+    columns.length >= 5 ? '960px' :
+    '720px'
+  );
 
   const clearFilters = () => {
     setQuery('');
@@ -192,14 +200,14 @@ export function DataTable<T extends object>({
             }}
           >
             {toolbar ?? (
-              <div className="flex min-w-0 flex-nowrap items-center overflow-hidden" style={{ gap: 'var(--space-1)' }}>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {toolbarPrefix ? (
-                  <div className="min-w-0 flex-[0_1_150px] [&>*]:!min-w-0">
+                  <div className="min-w-[180px] flex-[1_1_220px] [&>*]:!min-w-0">
                     {toolbarPrefix}
                   </div>
                 ) : null}
                 {search && (
-                  <label className="relative min-w-[180px] flex-[2_1_220px]">
+                  <label className="relative min-w-[220px] flex-[2_1_280px]">
                     <Search
                       aria-hidden="true"
                       className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]"
@@ -214,7 +222,7 @@ export function DataTable<T extends object>({
                   </label>
                 )}
                 {filters.map((filter) => (
-                  <div key={filter.id} className="min-w-[112px] flex-[1_1_128px]">
+                  <div key={filter.id} className="min-w-[140px] flex-[1_1_160px]">
                     <Select
                       value={filterValues[filter.id] ?? ''}
                       onChange={(event) => setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }))}
@@ -238,7 +246,7 @@ export function DataTable<T extends object>({
                     Reset
                   </button>
                 )}
-                {toolbarActions ? <div className="ml-auto flex min-w-0 shrink-[1] grow-0 basis-auto flex-nowrap items-center gap-2 overflow-hidden">{toolbarActions}</div> : null}
+                {toolbarActions ? <div className="ml-auto flex min-w-0 shrink-0 grow-0 basis-auto flex-wrap items-center justify-end gap-2">{toolbarActions}</div> : null}
               </div>
             )}
           </div>
@@ -255,7 +263,7 @@ export function DataTable<T extends object>({
             maxHeight: tableViewportHeight,
           }}
         >
-          <table className="w-full border-collapse" style={{ flexShrink: 0 }}>
+          <table className="w-full border-collapse" style={{ flexShrink: 0, minWidth: tableMinWidth }}>
             <thead className="sticky top-0 z-10" style={{ background: 'var(--color-table-header-bg)' }}>
               <tr
                 style={{
@@ -311,7 +319,7 @@ export function DataTable<T extends object>({
                           paddingRight: '14px',
                         }}
                         >
-                        <div className="min-w-0 overflow-hidden">
+                        <div className="min-w-0 break-words leading-5">
                           {col.render ? col.render(row) : displayCell((row as Record<string, unknown>)[col.key])}
                         </div>
                       </td>

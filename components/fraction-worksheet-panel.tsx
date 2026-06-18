@@ -842,6 +842,7 @@ export function FractionWorksheetPanel({
 
       <Card className="min-h-[420px]">
         <DataTable
+          minTableWidth="1320px"
           toolbarPrefix={
             <div className="min-w-[220px]">
               <h3 className="font-heading text-base font-bold text-[var(--color-text)]">{title} History</h3>
@@ -1080,6 +1081,7 @@ export function FractionWorksheetPanel({
 
         {advancedPanel === "billing" ? (
           <DataTable
+            minTableWidth="1080px"
             columns={[
               { key: "fractionNumber", label: "Fx" },
               { key: "date", label: "Date", render: (row) => formatDate(row.date) },

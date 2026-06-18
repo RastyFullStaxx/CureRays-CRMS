@@ -6,9 +6,9 @@ The system is patient-course centered. A patient can have multiple treatment cou
 
 The core operating model is:
 
-Patients -> Courses -> Workflow Steps -> Tasks -> Forms/Documents -> Signatures -> Treatment Delivery -> Summary -> Audit -> Closeout.
+Patients -> Patient Record -> Carepath -> Treatment -> Documents/Billing -> Activity/Closeout.
 
-The dashboard is only a compact command center. The real work happens in module pages: patient registry, patient workspace, workflow, tasks, schedule, clinical forms, treatment planning, imaging, treatment delivery, documents, billing, audit, analytics, settings, and security logs.
+The dashboard is only a compact command center. The primary work happens in the patient registry and patient workspace. Global pages exist only when they answer a distinct operating question: what needs action today, what is scheduled, how the clinic is performing, and how the system is configured.
 
 ## Manual Workflow Being Replaced
 
@@ -22,4 +22,4 @@ The dashboard is only a compact command center. The real work happens in module 
 
 ## Product Principle
 
-The app database is the source of truth. Documents, spreadsheets, PDFs, and PPTX files are generated or synced outputs. Staff should update structured app fields first; those updates drive workflow state, document generation, signatures, billing readiness, and audit closeout.
+The app database is the source of truth. Documents, spreadsheets, PDFs, and PPTX files are generated or synced outputs. Staff should update the patient record first; those updates drive carepath state, work items, document generation, signatures, billing readiness, and audit closeout.

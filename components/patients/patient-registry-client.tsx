@@ -39,6 +39,10 @@ import type { PatientRegistryRow } from '@/lib/services/patient-service';
 
 type PatientRegistryClientProps = {
   rows: PatientRegistryRow[];
+  title?: string;
+  subtitle?: string;
+  showAddPatient?: boolean;
+  empty?: string;
 };
 
 type PatientFormState = PatientCreateInput & {
@@ -381,7 +385,13 @@ function CourseFields({
   );
 }
 
-export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
+export function PatientRegistryClient({
+  rows,
+  title = 'Patients',
+  subtitle = 'Tokenized operational registry with authorized patient record access.',
+  showAddPatient = true,
+  empty = 'No operational patient records found.',
+}: PatientRegistryClientProps) {
   const router = useRouter();
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [formStep, setFormStep] = useState<FormStep>('identity');
@@ -587,14 +597,28 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
         },
         body: JSON.stringify(payload),
       });
-      const result = (await response.json()) as { message?: string; errors?: string[]; data?: { phiRecordId?: string } };
+      const result = (await response.json()) as {
+        message?: string;
+        errors?: string[];
+        data?: {
+          phiRecordId?: string;
+          id?: string;
+          patientRef?: string;
+        };
+      };
       if (!response.ok) {
         throw new Error(result.errors?.join(' ') ?? result.message ?? 'Patient record could not be saved.');
       }
 
       setModalMode(null);
-      if (!isEdit && result.data?.phiRecordId) {
-        router.push(`/patients/${result.data.phiRecordId}`);
+      if (!isEdit && result.data) {
+        const workspaceId =
+          result.data.phiRecordId ?? result.data.id ?? result.data.patientRef;
+        if (workspaceId) {
+          router.push(`/patients/${workspaceId}`);
+        } else {
+          setMessage('Patient was saved. Open workspace manually from the patient list.');
+        }
         router.refresh();
         return;
       }
@@ -618,9 +642,9 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
   return (
     <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
-        title="Patients"
-        subtitle="Tokenized operational registry with authorized patient record access."
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Patient</Button>}
+        title={title}
+        subtitle={subtitle}
+        actions={showAddPatient ? <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Patient</Button> : undefined}
       />
 
       {message ? (
@@ -644,6 +668,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
       <DataTable
         keyField="patientRef"
         className="min-h-[620px]"
+        minTableWidth="1480px"
         columns={[
           { key: 'displayLabel', label: 'Patient', render: (row) => (
             <div className="min-w-0">
@@ -696,7 +721,7 @@ export function PatientRegistryClient({ rows }: PatientRegistryClientProps) {
           { id: 'needsAction', label: 'Needs Action', getValue: (row) => row.openTasks > 0 || row.pendingDocuments > 0 || row.flags > 0 ? 'Needs Action' : 'Clear' },
         ]}
         onRowClick={openWorkspace}
-        empty="No operational patient records found."
+        empty={empty}
       />
 
       <Modal

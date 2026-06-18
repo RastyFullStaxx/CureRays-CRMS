@@ -6,19 +6,9 @@ import Image from 'next/image';
 import {
   LayoutDashboard,
   TableProperties,
-  NotebookTabs,
-  ClipboardList,
-  ListChecks,
+  ClipboardCheck,
   CalendarDays,
-  Radiation,
-  FileText,
-  Target,
-  Image as ImageIcon,
-  FolderOpen,
-  WalletCards,
-  ShieldCheck,
   LineChart,
-  UserCog,
   Settings,
   Sun,
   Moon,
@@ -29,63 +19,27 @@ import { NavItem } from './layout/nav-item';
 
 const NAV_SECTIONS = [
   {
-    key: 'overview',
-    label: 'Overview',
-    items: [
-      { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    ],
-  },
-  {
-    key: 'patients',
-    label: 'Patient Management',
+    key: 'daily',
+    label: 'Daily Work',
     items: [
       { key: 'patients', href: '/patients', icon: TableProperties, label: 'Patients' },
-      { key: 'courses', href: '/courses', icon: NotebookTabs, label: 'Courses' },
-    ],
-  },
-  {
-    key: 'clinical',
-    label: 'Clinical Operations',
-    items: [
-      { key: 'workflow', href: '/workflow', icon: ClipboardList, label: 'Workflow' },
-      { key: 'tasks', href: '/tasks', icon: ListChecks, label: 'Tasks' },
+      { key: 'today', href: '/today', icon: ClipboardCheck, label: 'Today' },
       { key: 'schedule', href: '/schedule', icon: CalendarDays, label: 'Schedule' },
-      { key: 'treatment-delivery', href: '/treatment-delivery', icon: Radiation, label: 'Treatment Delivery' },
     ],
   },
   {
-    key: 'tools',
-    label: 'Clinical Tools',
+    key: 'insight',
+    label: 'Oversight',
     items: [
-      { key: 'clinical-forms', href: '/clinical-forms', icon: FileText, label: 'Clinical Forms' },
-      { key: 'treatment-planning', href: '/treatment-planning', icon: Target, label: 'Treatment Planning' },
-      { key: 'imaging', href: '/imaging', icon: ImageIcon, label: 'Imaging' },
-    ],
-  },
-  {
-    key: 'docs',
-    label: 'Documentation',
-    items: [
-      { key: 'documents', href: '/documents', icon: FolderOpen, label: 'Documents' },
-      { key: 'billing', href: '/billing', icon: WalletCards, label: 'Billing' },
-      { key: 'audit', href: '/audit', icon: ShieldCheck, label: 'Audit & QA' },
-    ],
-  },
-  {
-    key: 'intel',
-    label: 'Intelligence',
-    items: [
-      { key: 'analytics', href: '/analytics', icon: LineChart, label: 'Analytics & Reports' },
+      { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { key: 'analytics', href: '/analytics', icon: LineChart, label: 'Analytics' },
     ],
   },
   {
     key: 'admin',
     label: 'Administration',
     items: [
-      { key: 'users-roles', href: '/users-roles', icon: UserCog, label: 'Users & Roles' },
-      { key: 'templates', href: '/templates', icon: FileText, label: 'Templates' },
       { key: 'settings', href: '/settings', icon: Settings, label: 'Settings' },
-      { key: 'security-logs', href: '/security-logs', icon: ShieldCheck, label: 'Security Logs' },
     ],
   },
 ];

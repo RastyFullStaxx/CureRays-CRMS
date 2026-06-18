@@ -59,7 +59,7 @@ const moduleDataPath = "lib/module-data.ts";
 const typesPath = "lib/types.ts";
 const rbacPath = "lib/rbac.ts";
 const documentsPagePath = "app/documents/page.tsx";
-const workspaceTabsPath = "components/patients/workspace-tabs/patient-workspace-tabs.tsx";
+const patientWorkspacePath = "components/patients/patient-workspace.tsx";
 const packageJsonPath = "package.json";
 
 for (const path of [documentServicePath, generatedDocumentRoutePath]) {
@@ -74,7 +74,7 @@ const moduleData = read(moduleDataPath);
 const types = read(typesPath);
 const rbac = read(rbacPath);
 const documentsPage = read(documentsPagePath);
-const workspaceTabs = read(workspaceTabsPath);
+const patientWorkspace = read(patientWorkspacePath);
 const packageJson = read(packageJsonPath);
 
 for (const expected of [
@@ -139,9 +139,11 @@ for (const expected of [
 
 assertExcludes(clinicalStore, "drive://generated", "generated outputs must not use fake drive:// URLs");
 assertIncludes(moduleData, "?? \"APP_STORAGE\"", "document instances must default to app-owned storage");
-assertIncludes(documentsPage, "patientToken", "Documents page must use tokenized patient labels in client rows");
-assertIncludes(documentsPage, "latestOutputStatus", "Documents page must show output lifecycle status");
-assertIncludes(workspaceTabs, "manualEditExceptionAt", "Workspace document tab must show manual edit exceptions");
+assertIncludes(documentsPage, "redirect('/patients')", "Global Documents page must redirect into patient-first work");
+assertIncludes(patientWorkspace, "documents-billing", "Patient workspace must own document lifecycle work");
+assertIncludes(patientWorkspace, "latestOutputStatus", "Patient document table must show output lifecycle status");
+assertIncludes(patientWorkspace, "manualEditExceptionAt", "Patient document table must show manual edit exceptions");
+assertIncludes(patientWorkspace, "ecwUploadReference", "Patient document table must show eCW upload state");
 
 installTsHook();
 
@@ -257,6 +259,6 @@ for (const output of generatedDocumentOutputs) {
 }
 
 assertIncludes(packageJson, '"test:phase5"', "package.json must expose npm run test:phase5");
-assertIncludes(packageJson, "npm run test:phase5", "npm run verify must include Phase 5 guardrails");
+assertIncludes(packageJson, "npm run test:phase5", "npm run test:guardrails must include Phase 5 guardrails");
 
 console.log("Phase 5 document lifecycle guardrails passed");

@@ -7,17 +7,26 @@ const root = process.cwd();
 const sourceRoots = ["app", "components"];
 const tableTags = new Set(["DataTable", "StaticDataTable", "CompactTable"]);
 
-const disabledButtonExpectations = {
-  "app/templates/page.tsx": ["Upload Template", "Create Template"],
-  "app/billing/page.tsx": ["Export Billing Report", "Add Billing Item"],
-  "app/imaging/page.tsx": ["Upload Imaging", "New Imaging Study"],
-  "app/users-roles/page.tsx": ["Invite User"],
-  "app/clinical-forms/page.tsx": ["New Clinical Form", "Open", "Edit Fields"],
-  "app/analytics/page.tsx": ["Export Report"],
-  "app/audit-logs/page.tsx": ["Export Logs"],
-  "app/security-logs/page.tsx": ["Export Logs"],
-  "app/treatment-delivery/page.tsx": ["Today, May 6, 2026", "Record Treatment"],
-  "app/schedule/page.tsx": ["Today", "May 6, 2026", "New Appointment"]
+const prototypeActionExpectations = {
+  "components/templates/templates-command-client.tsx": ["Upload Template", "Create Template"],
+  "components/users/users-roles-command-client.tsx": ["Invite User"],
+  "components/audit/audit-log-command-client.tsx": ["Export Logs"],
+  "components/schedule/schedule-command-client.tsx": ["Today", "May 6, 2026", "New Appointment"],
+  "components/reports/reports-command-client.tsx": ["Export Report"]
+};
+
+const redirectedRouteExpectations = {
+  "app/billing/page.tsx": "/patients",
+  "app/clinical-forms/page.tsx": "/patients",
+  "app/imaging/page.tsx": "/patients",
+  "app/treatment-delivery/page.tsx": "/patients",
+  "app/workflow/page.tsx": "/today",
+  "app/tasks/page.tsx": "/today"
+};
+
+const settingsRouteExpectations = {
+  "app/settings/templates/page.tsx": "@/app/templates/page",
+  "app/settings/users/page.tsx": "@/app/users-roles/page"
 };
 
 function listSourceFiles(directory) {
@@ -51,26 +60,6 @@ function hasAttribute(node, name) {
   });
 }
 
-function jsxText(node) {
-  if (ts.isJsxText(node)) {
-    return node.getText().replace(/\s+/g, " ").trim();
-  }
-
-  if (ts.isJsxExpression(node)) {
-    return node.expression ? jsxText(node.expression) : "";
-  }
-
-  if (ts.isJsxElement(node)) {
-    return node.children.map(jsxText).filter(Boolean).join(" ");
-  }
-
-  if (ts.isJsxSelfClosingElement(node)) {
-    return "";
-  }
-
-  return "";
-}
-
 const files = sourceRoots.flatMap(listSourceFiles);
 
 for (const requiredFile of ["app/loading.tsx", "app/error.tsx"]) {
@@ -102,34 +91,25 @@ assert.deepEqual(
   `Operational tables must provide explicit empty copy: ${missingEmpty.join(", ")}`
 );
 
-for (const [file, labels] of Object.entries(disabledButtonExpectations)) {
-  const { tree } = parse(file);
-  const buttons = [];
-
-  function visit(node) {
-    if (ts.isJsxElement(node) && tagName(node.openingElement, tree) === "Button") {
-      buttons.push({
-        text: node.children.map(jsxText).filter(Boolean).join(" "),
-        disabled: hasAttribute(node.openingElement, "disabled")
-      });
-    }
-
-    ts.forEachChild(node, visit);
-  }
-
-  visit(tree);
-
-  for (const label of labels) {
-    const button = buttons.find((item) => item.text.includes(label));
-    assert.ok(button, `${file} must render a Button containing "${label}"`);
-    assert.ok(button.disabled, `${file} "${label}" must be disabled until the workflow is wired`);
-  }
+for (const [file, target] of Object.entries(redirectedRouteExpectations)) {
+  const source = readFileSync(join(root, file), "utf8");
+  assert.ok(source.includes("next/navigation"), `${file} must use Next redirect`);
+  assert.ok(source.includes(`redirect('${target}')`), `${file} must redirect to ${target}`);
 }
 
-assert.ok(
-  readFileSync(join(root, "app/workflow/page.tsx"), "utf8").includes("WorkflowCommandClient"),
-  "Workflow page must render the Phase 3 command client once workflow actions are wired"
-);
+for (const [file, target] of Object.entries(settingsRouteExpectations)) {
+  const source = readFileSync(join(root, file), "utf8");
+  assert.ok(source.includes(target), `${file} must expose the admin surface from ${target}`);
+}
+
+for (const [file, labels] of Object.entries(prototypeActionExpectations)) {
+  const source = readFileSync(join(root, file), "utf8");
+  assert.ok(source.includes("PrototypeActionButton"), `${file} must use staged prototype actions`);
+
+  for (const label of labels) {
+    assert.ok(source.includes(`label="${label}"`), `${file} must expose prototype action "${label}"`);
+  }
+}
 
 assert.equal(
   readFileSync(join(root, "app/settings/page.tsx"), "utf8").includes("<button"),

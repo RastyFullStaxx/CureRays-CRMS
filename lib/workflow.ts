@@ -526,7 +526,42 @@ export function patientCourses(patientId: string, courses: WorkflowCourse[]) {
 }
 
 export function patientActiveCourse<T extends WorkflowCourse>(patient: WorkflowPatient, courses: T[]): T | undefined {
-  return courses.find((course) => course.id === patient.activeCourseId);
+  const byId = courses.find((course) => course.id === patient.activeCourseId);
+  if (byId) {
+    return byId;
+  }
+
+  const normalizeCourseIdentifier = (value: string) =>
+    value.replace(/[^a-zA-Z0-9]/g, "").replace(/^CREF/i, "").toUpperCase();
+
+  const patientId = patient.id;
+  const patientRef = `PREF-${patient.id.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const patientCourseRefs = new Set<string>();
+  patientCourseRefs.add(normalizeCourseIdentifier(patient.activeCourseId));
+
+  if ("activeCourseRef" in patient && patient.activeCourseRef) {
+    patientCourseRefs.add(normalizeCourseIdentifier(patient.activeCourseRef));
+  }
+
+  const activeCourseTarget = new Set([
+    ...patientCourseRefs,
+  ]);
+
+  return courses.find(
+    (course) => {
+      if ("patientId" in course && course.patientId === patientId) {
+        return true;
+      }
+
+      if ("patientRef" in course && course.patientRef === patientRef) {
+        return true;
+      }
+
+      const courseIdMatch = normalizeCourseIdentifier(course.id);
+      const courseRefMatch = "courseRef" in course ? normalizeCourseIdentifier(course.courseRef) : "";
+      return activeCourseTarget.has(courseIdMatch) || activeCourseTarget.has(courseRefMatch);
+    }
+  );
 }
 
 export function courseTasks(courseId: string, tasks: CarepathTask[]) {
