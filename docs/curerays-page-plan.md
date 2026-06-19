@@ -2,17 +2,10 @@
 
 ## Navigation
 
-Daily Work:
-- Patients
-- Today
-- Schedule
-
-Oversight:
-- Dashboard
-- Analytics
-
-Administration:
-- Settings
+The app uses a Mac-style shell instead of the old sidebar:
+- Top Command Bar: Patients, Today, Schedule, Dashboard, Analytics, and Settings.
+- Persistent patient search: patient, MRN, course, and action search sits in the same glass command bar.
+- Page content keeps command-bar-safe spacing and internal scrolling so clinical tables and actions are never covered.
 
 ## Page Responsibilities
 

@@ -1078,9 +1078,9 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
     },
     carepathLanes,
     courseDistribution: [
-      { name: 'Upcoming', value: upcoming, color: 'var(--color-info)' },
-      { name: 'On Tx', value: active, color: 'var(--color-success)' },
-      { name: 'Post', value: post, color: 'var(--color-primary)' },
+      { name: 'Upcoming', value: upcoming, color: 'var(--color-primary)' },
+      { name: 'On Tx', value: active, color: 'var(--color-accent)' },
+      { name: 'Post', value: post, color: 'var(--color-primary-dark)' },
     ],
     throughput: [
       { day: 'Mon', fractions: 18, activeLoad: active + 4 },
@@ -1094,7 +1094,7 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
     attention: [
       { label: 'High-priority flags', value: highFlags, color: 'var(--color-error)' },
       { label: 'Blocked tasks', value: blockedTasks, color: 'var(--color-warning)' },
-      { label: 'Pending signatures', value: signatureQueue, color: 'var(--color-info)' },
+      { label: 'Pending signatures', value: signatureQueue, color: 'var(--color-accent)' },
       { label: 'Audit events today', value: auditEvents.length, color: 'var(--color-primary)' },
     ],
     capacityBands: buildCapacityBands(),

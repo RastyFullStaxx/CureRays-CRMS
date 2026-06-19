@@ -17,6 +17,7 @@
 
   /* --- Accent --- */
   --color-accent:       #FF671F;
+  --color-accent-foreground: #FFFFFF;
   --color-accent-soft:  #FFF0E8;
 
   /* --- Neutrals --- */
@@ -134,6 +135,16 @@
   --width-sidebar:         240px;
   --width-sidebar-collapsed: 64px;
   --height-header:         56px;
+  --height-mac-menubar:    64px;
+  --height-mac-dock:       0px;
+  --mac-chrome-bg:         rgba(255, 255, 255, 0.72);
+  --mac-chrome-border:     rgba(221, 227, 234, 0.82);
+  --mac-menu-shadow:
+    0 22px 56px -42px rgba(15, 23, 42, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --mac-spotlight-shadow:  0 12px 28px -24px rgba(0, 51, 160, 0.42);
+  --mac-glass-bg:          rgba(255, 255, 255, 0.66);
+  --mac-glass-border:      rgba(255, 255, 255, 0.76);
 }
 
 /* ============================================================
@@ -146,6 +157,7 @@
   --color-primary-soft: #132849;
   --color-primary-foreground: #07111F;
   --color-accent:       #FF8A4D;
+  --color-accent-foreground: #07111F;
   --color-accent-soft:  #331C12;
   --color-bg:           #070A0F;
   --color-bg-elevated:  #0D121A;
@@ -187,6 +199,14 @@
   --color-table-row-hover: #142033;
   --color-hover:           rgba(255, 255, 255, 0.06);
   --color-overlay:         rgba(0, 0, 0, 0.58);
+  --mac-chrome-bg:         rgba(13, 18, 26, 0.72);
+  --mac-chrome-border:     rgba(36, 48, 68, 0.82);
+  --mac-menu-shadow:
+    0 22px 56px -42px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --mac-spotlight-shadow:  0 12px 28px -24px rgba(124, 173, 255, 0.44);
+  --mac-glass-bg:          rgba(16, 23, 32, 0.62);
+  --mac-glass-border:      rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================================
@@ -419,7 +439,7 @@ button, input, select, textarea {
 }
 
 .clinical-floating-action {
-  bottom: clamp(16px, 2vw, 28px);
+  bottom: calc(var(--height-mac-dock) + clamp(18px, 2.2vw, 34px));
   position: fixed;
   right: clamp(16px, 2vw, 28px);
   z-index: 40;
@@ -457,7 +477,7 @@ button, input, select, textarea {
   justify-content: space-between;
   min-height: 44px;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dashboard-command-header h1 {
@@ -502,7 +522,8 @@ button, input, select, textarea {
   gap: 10px;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
@@ -511,7 +532,7 @@ button, input, select, textarea {
 .dashboard-panel {
   display: grid;
   gap: 10px;
-  min-height: 0;
+  min-height: max-content;
   overflow: visible;
 }
 
@@ -543,8 +564,8 @@ button, input, select, textarea {
   grid-template-areas:
     "signal side"
     "metrics side";
-  grid-template-columns: minmax(0, 1.36fr) minmax(304px, 0.74fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.7fr);
+  grid-template-rows: minmax(440px, auto) auto;
 }
 
 .dashboard-ops-signal {
@@ -559,9 +580,9 @@ button, input, select, textarea {
   display: grid;
   gap: 10px;
   grid-area: side;
-  grid-template-rows: minmax(156px, 0.62fr) minmax(142px, 0.54fr) minmax(0, 1fr);
-  min-height: 0;
-  overflow: hidden;
+  grid-template-rows: auto auto auto;
+  min-height: max-content;
+  overflow: visible;
 }
 
 .dashboard-panel-carepath {
@@ -569,8 +590,8 @@ button, input, select, textarea {
     "metrics metrics"
     "pulse side"
     "heat audit";
-  grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.82fr);
-  grid-template-rows: auto minmax(0, 1fr) minmax(176px, 0.56fr);
+  grid-template-columns: minmax(0, 1.28fr) minmax(280px, 0.72fr);
+  grid-template-rows: auto minmax(300px, auto) minmax(170px, auto);
 }
 
 .dashboard-carepath-metrics {
@@ -586,13 +607,27 @@ button, input, select, textarea {
   display: grid;
   gap: 10px;
   grid-area: side;
-  grid-template-rows: minmax(0, 1fr) minmax(154px, 0.58fr);
-  min-height: 0;
-  overflow: hidden;
+  grid-template-rows: auto auto;
+  min-height: max-content;
+  overflow: visible;
+}
+
+.dashboard-runway-card,
+.dashboard-template-card,
+.dashboard-fraction-watch-card,
+.dashboard-intervention-card,
+.dashboard-phi-mini-card {
+  --list-max-height: 420px;
+}
+
+.dashboard-audit-card {
+  --list-max-height: 360px;
 }
 
 .dashboard-owner-heatmap-card {
+  --matrix-max-height: 500px;
   grid-area: heat;
+  overflow: hidden;
 }
 
 .dashboard-audit-card {
@@ -601,10 +636,11 @@ button, input, select, textarea {
 
 .dashboard-panel-risk {
   grid-template-areas:
-    "score graph queue"
-    "matrix fraction phi";
-  grid-template-columns: minmax(270px, 0.72fr) minmax(0, 1.18fr) minmax(286px, 0.78fr);
-  grid-template-rows: minmax(0, 1fr) minmax(184px, 0.58fr);
+    "graph side"
+    "queue side"
+    "fraction side";
+  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.76fr);
+  grid-template-rows: minmax(380px, auto) minmax(260px, auto) minmax(178px, auto);
 }
 
 .dashboard-safety-score-card {
@@ -613,18 +649,26 @@ button, input, select, textarea {
 
 .dashboard-risk-graph-card {
   grid-area: graph;
+  min-height: 430px;
 }
 
 .dashboard-intervention-card {
   grid-area: queue;
+  --list-max-height: 430px;
 }
 
-.dashboard-safety-matrix-card {
-  grid-area: matrix;
+.dashboard-risk-side {
+  align-self: start;
+  display: grid;
+  gap: 10px;
+  grid-area: side;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
 }
 
 .dashboard-fraction-watch-card {
   grid-area: fraction;
+  --list-max-height: 240px;
 }
 
 .dashboard-phi-mini-card {
@@ -640,7 +684,7 @@ button, input, select, textarea {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dashboard-card {
@@ -693,28 +737,31 @@ button, input, select, textarea {
 
 .dashboard-chart-shell {
   flex: 1;
-  min-height: 0;
+  min-height: 180px;
   width: 100%;
 }
 
 .dashboard-echart {
   flex: 1;
-  min-height: 0;
+  min-height: 280px;
   width: 100%;
 }
 
 .dashboard-echart-sankey {
-  min-height: 320px;
+  min-height: 380px;
 }
 
 .dashboard-echart-graph {
-  min-height: 300px;
+  min-height: 360px;
 }
 
 .clinical-matrix {
+  contain: layout paint;
   flex: 1;
-  min-height: 0;
-  overflow: auto;
+  max-height: var(--matrix-max-height, none);
+  min-height: max(260px, var(--matrix-min-height, 260px));
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 4px 0 2px;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   scrollbar-width: thin;
@@ -742,11 +789,10 @@ button, input, select, textarea {
 }
 
 .clinical-matrix-grid {
-  align-content: center;
+  align-content: start;
   display: grid;
-  gap: 8px 7px;
-  min-height: 100%;
-  min-width: 640px;
+  gap: 5px 4px;
+  min-height: max-content;
   padding: 0 2px 12px;
   width: 100%;
 }
@@ -756,14 +802,14 @@ button, input, select, textarea {
 }
 
 .clinical-matrix-corner {
-  min-height: 58px;
+  min-height: 40px;
 }
 
 .clinical-matrix-column-label,
 .clinical-matrix-row-label {
   color: var(--color-text-muted);
   font-family: var(--font-body);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: var(--font-weight-bold);
   line-height: 1.12;
 }
@@ -773,10 +819,10 @@ button, input, select, textarea {
   align-self: end;
   display: flex;
   justify-self: center;
-  min-height: 58px;
+  min-height: 40px;
   overflow: visible;
   text-align: left;
-  transform: rotate(-28deg);
+  transform: rotate(-26deg);
   transform-origin: left bottom;
   white-space: nowrap;
   width: 1px;
@@ -785,9 +831,9 @@ button, input, select, textarea {
 .clinical-matrix-row-label {
   align-self: center;
   justify-self: end;
-  max-width: 112px;
+  max-width: 104px;
   overflow: hidden;
-  padding-right: 5px;
+  padding-right: 4px;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -806,13 +852,13 @@ button, input, select, textarea {
   color: var(--matrix-cell-fg);
   display: inline-flex;
   font-family: var(--font-heading);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--font-weight-bold);
   justify-content: center;
   justify-self: center;
   line-height: 1;
-  min-width: 30px;
-  width: min(100%, 46px);
+  min-width: 28px;
+  width: min(100%, 38px);
 }
 
 .clinical-matrix-cell[data-empty="true"] {
@@ -841,9 +887,9 @@ button, input, select, textarea {
 }
 
 .clinical-matrix-cell[data-tone="info"] {
-  --matrix-cell-bg: color-mix(in srgb, var(--color-info) 76%, var(--color-card));
-  --matrix-cell-border: var(--color-info);
-  --matrix-cell-fg: var(--color-info-foreground);
+  --matrix-cell-bg: color-mix(in srgb, var(--color-accent) 76%, var(--color-card));
+  --matrix-cell-border: var(--color-accent);
+  --matrix-cell-fg: var(--color-accent-foreground);
 }
 
 .clinical-matrix-cell[data-tone="neutral"] {
@@ -911,7 +957,7 @@ button, input, select, textarea {
 .dashboard-watch-list article[data-tone="info"]::before,
 .dashboard-intervention-list article[data-tone="info"]::before,
 .dashboard-phi-assurance article[data-tone="info"]::before {
-  background: var(--color-info);
+  background: var(--color-accent);
 }
 
 .dashboard-kpi-chip span,
@@ -955,7 +1001,9 @@ button, input, select, textarea {
   flex: 1;
   gap: 8px;
   min-height: 0;
-  overflow: auto;
+  max-height: var(--list-max-height, none);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .dashboard-runway-list::-webkit-scrollbar,
@@ -1113,7 +1161,7 @@ button, input, select, textarea {
 }
 
 .dashboard-template-row .is-mapping {
-  background: var(--color-info);
+  background: var(--color-primary);
 }
 
 .dashboard-template-row .is-draft {
@@ -1132,7 +1180,9 @@ button, input, select, textarea {
   gap: 8px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   min-height: 0;
-  overflow: auto;
+  max-height: var(--list-max-height, none);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .dashboard-audit-ribbon article,
@@ -1192,9 +1242,11 @@ button, input, select, textarea {
 }
 
 .dashboard-safety-score {
+  align-items: center;
   display: grid;
   flex: 1;
-  gap: 12px;
+  gap: 10px;
+  grid-template-columns: minmax(112px, 0.46fr) minmax(0, 1fr);
   min-height: 0;
 }
 
@@ -1210,15 +1262,15 @@ button, input, select, textarea {
   flex-direction: column;
   justify-content: center;
   justify-self: center;
-  max-height: 172px;
-  min-height: 132px;
-  width: min(100%, 172px);
+  max-height: 138px;
+  min-height: 112px;
+  width: min(100%, 138px);
 }
 
 .dashboard-safety-ring strong {
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: clamp(38px, 4vw, 58px);
+  font-size: clamp(34px, 3.4vw, 48px);
   line-height: 0.9;
 }
 
@@ -1232,7 +1284,7 @@ button, input, select, textarea {
 .dashboard-safety-components {
   display: grid;
   gap: 7px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   min-height: 0;
 }
 
@@ -1244,8 +1296,142 @@ button, input, select, textarea {
 .dashboard-safety-components strong {
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
+}
+
+.dashboard-risk-domain-card {
+  --list-max-height: 280px;
+}
+
+.dashboard-risk-domain-load {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  max-height: var(--list-max-height, none);
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border-soft)) color-mix(in srgb, var(--color-card-muted) 72%, transparent);
+  scrollbar-width: thin;
+}
+
+.dashboard-risk-domain-load::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+
+.dashboard-risk-domain-load::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.dashboard-risk-domain-load::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: var(--scrollbar-radius);
+}
+
+.dashboard-risk-domain-load::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.dashboard-risk-domain-load article {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card-muted) 72%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(120px, 0.9fr) minmax(80px, 1fr) 28px;
+  min-height: 54px;
+  min-width: 0;
+  padding: 8px 9px;
+}
+
+.dashboard-risk-domain-load article[data-tone="success"] {
+  border-left-color: var(--color-success);
+}
+
+.dashboard-risk-domain-load article[data-tone="warning"] {
+  border-left-color: var(--color-warning);
+}
+
+.dashboard-risk-domain-load article[data-tone="error"] {
+  border-left-color: var(--color-error);
+}
+
+.dashboard-risk-domain-load article[data-tone="info"] {
+  border-left-color: var(--color-accent);
+}
+
+.dashboard-risk-domain-load div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dashboard-risk-domain-load strong,
+.dashboard-risk-domain-load span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-risk-domain-load strong {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.dashboard-risk-domain-load span {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+}
+
+.dashboard-risk-domain-load em {
+  background: var(--color-card);
+  border-radius: 999px;
+  display: block;
+  height: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-risk-domain-load i {
+  background: var(--color-primary);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.dashboard-risk-domain-load article[data-tone="success"] i {
+  background: var(--color-success);
+}
+
+.dashboard-risk-domain-load article[data-tone="warning"] i {
+  background: var(--color-warning);
+}
+
+.dashboard-risk-domain-load article[data-tone="error"] i {
+  background: var(--color-error);
+}
+
+.dashboard-risk-domain-load article[data-tone="info"] i {
+  background: var(--color-accent);
+}
+
+.dashboard-risk-domain-load b {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  line-height: 1;
+  text-align: right;
 }
 
 .dashboard-watch-list article,
@@ -1634,8 +1820,8 @@ button, input, select, textarea {
 }
 
 .dashboard-carepath-token[data-tone="info"] i {
-  background: var(--color-info);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-info) 42%, transparent);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 42%, transparent);
 }
 
 @keyframes dashboard-carepath-token {
@@ -1804,7 +1990,7 @@ button, input, select, textarea {
 }
 
 .dashboard-capacity-legend .is-simulation {
-  background: var(--color-info);
+  background: var(--color-accent);
 }
 
 .dashboard-capacity-legend .is-review {
@@ -1936,7 +2122,7 @@ button, input, select, textarea {
 }
 
 .dashboard-phi-node[data-tone="info"] circle {
-  fill: var(--color-info);
+  fill: var(--color-accent);
 }
 
 .dashboard-phi-icon {
@@ -1998,7 +2184,8 @@ button, input, select, textarea {
 
 @media (max-width: 1100px) {
   .dashboard-command-grid {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .dashboard-panel,
@@ -2022,14 +2209,16 @@ button, input, select, textarea {
   .dashboard-safety-score-card,
   .dashboard-risk-graph-card,
   .dashboard-intervention-card,
-  .dashboard-safety-matrix-card,
+  .dashboard-risk-side,
+  .dashboard-risk-domain-card,
   .dashboard-fraction-watch-card,
   .dashboard-phi-mini-card {
     grid-area: auto;
   }
 
   .dashboard-ops-secondary,
-  .dashboard-carepath-side {
+  .dashboard-carepath-side,
+  .dashboard-risk-side {
     grid-template-rows: none;
     overflow: visible;
   }
@@ -2042,12 +2231,13 @@ button, input, select, textarea {
 @media (max-width: 680px), (max-height: 720px) {
   .dashboard-command {
     gap: 8px;
-    overflow: auto;
+    overflow: visible;
   }
 
   .dashboard-command-grid {
-    min-height: 0;
-    overflow: visible;
+    min-height: max-content;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .dashboard-command-header {
@@ -2074,6 +2264,14 @@ button, input, select, textarea {
   .dashboard-audit-ribbon,
   .dashboard-phi-assurance {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-safety-score {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-risk-domain-load article {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, 0.62fr) 28px;
   }
 
   .dashboard-metric {
@@ -2126,10 +2324,6 @@ button, input, select, textarea {
 
   .dashboard-signal-stage-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .clinical-matrix-grid {
-    min-width: 560px;
   }
 
   .clinical-matrix-row-label {
@@ -2223,6 +2417,370 @@ button, input, select, textarea {
 .clinical-modal-body::-webkit-scrollbar-thumb:hover,
 .scrollbar-soft::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
+}
+
+/* ============================================================
+   MAC-STYLE APP SHELL
+   ============================================================ */
+
+.mac-desktop {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary-soft) 58%, transparent), transparent 46%),
+    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg));
+  display: flex;
+  height: 100dvh;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.mac-desktop::before {
+  background:
+    linear-gradient(110deg, transparent 0 18%, color-mix(in srgb, var(--color-card) 36%, transparent) 18% 19%, transparent 19% 100%),
+    linear-gradient(72deg, transparent 0 66%, color-mix(in srgb, var(--color-primary) 6%, transparent) 66% 67%, transparent 67% 100%);
+  content: "";
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.mac-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding:
+    calc(var(--height-mac-menubar) + var(--space-page))
+    var(--space-page)
+    var(--space-page);
+  position: relative;
+  z-index: 1;
+}
+
+.mac-command-bar {
+  align-items: center;
+  backdrop-filter: blur(28px) saturate(1.25);
+  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+  background: var(--mac-chrome-bg);
+  border: 1px solid var(--mac-chrome-border);
+  border-radius: 0 0 20px 20px;
+  box-shadow: var(--mac-menu-shadow);
+  height: var(--height-mac-menubar);
+  left: var(--space-page);
+  min-width: 0;
+  position: fixed;
+  right: var(--space-page);
+  top: 0;
+  z-index: 80;
+}
+
+.mac-command-inner {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(140px, 0.8fr) minmax(420px, auto) minmax(320px, 1fr);
+  height: 100%;
+  min-width: 0;
+  padding: 0 14px;
+}
+
+.mac-glass-surface {
+  backdrop-filter: blur(24px) saturate(1.18);
+  -webkit-backdrop-filter: blur(24px) saturate(1.18);
+  background: var(--mac-glass-bg);
+  border: 1px solid var(--mac-glass-border);
+  box-shadow: var(--shadow-card);
+}
+
+.mac-brand {
+  align-items: center;
+  color: var(--color-text);
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.mac-brand-mark {
+  flex: 0 0 auto;
+}
+
+.mac-brand-name {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mac-command-nav {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mac-command-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.mac-command-nav-item {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 7px;
+  height: 38px;
+  padding: 0 12px;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.mac-command-nav-item:hover {
+  background: color-mix(in srgb, var(--color-card) 56%, transparent);
+  border-color: var(--color-border-soft);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.mac-command-nav-item.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 20%, transparent);
+}
+
+.mac-command-nav-item span {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mac-command-tools {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(220px, 420px) auto;
+  justify-content: end;
+  min-width: 0;
+}
+
+.mac-spotlight {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  height: 38px;
+  min-width: 0;
+  padding: 0 8px 0 12px;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.mac-spotlight:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  box-shadow: var(--mac-spotlight-shadow);
+  transform: translateY(-1px);
+}
+
+.mac-spotlight-label {
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mac-spotlight-shortcut {
+  align-items: center;
+  background: var(--color-card-muted);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 3px;
+  height: 24px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+
+.mac-menu-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.mac-icon-button {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card) 62%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  height: 36px;
+  justify-content: center;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  width: 36px;
+}
+
+.mac-icon-button:hover {
+  background: var(--color-card);
+  color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.mac-account {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-card) 64%, transparent);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 8px;
+  height: 38px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+}
+
+.mac-account-avatar {
+  align-items: center;
+  background: var(--color-primary);
+  border-radius: 999px;
+  color: var(--color-primary-foreground);
+  display: inline-flex;
+  flex: 0 0 30px;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.mac-account-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.mac-account-name,
+.mac-account-role {
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mac-account-name {
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mac-account-role {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .mac-command-inner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .mac-account-copy {
+    display: none;
+  }
+
+  .mac-command-nav-item span {
+    display: none;
+  }
+
+  .mac-command-nav-item {
+    padding: 0 10px;
+  }
+
+  .mac-command-tools {
+    grid-template-columns: minmax(180px, 280px) auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .mac-command-bar {
+    height: auto;
+    min-height: var(--height-mac-menubar);
+  }
+
+  .mac-command-inner {
+    gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 8px 10px;
+  }
+
+  .mac-brand-name {
+    display: none;
+  }
+
+  .mac-command-nav {
+    grid-column: 1 / -1;
+    order: 4;
+  }
+
+  .mac-command-nav-item span {
+    display: inline;
+  }
+
+  .mac-spotlight {
+    min-width: 0;
+  }
+
+  .mac-command-tools {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .mac-spotlight-shortcut {
+    display: none;
+  }
+
+  .mac-menu-actions {
+    gap: 6px;
+  }
+
+  .mac-icon-button {
+    display: none;
+  }
+
+  .mac-main {
+    padding: calc(var(--height-mac-menubar) + 58px) 12px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mac-command-nav-item,
+  .mac-spotlight,
+  .mac-icon-button {
+    transition-duration: 0.01ms !important;
+  }
+
+  .mac-command-nav-item:hover {
+    transform: none;
+  }
 }
 
 /* ============================================================
@@ -3137,10 +3695,10 @@ button, input, select, textarea {
    ============================================================ */
 
 .analytics-command {
-  --analytics-chart-compact: 250px;
-  --analytics-chart-default: 290px;
-  --analytics-chart-tall: 340px;
-  --analytics-chart-xl: 430px;
+  --analytics-chart-compact: 190px;
+  --analytics-chart-default: 220px;
+  --analytics-chart-tall: 260px;
+  --analytics-chart-xl: 310px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
@@ -3156,7 +3714,7 @@ button, input, select, textarea {
   justify-content: space-between;
   min-height: 48px;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .analytics-command-header h1 {
@@ -3328,19 +3886,21 @@ button, input, select, textarea {
   flex-direction: column;
   gap: 10px;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
 .analytics-command[data-active-panel="overview"] .analytics-command-body {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .analytics-panel {
   display: grid;
   flex: 1;
   gap: 10px;
-  min-height: 0;
+  min-height: max-content;
 }
 
 .analytics-panel-overview {
@@ -3348,17 +3908,17 @@ button, input, select, textarea {
     "kpis kpis"
     "forecast insights"
     "mix insights";
-  grid-template-columns: minmax(0, 1.42fr) minmax(310px, 0.72fr);
-  grid-template-rows: auto minmax(320px, 1fr) minmax(220px, 0.62fr);
-  height: 100%;
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
+  grid-template-rows: auto minmax(250px, auto) minmax(190px, auto);
 }
 
 .analytics-panel-workflow {
   grid-template-areas:
     "sankey insights"
-    "heatmap drilldown"
-    "pareto drilldown";
-  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.82fr);
+    "heatmap insights"
+    "pareto insights"
+    "drilldown insights";
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
 }
 
 .analytics-panel-treatment {
@@ -3366,31 +3926,34 @@ button, input, select, textarea {
     "kpis kpis"
     "throughput insights"
     "progress insights";
-  grid-template-columns: minmax(0, 1.36fr) minmax(320px, 0.78fr);
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
 }
 
 .analytics-panel-documents {
   grid-template-areas:
-    "lifecycle aging insights"
-    "evidence evidence insights"
-    "templates templates insights";
-  grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.78fr) minmax(310px, 0.72fr);
-  grid-template-rows: minmax(390px, auto) minmax(450px, auto) minmax(300px, auto);
+    "lifecycle insights"
+    "aging insights"
+    "evidence insights"
+    "templates insights";
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
+  grid-template-rows: repeat(4, auto);
 }
 
 .analytics-panel-staffing {
   grid-template-areas:
     "role insights"
-    "capacity provider";
-  grid-template-columns: minmax(0, 1.34fr) minmax(320px, 0.78fr);
+    "capacity insights"
+    "provider insights";
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
 }
 
 .analytics-panel-billing {
   grid-template-areas:
     "risk insights"
-    "billing audit"
-    "phi phi";
-  grid-template-columns: minmax(0, 1.28fr) minmax(320px, 0.82fr);
+    "billing insights"
+    "audit insights"
+    "phi insights";
+  grid-template-columns: minmax(0, 1.46fr) minmax(300px, 0.68fr);
 }
 
 .analytics-kpi-strip {
@@ -3410,7 +3973,7 @@ button, input, select, textarea {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .analytics-card,
@@ -3466,10 +4029,13 @@ button, input, select, textarea {
 .analytics-chart-frame {
   flex: 1 1 var(--analytics-chart-default);
   min-height: var(--analytics-chart-default);
+  overflow: hidden;
   width: 100%;
 }
 
 .analytics-matrix {
+  --matrix-max-height: var(--analytics-chart-default);
+  --matrix-min-height: var(--analytics-chart-default);
   min-height: var(--analytics-chart-default);
   padding-bottom: 8px;
 }
@@ -3547,7 +4113,7 @@ button, input, select, textarea {
 .analytics-provider-row.is-info,
 .analytics-billing-chip.is-info,
 .analytics-phi-signal.is-info {
-  border-color: var(--color-info);
+  border-color: var(--color-accent);
 }
 
 .analytics-kpi.is-neutral,
@@ -3594,26 +4160,32 @@ button, input, select, textarea {
 .analytics-forecast-card {
   --analytics-chart-default: var(--analytics-chart-compact);
   grid-area: forecast;
-  min-height: 360px;
+  min-height: 270px;
 }
 
 .analytics-mix-card {
   grid-area: mix;
-  min-height: 220px;
+  min-height: 200px;
 }
 
 .analytics-insight-rail {
   grid-area: insights;
-  max-height: min(76vh, 780px);
-}
-
-.analytics-panel-overview .analytics-insight-rail,
-.analytics-panel-documents .analytics-insight-rail {
   height: 100%;
   max-height: none;
+  position: sticky;
+  top: 0;
+  --list-max-height: calc(100dvh - var(--height-mac-menubar) - calc(var(--space-page) * 3));
 }
 
-.analytics-insight-list,
+.analytics-insight-list {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
 .analytics-queue-list,
 .analytics-progress-list,
 .analytics-template-list,
@@ -3622,7 +4194,9 @@ button, input, select, textarea {
   display: grid;
   gap: 8px;
   min-height: 0;
-  overflow: auto;
+  max-height: var(--list-max-height, none);
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
@@ -3720,9 +4294,9 @@ button, input, select, textarea {
 }
 
 .analytics-insight.is-info .analytics-insight-severity-row span {
-  --pill-bg: var(--color-info);
-  --pill-border: var(--color-info);
-  --pill-fg: var(--color-info-foreground);
+  --pill-bg: var(--color-accent);
+  --pill-border: var(--color-accent);
+  --pill-fg: var(--color-accent-foreground);
 }
 
 .analytics-insight.is-neutral .analytics-insight-severity-row span {
@@ -3743,14 +4317,14 @@ button, input, select, textarea {
   align-items: center;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(138px, 0.72fr) minmax(0, 1fr);
+  grid-template-columns: minmax(108px, 0.6fr) minmax(0, 1fr);
   min-height: 0;
 }
 
 .analytics-donut-plot {
   aspect-ratio: 1;
-  min-height: 138px;
-  min-width: 138px;
+  min-height: 108px;
+  min-width: 108px;
   position: relative;
 }
 
@@ -3802,29 +4376,31 @@ button, input, select, textarea {
 .analytics-sankey-card {
   --analytics-chart-default: var(--analytics-chart-xl);
   grid-area: sankey;
-  min-height: 540px;
+  min-height: 390px;
 }
 
 .analytics-heatmap-card {
-  --analytics-chart-default: 370px;
+  --analytics-chart-default: 360px;
   grid-area: heatmap;
-  min-height: 480px;
+  min-height: 460px;
+  overflow: hidden;
 }
 
 .analytics-pareto-card {
   --analytics-chart-default: var(--analytics-chart-tall);
   grid-area: pareto;
-  min-height: 430px;
+  min-height: 320px;
 }
 
 .analytics-drilldown {
   grid-area: drilldown;
-  min-height: 500px;
+  min-height: 300px;
+  --list-max-height: 420px;
 }
 
 .analytics-echart {
   height: 100%;
-  min-height: 260px;
+  min-height: 180px;
   width: 100%;
 }
 
@@ -3895,12 +4471,13 @@ button, input, select, textarea {
 .analytics-treatment-card {
   --analytics-chart-default: var(--analytics-chart-tall);
   grid-area: throughput;
-  min-height: 430px;
+  min-height: 320px;
 }
 
 .analytics-progress-card {
   grid-area: progress;
-  min-height: 300px;
+  min-height: 220px;
+  --list-max-height: 420px;
 }
 
 .analytics-progress-row,
@@ -3956,24 +4533,26 @@ button, input, select, textarea {
 .analytics-lifecycle-card {
   --analytics-chart-default: var(--analytics-chart-tall);
   grid-area: lifecycle;
-  min-height: 390px;
+  min-height: 300px;
 }
 
 .analytics-aging-card {
   --analytics-chart-default: var(--analytics-chart-tall);
   grid-area: aging;
-  min-height: 390px;
+  min-height: 300px;
 }
 
 .analytics-evidence-card {
-  --analytics-chart-default: var(--analytics-chart-xl);
+  --analytics-chart-default: 420px;
   grid-area: evidence;
-  min-height: 500px;
+  min-height: 520px;
+  overflow: hidden;
 }
 
 .analytics-template-card {
   grid-area: templates;
-  min-height: 300px;
+  min-height: 230px;
+  --list-max-height: 420px;
 }
 
 .analytics-template-row {
@@ -3986,7 +4565,7 @@ button, input, select, textarea {
 }
 
 .analytics-template-row .is-mapping {
-  background: var(--color-info);
+  background: var(--color-primary);
 }
 
 .analytics-template-row .is-draft {
@@ -3999,17 +4578,18 @@ button, input, select, textarea {
 
 .analytics-role-card {
   grid-area: role;
-  min-height: 380px;
+  min-height: 300px;
 }
 
 .analytics-capacity-card {
   grid-area: capacity;
-  min-height: 340px;
+  min-height: 300px;
 }
 
 .analytics-provider-card {
   grid-area: provider;
-  min-height: 340px;
+  min-height: 230px;
+  --list-max-height: 420px;
 }
 
 .analytics-provider-card .analytics-card-title {
@@ -4041,22 +4621,23 @@ button, input, select, textarea {
 .analytics-risk-card {
   --analytics-chart-default: var(--analytics-chart-xl);
   grid-area: risk;
-  min-height: 570px;
+  min-height: 390px;
 }
 
 .analytics-billing-card {
   grid-area: billing;
-  min-height: 340px;
+  min-height: 260px;
 }
 
 .analytics-audit-card {
   grid-area: audit;
-  min-height: 340px;
+  min-height: 260px;
 }
 
 .analytics-phi-card {
   grid-area: phi;
-  min-height: 220px;
+  min-height: 190px;
+  --list-max-height: 420px;
 }
 
 .analytics-billing-grid {
@@ -4127,7 +4708,8 @@ button, input, select, textarea {
 
 @media (max-width: 1180px) {
   .analytics-command-body {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .analytics-panel,
@@ -4144,7 +4726,8 @@ button, input, select, textarea {
   }
 
   .analytics-command[data-active-panel="overview"] .analytics-command-body {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .analytics-kpi-strip,
@@ -4246,7 +4829,7 @@ button, input, select, textarea {
   .analytics-forecast-card,
   .analytics-sankey-card,
   .analytics-risk-card {
-    min-height: 440px;
+    min-height: 320px;
   }
 
   .analytics-echart-sankey,

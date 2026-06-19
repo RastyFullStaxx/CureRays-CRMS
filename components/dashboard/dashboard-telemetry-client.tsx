@@ -38,7 +38,6 @@ import type {
   DashboardPanel,
   DashboardTelemetry,
   DashboardTone,
-  SafetyMatrixCell,
 } from '@/lib/services/dashboard-telemetry-service';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
@@ -103,7 +102,7 @@ function readDashboardPalette(): DashboardPalette {
     success: cssVar('--color-success', defaultPalette.success),
     warning: cssVar('--color-warning', defaultPalette.warning),
     error: cssVar('--color-error', defaultPalette.error),
-    info: cssVar('--color-info', defaultPalette.info),
+    info: cssVar('--color-accent', defaultPalette.info),
     text: cssVar('--color-text', defaultPalette.text),
     muted: cssVar('--color-text-muted', defaultPalette.muted),
     border: cssVar('--color-border', defaultPalette.border),
@@ -213,7 +212,7 @@ type ClinicalMatrixDatum = {
 
 function matrixGridStyle(columnCount: number): CSSProperties {
   return {
-    gridTemplateColumns: `minmax(96px, 0.76fr) repeat(${columnCount}, minmax(42px, 1fr))`,
+    gridTemplateColumns: `minmax(104px, 0.72fr) repeat(${columnCount}, minmax(30px, 1fr))`,
   };
 }
 
@@ -296,25 +295,6 @@ function PhaseOwnerMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
         value: cell.value,
         tone: carepathHeatmapTone(cell),
         detail: `${cell.ownerLabel} · ${cell.phaseLabel}: ${cell.value} open, ${cell.blocked + cell.overdue} blocked or overdue, ${cell.needsReview} review`,
-      }))}
-    />
-  );
-}
-
-function SafetyMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
-  const matrix = telemetry.risk.safetyMatrix;
-
-  return (
-    <ClinicalMatrix
-      ariaLabel="Clinical safety risk by carepath phase matrix"
-      columns={matrix.phases}
-      rows={matrix.domains}
-      cells={matrix.cells.map((cell: SafetyMatrixCell) => ({
-        x: cell.phaseIndex,
-        y: cell.domainIndex,
-        value: cell.value,
-        tone: cell.severity,
-        detail: `${cell.domain} · ${cell.phaseLabel}: ${cell.value} unresolved risk signals`,
       }))}
     />
   );
@@ -524,6 +504,30 @@ function ClinicalSafetyScore({ telemetry }: { telemetry: DashboardTelemetry }) {
   );
 }
 
+function RiskDomainLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
+  const sortedComponents = useMemo(() => {
+    return [...telemetry.risk.safetyScore.components].sort((a, b) => b.points - a.points);
+  }, [telemetry.risk.safetyScore.components]);
+  const maxPoints = Math.max(...sortedComponents.map((component) => component.points), 1);
+
+  return (
+    <div className="dashboard-risk-domain-load">
+      {sortedComponents.map((component) => (
+        <article key={component.label} data-tone={component.tone}>
+          <div>
+            <strong>{component.label}</strong>
+            <span>{component.detail}</span>
+          </div>
+          <em aria-label={`${component.label}: ${component.points} weighted risk points`}>
+            <i style={{ width: `${Math.max(4, Math.round((component.points / maxPoints) * 100))}%` }} />
+          </em>
+          <b>{component.value}</b>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function FractionApprovalWatch({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-watch-list">
@@ -649,7 +653,7 @@ function WeeklyThroughput({ telemetry }: { telemetry: DashboardTelemetry }) {
             }}
           />
           <Bar dataKey="fractions" name="Fractions" fill="var(--color-primary)" radius={[8, 8, 2, 2]} />
-          <Area dataKey="activeLoad" name="Active load" fill="var(--color-info)" stroke="var(--color-info)" />
+          <Area dataKey="activeLoad" name="Active load" fill="var(--color-accent)" stroke="var(--color-accent)" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -684,8 +688,8 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
                 color: 'var(--color-text)',
               }}
             />
-            <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-success)" fillOpacity={0.16} stroke="var(--color-success)" strokeWidth={2} dot={false} />
-            <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-info)" fillOpacity={0.12} stroke="var(--color-info)" strokeWidth={2} dot={false} />
+            <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-primary)" fillOpacity={0.16} stroke="var(--color-primary)" strokeWidth={2} dot={false} />
+            <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-accent)" fillOpacity={0.12} stroke="var(--color-accent)" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="review" name="Review" stroke="var(--color-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)', strokeWidth: 2 }} activeDot={{ r: 4 }} />
           </ComposedChart>
         </ResponsiveContainer>
@@ -815,29 +819,31 @@ function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; 
 function RiskDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-panel dashboard-panel-risk" role="tabpanel" id="dashboard-panel-risk" aria-labelledby="dashboard-tab-risk">
-      <article className="dashboard-card dashboard-safety-score-card">
-        <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Explainable Weighted Risk Components" />
-        <ClinicalSafetyScore telemetry={telemetry} />
-      </article>
       <article className="dashboard-card dashboard-risk-graph-card">
         <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized Course-To-Risk-Domain Graph" />
         <RiskConstellationGraph telemetry={telemetry} />
       </article>
+      <div className="dashboard-risk-side">
+        <article className="dashboard-card dashboard-safety-score-card">
+          <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Weighted Risk Components" />
+          <ClinicalSafetyScore telemetry={telemetry} />
+        </article>
+        <article className="dashboard-card dashboard-risk-domain-card">
+          <SectionTitle icon={Activity} title="Risk Domain Load" meta="Sorted By Weighted Signal Pressure" />
+          <RiskDomainLoad telemetry={telemetry} />
+        </article>
+        <article className="dashboard-card dashboard-phi-mini-card">
+          <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard Payload Assurance" />
+          <PhiAssuranceMini telemetry={telemetry} />
+        </article>
+      </div>
       <article className="dashboard-card dashboard-intervention-card">
         <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-Priority Clinical Safety Actions" />
         <InterventionQueue telemetry={telemetry} />
       </article>
-      <article className="dashboard-card dashboard-safety-matrix-card">
-        <SectionTitle icon={Activity} title="Safety Matrix" meta="Risk Domains By Carepath Phase" />
-        <SafetyMatrix telemetry={telemetry} />
-      </article>
       <article className="dashboard-card dashboard-fraction-watch-card">
         <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / Override Exceptions Only" />
         <FractionApprovalWatch telemetry={telemetry} />
-      </article>
-      <article className="dashboard-card dashboard-phi-mini-card">
-        <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard Payload Assurance" />
-        <PhiAssuranceMini telemetry={telemetry} />
       </article>
     </div>
   );

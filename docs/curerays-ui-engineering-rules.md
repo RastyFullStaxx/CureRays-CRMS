@@ -22,6 +22,8 @@ CureRays CRMS is a clinical workflow tool for older clinic staff and radiation o
 - For large clinical edit/review modals, use the largest appropriate shared modal token and rebalance fields into grouped sections before accepting unnecessary scrolling.
 - Any scrollable modal body, tab panel, table wrapper, list, or workspace region must use the shared styled scrollbar behavior (`scrollbar-soft` or the shared modal body scrollbar rules).
 - Use full-width patient workspace content; do not reintroduce right rails.
+- Use the Mac-style app shell for primary navigation: one glass top command bar with patient/MRN/course/action search, account controls, and the few global destinations. Do not reintroduce the legacy sidebar or bottom Dock.
+- Keep command-bar-safe top spacing and internal scroll containment for long pages so fixed chrome never covers clinical controls or table rows.
 - Prefer history/review first, then action. Creation forms should be intentional, not the first visual object users see.
 - For older staff, group fields by task meaning, use plain labels, avoid hidden required information, and keep controls large enough to scan.
 

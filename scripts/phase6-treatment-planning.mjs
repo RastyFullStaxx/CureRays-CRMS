@@ -167,7 +167,8 @@ for (const expected of [
 
 assertIncludes(patientWorkspace, "initialTab", "Patient workspace must support direct tab selection");
 assertIncludes(patientWorkspace, "FractionWorksheetPanel", "Patient workspace Treatment tab must host the worksheet workflow");
-assertIncludes(patientWorkspace, "Course Signals", "Patient workspace must expose course signals through the floating action");
+assertIncludes(patientWorkspace, "Signals", "Patient workspace must expose course signals in compact patient context chrome");
+assertIncludes(patientWorkspace, "setSignalsOpen(true)", "Patient workspace must keep course signal details accessible");
 
 assertIncludes(packageJson, '"test:phase6"', "package.json must expose npm run test:phase6");
 assertIncludes(packageJson, "npm run test:phase6", "npm run test:guardrails must include Phase 6 guardrails");

@@ -10,6 +10,8 @@ Patients -> Patient Record -> Carepath -> Treatment -> Documents/Billing -> Acti
 
 The dashboard is only a compact command center. The primary work happens in the patient registry and patient workspace. Global pages exist only when they answer a distinct operating question: what needs action today, what is scheduled, how the clinic is performing, and how the system is configured.
 
+The shell is intentionally Mac-like: one glass top command bar combines patient search, the few global destinations, account controls, and system actions. It should feel modern while staying labeled, stable, and clear for clinic staff.
+
 ## Manual Workflow Being Replaced
 
 - Chart rounds tracking in Google Sheets.

@@ -148,7 +148,7 @@ function readPalette(): Palette {
     success: cssVar('--color-success', defaultPalette.success),
     warning: cssVar('--color-warning', defaultPalette.warning),
     error: cssVar('--color-error', defaultPalette.error),
-    info: cssVar('--color-info', defaultPalette.info),
+    info: cssVar('--color-accent', defaultPalette.info),
     text: cssVar('--color-text', defaultPalette.text),
     muted: cssVar('--color-text-muted', defaultPalette.muted),
     border: cssVar('--color-border', defaultPalette.border),
@@ -282,7 +282,7 @@ type AnalyticsMatrixDatum = {
 
 function analyticsMatrixGridStyle(columnCount: number): CSSProperties {
   return {
-    gridTemplateColumns: `minmax(104px, 0.78fr) repeat(${columnCount}, minmax(42px, 1fr))`,
+    gridTemplateColumns: `minmax(112px, 0.72fr) repeat(${columnCount}, minmax(30px, 1fr))`,
   };
 }
 
@@ -395,7 +395,7 @@ function ForecastChart({ dateRange, telemetry }: { dateRange: AnalyticsDateRange
   );
 
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={260} initialDimension={{ width: 760, height: 320 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 640, height: 220 }}>
       <ComposedChart data={forecast} margin={{ top: 18, right: 16, bottom: 14, left: -18 }}>
         <defs>
           <linearGradient id="analyticsForecastLoad" x1="0" y1="0" x2="0" y2="1">
@@ -410,7 +410,7 @@ function ForecastChart({ dateRange, telemetry }: { dateRange: AnalyticsDateRange
         <Area type="monotone" dataKey="workload" name="Modeled workload" fill="url(#analyticsForecastLoad)" stroke="var(--color-primary)" strokeWidth={2} />
         <Line type="monotone" dataKey="risk" name="Risk weight" stroke="var(--color-error)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
         <Line type="monotone" dataKey="capacity" name="Capacity band" stroke="var(--color-success)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-        <Bar dataKey="projectedCourses" name="Projected courses" fill="var(--color-info)" opacity={0.28} radius={[7, 7, 2, 2]} />
+        <Bar dataKey="projectedCourses" name="Projected courses" fill="var(--color-accent)" opacity={0.28} radius={[7, 7, 2, 2]} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -422,7 +422,7 @@ function DonutChart({ data, centerLabel }: { data: AnalyticsDistributionDatum[];
   return (
     <div className="analytics-donut">
       <div className="analytics-donut-plot">
-        <ResponsiveContainer width="100%" height="100%" minWidth={136} minHeight={136} initialDimension={{ width: 180, height: 180 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={96} minHeight={96} initialDimension={{ width: 140, height: 140 }}>
           <PieChart>
             <Pie
               data={data}
@@ -545,14 +545,14 @@ function analyticsRiskNeuronField(telemetry: AnalyticsTelemetry) {
 
 function RoleLoadChart({ rows }: { rows: AnalyticsRoleLoad[] }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={240} initialDimension={{ width: 620, height: 270 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 560, height: 220 }}>
       <ComposedChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 18, left: 12 }}>
         <CartesianGrid horizontal={false} stroke="var(--color-border-soft)" />
         <XAxis type="number" hide />
         <YAxis type="category" dataKey="role" width={112} tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="assigned" name="Assigned tasks" stackId="load" fill="var(--color-primary)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="review" name="Review items" stackId="load" fill="var(--color-info)" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="review" name="Review items" stackId="load" fill="var(--color-accent)" radius={[0, 0, 0, 0]} />
         <Bar dataKey="overdue" name="Overdue" stackId="load" fill="var(--color-error)" radius={[0, 7, 7, 0]} />
         <Line dataKey="pressure" name="Pressure" stroke="var(--color-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
       </ComposedChart>
@@ -609,7 +609,7 @@ function TreatmentProgressList({ telemetry }: { telemetry: AnalyticsTelemetry })
 
 function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={260} initialDimension={{ width: 720, height: 300 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 620, height: 220 }}>
       <ComposedChart data={telemetry.treatment.throughput} margin={{ top: 16, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
@@ -626,7 +626,7 @@ function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
 
 function LifecycleChart({ data }: { data: AnalyticsDistributionDatum[] }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={230} initialDimension={{ width: 520, height: 260 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={170} initialDimension={{ width: 480, height: 210 }}>
       <ComposedChart data={data} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
@@ -642,13 +642,13 @@ function LifecycleChart({ data }: { data: AnalyticsDistributionDatum[] }) {
 
 function SignatureAgingChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={230} initialDimension={{ width: 520, height: 260 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={170} initialDimension={{ width: 480, height: 210 }}>
       <ComposedChart data={telemetry.documents.signatureAging} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="bucket" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
-        <Bar dataKey="count" name="Documents" fill="var(--color-info)" radius={[8, 8, 2, 2]} />
+        <Bar dataKey="count" name="Documents" fill="var(--color-accent)" radius={[8, 8, 2, 2]} />
         <Line type="monotone" dataKey="signatures" name="Signature queue" stroke="var(--color-warning)" strokeWidth={2} />
         <Line type="monotone" dataKey="risk" name="Risk" stroke="var(--color-error)" strokeWidth={2} />
       </ComposedChart>
@@ -689,14 +689,14 @@ function TemplateCoverage({ telemetry }: { telemetry: AnalyticsTelemetry }) {
 
 function CapacityChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={240} initialDimension={{ width: 640, height: 280 }}>
+    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 560, height: 220 }}>
       <ComposedChart data={telemetry.staffing.capacityBands} margin={{ top: 10, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
         <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
-        <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-success)" fillOpacity={0.16} stroke="var(--color-success)" />
-        <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-info)" fillOpacity={0.12} stroke="var(--color-info)" />
+        <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-primary)" fillOpacity={0.16} stroke="var(--color-primary)" />
+        <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-accent)" fillOpacity={0.12} stroke="var(--color-accent)" />
         <Line type="monotone" dataKey="review" name="Review" stroke="var(--color-accent)" strokeWidth={2} />
         <Line type="monotone" dataKey="capacity" name="Capacity" stroke="var(--color-error)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
       </ComposedChart>

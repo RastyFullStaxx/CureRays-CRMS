@@ -282,7 +282,7 @@ const toneColors: Record<AnalyticsTone, string> = {
   success: 'var(--color-success)',
   warning: 'var(--color-warning)',
   error: 'var(--color-error)',
-  info: 'var(--color-info)',
+  info: 'var(--color-accent)',
   neutral: 'var(--color-text-muted)',
 };
 
@@ -517,8 +517,8 @@ function buildDiagnosisMix(): AnalyticsDistributionDatum[] {
   return Object.entries(counts).map(([label, value], index) => ({
     label: statusLabel(label),
     value,
-    tone: index === 0 ? 'primary' : index === 1 ? 'info' : 'warning',
-    color: index === 0 ? toneColors.primary : index === 1 ? toneColors.info : toneColors.warning,
+    tone: index === 0 ? 'primary' : index === 1 ? 'info' : 'primary',
+    color: index === 0 ? toneColors.primary : index === 1 ? toneColors.info : 'var(--color-primary-dark)',
   }));
 }
 
@@ -531,8 +531,8 @@ function buildPhaseMix(): AnalyticsDistributionDatum[] {
   return Object.entries(chartRoundsPhaseLabels).map(([phase, label], index) => ({
     label,
     value: counts[phase] ?? 0,
-    tone: index === 0 ? 'info' : index === 1 ? 'success' : 'primary',
-    color: index === 0 ? toneColors.info : index === 1 ? toneColors.success : toneColors.primary,
+    tone: index === 0 ? 'primary' : index === 1 ? 'info' : 'primary',
+    color: index === 0 ? toneColors.primary : index === 1 ? toneColors.info : 'var(--color-primary-dark)',
   }));
 }
 

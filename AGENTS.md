@@ -123,8 +123,8 @@ components/
 4. **FilterStrip lives inside DataTable's toolbar slot** — not a separate floating bar
 5. **StatCard + StatGrid** for all KPI/metric displays — consistent across all pages
 6. **No right rail** — all content is full-width
-7. **Sidebar is collapsible** — 240px ↔ 64px, persisted in localStorage
-8. **No separate topbar** — user actions live in sidebar's pinned account row
+7. **Mac-style shell navigation** — primary navigation lives in a glass top command bar with persistent patient/MRN/course/action search, account, and theme controls
+8. **Command-bar-safe content** — long pages must preserve top spacing and internal scrolling so the command bar never covers tables, modals, or patient action controls
 9. **Clinical modals use the largest appropriate shared modal token** — avoid unnecessary scrolling by grouping fields into balanced sections before adding another internal scroll area
 10. **Every scrollable UI uses the shared styled scrollbar** — apply `scrollbar-soft` or a shared class that maps to the same scrollbar tokens
 11. **Status text uses shared pill primitives** — no ad hoc translucent rounded pills; use `Badge`, `StatusBadge`, or `clinical-pill` tone classes
@@ -204,8 +204,8 @@ Never hardcode hex values in components. Always reference tokens:
 | `--space-section` | `16px` | Vertical gap between sections |
 | `--radius-md` | `8px` | Buttons, inputs, nav items |
 | `--radius-lg` | `8px` | Cards, modals |
-| `--width-sidebar` | `240px` | Expanded sidebar |
-| `--width-sidebar-collapsed` | `64px` | Collapsed sidebar |
+| `--height-mac-menubar` | `64px` | Fixed top Mac-style command bar |
+| `--height-mac-dock` | `0px` | Retired Dock safe area kept as a compatibility token |
 | `--height-header` | `56px` | Header/account row height |
 | `--height-table-row` | `44px` | DataTable row height |
 | `--height-table-header` | `40px` | DataTable header height |

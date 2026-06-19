@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { Sidebar } from '@/components/sidebar';
+import { MacNavigation } from '@/components/mac-navigation';
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -12,14 +12,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--color-bg)]">
-      <Sidebar />
+    <div className="mac-desktop">
+      <MacNavigation />
 
-      <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <main
           id="main-content"
-          className="flex flex-col flex-1 overflow-hidden"
-          style={{ padding: 'var(--space-page)' }}
+          className="mac-main"
         >
           {children}
         </main>

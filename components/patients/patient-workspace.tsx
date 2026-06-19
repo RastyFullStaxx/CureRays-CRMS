@@ -1047,39 +1047,49 @@ export function PatientWorkspace({
   ]);
 
   const signalCount = urgentTasks.length + blockedSteps.length + unsignedDocs.length + openChecks.length;
+  const headerMetrics = [
+    { label: 'Fx', value: `${currentFraction}/${course.totalFractions}`, detail: `${fractionPercent}%` },
+    { label: 'Dose', value: `${cumulativeDose} cGy`, detail: 'Logged' },
+    { label: 'Carepath', value: `${carepath.percent}%`, detail: `${carepath.completed}/${carepath.total}` },
+    { label: 'Docs', value: `${docs.percent}%`, detail: `${unsignedDocs.length} unsigned` },
+    { label: 'Audit', value: `${readiness}%`, detail: `${blockedSteps.length + openChecks.length} blockers` },
+  ];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <Card className="sticky top-0 z-20 p-0">
-        <div className="border-b border-[var(--color-border-soft)] p-4">
+      <Card compact className="mac-glass-surface sticky top-0 z-20">
+        <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(280px,1.2fr)_minmax(520px,2fr)]">
           <div className="min-w-0">
-            <Link href="/patients" className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+            <Link href="/patients" className="mb-2 inline-flex items-center gap-2 text-xs font-bold text-[var(--color-primary)]">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Patients
             </Link>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate font-heading text-2xl font-bold text-[var(--color-text)]">{patientDisplayName(patient)}</h1>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h1 className="truncate font-heading text-xl font-bold leading-tight text-[var(--color-text)]">{patientDisplayName(patient)}</h1>
               <Badge variant={statusVariant(patient.status)}>{titleCase(patient.status)}</Badge>
               <Badge variant="primary">PHI controlled</Badge>
             </div>
-            <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
-              CRMS {patientRef(patient.id)} · External MRN {patient.mrn || 'not recorded'} · {patient.diagnosisSummary ?? patient.diagnosis} · {patient.location}
+            <p className="mt-1 truncate text-xs font-semibold text-[var(--color-text-muted)]">
+              CRMS {patientRef(patient.id)} · External MRN {patient.mrn || 'not recorded'} · {patient.location}
             </p>
+            <p className="mt-1 truncate text-xs font-bold text-[var(--color-text-muted)]">
+              {domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'C')} · {course.protocolName} · {patient.diagnosisSummary ?? patient.diagnosis}
+            </p>
+          </div>
+
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {headerMetrics.map((metric) => (
+              <div key={metric.label} className="clinical-muted-surface min-w-0 px-3 py-2">
+                <p className="clinical-label truncate">{metric.label}</p>
+                <p className="mt-1 truncate font-heading text-lg font-bold leading-none text-[var(--color-text)]">{metric.value}</p>
+                <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{metric.detail}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7">
-          <Metric label="Course" value={domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'C')} detail={course.protocolName} />
-          <Metric label="Phase" value={titleCase(course.chartRoundsPhase)} detail={domainCourse ? titleCase(domainCourse.currentPhase) : undefined} />
-          <Metric label="Fractions" value={`${currentFraction}/${course.totalFractions}`} detail={`${fractionPercent}% complete`} />
-          <Metric label="Cumulative Dose" value={`${cumulativeDose} cGy`} detail="Logged dose" />
-          <Metric label="Carepath" value={`${carepath.percent}%`} detail={`${carepath.completed}/${carepath.total} items`} />
-          <Metric label="Documents" value={`${docs.percent}%`} detail={`${unsignedDocs.length} unsigned`} />
-          <Metric label="Audit" value={`${readiness}%`} detail={`${blockedSteps.length + openChecks.length} blockers`} />
-        </div>
-
-        <div className="border-t border-[var(--color-border-soft)] px-3 py-3">
-          <div className="grid gap-2 md:grid-cols-7">
+        <div className="mt-3 grid min-w-0 gap-3 border-t border-[var(--color-border-soft)] pt-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid min-w-0 gap-2 md:grid-cols-7">
             {phaseOrder.map((phase, index) => {
               const activeIndex = course.chartRoundsPhase === 'UPCOMING' ? 2 : course.chartRoundsPhase === 'ON_TREATMENT' ? 4 : 5;
               const isDone = index < activeIndex;
@@ -1099,6 +1109,11 @@ export function PatientWorkspace({
               );
             })}
           </div>
+          <Button type="button" variant="secondary" onClick={() => setSignalsOpen(true)}>
+            <Bell className="h-4 w-4" aria-hidden="true" />
+            Signals
+            <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
+          </Button>
         </div>
       </Card>
 
@@ -1127,14 +1142,6 @@ export function PatientWorkspace({
       <section className="scrollbar-soft min-h-0 flex-1 overflow-y-auto pr-1">
         <div className="min-w-0">{tabContent}</div>
       </section>
-
-      <div className="clinical-floating-action">
-        <Button type="button" className="shadow-[var(--shadow-card)]" onClick={() => setSignalsOpen(true)}>
-          <Bell className="h-4 w-4" aria-hidden="true" />
-          Course Signals
-          <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
-        </Button>
-      </div>
 
       <Modal open={signalsOpen} onClose={() => setSignalsOpen(false)} title="Course Signals" width={520}>
         <ContextRail
