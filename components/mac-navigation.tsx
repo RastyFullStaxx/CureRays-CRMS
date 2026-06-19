@@ -20,10 +20,10 @@ import {
 import { cn } from '@/lib/workflow';
 
 const commandItems = [
+  { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { key: 'patients', href: '/patients', icon: TableProperties, label: 'Patients' },
   { key: 'today', href: '/today', icon: ClipboardCheck, label: 'Today' },
   { key: 'schedule', href: '/schedule', icon: CalendarDays, label: 'Schedule' },
-  { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { key: 'analytics', href: '/analytics', icon: LineChart, label: 'Analytics' },
   { key: 'settings', href: '/settings', icon: Settings, label: 'Settings' },
 ];
@@ -33,9 +33,9 @@ function getStoredDarkMode() {
     return false;
   }
 
-  const stored = localStorage.getItem('curerays_darkmode');
+  const stored = localStorage.getItem('curerays_theme_mode');
   return stored !== null
-    ? stored === 'true'
+    ? stored === 'dark'
     : document.documentElement.classList.contains('dark');
 }
 
@@ -59,7 +59,8 @@ export function MacNavigation() {
 
   const toggleDarkMode = () => {
     const next = !darkMode;
-    localStorage.setItem('curerays_darkmode', next.toString());
+    localStorage.setItem('curerays_theme_mode', next ? 'dark' : 'light');
+    localStorage.removeItem('curerays_darkmode');
     document.documentElement.classList.toggle('dark', next);
     window.dispatchEvent(new Event('curerays-theme-change'));
   };
@@ -67,7 +68,7 @@ export function MacNavigation() {
   return (
     <header className="mac-command-bar">
       <div className="mac-command-inner">
-        <Link href="/patients" className="mac-brand" aria-label="CureRays home">
+        <Link href="/dashboard" className="mac-brand" aria-label="CureRays dashboard">
           <Image
             src="/System_Logo.svg"
             alt=""

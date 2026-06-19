@@ -11,9 +11,13 @@ export const metadata: Metadata = {
 
 const themeScript = `
 try {
-  var storedTheme = window.localStorage.getItem('curerays_darkmode');
-  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (storedTheme === 'true' || (storedTheme === null && prefersDark)) {
+  var storedTheme = window.localStorage.getItem('curerays_theme_mode');
+  var legacyTheme = window.localStorage.getItem('curerays_darkmode');
+  if (storedTheme === null && legacyTheme === 'true') {
+    window.localStorage.setItem('curerays_theme_mode', 'light');
+    window.localStorage.removeItem('curerays_darkmode');
+  }
+  if (storedTheme === 'dark') {
     document.documentElement.classList.add('dark');
   }
 } catch (error) {}

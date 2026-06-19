@@ -7,7 +7,7 @@ import { MacNavigation } from '@/components/mac-navigation';
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === '/') {
+  if (pathname === '/' || pathname === '/login') {
     return <>{children}</>;
   }
 

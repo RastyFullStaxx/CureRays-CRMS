@@ -518,10 +518,10 @@ function RiskDomainLoad({ telemetry }: { telemetry: DashboardTelemetry }) {
             <strong>{component.label}</strong>
             <span>{component.detail}</span>
           </div>
+          <b>{component.value}</b>
           <em aria-label={`${component.label}: ${component.points} weighted risk points`}>
             <i style={{ width: `${Math.max(4, Math.round((component.points / maxPoints) * 100))}%` }} />
           </em>
-          <b>{component.value}</b>
         </article>
       ))}
     </div>
@@ -823,7 +823,7 @@ function RiskDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
         <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized Course-To-Risk-Domain Graph" />
         <RiskConstellationGraph telemetry={telemetry} />
       </article>
-      <div className="dashboard-risk-side">
+      <div className="dashboard-risk-summary-row">
         <article className="dashboard-card dashboard-safety-score-card">
           <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Weighted Risk Components" />
           <ClinicalSafetyScore telemetry={telemetry} />

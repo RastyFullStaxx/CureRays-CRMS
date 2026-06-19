@@ -21,19 +21,19 @@
   --color-accent-soft:  #FFF0E8;
 
   /* --- Neutrals --- */
-  --color-bg:           #F7F8FA;
-  --color-bg-elevated:  #FBFCFE;
+  --color-bg:           #F8FBFF;
+  --color-bg-elevated:  #FFFFFF;
   --color-card:         #FFFFFF;
-  --color-card-muted:   #F4F7FB;
+  --color-card-muted:   #F5F8FD;
   --color-text:         #0B1220;
   --color-text-muted:   #667085;
   --color-text-soft:    #3D5A80;
   --color-text-inverse: #FFFFFF;
   --color-stat-icon-bg: #F4F6F9;
-  --color-surface-sheen-start: rgba(255, 255, 255, 0.86);
-  --color-surface-sheen-end: rgba(255, 255, 255, 0.96);
-  --color-glass-sheen-start: rgba(255, 255, 255, 0.88);
-  --color-glass-sheen-end: rgba(255, 255, 255, 0.98);
+  --color-surface-sheen-start: rgba(255, 255, 255, 0.94);
+  --color-surface-sheen-end: rgba(255, 255, 255, 0.99);
+  --color-glass-sheen-start: rgba(255, 255, 255, 0.76);
+  --color-glass-sheen-end: rgba(255, 255, 255, 0.94);
 
   /* --- Status --- */
   --color-success:      #22C55E;
@@ -86,9 +86,10 @@
 
   /* --- 4-Layer Card Shadow --- */
   --shadow-card:
-    0 18px 48px -44px rgba(15, 23, 42, 0.42),
-    0 9px  24px -22px rgba(0, 51, 160, 0.22),
-    0 1px  2px  rgba(15, 23, 42, 0.05);
+    0 24px 70px -54px rgba(15, 23, 42, 0.34),
+    0 14px 34px -28px rgba(0, 51, 160, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 1px  2px  rgba(15, 23, 42, 0.04);
   --shadow-card-hover:
     0 20px 54px -42px rgba(15, 23, 42, 0.5),
     0 12px  28px -24px rgba(0, 51, 160, 0.3),
@@ -137,14 +138,15 @@
   --height-header:         56px;
   --height-mac-menubar:    64px;
   --height-mac-dock:       0px;
-  --mac-chrome-bg:         rgba(255, 255, 255, 0.72);
-  --mac-chrome-border:     rgba(221, 227, 234, 0.82);
+  --mac-chrome-bg:         rgba(255, 255, 255, 0.78);
+  --mac-chrome-border:     rgba(255, 255, 255, 0.82);
   --mac-menu-shadow:
-    0 22px 56px -42px rgba(15, 23, 42, 0.44),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    0 30px 80px -48px rgba(15, 23, 42, 0.28),
+    0 1px 0 rgba(0, 51, 160, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
   --mac-spotlight-shadow:  0 12px 28px -24px rgba(0, 51, 160, 0.42);
-  --mac-glass-bg:          rgba(255, 255, 255, 0.66);
-  --mac-glass-border:      rgba(255, 255, 255, 0.76);
+  --mac-glass-bg:          rgba(255, 255, 255, 0.68);
+  --mac-glass-border:      rgba(255, 255, 255, 0.86);
 }
 
 /* ============================================================
@@ -636,11 +638,13 @@ button, input, select, textarea {
 
 .dashboard-panel-risk {
   grid-template-areas:
-    "graph side"
-    "queue side"
-    "fraction side";
-  grid-template-columns: minmax(0, 1.42fr) minmax(320px, 0.76fr);
-  grid-template-rows: minmax(380px, auto) minmax(260px, auto) minmax(178px, auto);
+    "graph"
+    "summary"
+    "queue"
+    "fraction";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(520px, auto) auto auto auto;
+  min-height: max-content;
 }
 
 .dashboard-safety-score-card {
@@ -649,26 +653,25 @@ button, input, select, textarea {
 
 .dashboard-risk-graph-card {
   grid-area: graph;
-  min-height: 430px;
+  min-height: 560px;
 }
 
 .dashboard-intervention-card {
   grid-area: queue;
-  --list-max-height: 430px;
+  --list-max-height: none;
 }
 
-.dashboard-risk-side {
-  align-self: start;
+.dashboard-risk-summary-row {
   display: grid;
   gap: 10px;
-  grid-area: side;
-  grid-template-columns: minmax(0, 1fr);
-  min-height: 0;
+  grid-area: summary;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(360px, 1.18fr) minmax(300px, 1fr);
+  min-height: max-content;
 }
 
 .dashboard-fraction-watch-card {
   grid-area: fraction;
-  --list-max-height: 240px;
+  --list-max-height: none;
 }
 
 .dashboard-phi-mini-card {
@@ -1301,7 +1304,7 @@ button, input, select, textarea {
 }
 
 .dashboard-risk-domain-card {
-  --list-max-height: 280px;
+  --list-max-height: none;
 }
 
 .dashboard-risk-domain-load {
@@ -1309,9 +1312,9 @@ button, input, select, textarea {
   flex: 1;
   gap: 8px;
   max-height: var(--list-max-height, none);
-  min-height: 0;
+  min-height: max-content;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
   padding-right: 2px;
   scrollbar-color: color-mix(in srgb, var(--color-primary) 42%, var(--color-border-soft)) color-mix(in srgb, var(--color-card-muted) 72%, transparent);
   scrollbar-width: thin;
@@ -1338,17 +1341,18 @@ button, input, select, textarea {
 }
 
 .dashboard-risk-domain-load article {
-  align-items: center;
+  align-items: start;
   background: color-mix(in srgb, var(--color-card-muted) 72%, transparent);
   border: 1px solid var(--color-border-soft);
   border-left: 3px solid var(--color-primary);
   border-radius: var(--radius-md);
   display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(120px, 0.9fr) minmax(80px, 1fr) 28px;
-  min-height: 54px;
+  gap: 8px 10px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-rows: auto auto;
+  min-height: 68px;
   min-width: 0;
-  padding: 8px 9px;
+  padding: 10px 11px;
 }
 
 .dashboard-risk-domain-load article[data-tone="success"] {
@@ -1375,15 +1379,13 @@ button, input, select, textarea {
 
 .dashboard-risk-domain-load strong,
 .dashboard-risk-domain-load span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .dashboard-risk-domain-load strong {
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.1;
 }
 
@@ -1391,13 +1393,14 @@ button, input, select, textarea {
   color: var(--color-text-muted);
   font-size: 10px;
   font-weight: var(--font-weight-bold);
-  line-height: 1.15;
+  line-height: 1.25;
 }
 
 .dashboard-risk-domain-load em {
   background: var(--color-card);
   border-radius: 999px;
   display: block;
+  grid-column: 1 / -1;
   height: 10px;
   min-width: 0;
   overflow: hidden;
@@ -1427,11 +1430,24 @@ button, input, select, textarea {
 }
 
 .dashboard-risk-domain-load b {
+  align-self: start;
   color: var(--color-text);
   font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   text-align: right;
+}
+
+.dashboard-panel-risk .dashboard-intervention-list,
+.dashboard-panel-risk .dashboard-watch-list,
+.dashboard-panel-risk .dashboard-risk-domain-load {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.dashboard-panel-risk .dashboard-intervention-list,
+.dashboard-panel-risk .dashboard-watch-list {
+  min-height: max-content;
 }
 
 .dashboard-watch-list article,
@@ -2209,7 +2225,7 @@ button, input, select, textarea {
   .dashboard-safety-score-card,
   .dashboard-risk-graph-card,
   .dashboard-intervention-card,
-  .dashboard-risk-side,
+  .dashboard-risk-summary-row,
   .dashboard-risk-domain-card,
   .dashboard-fraction-watch-card,
   .dashboard-phi-mini-card {
@@ -2217,10 +2233,13 @@ button, input, select, textarea {
   }
 
   .dashboard-ops-secondary,
-  .dashboard-carepath-side,
-  .dashboard-risk-side {
+  .dashboard-carepath-side {
     grid-template-rows: none;
     overflow: visible;
+  }
+
+  .dashboard-risk-summary-row {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .dashboard-kpi-strip {
@@ -2268,10 +2287,6 @@ button, input, select, textarea {
 
   .dashboard-safety-score {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboard-risk-domain-load article {
-    grid-template-columns: minmax(0, 1fr) minmax(72px, 0.62fr) 28px;
   }
 
   .dashboard-metric {
@@ -2425,8 +2440,9 @@ button, input, select, textarea {
 
 .mac-desktop {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--color-primary-soft) 58%, transparent), transparent 46%),
-    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg));
+    radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--color-primary-soft) 82%, transparent), transparent 34%),
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--color-accent-soft) 56%, transparent), transparent 28%),
+    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg) 58%, color-mix(in srgb, var(--color-primary-soft) 34%, var(--color-bg)));
   display: flex;
   height: 100dvh;
   min-width: 0;
@@ -2436,8 +2452,9 @@ button, input, select, textarea {
 
 .mac-desktop::before {
   background:
-    linear-gradient(110deg, transparent 0 18%, color-mix(in srgb, var(--color-card) 36%, transparent) 18% 19%, transparent 19% 100%),
-    linear-gradient(72deg, transparent 0 66%, color-mix(in srgb, var(--color-primary) 6%, transparent) 66% 67%, transparent 67% 100%);
+    linear-gradient(110deg, transparent 0 18%, color-mix(in srgb, var(--color-card) 46%, transparent) 18% 19%, transparent 19% 100%),
+    linear-gradient(72deg, transparent 0 66%, color-mix(in srgb, var(--color-primary) 7%, transparent) 66% 67%, transparent 67% 100%),
+    radial-gradient(circle at 48% 0%, color-mix(in srgb, var(--color-card) 60%, transparent), transparent 36%);
   content: "";
   inset: 0;
   opacity: 0.9;
@@ -2460,11 +2477,17 @@ button, input, select, textarea {
   z-index: 1;
 }
 
+.mac-main > * {
+  animation: mac-page-enter 180ms ease-out both;
+}
+
 .mac-command-bar {
   align-items: center;
-  backdrop-filter: blur(28px) saturate(1.25);
-  -webkit-backdrop-filter: blur(28px) saturate(1.25);
-  background: var(--mac-chrome-bg);
+  backdrop-filter: blur(34px) saturate(1.34);
+  -webkit-backdrop-filter: blur(34px) saturate(1.34);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-card) 88%, transparent), color-mix(in srgb, var(--color-card) 58%, transparent)),
+    var(--mac-chrome-bg);
   border: 1px solid var(--mac-chrome-border);
   border-radius: 0 0 20px 20px;
   box-shadow: var(--mac-menu-shadow);
@@ -2493,6 +2516,15 @@ button, input, select, textarea {
   background: var(--mac-glass-bg);
   border: 1px solid var(--mac-glass-border);
   box-shadow: var(--shadow-card);
+}
+
+.mac-loading-panel {
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-card) 78%, transparent), color-mix(in srgb, var(--color-card) 56%, transparent)),
+    var(--mac-glass-bg);
+  border: 1px solid var(--mac-glass-border);
 }
 
 .mac-brand {
@@ -2534,7 +2566,7 @@ button, input, select, textarea {
   align-items: center;
   border: 1px solid transparent;
   border-radius: 999px;
-  color: var(--color-text-muted);
+  color: color-mix(in srgb, var(--color-text) 58%, var(--color-text-muted));
   display: inline-flex;
   flex: 0 0 auto;
   gap: 7px;
@@ -2545,17 +2577,20 @@ button, input, select, textarea {
 }
 
 .mac-command-nav-item:hover {
-  background: color-mix(in srgb, var(--color-card) 56%, transparent);
-  border-color: var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 12%, var(--color-border-soft));
   color: var(--color-primary);
   transform: translateY(-1px);
 }
 
 .mac-command-nav-item.is-active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 76%, white), var(--color-primary));
+  border-color: color-mix(in srgb, var(--color-primary) 82%, white);
   color: var(--color-primary-foreground);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 20%, transparent);
+  box-shadow:
+    0 12px 26px -18px color-mix(in srgb, var(--color-primary) 72%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-primary-foreground) 28%, transparent);
 }
 
 .mac-command-nav-item span {
@@ -2575,8 +2610,8 @@ button, input, select, textarea {
 
 .mac-spotlight {
   align-items: center;
-  background: color-mix(in srgb, var(--color-card) 72%, transparent);
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-card) 76%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card) 88%, var(--color-border-soft));
   border-radius: 999px;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -2629,8 +2664,8 @@ button, input, select, textarea {
 
 .mac-icon-button {
   align-items: center;
-  background: color-mix(in srgb, var(--color-card) 62%, transparent);
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-card) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card) 82%, var(--color-border-soft));
   border-radius: 999px;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -2649,8 +2684,8 @@ button, input, select, textarea {
 
 .mac-account {
   align-items: center;
-  background: color-mix(in srgb, var(--color-card) 64%, transparent);
-  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card) 82%, var(--color-border-soft));
   border-radius: 999px;
   display: inline-flex;
   gap: 8px;
@@ -2774,12 +2809,26 @@ button, input, select, textarea {
 @media (prefers-reduced-motion: reduce) {
   .mac-command-nav-item,
   .mac-spotlight,
-  .mac-icon-button {
+  .mac-icon-button,
+  .mac-main > * {
     transition-duration: 0.01ms !important;
+    animation: none !important;
   }
 
   .mac-command-nav-item:hover {
     transform: none;
+  }
+}
+
+@keyframes mac-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -3127,8 +3176,9 @@ button, input, select, textarea {
 .landing-page {
   --height-landing-control: 52px;
   background:
-    linear-gradient(122deg, color-mix(in srgb, var(--color-card) 92%, transparent), transparent 56%),
-    linear-gradient(180deg, var(--color-bg), var(--color-bg-elevated));
+    radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--color-primary-soft) 78%, transparent), transparent 34%),
+    radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--color-accent-soft) 48%, transparent), transparent 30%),
+    linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg));
   color: var(--color-text);
   isolation: isolate;
   min-height: 100dvh;
@@ -3229,15 +3279,15 @@ button, input, select, textarea {
 
 .landing-page::before {
   background:
-    linear-gradient(112deg, transparent 8%, color-mix(in srgb, var(--color-primary) 10%, transparent) 38%, transparent 64%),
-    linear-gradient(72deg, transparent 18%, color-mix(in srgb, var(--color-accent) 9%, transparent) 54%, transparent 82%);
-  opacity: 0.9;
+    linear-gradient(112deg, transparent 8%, color-mix(in srgb, var(--color-card) 62%, transparent) 38%, transparent 64%),
+    linear-gradient(72deg, transparent 18%, color-mix(in srgb, var(--color-primary) 7%, transparent) 54%, transparent 82%);
+  opacity: 0.92;
   z-index: 0;
 }
 
 .landing-page::after {
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--color-card) 74%, transparent), transparent 58%),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-card) 84%, transparent), transparent 58%),
     linear-gradient(180deg, transparent 68%, color-mix(in srgb, var(--color-bg) 92%, transparent));
   z-index: 1;
 }
@@ -3245,18 +3295,18 @@ button, input, select, textarea {
 .landing-ambient {
   animation: landing-aurora-shift 18s ease-in-out infinite alternate;
   background:
-    linear-gradient(128deg, transparent 12%, color-mix(in srgb, var(--color-primary) 16%, transparent) 42%, transparent 72%),
-    linear-gradient(36deg, transparent 18%, color-mix(in srgb, var(--color-accent) 11%, transparent) 54%, transparent 84%);
+    linear-gradient(128deg, transparent 12%, color-mix(in srgb, var(--color-primary) 10%, transparent) 42%, transparent 72%),
+    linear-gradient(36deg, transparent 18%, color-mix(in srgb, var(--color-accent) 7%, transparent) 54%, transparent 84%);
   filter: saturate(1.08);
   inset: -18% -10%;
-  opacity: 0.78;
+  opacity: 0.54;
   transform: translate3d(-2%, 0, 0);
   z-index: 0;
 }
 
 .landing-orbit-canvas {
   inset: 0;
-  opacity: 0.84;
+  opacity: 0.42;
   pointer-events: none;
   position: absolute;
   transform: translate3d(8%, 0, 0);
@@ -3310,7 +3360,7 @@ button, input, select, textarea {
 
 .landing-title {
   color: var(--color-text);
-  font-size: clamp(2.7rem, 5.8vw, 4.75rem);
+  font-size: clamp(2.8rem, 5.6vw, 4.9rem);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0;
   line-height: 0.98;
@@ -3319,7 +3369,7 @@ button, input, select, textarea {
 }
 
 .landing-description {
-  color: var(--color-text-soft);
+  color: color-mix(in srgb, var(--color-text) 64%, var(--color-text-muted));
   font-size: clamp(1rem, 1.25vw, 1.125rem);
   font-weight: var(--font-weight-semibold);
   line-height: 1.72;
@@ -3338,9 +3388,15 @@ button, input, select, textarea {
 }
 
 .landing-trust-item {
+  align-items: center;
+  border-radius: 999px;
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
   gap: 0.5rem;
   min-height: 36px;
-  padding: 0.5rem 0.625rem;
+  padding: 0.5rem 0.75rem;
 }
 
 .landing-trust-icon {
@@ -3368,15 +3424,16 @@ button, input, select, textarea {
 
 .landing-login-card {
   background:
-    linear-gradient(150deg, color-mix(in srgb, var(--color-card) 90%, transparent), color-mix(in srgb, var(--color-bg-elevated) 78%, transparent)),
-    var(--color-card);
-  backdrop-filter: blur(26px) saturate(1.28);
-  -webkit-backdrop-filter: blur(26px) saturate(1.28);
-  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+    linear-gradient(150deg, color-mix(in srgb, var(--color-card) 72%, transparent), color-mix(in srgb, var(--color-bg-elevated) 58%, transparent)),
+    var(--mac-glass-bg);
+  backdrop-filter: blur(34px) saturate(1.34);
+  -webkit-backdrop-filter: blur(34px) saturate(1.34);
+  border: 1px solid color-mix(in srgb, var(--color-card) 84%, var(--color-border));
   border-radius: var(--radius-lg);
   box-shadow:
     var(--shadow-card),
-    0 28px 86px -52px color-mix(in srgb, var(--color-primary) 58%, transparent);
+    0 34px 96px -58px color-mix(in srgb, var(--color-primary) 54%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-card) 92%, transparent);
   color: var(--color-text);
   overflow: hidden;
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 3.2vw, 2.5rem);
@@ -3386,8 +3443,8 @@ button, input, select, textarea {
 
 .landing-login-card::before {
   background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 16%, transparent), transparent),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-card) 72%, transparent), transparent 34%);
+    linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-card) 92%, transparent), transparent),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-card) 82%, transparent), transparent 34%);
   content: "";
   height: 1px;
   inset: 0 0 auto;
@@ -3396,7 +3453,7 @@ button, input, select, textarea {
 
 .landing-login-card h2 {
   color: var(--color-text);
-  font-size: clamp(2.1rem, 3.2vw, 2.8rem);
+  font-size: clamp(2rem, 3vw, 2.65rem);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0;
   line-height: 1.05;
@@ -3404,7 +3461,7 @@ button, input, select, textarea {
 }
 
 .landing-login-subtitle {
-  color: var(--color-text-soft);
+  color: color-mix(in srgb, var(--color-text) 60%, var(--color-text-muted));
   font-size: 1rem;
   font-weight: var(--font-weight-semibold);
   line-height: 1.64;
@@ -3446,10 +3503,10 @@ button, input, select, textarea {
 }
 
 .landing-input {
-  background: color-mix(in srgb, var(--color-card) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-border) 92%, transparent);
+  background: color-mix(in srgb, var(--color-card) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-card) 78%, var(--color-border));
   border-radius: var(--radius-md);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 72%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 88%, transparent);
   color: var(--color-text);
   font-size: 1rem;
   font-weight: var(--font-weight-semibold);
