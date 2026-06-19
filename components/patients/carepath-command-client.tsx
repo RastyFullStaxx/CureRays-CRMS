@@ -12,6 +12,7 @@ import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import type { CarepathTask, ResponsibleParty, WorkflowItemStatus, WorkflowStep } from '@/lib/types';
 import { carepathPhaseLabels, cn, formatDate, responsiblePartyLabels } from '@/lib/workflow';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 type CarepathCommandClientProps = {
   courseRef: string;
@@ -34,14 +35,6 @@ const statusOptions: WorkflowItemStatus[] = [
 
 function statusLabel(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function statusVariant(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED'].includes(status)) return 'success';
-  if (['BLOCKED', 'OVERDUE'].includes(status)) return 'error';
-  if (['READY_FOR_REVIEW', 'PENDING', 'IN_PROGRESS', 'NOT_APPLICABLE'].includes(status)) return 'warning';
-  if (status === 'NOT_STARTED') return 'info';
-  return 'default';
 }
 
 function nextActionForStep(step: WorkflowStep) {
@@ -190,8 +183,8 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   <p className="truncate text-sm font-bold text-[var(--color-text)]">{step.stepName}</p>
                   <p className="mt-1 line-clamp-1 text-xs font-semibold text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
                 </div>
-                <Badge variant="primary">{carepathPhaseLabels[step.phase]}</Badge>
-                <Badge variant={statusVariant(step.status)}>{statusLabel(step.status)}</Badge>
+                <Badge variant={phaseTone(step.phase)}>{carepathPhaseLabels[step.phase]}</Badge>
+                <Badge variant={statusTone(step.status)}>{statusLabel(step.status)}</Badge>
               </button>
             ))}
           </div>
@@ -210,7 +203,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     Due {selectedStep.dueDate ? formatDate(selectedStep.dueDate) : selectedStep.triggerEvent}
                   </p>
                 </div>
-                <Badge variant={statusVariant(selectedStep.status)}>{statusLabel(selectedStep.status)}</Badge>
+                <Badge variant={statusTone(selectedStep.status)}>{statusLabel(selectedStep.status)}</Badge>
               </div>
 
               <div className="grid gap-3">
@@ -238,7 +231,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   <div key={task.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-bold text-[var(--color-text)]">{task.title}</p>
-                      <Badge variant={statusVariant(task.status)}>{statusLabel(task.status)}</Badge>
+                      <Badge variant={statusTone(task.status)}>{statusLabel(task.status)}</Badge>
                     </div>
                     <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">{task.noteAction}</p>
                   </div>

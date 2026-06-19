@@ -1,6 +1,7 @@
 # dependencies
 node_modules
 .tools
+.playwright-libs
 
 # next.js
 .next

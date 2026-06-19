@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { TreatmentDeliveryTabs } from '@/components/treatment-delivery/treatment-delivery-tabs';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type TreatmentDeliveryCommandRow = {
   id: string;
@@ -64,14 +65,6 @@ type DeliveryLedgerEntry = {
   action: string;
   note: string;
 };
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['Completed', 'Signed', 'Complete', 'Clear'].includes(status)) return 'success';
-  if (['In Progress', 'Ready For Review', 'Required'].includes(status)) return 'info';
-  if (['Blocked', 'Overdue', 'Missing'].includes(status)) return 'error';
-  if (['Pending', 'Due', 'Not Applicable'].includes(status)) return 'warning';
-  return 'default';
-}
 
 export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliveryCommandClientProps) {
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? '');
@@ -160,7 +153,7 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
                   <p className="truncate text-sm font-bold text-[var(--color-text)]">{row.patient}</p>
                   <p className="mt-1 text-xs font-bold text-[var(--color-primary)]">{row.course}</p>
                 </div>
-                <Badge variant={badgeForStatus(row.status)}>{row.status}</Badge>
+                <Badge variant={statusTone(row.status)}>{row.status}</Badge>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
                 <span>Fraction <b className="block text-[var(--color-text)]">{row.fractionNumber}</b></span>
@@ -200,8 +193,8 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
           { key: 'apptTime', label: 'Appt Time' },
           { key: 'room', label: 'Room' },
           { key: 'therapist', label: 'Therapist' },
-          { key: 'imageGuidanceStatus', label: 'Image Gate', render: (row) => <Badge variant={badgeForStatus(row.imageGuidanceStatus)}>{row.imageGuidanceStatus}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.status)}>{row.status}</Badge> },
+          { key: 'imageGuidanceStatus', label: 'Image Gate', render: (row) => <Badge variant={statusTone(row.imageGuidanceStatus)}>{row.imageGuidanceStatus}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{row.status}</Badge> },
           { key: 'alerts', label: 'Alerts' },
         ]}
         rows={rows}
@@ -233,7 +226,7 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
               </p>
             ) : null}
           </div>
-          {selected ? <Badge variant={badgeForStatus(selected.status)}>{selected.status}</Badge> : null}
+          {selected ? <Badge variant={statusTone(selected.status)}>{selected.status}</Badge> : null}
         </div>
 
         {selected ? (
@@ -262,7 +255,7 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Worksheet</p>
                 <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.fractionLabel}</p>
-                <Badge variant="info">{selected.phase}</Badge>
+                <Badge variant={phaseTone(selected.phase)}>{selected.phase}</Badge>
               </div>
             </div>
 

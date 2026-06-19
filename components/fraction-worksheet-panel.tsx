@@ -22,6 +22,7 @@ import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DataTable } from "@/components/shared/data-table";
+import { statusTone } from "@/lib/status-utils";
 import type {
   FractionApprovalType,
   FractionLogEntry,
@@ -100,22 +101,6 @@ function formatDose(value: number | undefined) {
 
 function formatPercent(value: number | undefined) {
   return value === undefined ? "-" : `${value.toFixed(1).replace(/\.0$/, "")}%`;
-}
-
-function statusVariant(status: FractionLogStatus | undefined): "default" | "success" | "warning" | "error" | "info" | "primary" {
-  if (status === "APPROVED") {
-    return "success";
-  }
-  if (status === "REVISION_NEEDED") {
-    return "warning";
-  }
-  if (status === "VOIDED") {
-    return "error";
-  }
-  if (status === "NEEDS_REVIEW") {
-    return "primary";
-  }
-  return "default";
 }
 
 function statusLabel(status: FractionLogStatus | undefined) {
@@ -892,7 +877,7 @@ export function FractionWorksheetPanel({
             {
               key: "status",
               label: "Status",
-              render: (row) => <Badge variant={statusVariant(row.entry.status)}>{statusLabel(row.entry.status)}</Badge>
+              render: (row) => <Badge variant={statusTone(row.entry.status)}>{statusLabel(row.entry.status)}</Badge>
             },
             {
               key: "actions",
@@ -953,7 +938,7 @@ export function FractionWorksheetPanel({
                   {selectedEntry ? `Fx ${selectedEntry.fractionNumber} | ${formatDate(selectedEntry.date)}` : "No fraction selected"}
                 </h3>
               </div>
-              {selectedEntry ? <Badge variant={statusVariant(selectedEntry.status)}>{statusLabel(selectedEntry.status)}</Badge> : null}
+              {selectedEntry ? <Badge variant={statusTone(selectedEntry.status)}>{statusLabel(selectedEntry.status)}</Badge> : null}
             </div>
             {selectedEntry ? (
               <>

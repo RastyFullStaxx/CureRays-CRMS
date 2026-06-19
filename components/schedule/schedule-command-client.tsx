@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { mapTone } from '@/lib/status-utils';
+import { statusTone } from '@/lib/status-utils';
 import type { OperationalAppointment } from '@/lib/types';
 
 type ScheduleCommandClientProps = {
@@ -38,13 +38,6 @@ function statusLabel(value: string | undefined) {
 
 function appointmentTypeLabel(value: string | undefined) {
   return value ? value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Carepath visit';
-}
-
-function statusTone(value: string | undefined) {
-  if (value === 'COMPLETED') return 'green';
-  if (value === 'MISSED' || value === 'CANCELLED') return 'red';
-  if (value === 'RESCHEDULED') return 'orange';
-  return 'blue';
 }
 
 function dayForIndex(index: number) {
@@ -179,7 +172,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                   <p className="mt-2 truncate text-sm font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
                   <p className="truncate text-xs font-semibold text-[var(--color-text-muted)]">{appointment.title}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge variant={mapTone(statusTone(appointment.status))}>{statusLabel(appointment.status)}</Badge>
+                    <Badge variant={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
                     <Badge variant="default">{appointmentTypeLabel(appointment.appointmentType)}</Badge>
                   </div>
                 </button>
@@ -196,7 +189,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                 {selectedAppointment?.title ?? 'No appointment selected'}
               </h2>
             </div>
-            {selectedAppointment ? <Badge variant={mapTone(statusTone(selectedAppointment.status))}>{statusLabel(selectedAppointment.status)}</Badge> : null}
+            {selectedAppointment ? <Badge variant={statusTone(selectedAppointment.status)}>{statusLabel(selectedAppointment.status)}</Badge> : null}
           </div>
           {selectedAppointment ? (
             <div className="mt-4 grid gap-3">

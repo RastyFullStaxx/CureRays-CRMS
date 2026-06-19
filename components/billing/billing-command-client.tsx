@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { statusTone } from '@/lib/status-utils';
 
 export type BillingCommandRow = {
   id: string;
@@ -55,15 +56,6 @@ type BillingLedgerEntry = {
 
 function cleanLabel(value: string) {
   return value.replaceAll('_', ' ');
-}
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (status === 'COMPLETED' || status === 'SIGNED' || status === 'UPLOADED') return 'success';
-  if (status === 'READY_FOR_REVIEW' || status === 'IN_PROGRESS') return 'info';
-  if (status === 'BLOCKED' || status === 'MISSING_FIELDS' || status === 'OVERDUE') return 'error';
-  if (status === 'PENDING' || status === 'NEEDS_REVIEW') return 'warning';
-  if (status === 'NOT_APPLICABLE') return 'default';
-  return 'primary';
 }
 
 function quantityProgress(row: BillingCommandRow) {
@@ -154,7 +146,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
           { key: 'planned', label: 'Planned' },
           { key: 'completed', label: 'Completed' },
           { key: 'billed', label: 'Billed' },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.status)}>{cleanLabel(row.status)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{cleanLabel(row.status)}</Badge> },
           { key: 'linkedDocTitle', label: 'Evidence Document' },
           { key: 'auditStatus', label: 'Audit' },
         ]}
@@ -187,7 +179,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
               </p>
             ) : null}
           </div>
-          {selected ? <Badge variant={badgeForStatus(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
+          {selected ? <Badge variant={statusTone(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
         </div>
 
         {selected ? (
@@ -205,7 +197,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Document Evidence</p>
                 <p className="mt-1 line-clamp-2 text-sm font-bold text-[var(--color-text)]">{selected.linkedDocTitle}</p>
-                <Badge variant={badgeForStatus(selected.documentStatus)}>{cleanLabel(selected.documentStatus)}</Badge>
+                <Badge variant={statusTone(selected.documentStatus)}>{cleanLabel(selected.documentStatus)}</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Fractions</p>

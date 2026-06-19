@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type AuditCommandRow = {
   id: string;
@@ -68,14 +69,6 @@ type AuditLedgerEntry = {
   action: string;
   note: string;
 };
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['Ready', 'Completed', 'Signed', 'Uploaded', 'Audit ready'].includes(status)) return 'success';
-  if (['Review', 'Ready For Review', 'In Progress'].includes(status)) return 'info';
-  if (['Blocked', 'Overdue', 'Missing Fields'].includes(status)) return 'error';
-  if (['Pending', 'Needs Review', 'Closeout review'].includes(status)) return 'warning';
-  return 'default';
-}
 
 function scoreTone(value: number): 'success' | 'warning' | 'error' | 'info' {
   if (value >= 86) return 'success';
@@ -166,7 +159,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
           },
           { key: 'patient', label: 'Patient' },
           { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{row.phase}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge> },
           {
             key: 'readinessPct',
             label: 'Readiness',
@@ -250,7 +243,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Tasks</p>
                 <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.openTasks} open</p>
-                <Badge variant={badgeForStatus(selected.followUp)}>{selected.followUp}</Badge>
+                <Badge variant={statusTone(selected.followUp)}>{selected.followUp}</Badge>
               </div>
             </div>
 

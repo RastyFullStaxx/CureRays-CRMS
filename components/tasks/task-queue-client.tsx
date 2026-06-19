@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
-import { mapTone } from '@/lib/status-utils';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 import type {
   CarepathTaskStatus,
   OperationalTask,
@@ -65,15 +65,6 @@ const taskStatuses: CarepathTaskStatus[] = [
 
 function label(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function tone(status: string) {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED'].includes(status)) return 'green';
-  if (['BLOCKED', 'OVERDUE'].includes(status)) return 'red';
-  if (['PENDING', 'NEEDS_REVIEW', 'NOT_STARTED'].includes(status)) return 'orange';
-  if (['READY_FOR_REVIEW', 'IN_PROGRESS'].includes(status)) return 'blue';
-  if (status === 'NOT_APPLICABLE') return 'purple';
-  return 'slate';
 }
 
 function formFromTask(task: OperationalTask): TaskForm {
@@ -253,11 +244,11 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
           { key: 'course', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{row.displayLabel} / {row.courseRef}</span>
           ) },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{label(row.workflowPhase)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.workflowPhase)}>{label(row.workflowPhase)}</Badge> },
           { key: 'role', label: 'Role', render: (row) => label(row.responsibleParty) },
           { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUser },
           { key: 'dueDate', label: 'Due', render: (row) => row.dueDate ?? '—' },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={mapTone(tone(row.status))}>{label(row.status)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{label(row.status)}</Badge> },
           { key: 'reason', label: 'Reason', render: (row) => row.blockedReason ?? row.naReason ?? row.reopenReason ?? '—' },
           { key: 'action', label: '', render: (row) => (
             <Button

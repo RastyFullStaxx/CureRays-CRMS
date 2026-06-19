@@ -8,7 +8,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import { DataTable } from '@/components/shared/data-table';
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Badge } from '@/components/ui/badge';
-import { mapTone } from '@/lib/status-utils';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type DocumentCommandRow = {
   id: string;
@@ -83,15 +83,15 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
             <Badge variant="info">{row.category}</Badge>
           )},
           { key: 'phase', label: 'Phase', render: (row) => (
-            <Badge variant="info">{row.phase}</Badge>
+            <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge>
           )},
           { key: 'status', label: 'Status', render: (row) => (
-            <Badge variant={mapTone(row.statusTone)}>{row.statusLabel}</Badge>
+            <Badge variant={statusTone(row.status)}>{row.statusLabel}</Badge>
           )},
           { key: 'version', label: 'Output', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
               <span className="font-bold">{`v${row.version}`}</span>
-              <Badge variant={row.latestOutputStatus === 'VOIDED' ? 'error' : row.latestOutputStatus ? 'info' : 'default'}>
+              <Badge variant={row.latestOutputStatus ? statusTone(row.latestOutputStatus) : 'default'}>
                 {row.latestOutputStatus ?? 'Pending'}
               </Badge>
             </span>

@@ -7,34 +7,7 @@ import type {
   WorkflowItemStatus,
 } from '@/lib/types';
 import { cn } from '@/lib/workflow';
-
-const statusColors: Record<string, string> = {
-  COMPLETED: 'clinical-pill-success',
-  SIGNED: 'clinical-pill-success',
-  UPLOADED: 'clinical-pill-success',
-  CLOSED: 'clinical-pill-default',
-  READY_FOR_REVIEW: 'clinical-pill-warning',
-  NEEDS_REVIEW: 'clinical-pill-warning',
-  REVIEW_REQUIRED: 'clinical-pill-warning',
-  IN_PROGRESS: 'clinical-pill-primary',
-  PENDING: 'clinical-pill-primary',
-  NOT_STARTED: 'clinical-pill-default',
-  BLOCKED: 'clinical-pill-error',
-  OVERDUE: 'clinical-pill-error',
-  MISSING_FIELDS: 'clinical-pill-error',
-  NOT_APPLICABLE: 'clinical-pill-default',
-  DRAFT: 'clinical-pill-info',
-  PENDING_NEEDED: 'clinical-pill-warning',
-  ACTIVE: 'clinical-pill-success',
-  ON_HOLD: 'clinical-pill-warning',
-  PAUSED: 'clinical-pill-warning',
-};
-
-const phaseColors: Record<ChartRoundsPhase, string> = {
-  UPCOMING: 'clinical-pill-primary',
-  ON_TREATMENT: 'clinical-pill-success',
-  POST: 'clinical-pill-info',
-};
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 const partyColors: Record<string, string> = {
   VA: 'clinical-pill-primary',
@@ -46,6 +19,15 @@ const partyColors: Record<string, string> = {
   PHYSICIST: 'clinical-pill-default',
   BILLING: 'clinical-pill-warning',
   ADMIN: 'clinical-pill-default',
+};
+
+const toneColors = {
+  default: 'clinical-pill-default',
+  success: 'clinical-pill-success',
+  warning: 'clinical-pill-warning',
+  error: 'clinical-pill-error',
+  info: 'clinical-pill-info',
+  primary: 'clinical-pill-primary',
 };
 
 const partyLabels: Record<string, string> = {
@@ -74,11 +56,11 @@ function Pill({ color, children }: { color: string; children: React.ReactNode })
 }
 
 export function CarepathTaskStatusBadge({ status }: { status: CarepathTaskStatus }) {
-  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={toneColors[statusTone(status)]}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function DocumentStatusBadge({ status }: { status: DocumentStatus | WorkflowItemStatus }) {
-  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={toneColors[statusTone(status)]}>{status.replaceAll('_', ' ')}</Pill>;
 }
 
 export function ResponsiblePartyBadge({ party }: { party: ResponsibleParty }) {
@@ -90,9 +72,9 @@ export function ResponsiblePartyBadge({ party }: { party: ResponsibleParty }) {
 }
 
 export function PhaseBadge({ phase }: { phase: ChartRoundsPhase }) {
-  return <Pill color={phaseColors[phase] ?? 'clinical-pill-default'}>{phase.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={toneColors[phaseTone(phase)]}>{phase.replaceAll('_', ' ')}</Pill>;
 }
 
 export function StatusBadge({ status }: { status: PatientStatus }) {
-  return <Pill color={statusColors[status] ?? 'clinical-pill-default'}>{status.replaceAll('_', ' ')}</Pill>;
+  return <Pill color={toneColors[statusTone(status)]}>{status.replaceAll('_', ' ')}</Pill>;
 }

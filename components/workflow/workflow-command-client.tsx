@@ -14,7 +14,7 @@ import { PrototypeActionButton } from '@/components/shared/prototype-action-butt
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
-import { mapTone } from '@/lib/status-utils';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 import type {
   CarepathWorkflowPhase,
   OperationalTreatmentCourse,
@@ -64,15 +64,6 @@ const phaseLabels: Record<CarepathWorkflowPhase, string> = {
 
 function label(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function tone(status: string) {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED', 'ACTIVE', 'READY'].includes(status)) return 'green';
-  if (['BLOCKED', 'OVERDUE'].includes(status)) return 'red';
-  if (['PENDING', 'NEEDS_REVIEW', 'NOT_STARTED'].includes(status)) return 'orange';
-  if (['READY_FOR_REVIEW', 'IN_PROGRESS'].includes(status)) return 'blue';
-  if (['NOT_APPLICABLE', 'POST_TX'].includes(status)) return 'purple';
-  return 'slate';
 }
 
 function formFromStep(step: OperationalWorkflowStep): StepForm {
@@ -266,8 +257,8 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
               <p className="truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{row.courseRef} / {row.displayLabel}</p>
             </div>
           ) },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={mapTone(tone(row.phase))}>{phaseLabels[row.phase]}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={mapTone(tone(row.status))}>{label(row.status)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{phaseLabels[row.phase]}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{label(row.status)}</Badge> },
           { key: 'applicability', label: 'Applicability', render: (row) => <Badge variant={row.applicability === 'REQUIRED' ? 'primary' : 'default'}>{label(row.applicability ?? 'REQUIRED')}</Badge> },
           { key: 'role', label: 'Role', render: (row) => label(row.responsibleRole) },
           { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? label(row.responsibleRole) },

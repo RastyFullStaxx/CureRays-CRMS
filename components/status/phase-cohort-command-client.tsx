@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { statusTone } from '@/lib/status-utils';
 
 export type PhaseCohortMode = 'upcoming' | 'on-treatment' | 'post';
 
@@ -77,14 +78,6 @@ const modeCopy: Record<PhaseCohortMode, { primaryLabel: string; reviewAction: st
     tone: 'primary',
   },
 };
-
-function badgeForCourse(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (status === 'ACTIVE') return 'success';
-  if (status === 'ON_HOLD') return 'warning';
-  if (status === 'COMPLETED') return 'default';
-  if (status === 'NOT_STARTED') return 'info';
-  return 'primary';
-}
 
 function cleanLabel(value: string) {
   return value.replace(/_/g, ' ');
@@ -161,7 +154,7 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedRow ? <Badge variant={badgeForCourse(selectedRow.courseStatus)}>{cleanLabel(selectedRow.courseStatus)}</Badge> : null}
+            {selectedRow ? <Badge variant={statusTone(selectedRow.courseStatus)}>{cleanLabel(selectedRow.courseStatus)}</Badge> : null}
             {blockedTaskCount ? <Badge variant="warning">{blockedTaskCount} blocked</Badge> : <Badge variant="success">No blocked tasks</Badge>}
           </div>
         </div>
@@ -262,7 +255,7 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
           },
           { key: 'diagnosis', label: 'Diagnosis' },
           { key: 'course', label: 'Course' },
-          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={badgeForCourse(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
+          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
           { key: 'currentFraction', label: 'Fx' },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'documents', label: 'Docs' },

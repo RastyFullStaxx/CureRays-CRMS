@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type MasterRecordRow = {
   id: string;
@@ -54,20 +55,6 @@ type RecordsCommandClientProps = {
     fractions: number;
   };
 };
-
-function badgeForPhase(phase: string) {
-  if (phase === 'ON_TREATMENT') return 'success';
-  if (phase === 'UPCOMING') return 'info';
-  if (phase === 'POST') return 'default';
-  return 'primary';
-}
-
-function badgeForStatus(status: string) {
-  if (status === 'ACTIVE') return 'success';
-  if (status === 'ON_HOLD') return 'warning';
-  if (status === 'COMPLETED') return 'default';
-  return 'info';
-}
 
 function cleanLabel(value: string) {
   return value.replace(/_/g, ' ');
@@ -142,8 +129,8 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedRecord ? <Badge variant={badgeForPhase(selectedRecord.phase)}>{cleanLabel(selectedRecord.phase)}</Badge> : null}
-            {selectedRecord ? <Badge variant={badgeForStatus(selectedRecord.courseStatus)}>{cleanLabel(selectedRecord.courseStatus)}</Badge> : null}
+            {selectedRecord ? <Badge variant={phaseTone(selectedRecord.phase)}>{cleanLabel(selectedRecord.phase)}</Badge> : null}
+            {selectedRecord ? <Badge variant={statusTone(selectedRecord.courseStatus)}>{cleanLabel(selectedRecord.courseStatus)}</Badge> : null}
           </div>
         </div>
 
@@ -242,9 +229,9 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
             ),
           },
           { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={badgeForPhase(row.phase)}>{cleanLabel(row.phase)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{cleanLabel(row.phase)}</Badge> },
           { key: 'course', label: 'Course' },
-          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={badgeForStatus(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
+          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'documents', label: 'Docs' },
           { key: 'fractions', label: 'Fractions' },

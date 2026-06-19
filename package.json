@@ -36,6 +36,7 @@
     "clean:generated": "node scripts/clean-generated-cache.mjs",
     "build": "next build",
     "start": "next start",
+    "screenshot": "node scripts/playwright-screenshot.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "prisma:generate:ops": "prisma generate --schema prisma/ops-schema.prisma",
@@ -73,6 +74,7 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

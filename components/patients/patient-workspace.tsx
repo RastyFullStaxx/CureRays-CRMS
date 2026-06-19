@@ -50,6 +50,7 @@ import {
   responsiblePartyLabels,
 } from '@/lib/workflow';
 import { patientRef } from '@/lib/hipaa';
+import { phaseTone, priorityTone, statusTone } from '@/lib/status-utils';
 
 type WorkspaceTab =
   | 'command'
@@ -100,14 +101,6 @@ function patientDisplayName(patient: Patient) {
 }
 
 const phaseOrder = ['Consult', 'Chart Prep', 'Simulation', 'Planning', 'On Tx', 'Post', 'Audit'];
-
-function statusVariant(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'ACTIVE', 'CLOSED', 'READY', 'EXPORTED', 'LOCKED'].includes(status)) return 'success';
-  if (['BLOCKED', 'OVERDUE', 'MISSING_FIELDS', 'ON_HOLD', 'VOIDED'].includes(status)) return 'error';
-  if (['READY_FOR_REVIEW', 'NEEDS_REVIEW', 'PENDING', 'IN_PROGRESS', 'DRAFT'].includes(status)) return 'warning';
-  if (['UPCOMING', 'NOT_STARTED'].includes(status)) return 'info';
-  return 'default';
-}
 
 function titleCase(value: string) {
   return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -176,6 +169,7 @@ export function PatientWorkspace({
 }: PatientWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>(initialTab);
   const [signalsOpen, setSignalsOpen] = useState(false);
+  const [selectedCarepathStepId, setSelectedCarepathStepId] = useState(workflowSteps[0]?.id ?? '');
   const currentPlan = treatmentPlans[0];
   const carepath = carepathProgress(carepathTasks);
   const docs = documentProgress(generatedDocuments);
@@ -214,6 +208,37 @@ export function PatientWorkspace({
     [treatmentFractions],
   );
   const clinicalValidationChecklist = planningReadiness.clinicalValidationChecklist;
+  const carepathRows = useMemo(
+    () => workflowSteps.map((step) => ({
+      id: step.id,
+      step: `${step.stepNumber}. ${step.stepName}`,
+      stepNumber: step.stepNumber,
+      stepName: step.stepName,
+      phase: carepathPhaseLabels[step.phase],
+      status: step.status,
+      role: responsiblePartyLabels[step.responsibleRole],
+      due: step.dueDate ?? step.triggerEvent,
+      signature: step.requiresSignature,
+      signed: Boolean(step.signedAt),
+      blocker: step.blockers[0],
+      source: step,
+    })),
+    [workflowSteps],
+  );
+  const selectedCarepathStep = useMemo(
+    () => workflowSteps.find((step) => step.id === selectedCarepathStepId) ?? workflowSteps[0],
+    [selectedCarepathStepId, workflowSteps],
+  );
+  const selectedCarepathAction = useMemo(
+    () => selectedCarepathStep ? carepathStepAction(selectedCarepathStep) : null,
+    [selectedCarepathStep],
+  );
+  const relatedCarepathWorkItems = useMemo(
+    () => selectedCarepathStep
+      ? tasks.filter((task) => task.workflowStepId === selectedCarepathStep.id)
+      : [],
+    [selectedCarepathStep, tasks],
+  );
 
   const tabContent = useMemo(() => {
     if (activeTab === 'carepath') {
@@ -235,77 +260,152 @@ export function PatientWorkspace({
             </div>
           </Card>
 
-          <DataTable
-            keyField="id"
-            pageSize={0}
-            className="min-h-[360px]"
-            minTableWidth="1180px"
-            toolbarPrefix={
-              <div className="min-w-[240px] flex-1">
-                <p className="clinical-label">Course Path</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
-                  {blockedSteps.length ? `${blockedSteps.length} blocked step(s) need attention` : 'No blocked carepath steps'}
-                </p>
-              </div>
-            }
-            toolbarActions={<PrototypeActionButton label="Advance step" icon="play" kind="review" description="Stage a workflow step advancement after reviewing blockers and signatures." />}
-            columns={[
-              { key: 'step', label: 'Step', render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.step}</span> },
-              { key: 'phase', label: 'Phase', render: (row) => <Badge variant="primary">{row.phase}</Badge> },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
-              { key: 'role', label: 'Owner' },
-              { key: 'due', label: 'Due / Trigger' },
-              { key: 'signature', label: 'Signature', render: (row) => row.signature ? <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Required'}</Badge> : '-' },
-              { key: 'blocker', label: 'Blocker', render: (row) => row.blocker || '-' },
-            ]}
-            rows={workflowSteps.map((step) => ({
-              id: step.id,
-              step: `${step.stepNumber}. ${step.stepName}`,
-              phase: carepathPhaseLabels[step.phase],
-              status: step.status,
-              role: responsiblePartyLabels[step.responsibleRole],
-              due: step.dueDate ?? step.triggerEvent,
-              signature: step.requiresSignature,
-              signed: Boolean(step.signedAt),
-              blocker: step.blockers[0],
-            }))}
-            empty="No workflow steps are available for this patient course."
-            emptyDescription="Carepath steps will appear after the course workflow is initialized."
-          />
+          <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
+            <DataTable
+              keyField="id"
+              pageSize={0}
+              className="min-h-[460px]"
+              minTableWidth="980px"
+              onRowClick={(row) => setSelectedCarepathStepId(row.id)}
+              toolbarPrefix={
+                <div className="min-w-[240px] flex-1">
+                  <p className="clinical-label">Course Path</p>
+                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                    Click a step to see the exact next action, evidence, and related work.
+                  </p>
+                </div>
+              }
+              toolbarActions={selectedCarepathAction ? (
+                <PrototypeActionButton
+                  label={selectedCarepathAction.label}
+                  icon={selectedCarepathAction.icon}
+                  kind={selectedCarepathAction.kind}
+                  description={selectedCarepathAction.detail}
+                  context={selectedCarepathStep ? `${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}` : undefined}
+                />
+              ) : null}
+              columns={[
+                { key: 'step', label: 'Step', width: '27%', render: (row) => (
+                  <span className="flex min-w-0 flex-wrap items-center gap-2">
+                    <span className="font-bold text-[var(--color-primary)]">{row.step}</span>
+                    {row.id === selectedCarepathStep?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  </span>
+                ) },
+                { key: 'phase', label: 'Phase', width: '12%', render: (row) => <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge> },
+                { key: 'status', label: 'Status', width: '13%', render: (row) => <Badge variant={statusTone(row.status)}>{titleCase(row.status)}</Badge> },
+                { key: 'role', label: 'Owner', width: '15%' },
+                { key: 'due', label: 'Due / Trigger', width: '13%' },
+                { key: 'signature', label: 'Signature', width: '10%', render: (row) => row.signature ? <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Required'}</Badge> : '-' },
+                { key: 'blocker', label: 'Blocker', width: '10%', render: (row) => row.blocker || '-' },
+              ]}
+              rows={carepathRows}
+              empty="No workflow steps are available for this patient course."
+              emptyDescription="Carepath steps will appear after the course workflow is initialized."
+            />
 
-          <DataTable
-            keyField="id"
-            pageSize={0}
-            className="min-h-[360px]"
-            minTableWidth="1080px"
-            search={{ placeholder: 'Search work items...', keys: ['title', 'owner', 'description'] }}
-            toolbarPrefix={
-              <div className="min-w-[220px]">
-                <p className="clinical-label">Work Items</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{urgentTasks.length} high-priority item(s)</p>
-              </div>
-            }
-            toolbarActions={<PrototypeActionButton label="Create work item" icon="plus" kind="create" description="Stage a course task with role ownership and due date." />}
-            columns={[
-              { key: 'title', label: 'Work Item', render: (row) => <span className="font-bold">{row.title}</span> },
-              { key: 'priority', label: 'Priority', render: (row) => <Badge variant={row.priority === 'URGENT' ? 'error' : row.priority === 'HIGH' ? 'warning' : 'default'}>{row.priority}</Badge> },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
-              { key: 'owner', label: 'Owner' },
-              { key: 'due', label: 'Due' },
-              { key: 'description', label: 'Action', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.description}</span> },
-            ]}
-            rows={tasks.map((task) => ({
-              id: task.id,
-              title: task.title,
-              priority: task.priority,
-              status: task.status,
-              owner: task.assignedUserId ?? responsiblePartyLabels[task.assignedRole],
-              due: task.dueDate ? formatDate(task.dueDate) : 'No due date',
-              description: task.description,
-            }))}
-            empty="No work items are available for this patient course."
-            emptyDescription="Work rows will appear after carepath automation creates them."
-          />
+            <Card className="self-start">
+              {selectedCarepathStep ? (
+                <div className="grid gap-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="clinical-label">Selected Carepath Step</p>
+                      <h3 className="mt-1 font-heading text-lg font-bold leading-tight text-[var(--color-text)]">
+                        {selectedCarepathStep.stepNumber}. {selectedCarepathStep.stepName}
+                      </h3>
+                      <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                        {selectedCarepathStep.dueDate ? `Due ${formatDate(selectedCarepathStep.dueDate)}` : selectedCarepathStep.triggerEvent}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      <Badge variant={phaseTone(selectedCarepathStep.phase)}>{carepathPhaseLabels[selectedCarepathStep.phase]}</Badge>
+                      <Badge variant={statusTone(selectedCarepathStep.status)}>{titleCase(selectedCarepathStep.status)}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="clinical-muted-surface p-3">
+                    <p className="clinical-label">Next Action</p>
+                    <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selectedCarepathAction?.label ?? 'Review step'}</p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">
+                      {selectedCarepathAction?.detail ?? selectedCarepathStep.notes ?? selectedCarepathStep.triggerEvent}
+                    </p>
+                    {selectedCarepathAction ? (
+                      <div className="mt-3">
+                        <PrototypeActionButton
+                          label={selectedCarepathAction.label}
+                          icon={selectedCarepathAction.icon}
+                          kind={selectedCarepathAction.kind}
+                          variant="primary"
+                          description={selectedCarepathAction.detail}
+                          context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                    <div className="clinical-muted-surface p-3">
+                      <p className="clinical-label">Owner</p>
+                      <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                        {selectedCarepathStep.assignedUserId ?? responsiblePartyLabels[selectedCarepathStep.responsibleRole]}
+                      </p>
+                    </div>
+                    <div className="clinical-muted-surface p-3">
+                      <p className="clinical-label">Signature</p>
+                      <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                        {selectedCarepathStep.requiresSignature ? selectedCarepathStep.signedAt ? 'Signed' : 'Required' : 'Not required'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <SectionTitle title="Step Evidence" />
+                    <div className="grid gap-2">
+                      {(selectedCarepathStep.auditChecklist.length ? selectedCarepathStep.auditChecklist : ['Owner assigned', 'Evidence traceable']).map((item) => (
+                        <div key={item} className="clinical-muted-surface flex min-w-0 items-center justify-between gap-3 p-3">
+                          <span className="min-w-0 text-sm font-semibold text-[var(--color-text)]">{item}</span>
+                          <Badge variant={selectedCarepathStep.status === 'COMPLETED' || selectedCarepathStep.status === 'SIGNED' ? 'success' : 'warning'}>
+                            {selectedCarepathStep.status === 'COMPLETED' || selectedCarepathStep.status === 'SIGNED' ? 'Ready' : 'Check'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <SectionTitle title="Related Work Items" />
+                    <div className="scrollbar-soft max-h-[260px] space-y-2 overflow-y-auto pr-1">
+                      {relatedCarepathWorkItems.map((task) => (
+                        <div key={task.id} className="clinical-muted-surface p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-[var(--color-text)]">{task.title}</p>
+                              <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">{task.description}</p>
+                              <p className="mt-2 text-xs font-bold text-[var(--color-text-muted)]">
+                                {task.assignedUserId ?? responsiblePartyLabels[task.assignedRole]} · {task.dueDate ? formatDate(task.dueDate) : 'No due date'}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              <Badge variant={priorityTone(task.priority)}>{task.priority}</Badge>
+                              <Badge variant={statusTone(task.status)}>{titleCase(task.status)}</Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {relatedCarepathWorkItems.length === 0 ? (
+                        <div className="clinical-muted-surface p-4 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                          No separate task rows are attached to this step. Use the next action above as the source of truth for this patient.
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+                  Select a carepath step to review the required action.
+                </div>
+              )}
+            </Card>
+          </div>
         </div>
       );
     }
@@ -327,8 +427,8 @@ export function PatientWorkspace({
           toolbarActions={<PrototypeActionButton label="Create task" icon="plus" kind="create" description="Stage a course task with role ownership and due date." />}
           columns={[
             { key: 'title', label: 'Task', render: (row) => <span className="font-bold">{row.title}</span> },
-            { key: 'priority', label: 'Priority', render: (row) => <Badge variant={row.priority === 'URGENT' ? 'error' : row.priority === 'HIGH' ? 'warning' : 'default'}>{row.priority}</Badge> },
-            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+            { key: 'priority', label: 'Priority', render: (row) => <Badge variant={priorityTone(row.priority)}>{row.priority}</Badge> },
+            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{titleCase(row.status)}</Badge> },
             { key: 'owner', label: 'Owner' },
             { key: 'due', label: 'Due' },
             { key: 'description', label: 'Action', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.description}</span> },
@@ -392,11 +492,11 @@ export function PatientWorkspace({
             toolbarActions={<PrototypeActionButton label="Generate document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
             columns={[
               { key: 'title', label: 'Document', render: (row) => <span className="font-bold">{row.title}</span> },
-              { key: 'category', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.category)}</Badge> },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+              { key: 'category', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.category)}>{titleCase(row.category)}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{titleCase(row.status)}</Badge> },
               { key: 'output', label: 'Output', render: (row) => (
                 <div className="flex flex-wrap gap-1">
-                  <Badge variant={row.outputStatus ? statusVariant(row.outputStatus) : 'default'}>{row.outputStatus ? titleCase(row.outputStatus) : 'No Output'}</Badge>
+                  <Badge variant={row.outputStatus ? statusTone(row.outputStatus) : 'default'}>{row.outputStatus ? titleCase(row.outputStatus) : 'No Output'}</Badge>
                   {row.manualEditExceptionAt ? <Badge variant="warning">Manual Edit</Badge> : null}
                 </div>
               ) },
@@ -455,7 +555,7 @@ export function PatientWorkspace({
                       <p className="truncate text-sm font-bold text-[var(--color-text)]">{check.label}</p>
                       <p className="text-xs font-semibold text-[var(--color-text-muted)]">{check.category}</p>
                     </div>
-                    <Badge variant={statusVariant(check.status)}>{titleCase(check.status)}</Badge>
+                    <Badge variant={statusTone(check.status)}>{titleCase(check.status)}</Badge>
                   </div>
                 ))}
                 {auditChecks.length === 0 ? (
@@ -605,7 +705,7 @@ export function PatientWorkspace({
             toolbarActions={<PrototypeActionButton label="Attach image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
             columns={[
               { key: 'category', label: 'Image / Evidence', render: (row) => <span className="font-bold">{row.category}</span> },
-              { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.phase)}</Badge> },
+              { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{titleCase(row.phase)}</Badge> },
               { key: 'uploaded', label: 'Uploaded' },
               { key: 'uploader', label: 'Uploaded By' },
               { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
@@ -654,11 +754,11 @@ export function PatientWorkspace({
             <div className="space-y-3">
               <div className="clinical-muted-surface p-3">
                 <p className="clinical-label">Physics</p>
-                <Badge variant={statusVariant(currentPlan?.physicistReviewStatus ?? 'PENDING')}>{titleCase(currentPlan?.physicistReviewStatus ?? 'PENDING')}</Badge>
+                <Badge variant={statusTone(currentPlan?.physicistReviewStatus ?? 'PENDING')}>{titleCase(currentPlan?.physicistReviewStatus ?? 'PENDING')}</Badge>
               </div>
               <div className="clinical-muted-surface p-3">
                 <p className="clinical-label">Rad Onc</p>
-                <Badge variant={statusVariant(currentPlan?.radOncSignatureStatus ?? 'PENDING')}>{titleCase(currentPlan?.radOncSignatureStatus ?? 'PENDING')}</Badge>
+                <Badge variant={statusTone(currentPlan?.radOncSignatureStatus ?? 'PENDING')}>{titleCase(currentPlan?.radOncSignatureStatus ?? 'PENDING')}</Badge>
               </div>
             </div>
           </Card>
@@ -727,7 +827,7 @@ export function PatientWorkspace({
           toolbarActions={<PrototypeActionButton label="Attach image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
           columns={[
             { key: 'category', label: 'Image / Evidence', render: (row) => <span className="font-bold">{row.category}</span> },
-            { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.phase)}</Badge> },
+            { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{titleCase(row.phase)}</Badge> },
             { key: 'uploaded', label: 'Uploaded' },
             { key: 'uploader', label: 'Uploaded By' },
             { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
@@ -763,8 +863,8 @@ export function PatientWorkspace({
           toolbarActions={<PrototypeActionButton label="Generate document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
           columns={[
             { key: 'title', label: 'Document', render: (row) => <span className="font-bold">{row.title}</span> },
-            { key: 'category', label: 'Phase', render: (row) => <Badge variant="info">{titleCase(row.category)}</Badge> },
-            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{titleCase(row.status)}</Badge> },
+            { key: 'category', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.category)}>{titleCase(row.category)}</Badge> },
+            { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{titleCase(row.status)}</Badge> },
             { key: 'version', label: 'Version' },
             { key: 'signed', label: 'Signature', render: (row) => <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Pending'}</Badge> },
             { key: 'updated', label: 'Updated' },
@@ -808,7 +908,7 @@ export function PatientWorkspace({
                     <p className="truncate text-sm font-bold text-[var(--color-text)]">{check.label}</p>
                     <p className="text-xs font-semibold text-[var(--color-text-muted)]">{check.category}</p>
                   </div>
-                  <Badge variant={statusVariant(check.status)}>{titleCase(check.status)}</Badge>
+                  <Badge variant={statusTone(check.status)}>{titleCase(check.status)}</Badge>
                 </div>
               ))}
               {auditChecks.length === 0 ? (
@@ -1019,6 +1119,7 @@ export function PatientWorkspace({
     auditChecks,
     auditEvents,
     blockedSteps,
+    carepathRows,
     carepath.percent,
     clinicalFormTemplates,
     course,
@@ -1039,11 +1140,13 @@ export function PatientWorkspace({
     prescriptionPhases,
     readiness,
     scheduledFractions.length,
+    selectedCarepathAction,
+    selectedCarepathStep,
     tasks,
     treatmentFractions,
+    relatedCarepathWorkItems,
     unsignedDocs,
     urgentTasks,
-    workflowSteps,
   ]);
 
   const signalCount = urgentTasks.length + blockedSteps.length + unsignedDocs.length + openChecks.length;
@@ -1066,7 +1169,7 @@ export function PatientWorkspace({
             </Link>
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h1 className="truncate font-heading text-xl font-bold leading-tight text-[var(--color-text)]">{patientDisplayName(patient)}</h1>
-              <Badge variant={statusVariant(patient.status)}>{titleCase(patient.status)}</Badge>
+              <Badge variant={statusTone(patient.status)}>{titleCase(patient.status)}</Badge>
               <Badge variant="primary">PHI controlled</Badge>
             </div>
             <p className="mt-1 truncate text-xs font-semibold text-[var(--color-text-muted)]">
@@ -1155,6 +1258,51 @@ export function PatientWorkspace({
       </Modal>
     </div>
   );
+}
+
+function carepathStepAction(step: WorkflowStep) {
+  if (step.status === 'BLOCKED' || step.blockers.length > 0) {
+    return {
+      label: 'Resolve blocker',
+      detail: step.blockers[0] ?? step.notes ?? 'Clear the blocker before this course can advance.',
+      kind: 'review' as const,
+      icon: 'play' as const,
+    };
+  }
+
+  if (step.status === 'COMPLETED' || step.status === 'SIGNED' || step.status === 'CLOSED') {
+    return {
+      label: 'Review record',
+      detail: 'This step is already complete. Open it only when a correction or audit check is needed.',
+      kind: 'review' as const,
+      icon: 'check' as const,
+    };
+  }
+
+  if (step.requiresSignature && !step.signedAt) {
+    return {
+      label: 'Review & sign',
+      detail: 'Review the generated evidence and capture the required signature before advancing.',
+      kind: 'document' as const,
+      icon: 'file' as const,
+    };
+  }
+
+  if (step.linkedDocumentId || step.requirementIds?.length) {
+    return {
+      label: 'Generate document',
+      detail: 'Complete the mapped fields, preview the output, then finalize the generated document record.',
+      kind: 'document' as const,
+      icon: 'file' as const,
+    };
+  }
+
+  return {
+    label: 'Review step',
+    detail: step.notes ?? step.triggerEvent,
+    kind: 'review' as const,
+    icon: 'play' as const,
+  };
 }
 
 function ReviewTile({

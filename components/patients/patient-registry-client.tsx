@@ -36,6 +36,7 @@ import type {
   PatientStatus,
 } from '@/lib/types';
 import type { PatientRegistryRow } from '@/lib/services/patient-service';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 type PatientRegistryClientProps = {
   rows: PatientRegistryRow[];
@@ -107,12 +108,6 @@ const statusLabels: Record<PatientStatus, string> = {
   ON_HOLD: 'On Hold',
   PAUSED: 'Paused',
 };
-
-function statusVariant(status: PatientStatus) {
-  if (status === 'ACTIVE') return 'success';
-  if (status === 'ON_HOLD') return 'warning';
-  return 'info';
-}
 
 function formatDate(value: string) {
   return value.slice(0, 10);
@@ -677,8 +672,8 @@ export function PatientRegistryClient({
             </div>
           ) },
           { key: 'diagnosisCategory', label: 'Diagnosis', render: (row) => <Badge variant="info">{diagnosisLabels[row.diagnosisCategory]}</Badge> },
-          { key: 'chartRoundsPhase', label: 'Phase', render: (row) => <Badge variant="primary">{phaseLabels[row.chartRoundsPhase]}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusVariant(row.status)}>{row.status.replaceAll('_', ' ')}</Badge> },
+          { key: 'chartRoundsPhase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.chartRoundsPhase)}>{phaseLabels[row.chartRoundsPhase]}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{row.status.replaceAll('_', ' ')}</Badge> },
           { key: 'course', label: 'Course', render: (row) => (
             <div className="min-w-0">
               <p className="truncate font-bold text-[var(--color-primary)]">{row.activeCourseRef}</p>

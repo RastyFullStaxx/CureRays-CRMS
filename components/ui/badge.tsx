@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/workflow';
+import type { BadgeVariant } from '@/lib/status-utils';
 
 type BadgeProps = {
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary';
+  variant?: BadgeVariant;
   children: ReactNode;
   className?: string;
 };

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type ImagingCommandRow = {
   id: string;
@@ -51,12 +52,6 @@ type ImagingLedgerEntry = {
   action: string;
   note: string;
 };
-
-function statusTone(status: string): 'success' | 'warning' | 'info' {
-  if (status === 'Tagged') return 'success';
-  if (status === 'Queued') return 'warning';
-  return 'info';
-}
 
 export function ImagingCommandClient({ rows, categories, stats }: ImagingCommandClientProps) {
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? '');
@@ -143,7 +138,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
           { key: 'patient', label: 'Patient' },
           { key: 'patientRef', label: 'Patient Ref' },
           { key: 'modality', label: 'Modality', render: (row) => <Badge variant="info">{row.modality}</Badge> },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{row.phase}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge> },
           { key: 'uploaded', label: 'Uploaded' },
           { key: 'uploader', label: 'Uploader' },
           { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{row.status}</Badge> },

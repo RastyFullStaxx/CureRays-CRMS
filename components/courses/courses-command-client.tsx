@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type CourseCommandRow = {
   id: string;
@@ -74,21 +75,6 @@ type StagedCourseAction = {
 
 function cleanLabel(value: string) {
   return value.replace(/_/g, ' ');
-}
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (status === 'COMPLETED' || status === 'ACTIVE') return 'success';
-  if (status === 'IN_PROGRESS' || status === 'READY_FOR_REVIEW') return 'info';
-  if (status === 'BLOCKED' || status === 'OVERDUE') return 'error';
-  if (status === 'ON_HOLD' || status === 'PENDING') return 'warning';
-  return 'default';
-}
-
-function badgeForPhase(phase: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (phase === 'ON_TREATMENT') return 'success';
-  if (phase === 'CHART_PREP' || phase === 'SIMULATION' || phase === 'PLANNING') return 'info';
-  if (phase === 'POST_TX' || phase === 'AUDIT') return 'primary';
-  return 'default';
 }
 
 function evidenceTone(value: number) {
@@ -179,8 +165,8 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
           { key: 'patient', label: 'Patient' },
           { key: 'diagnosis', label: 'Diagnosis' },
           { key: 'site', label: 'Site' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={badgeForPhase(row.phase)}>{cleanLabel(row.phase)}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.status)}>{cleanLabel(row.status)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{cleanLabel(row.phase)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{cleanLabel(row.status)}</Badge> },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'missingDocuments', label: 'Doc Gaps' },
           { key: 'fractionsLogged', label: 'Fx Logged' },
@@ -217,8 +203,8 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            {selected ? <Badge variant={badgeForPhase(selected.phase)}>{cleanLabel(selected.phase)}</Badge> : null}
-            {selected ? <Badge variant={badgeForStatus(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
+            {selected ? <Badge variant={phaseTone(selected.phase)}>{cleanLabel(selected.phase)}</Badge> : null}
+            {selected ? <Badge variant={statusTone(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
           </div>
         </div>
 

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { statusTone } from '@/lib/status-utils';
 
 export type TreatmentPlanningChecklistItem = {
   id: string;
@@ -76,13 +77,6 @@ type PlanningLedgerEntry = {
   action: string;
   note: string;
 };
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['Signed', 'Locked', 'Clear', 'Scheduled'].includes(status)) return 'success';
-  if (['Ready For Review', 'In Progress', 'Ready For Schedule'].includes(status)) return 'info';
-  if (['Blocked', 'Required', 'Clinical Validation Required'].includes(status)) return 'warning';
-  return 'default';
-}
 
 export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlanningCommandClientProps) {
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? '');
@@ -169,10 +163,10 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
           { key: 'dose', label: 'Dose' },
           { key: 'totalDose', label: 'Total Dose' },
           { key: 'fractions', label: 'Fractions' },
-          { key: 'readiness', label: 'Readiness', render: (row) => <Badge variant={badgeForStatus(row.readiness)}>{row.readiness}</Badge> },
+          { key: 'readiness', label: 'Readiness', render: (row) => <Badge variant={statusTone(row.readiness)}>{row.readiness}</Badge> },
           { key: 'schedule', label: 'Schedule' },
-          { key: 'physicistReview', label: 'Physics', render: (row) => <Badge variant={badgeForStatus(row.physicistReview)}>{row.physicistReview}</Badge> },
-          { key: 'radOncSignature', label: 'Rad Onc', render: (row) => <Badge variant={badgeForStatus(row.radOncSignature)}>{row.radOncSignature}</Badge> },
+          { key: 'physicistReview', label: 'Physics', render: (row) => <Badge variant={statusTone(row.physicistReview)}>{row.physicistReview}</Badge> },
+          { key: 'radOncSignature', label: 'Rad Onc', render: (row) => <Badge variant={statusTone(row.radOncSignature)}>{row.radOncSignature}</Badge> },
         ]}
         rows={rows}
         empty="No treatment plans are available."
@@ -203,7 +197,7 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
               </p>
             ) : null}
           </div>
-          {selected ? <Badge variant={badgeForStatus(selected.readiness)}>{selected.readiness}</Badge> : null}
+          {selected ? <Badge variant={statusTone(selected.readiness)}>{selected.readiness}</Badge> : null}
         </div>
 
         {selected ? (
@@ -300,7 +294,7 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
               <div key={gate.label} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-bold text-[var(--color-text)]">{gate.label}</p>
-                  <Badge variant={badgeForStatus(gate.status)}>{gate.status}</Badge>
+                  <Badge variant={statusTone(gate.status)}>{gate.status}</Badge>
                 </div>
                 <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">{gate.due} fraction(s) due</p>
               </div>

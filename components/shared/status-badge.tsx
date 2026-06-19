@@ -1,25 +1,22 @@
 import { cn } from '@/lib/workflow';
+import { statusTone } from '@/lib/status-utils';
 
 type StatusBadgeProps = {
   status: string;
   className?: string;
 };
 
-const statusStyles: Record<string, string> = {
-  ACTIVE: 'clinical-pill-success',
-  ON_HOLD: 'clinical-pill-warning',
-  PAUSED: 'clinical-pill-default',
-  BLOCKED: 'clinical-pill-error',
-  COMPLETED: 'clinical-pill-success',
-  PENDING: 'clinical-pill-primary',
-  IN_PROGRESS: 'clinical-pill-primary',
-  UPCOMING: 'clinical-pill-primary',
-  ON_TREATMENT: 'clinical-pill-primary',
-  POST: 'clinical-pill-default',
+const toneStyles = {
+  default: 'clinical-pill-default',
+  success: 'clinical-pill-success',
+  warning: 'clinical-pill-warning',
+  error: 'clinical-pill-error',
+  info: 'clinical-pill-info',
+  primary: 'clinical-pill-primary',
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const style = statusStyles[status] ?? 'clinical-pill-default';
+  const style = toneStyles[statusTone(status)];
   return (
     <span
       className={cn(

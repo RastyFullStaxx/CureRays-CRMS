@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { phaseTone, statusTone } from '@/lib/status-utils';
 
 export type ClinicalFormCommandRow = {
   id: string;
@@ -55,14 +56,6 @@ type FormLedgerEntry = {
   action: string;
   note: string;
 };
-
-function badgeForStatus(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (['SIGNED', 'COMPLETED', 'UPLOADED'].includes(status)) return 'success';
-  if (['READY_FOR_REVIEW', 'NEEDS_REVIEW'].includes(status)) return 'info';
-  if (['BLOCKED', 'MISSING_FIELDS'].includes(status)) return 'error';
-  if (['PENDING', 'PENDING_NEEDED', 'NOT_STARTED'].includes(status)) return 'warning';
-  return 'default';
-}
 
 function readinessLabel(row: ClinicalFormCommandRow) {
   if (row.missingFields > 0) return 'Needs fields';
@@ -149,8 +142,8 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
           { key: 'patient', label: 'Patient' },
           { key: 'patientRef', label: 'Patient Ref' },
           { key: 'formType', label: 'Form Type' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{row.phase}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={badgeForStatus(row.rawStatus)}>{row.status}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.rawStatus)}>{row.status}</Badge> },
           { key: 'missingFields', label: 'Missing Fields' },
           { key: 'assignedStaff', label: 'Reviewer' },
           { key: 'lastUpdated', label: 'Last Updated' },
@@ -184,7 +177,7 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
               </p>
             ) : null}
           </div>
-          {selected ? <Badge variant={badgeForStatus(selected.rawStatus)}>{readinessLabel(selected)}</Badge> : null}
+          {selected ? <Badge variant={statusTone(selected.rawStatus)}>{readinessLabel(selected)}</Badge> : null}
         </div>
 
         {selected ? (
