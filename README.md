@@ -10,9 +10,9 @@
 
 CureRays Clinical Workflow System (CWS) is a patient-course centered clinical operations system for CureRays Radiation Medicine. It is being built to replace the current manual workflow that depends on fragmented Google Drive files, Google Sheets, Word/Google Docs templates, PowerPoint planning decks, manual reminders, and role-by-role follow-up.
 
-The system is not a generic healthcare dashboard. Its purpose is to become the operational command center for CureRays treatment workflows: intake, consultation, chart prep, simulation, treatment planning, treatment delivery, documentation, billing readiness, audit, and closeout
+The system is not a generic healthcare dashboard. Its purpose is to become the operational command center for CureRays treatment workflows: intake, consultation, chart prep, simulation, treatment planning, treatment delivery, documentation, billing readiness, audit, and closeout.
 
-Current project status as of 2026-06-14: active prototype development with local OPS/PHI PostgreSQL bootstrap available. The current direction is focused on reliable workflow visibility, guided patient registration and maintenance, workspace-centered fraction review, template/document mapping, phase-based patient tracking, task ownership, audit readiness, and a careful transition from mock/in-memory state to server-owned persistence before deeper production automation is added
+Current project status as of 2026-06-14: active prototype development with local OPS/PHI PostgreSQL bootstrap available. The current direction is focused on reliable workflow visibility, guided patient registration and maintenance, workspace-centered fraction review, template/document mapping, phase-based patient tracking, task ownership, audit readiness, and a careful transition from mock/in-memory state to server-owned persistence before deeper production automation is added.
 
 ## Current Standing
 
