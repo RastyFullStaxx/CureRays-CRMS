@@ -138,6 +138,7 @@
   --height-header:         56px;
   --height-mac-menubar:    64px;
   --height-mac-dock:       0px;
+  --width-patient-context: clamp(232px, 18vw, 280px);
   --mac-chrome-bg:         rgba(255, 255, 255, 0.78);
   --mac-chrome-border:     rgba(255, 255, 255, 0.82);
   --mac-menu-shadow:
@@ -2450,19 +2451,6 @@ button, input, select, textarea {
   position: relative;
 }
 
-.mac-desktop::before {
-  background:
-    linear-gradient(110deg, transparent 0 18%, color-mix(in srgb, var(--color-card) 46%, transparent) 18% 19%, transparent 19% 100%),
-    linear-gradient(72deg, transparent 0 66%, color-mix(in srgb, var(--color-primary) 7%, transparent) 66% 67%, transparent 67% 100%),
-    radial-gradient(circle at 48% 0%, color-mix(in srgb, var(--color-card) 60%, transparent), transparent 36%);
-  content: "";
-  inset: 0;
-  opacity: 0.9;
-  pointer-events: none;
-  position: fixed;
-  z-index: 0;
-}
-
 .mac-main {
   display: flex;
   flex: 1;
@@ -2479,6 +2467,311 @@ button, input, select, textarea {
 
 .mac-main > * {
   animation: mac-page-enter 180ms ease-out both;
+}
+
+.patient-workspace {
+  align-items: start;
+  display: grid;
+  flex: 1;
+  gap: var(--space-section);
+  grid-template-columns: var(--width-patient-context) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+.patient-workspace::-webkit-scrollbar {
+  height: 9px;
+  width: 9px;
+}
+
+.patient-workspace::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.patient-workspace::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: 999px;
+}
+
+.patient-workspace::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.patient-context-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+}
+
+.patient-context-heading,
+.patient-context-section,
+.patient-context-next {
+  min-width: 0;
+}
+
+.patient-context-details {
+  display: grid;
+  gap: 8px;
+  padding-block: 12px;
+  border-block: 1px solid var(--color-border-soft);
+}
+
+.patient-context-details div,
+.patient-context-facts div,
+.workspace-snapshot-grid div {
+  min-width: 0;
+}
+
+.patient-context-details dt,
+.patient-context-facts dt,
+.workspace-snapshot-grid dt {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.patient-context-details dd {
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.patient-context-phase {
+  align-items: center;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.patient-context-phase strong {
+  color: var(--color-text);
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.patient-context-phase-mark {
+  background: var(--color-primary);
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+}
+
+.patient-context-facts {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.patient-context-facts div {
+  border-right: 1px solid var(--color-border-soft);
+  padding-right: 8px;
+}
+
+.patient-context-facts div:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.patient-context-facts dd {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.patient-context-next {
+  border-top: 1px solid var(--color-border-soft);
+  padding-top: 12px;
+}
+
+.patient-workspace-main {
+  min-height: 0;
+  min-width: 0;
+}
+
+.patient-context-compact {
+  display: none;
+}
+
+.patient-workspace-surface {
+  min-width: 0;
+  overflow: visible;
+  padding: 0;
+}
+
+.patient-workspace-tabs {
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.patient-workspace-canvas {
+  min-height: 0;
+  min-width: 0;
+  overflow: visible;
+  padding: 12px;
+}
+
+.workspace-snapshot-grid {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workspace-snapshot-grid div {
+  border-right: 1px solid var(--color-border-soft);
+  border-top: 1px solid var(--color-border-soft);
+  padding: 12px;
+}
+
+.workspace-snapshot-grid div:nth-child(3n) {
+  border-right: 0;
+}
+
+.workspace-snapshot-grid div:nth-child(-n + 3) {
+  border-top: 0;
+}
+
+.workspace-snapshot-grid dd {
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  margin-top: 5px;
+}
+
+.patient-context-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+@media (max-height: 760px) and (min-width: 1024px) {
+  .patient-context-rail {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .patient-context-heading .mt-3 {
+    margin-top: 8px;
+  }
+
+  .patient-context-details {
+    gap: 5px;
+    padding-block: 8px;
+  }
+
+  .patient-context-section p:last-child {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .patient-context-next {
+    padding-top: 8px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .patient-workspace {
+    display: block;
+  }
+
+  .patient-context-rail {
+    display: none;
+  }
+
+  .patient-workspace-main {
+    min-height: 100%;
+  }
+
+  .patient-context-compact {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 10px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .patient-workspace-surface {
+    margin-top: 10px;
+  }
+
+  .patient-workspace-tabs {
+    top: 62px;
+  }
+}
+
+@media (max-width: 640px) {
+  .patient-context-compact {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .patient-context-compact button {
+    width: 100%;
+  }
+
+  .patient-workspace-tabs {
+    top: 112px;
+  }
+
+  .workspace-snapshot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workspace-snapshot-grid div,
+  .workspace-snapshot-grid div:nth-child(3n) {
+    border-right: 1px solid var(--color-border-soft);
+    border-top: 1px solid var(--color-border-soft);
+  }
+
+  .workspace-snapshot-grid div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .workspace-snapshot-grid div:nth-child(-n + 2) {
+    border-top: 0;
+  }
 }
 
 .mac-command-bar {

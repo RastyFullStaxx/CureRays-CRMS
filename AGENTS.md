@@ -21,6 +21,9 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Testing
 
+- **Development-phase verification policy**: The project remains in active development until the user explicitly declares that release preparation has started. During active development, default to `npm run verify` or the smallest equivalent code-quality check (`typecheck`, lint, or a narrowly relevant test). Do not run `npm run build`, `npm run test:full`, the full guardrail suite, broad browser matrices, exhaustive route sweeps, or other long checks unless the user explicitly requests a specific one.
+- **Release-phase verification policy**: Run production builds, full guardrails, browser/responsive matrices, route sweeps, and full suites only after the user explicitly says the project is near release or has entered release preparation.
+- Keep testing proportional to the change. Prefer one targeted check that directly covers the edited behavior; do not spend more time or tokens on unrelated validation than on the feature itself.
 - No formal test framework is configured yet. Phase guardrail scripts in `scripts/` validate feature completeness for each phase.
 - `npm run verify` is intentionally lightweight for prototype feature work and only runs `typecheck + lint`.
 - `npm run test:guardrails` runs the phase scripts plus HIPAA boundaries. `npm run test:full` runs `verify + build + all guardrails`.
@@ -40,6 +43,16 @@ npm run test:hipaa   # HIPAA guardrails validation
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).
 - **EditorConfig**: Use 2 spaces, UTF-8, LF line endings.
 - **Naming**: Components `PascalCase`, files `kebab-case`, CSS tokens `--kebab-case`, named exports (except pages).
+
+## Codex Tools and Skills
+
+- Use Ponytail as the default implementation discipline: understand the affected flow first, reuse existing code and platform capabilities, avoid unrequested abstractions and dependencies, and make the smallest safe change. Never simplify away validation, security, accessibility, error handling that prevents data loss, or HIPAA controls.
+- For UI work, use the smallest relevant design skill set. Start with `design-taste-frontend` for audit and direction, then use `frontend-design`, `ui-ux-pro-max`, `impeccable`, or `design-motion-principles` only when their specialty is needed. Project rules and `docs/curerays-ui-engineering-rules.md` override generic skill guidance.
+- Use the shadcn MCP to search and inspect registry components. Treat registry output as source material, not automatically approved project code. Reuse or adapt existing `components/ui/` primitives first; do not overwrite them or bypass CSS tokens, accessibility, naming, and shared-component rules.
+- Use Context7 MCP for current framework and library documentation when repository code and installed package types do not answer the question. Prefer primary documentation and verify examples against the versions in `package.json`.
+- Use the bundled browser or `agent-browser` for lightweight UI inspection. Use Playwright MCP for repeatable interaction, responsive-layout, keyboard-navigation, modal, table-overflow, and route smoke checks.
+- Browser and Playwright sessions must use mock data only. Do not enter, capture, log, screenshot, or transmit real PHI, credentials, session tokens, or production data.
+- Do not invoke every skill for every task. Select the minimum set that materially helps, and preserve existing architecture over generic tool recommendations.
 
 ## Architecture
 

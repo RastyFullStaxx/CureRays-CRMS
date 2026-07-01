@@ -75,7 +75,8 @@ assert.doesNotMatch(macNavigation, /mac-dock/, "Primary navigation must not rend
 assert.match(macNavigation, /className="mac-command-bar"/, "Shell must render a Mac-style top command bar");
 assert.match(macNavigation, /Search patient, MRN, course, or action/, "Mac shell must keep patient search prominent");
 assert.match(macNavigation, /curerays_theme_mode/, "Mac shell must use the explicit light-first theme preference key");
-assert.match(workspace, /mac-glass-surface sticky top-0/, "Patient workspace must use compact glass context chrome");
+assert.match(workspace, /patient-context-rail clinical-surface/, "Patient workspace must keep patient context in the fixed desktop rail");
+assert.match(workspace, /patient-context-compact clinical-surface/, "Patient workspace must provide compact patient context below the desktop breakpoint");
 assert.doesNotMatch(workspace, /clinical-floating-action/, "Patient workspace must not cover content with floating actions");
 assert.match(workspace, /selectedCarepathStep/, "Patient Carepath must use a selected step as the working surface");
 assert.match(workspace, /Related Work Items/, "Patient Carepath must fold related work items into the selected step panel");
@@ -180,9 +181,15 @@ assert.match(dataTable, /tableMinWidth/, "DataTable must calculate a default min
 assert.match(dataTable, /overflow-x-auto/, "DataTable must keep horizontal scrolling for wide tables");
 assert.match(dataTable, /scrollbar-soft/, "DataTable scroll regions must use the shared styled scrollbar");
 assert.match(dataTable, /flex-wrap items-center gap-2/, "DataTable toolbar controls must wrap instead of clipping");
-assert.match(workspace, /scrollbar-soft min-h-0 flex-1 overflow-y-auto/, "Patient workspace content must stay scrollable");
+assert.match(workspace, /patient-workspace-surface clinical-surface/, "Patient workspace must merge tabs and content into one surface");
+assert.match(globals, /\.patient-workspace[\s\S]*overflow-y: auto/, "Patient workspace page must own vertical scrolling");
+assert.match(globals, /\.patient-context-rail[\s\S]*position: sticky/, "Patient context rail must remain sticky and non-scrolling");
+assert.match(globals, /\.patient-workspace-tabs[\s\S]*position: sticky/, "Patient workspace tabs must remain visible while the page scrolls");
+assert.doesNotMatch(workspace, /patient-workspace-canvas scrollbar-soft/, "Patient workspace canvas must not render its own vertical scrollbar");
+assert.match(workspace, /role="tablist"/, "Patient workspace must expose semantic tab navigation");
+assert.match(workspace, /aria-selected=\{selected\}/, "Patient workspace tabs must expose selected state");
 assert.match(workspace, /minTableWidth="980px"/, "Carepath workflow table must fit beside the selected-step action panel without forcing a wide duplicate-table experience");
-assert.match(workspace, /minTableWidth="1080px"/, "Patient workspace dense tables must preserve readable columns");
+assert.match(workspace, /minTableWidth="1240px"/, "Patient workspace document table must preserve readable lifecycle columns");
 assert.match(patientRegistry, /minTableWidth="1480px"/, "Patient registry must preserve readable columns for the main work list");
 assert.match(fractionWorksheet, /minTableWidth="1320px"/, "Fraction worksheet history must preserve readable treatment columns");
 

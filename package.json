@@ -71,6 +71,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "recharts": "^3.8.1",
+    "skillfish": "^1.0.38",
     "three": "^0.184.0"
   },
   "devDependencies": {
