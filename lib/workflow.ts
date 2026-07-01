@@ -13,7 +13,8 @@ import type {
   Patient,
   PatientStatus,
   ResponsibleParty,
-  TreatmentCourse
+  TreatmentCourse,
+  WorkflowStepApplicability,
 } from "@/lib/types";
 
 type WorkflowPatient = Patient | OperationalPatient;
@@ -35,6 +36,21 @@ export const carepathPhaseLabels: Record<CarepathWorkflowPhase, string> = {
   AUDIT: "Audit",
   CLOSED: "Closed"
 };
+
+const removedCarepathStepNumbers = new Set([3, 4, 10, 11, 12]);
+const optionalCarepathStepNumbers = new Set([6, 9]);
+
+export function carepathStepApplicability(stepNumber: number): WorkflowStepApplicability {
+  if (removedCarepathStepNumbers.has(stepNumber)) {
+    return "REMOVED";
+  }
+
+  if (optionalCarepathStepNumbers.has(stepNumber)) {
+    return "OPTIONAL";
+  }
+
+  return "REQUIRED";
+}
 
 export const patientStatusLabels: Record<PatientStatus, string> = {
   ACTIVE: "Active",

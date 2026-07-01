@@ -277,7 +277,7 @@ export function DataTable<T extends object>({
                     className="text-left font-semibold whitespace-nowrap"
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
+                      fontSize: 'var(--font-size-label)',
                       paddingLeft: '14px',
                       paddingRight: '14px',
                       width: col.width,

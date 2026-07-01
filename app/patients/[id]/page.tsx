@@ -23,6 +23,7 @@ import {
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
+import { normalizePatientWorkspaceTab } from '@/lib/services/patient-workspace-service';
 
 export default async function PatientProfilePage({
   params,
@@ -55,17 +56,7 @@ export default async function PatientProfilePage({
 
   const domainCourse = getCourses().find((item) => item.id === course.id);
   const prescription = prescriptions.find((item) => item.courseId === course.id);
-  const requestedTab = query?.tab;
-  const initialTab =
-    requestedTab === 'carepath' || requestedTab === 'workflow' || requestedTab === 'tasks'
-      ? 'carepath'
-      : requestedTab === 'treatment' || requestedTab === 'planning' || requestedTab === 'imaging' || requestedTab === 'fractions'
-        ? 'treatment'
-        : requestedTab === 'documents-billing' || requestedTab === 'documents' || requestedTab === 'clinical' || requestedTab === 'billing-audit'
-          ? 'documents-billing'
-          : requestedTab === 'activity'
-            ? 'activity'
-            : undefined;
+  const initialTab = normalizePatientWorkspaceTab(query?.tab);
 
   return (
     <PatientWorkspace

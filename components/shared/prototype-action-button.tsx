@@ -54,6 +54,8 @@ type PrototypeActionButtonProps = {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'default' | 'sm';
   className?: string;
+  onComplete?: (details: { notes: string }) => Promise<void> | void;
+  requireNotes?: boolean;
 };
 
 const icons = {
@@ -116,24 +118,42 @@ export function PrototypeActionButton({
   variant = 'secondary',
   size = 'default',
   className,
+  onComplete,
+  requireNotes = false,
 }: PrototypeActionButtonProps) {
   const [open, setOpen] = useState(false);
   const [complete, setComplete] = useState(false);
-  const [fileName, setFileName] = useState('');
   const [reference, setReference] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const Icon = icons[icon];
   const copy = kindCopy[kind];
   const actionTitle = title ?? defaultTitle(label);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setComplete(true);
+    if (requireNotes && !notes.trim()) {
+      setError('Add a reason before completing this action.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await onComplete?.({ notes: notes.trim() });
+      setComplete(true);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'The action could not be completed.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function close() {
     setOpen(false);
     setComplete(false);
-    setFileName('');
+    setNotes('');
+    setError('');
   }
 
   function openAction() {
@@ -202,7 +222,7 @@ export function PrototypeActionButton({
                 <>
                   <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
                     File
-                    <Input type="file" onChange={(event) => setFileName(event.target.files?.[0]?.name ?? '')} />
+                    <Input type="file" />
                   </label>
                   <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
                     Category
@@ -302,18 +322,21 @@ export function PrototypeActionButton({
               ) : null}
 
               <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)] sm:col-span-2">
-                Notes
+                {requireNotes ? 'Reason (required)' : 'Notes'}
                 <Textarea
                   rows={3}
-                  defaultValue={fileName ? `Selected file: ${fileName}` : ''}
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
                   placeholder="Add PHI-safe demo notes for this action."
                 />
               </label>
             </div>
 
+            {error ? <p role="alert" className="type-meta text-[var(--color-error)]">{error}</p> : null}
+
             <div className="flex flex-wrap justify-end gap-2">
               <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
-              <Button type="submit">{copy.primary}</Button>
+              <Button type="submit" disabled={submitting}>{submitting ? 'Saving…' : copy.primary}</Button>
             </div>
           </form>
         )}

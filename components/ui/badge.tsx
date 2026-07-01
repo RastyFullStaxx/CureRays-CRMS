@@ -21,7 +21,7 @@ export function Badge({ variant = 'default', children, className }: BadgeProps) 
   return (
     <span
       className={cn(
-        'clinical-pill whitespace-nowrap px-2 py-0.5 text-[11px]',
+        'clinical-pill whitespace-nowrap px-2 py-0.5',
         variantClasses[variant],
         className
       )}

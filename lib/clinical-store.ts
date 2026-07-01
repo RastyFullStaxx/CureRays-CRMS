@@ -47,7 +47,6 @@ import type {
   TreatmentFraction,
   WorkflowDefinition,
   WorkflowStep,
-  WorkflowStepApplicability,
   WorkflowSnapshot
 } from "@/lib/types";
 import {
@@ -63,7 +62,7 @@ import {
   toOperationalPriorityFlag
 } from "@/lib/hipaa";
 import { canApproveFraction } from "@/lib/rbac";
-import { courseDocuments, courseFractions } from "@/lib/workflow";
+import { carepathStepApplicability, courseDocuments, courseFractions } from "@/lib/workflow";
 import { patientName } from "@/lib/server/patient-phi-formatting";
 import { fileStorageService } from "@/lib/services/file-storage-service";
 import {
@@ -247,8 +246,6 @@ const workflowStepRole: Record<number, CarepathTask["responsibleParty"]> = {
   14: "ADMIN"
 };
 
-const removedCarepathSteps = new Set([3, 4, 10, 11, 12]);
-const optionalCarepathSteps = new Set([6, 9]);
 const removedCarepathReason = "Removed from the CureRays 2026 Carepath model.";
 const optionalCarepathReason = "Optional Carepath step was not triggered for this course.";
 
@@ -342,18 +339,6 @@ function requirementIdsForStep(stepNumber: number, workflowDefinition: WorkflowD
     .map((requirement) => requirement.id);
 }
 
-function workflowStepApplicability(stepNumber: number): WorkflowStepApplicability {
-  if (removedCarepathSteps.has(stepNumber)) {
-    return "REMOVED";
-  }
-
-  if (optionalCarepathSteps.has(stepNumber)) {
-    return "OPTIONAL";
-  }
-
-  return "REQUIRED";
-}
-
 function normalizeInitialCourseInput(
   input: InitialCourseCreateInput | undefined,
   diagnosisCategory: DiagnosisCategory
@@ -407,7 +392,7 @@ function createWorkflowStepsForCourse(
 ): WorkflowStep[] {
   return carepathStepNames.map((stepName, stepNumber) => {
     const phase = workflowStepPhase[stepNumber];
-    const applicability = workflowStepApplicability(stepNumber);
+    const applicability = carepathStepApplicability(stepNumber);
     const requirementIds = requirementIdsForStep(stepNumber, workflowDefinition);
     const systemReason = applicability === "REMOVED"
       ? removedCarepathReason
@@ -950,7 +935,7 @@ function workflowStatusForFraction(entry: FractionLogEntry | undefined): Treatme
     return "NOT_APPLICABLE";
   }
 
-  if (entry.status === "APPROVED" || (entry.mdApproval && entry.dotApproval)) {
+  if (entry.mdApproval && entry.dotApproval) {
     return "COMPLETED";
   }
 

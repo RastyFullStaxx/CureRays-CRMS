@@ -75,8 +75,8 @@ assert.doesNotMatch(macNavigation, /mac-dock/, "Primary navigation must not rend
 assert.match(macNavigation, /className="mac-command-bar"/, "Shell must render a Mac-style top command bar");
 assert.match(macNavigation, /Search patient, MRN, course, or action/, "Mac shell must keep patient search prominent");
 assert.match(macNavigation, /curerays_theme_mode/, "Mac shell must use the explicit light-first theme preference key");
-assert.match(workspace, /patient-context-rail clinical-surface/, "Patient workspace must keep patient context in the fixed desktop rail");
-assert.match(workspace, /patient-context-compact clinical-surface/, "Patient workspace must provide compact patient context below the desktop breakpoint");
+assert.match(workspace, /patient-workspace-chrome clinical-surface/, "Patient workspace must keep compact patient and course context in sticky chrome");
+assert.match(workspace, /PatientWorkspaceHeader/, "Patient workspace must use the shared compact patient header");
 assert.doesNotMatch(workspace, /clinical-floating-action/, "Patient workspace must not cover content with floating actions");
 assert.match(workspace, /selectedCarepathStep/, "Patient Carepath must use a selected step as the working surface");
 assert.match(workspace, /Related Work Items/, "Patient Carepath must fold related work items into the selected step panel");
@@ -107,10 +107,9 @@ assert.match(globals, /\.dashboard-panel-risk \.dashboard-intervention-list[\s\S
 
 const visibleWorkspaceLabels = [
   "Overview",
-  "Carepath",
+  "Prepare",
   "Treatment",
-  "Documents & Billing",
-  "Activity",
+  "Record & Closeout",
 ];
 
 for (const label of visibleWorkspaceLabels) {
@@ -161,11 +160,11 @@ for (const route of redirectedRoutes) {
 const redirectedPatientSubroutes = [
   {
     file: "app/patients/[id]/carepath/page.tsx",
-    target: "?tab=carepath",
+    target: "?tab=prepare",
   },
   {
     file: "app/patients/[id]/documents/page.tsx",
-    target: "?tab=documents-billing",
+    target: "?tab=record-closeout",
   },
 ];
 
@@ -181,10 +180,9 @@ assert.match(dataTable, /tableMinWidth/, "DataTable must calculate a default min
 assert.match(dataTable, /overflow-x-auto/, "DataTable must keep horizontal scrolling for wide tables");
 assert.match(dataTable, /scrollbar-soft/, "DataTable scroll regions must use the shared styled scrollbar");
 assert.match(dataTable, /flex-wrap items-center gap-2/, "DataTable toolbar controls must wrap instead of clipping");
-assert.match(workspace, /patient-workspace-surface clinical-surface/, "Patient workspace must merge tabs and content into one surface");
+assert.match(workspace, /patient-workspace-surface patient-workspace-canvas clinical-surface/, "Patient workspace must use the shared tab content surface");
 assert.match(globals, /\.patient-workspace[\s\S]*overflow-y: auto/, "Patient workspace page must own vertical scrolling");
-assert.match(globals, /\.patient-context-rail[\s\S]*position: sticky/, "Patient context rail must remain sticky and non-scrolling");
-assert.match(globals, /\.patient-workspace-tabs[\s\S]*position: sticky/, "Patient workspace tabs must remain visible while the page scrolls");
+assert.match(globals, /\.patient-workspace-chrome[\s\S]*position: sticky/, "Patient and tab chrome must remain visible while the page scrolls");
 assert.doesNotMatch(workspace, /patient-workspace-canvas scrollbar-soft/, "Patient workspace canvas must not render its own vertical scrollbar");
 assert.match(workspace, /role="tablist"/, "Patient workspace must expose semantic tab navigation");
 assert.match(workspace, /aria-selected=\{selected\}/, "Patient workspace tabs must expose selected state");
