@@ -174,7 +174,7 @@ Legacy routes and query values map as follows:
 
 ## 6. Typography Contract
 
-Patient workspaces follow `docs/curerays-typography-style-guide.md`: Inter only, with 20px title, 16px heading, 14px body/control, and 12px supporting roles. Page-local font declarations are prohibited. Ordinary records use normal or medium weight; 700 is reserved for patient identity and critical values.
+Patient workspaces follow `docs/curerays-typography-style-guide.md`: Inter only, with 18px title, 14px heading, 13px body, and 12px supporting/control roles. Page-local font declarations are prohibited. Ordinary records use normal or medium weight; 700 is reserved for patient identity and critical values.
 
 ## 7. Visual and Interaction Direction
 

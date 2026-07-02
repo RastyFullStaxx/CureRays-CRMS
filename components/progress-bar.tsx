@@ -1,25 +1,18 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/workflow';
+import { statusToneToken, type StatusTone } from '@/lib/status-utils';
 
 export function ProgressBar({
   value,
   label,
-  tone = 'blue',
+  tone = 'neutral',
   width = 'w-full',
 }: {
   value: number;
   label?: ReactNode;
-  tone?: 'blue' | 'green' | 'orange' | 'red';
+  tone?: StatusTone;
   width?: string;
 }) {
-  const color =
-    tone === 'green'
-      ? 'bg-[var(--color-success)]'
-      : tone === 'orange'
-        ? 'bg-[var(--color-warning)]'
-        : tone === 'red'
-          ? 'bg-[var(--color-error)]'
-          : 'bg-[var(--color-primary)]';
   return (
     <div>
       {label ? (
@@ -27,8 +20,11 @@ export function ProgressBar({
       ) : null}
       <div className={cn('h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]', width)}>
         <div
-          className={cn('h-full rounded-full', color)}
-          style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }}
+          className="h-full rounded-full"
+          style={{
+            background: statusToneToken(tone),
+            width: `${Math.min(Math.max(value, 0), 100)}%`,
+          }}
         />
       </div>
     </div>

@@ -62,33 +62,23 @@ const metricIcons: Record<DashboardMetric['icon'], LucideIcon> = {
 };
 
 type DashboardPalette = {
-  primary: string;
-  accent: string;
-  success: string;
-  warning: string;
-  error: string;
-  info: string;
+  positive: string;
+  intermediate: string;
+  negative: string;
+  neutral: string;
   text: string;
-  muted: string;
   border: string;
-  softBorder: string;
   card: string;
-  cardMuted: string;
 };
 
 const defaultPalette: DashboardPalette = {
-  primary: 'CanvasText',
-  accent: 'Highlight',
-  success: 'CanvasText',
-  warning: 'CanvasText',
-  error: 'CanvasText',
-  info: 'Highlight',
+  positive: 'CanvasText',
+  intermediate: 'CanvasText',
+  negative: 'CanvasText',
+  neutral: 'GrayText',
   text: 'CanvasText',
-  muted: 'GrayText',
   border: 'GrayText',
-  softBorder: 'GrayText',
   card: 'Canvas',
-  cardMuted: 'Canvas',
 };
 
 function cssVar(name: string, fallback: string) {
@@ -98,18 +88,13 @@ function cssVar(name: string, fallback: string) {
 
 function readDashboardPalette(): DashboardPalette {
   return {
-    primary: cssVar('--color-primary', defaultPalette.primary),
-    accent: cssVar('--color-accent', defaultPalette.accent),
-    success: cssVar('--color-success', defaultPalette.success),
-    warning: cssVar('--color-warning', defaultPalette.warning),
-    error: cssVar('--color-error', defaultPalette.error),
-    info: cssVar('--color-accent', defaultPalette.info),
+    positive: cssVar('--status-positive-solid', defaultPalette.positive),
+    intermediate: cssVar('--status-intermediate-solid', defaultPalette.intermediate),
+    negative: cssVar('--status-negative-solid', defaultPalette.negative),
+    neutral: cssVar('--status-neutral-solid', defaultPalette.neutral),
     text: cssVar('--color-text', defaultPalette.text),
-    muted: cssVar('--color-text-muted', defaultPalette.muted),
     border: cssVar('--color-border', defaultPalette.border),
-    softBorder: cssVar('--color-border-soft', defaultPalette.softBorder),
     card: cssVar('--color-card', defaultPalette.card),
-    cardMuted: cssVar('--color-card-muted', defaultPalette.cardMuted),
   };
 }
 
@@ -133,13 +118,12 @@ function useDashboardPalette() {
   return palette;
 }
 
-function toneColor(tone: string, palette: DashboardPalette) {
-  if (tone === 'error') return palette.error;
-  if (tone === 'warning') return palette.warning;
-  if (tone === 'success') return palette.success;
-  if (tone === 'info') return palette.info;
-  if (tone === 'neutral') return palette.muted;
-  return palette.primary;
+function toneColor(tone: DashboardTone, palette: DashboardPalette) {
+  if (tone === 'negative') return palette.negative;
+  if (tone === 'intermediate') return palette.intermediate;
+  if (tone === 'positive') return palette.positive;
+  if (tone === 'neutral') return palette.neutral;
+  return palette.neutral;
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -276,9 +260,8 @@ function ClinicalMatrix({
 }
 
 function carepathHeatmapTone(cell: CarepathHeatmapCell): DashboardTone {
-  if (cell.blocked + cell.overdue > 0) return 'error';
-  if (cell.needsReview > 0) return 'warning';
-  if (cell.value > 0) return 'info';
+  if (cell.blocked + cell.overdue > 0) return 'negative';
+  if (cell.needsReview > 0) return 'intermediate';
   return 'neutral';
 }
 
@@ -338,7 +321,7 @@ function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardP
           value: link.value,
           lineStyle: {
             color: toneColor(link.tone, palette),
-            opacity: link.tone === 'success' ? 0.22 : 0.38,
+            opacity: link.tone === 'positive' ? 0.22 : 0.38,
             curveness: 0.55,
           },
         })),
@@ -470,7 +453,7 @@ function AuditReadinessRibbon({ telemetry }: { telemetry: DashboardTelemetry }) 
   return (
     <div className="dashboard-audit-ribbon">
       {telemetry.carepath.auditReadiness.map((item) => (
-        <article key={item.phase} data-tone={item.blockers > 0 ? 'error' : item.notReady > 0 ? 'warning' : 'success'}>
+        <article key={item.phase} data-tone={item.blockers > 0 ? 'negative' : item.notReady > 0 ? 'intermediate' : 'positive'}>
           <div>
             <strong>{item.percent}%</strong>
             <span>{item.label}</span>
@@ -658,7 +641,7 @@ function WeeklyThroughput({ telemetry }: { telemetry: DashboardTelemetry }) {
             }}
           />
           <Bar dataKey="fractions" name="Fractions" fill="var(--color-primary)" radius={[8, 8, 2, 2]} />
-          <Area dataKey="activeLoad" name="Active load" fill="var(--color-accent)" stroke="var(--color-accent)" />
+          <Area dataKey="activeLoad" name="Active load" fill="var(--color-text-muted)" fillOpacity={0.16} stroke="var(--color-text-muted)" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -694,8 +677,8 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
               }}
             />
             <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-primary)" fillOpacity={0.16} stroke="var(--color-primary)" strokeWidth={2} dot={false} />
-            <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-accent)" fillOpacity={0.12} stroke="var(--color-accent)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="review" name="Review" stroke="var(--color-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)', strokeWidth: 2 }} activeDot={{ r: 4 }} />
+            <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-text-muted)" fillOpacity={0.12} stroke="var(--color-text-muted)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="review" name="Review" stroke="var(--status-intermediate-solid)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)', strokeWidth: 2 }} activeDot={{ r: 4 }} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -755,7 +738,7 @@ function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-panel dashboard-panel-ops" role="tabpanel" id="dashboard-panel-ops" aria-labelledby="dashboard-tab-ops">
       <article className="dashboard-card dashboard-signal-card dashboard-ops-signal">
-        <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized Patient-Course-Task Graph" />
+        <SectionTitle icon={Network} title="Live Clinical Signal Field" meta="Tokenized patient-course-task graph" />
         <div className="dashboard-signal-body">
           <div className="dashboard-signal-plot">
             <NeuronSignalField
@@ -777,11 +760,11 @@ function OperationsDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
           <CourseDistribution telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-throughput-card">
-          <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions Plus Active Load" />
+          <SectionTitle icon={PenLine} title="Weekly Throughput" meta="Fractions plus active load" />
           <WeeklyThroughput telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-capacity-card">
-          <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-Band Density And Provider Pressure" />
+          <SectionTitle icon={CalendarDays} title="Capacity Matrix" meta="Time-band density and provider pressure" />
           <CapacityMatrix telemetry={telemetry} />
         </article>
       </div>
@@ -796,25 +779,25 @@ function CarepathDashboard({ palette, telemetry }: { palette: DashboardPalette; 
         <KpiStrip items={telemetry.carepath.metrics} />
       </div>
       <article className="dashboard-card dashboard-carepath-pulse-card">
-        <SectionTitle icon={Activity} title="Carepath Pulse" meta={`Handoff Pressure As Of ${telemetry.carepath.asOfLabel}`} />
+        <SectionTitle icon={Activity} title="Carepath Pulse" meta={`Handoff pressure as of ${telemetry.carepath.asOfLabel}`} />
         <CarepathPulseSankey telemetry={telemetry} palette={palette} />
       </article>
       <div className="dashboard-carepath-side">
         <article className="dashboard-card dashboard-runway-card">
-          <SectionTitle icon={GitBranch} title="Next Handoff Runway" meta="Top Releases To Move Courses Forward" />
+          <SectionTitle icon={GitBranch} title="Next Handoff Runway" meta="Top releases to move courses forward" />
           <HandoffRunway telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-template-card">
-          <SectionTitle icon={FileText} title="Template Coverage" meta="Active, Draft, Mapping, And Missing States" />
+          <SectionTitle icon={FileText} title="Template Coverage" meta="Active, draft, mapping, and missing states" />
           <TemplateCoverageStrip telemetry={telemetry} />
         </article>
       </div>
       <article className="dashboard-card dashboard-owner-heatmap-card">
-        <SectionTitle icon={UsersRound} title="Phase x Owner Pressure" meta="Open Work By Workflow Lane And Accountable Role" />
+        <SectionTitle icon={UsersRound} title="Phase × Owner Pressure" meta="Open work by workflow lane and accountable role" />
         <PhaseOwnerMatrix telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-audit-card">
-        <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready Evidence Versus Open Evidence By Phase" />
+        <SectionTitle icon={CheckCircle2} title="Audit Readiness Ribbon" meta="Ready evidence versus open evidence by phase" />
         <AuditReadinessRibbon telemetry={telemetry} />
       </article>
     </div>
@@ -825,29 +808,29 @@ function RiskDashboard({ telemetry }: { telemetry: DashboardTelemetry }) {
   return (
     <div className="dashboard-panel dashboard-panel-risk" role="tabpanel" id="dashboard-panel-risk" aria-labelledby="dashboard-tab-risk">
       <article className="dashboard-card dashboard-risk-graph-card">
-        <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized Course-To-Risk-Domain Graph" />
+        <SectionTitle icon={Network} title="Risk Constellation" meta="Tokenized course-to-risk-domain graph" />
         <RiskConstellationGraph telemetry={telemetry} />
       </article>
       <div className="dashboard-risk-summary-row">
         <article className="dashboard-card dashboard-safety-score-card">
-          <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Weighted Risk Components" />
+          <SectionTitle icon={ShieldCheck} title="Clinical Safety Score" meta="Weighted risk components" />
           <ClinicalSafetyScore telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-risk-domain-card">
-          <SectionTitle icon={Activity} title="Risk Domain Load" meta="Sorted By Weighted Signal Pressure" />
+          <SectionTitle icon={Activity} title="Risk Domain Load" meta="Sorted by weighted signal pressure" />
           <RiskDomainLoad telemetry={telemetry} />
         </article>
         <article className="dashboard-card dashboard-phi-mini-card">
-          <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard Payload Assurance" />
+          <SectionTitle icon={LockKeyhole} title="PHI Boundary" meta="Dashboard payload assurance" />
           <PhiAssuranceMini telemetry={telemetry} />
         </article>
       </div>
       <article className="dashboard-card dashboard-intervention-card">
-        <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-Priority Clinical Safety Actions" />
+        <SectionTitle icon={AlertTriangle} title="Intervention Queue" meta="Highest-priority clinical safety actions" />
         <InterventionQueue telemetry={telemetry} />
       </article>
       <article className="dashboard-card dashboard-fraction-watch-card">
-        <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / Override Exceptions Only" />
+        <SectionTitle icon={ClipboardList} title="Fraction Approval Watch" meta="MD / DOT / override exceptions only" />
         <FractionApprovalWatch telemetry={telemetry} />
       </article>
     </div>

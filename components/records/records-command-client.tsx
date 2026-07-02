@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type MasterRecordRow = {
   id: string;
@@ -55,10 +56,6 @@ type RecordsCommandClientProps = {
     fractions: number;
   };
 };
-
-function cleanLabel(value: string) {
-  return value.replace(/_/g, ' ');
-}
 
 export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps) {
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? '');
@@ -113,24 +110,24 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
       />
 
       <StatGrid>
-        <StatCard icon={FolderKanban} label="Total Records" value={stats.totalRecords} tone="primary" />
-        <StatCard icon={FolderKanban} label="Active Courses" value={stats.activeCourses} tone="success" />
-        <StatCard icon={History} label="Open Tasks" value={openTaskCount} tone="warning" />
-        <StatCard icon={FileText} label="Documents" value={stats.documents} tone="info" />
-        <StatCard icon={CheckCircle2} label="Flagged Records" value={flaggedCount} tone={flaggedCount ? 'warning' : 'success'} />
+        <StatCard icon={FolderKanban} label="Total Records" value={stats.totalRecords} tone="neutral" />
+        <StatCard icon={FolderKanban} label="Active Courses" value={stats.activeCourses} tone="neutral" />
+        <StatCard icon={History} label="Open Tasks" value={openTaskCount} tone="intermediate" />
+        <StatCard icon={FileText} label="Documents" value={stats.documents} tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Flagged Records" value={flaggedCount} tone={flaggedCount ? 'intermediate' : 'positive'} />
       </StatGrid>
 
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="type-supporting uppercase text-[var(--color-text-muted)]">Selected record</p>
+            <p className="type-label text-[var(--color-text-muted)]">Selected Record</p>
             <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selectedRecord ? `${selectedRecord.patient} maintenance review` : 'Select a record to review'}
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedRecord ? <Badge variant={phaseTone(selectedRecord.phase)}>{cleanLabel(selectedRecord.phase)}</Badge> : null}
-            {selectedRecord ? <Badge variant={statusTone(selectedRecord.courseStatus)}>{cleanLabel(selectedRecord.courseStatus)}</Badge> : null}
+            {selectedRecord ? <Badge variant={phaseTone(selectedRecord.phase)}>{formatUiLabel(selectedRecord.phase)}</Badge> : null}
+            {selectedRecord ? <Badge variant={statusTone(selectedRecord.courseStatus)}>{formatUiLabel(selectedRecord.courseStatus)}</Badge> : null}
           </div>
         </div>
 
@@ -138,22 +135,22 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Course</p>
+                <p className="type-label text-[var(--color-text-muted)]">Course</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedRecord.course}</p>
-                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{cleanLabel(selectedRecord.coursePhase)}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{formatUiLabel(selectedRecord.coursePhase)}</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Work remaining</p>
+                <p className="type-label text-[var(--color-text-muted)]">Work Remaining</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedRecord.openTasks} open tasks</p>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedRecord.nextAction}</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Evidence</p>
+                <p className="type-label text-[var(--color-text-muted)]">Evidence</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedRecord.documents} documents</p>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedRecord.fractions} fractions logged</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Checklist</p>
+                <p className="type-label text-[var(--color-text-muted)]">Checklist</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">
                   {selectedRecord.checklistReady}/{selectedRecord.checklistTotal} ready
                 </p>
@@ -188,7 +185,7 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
                   </Button>
                 </Link>
               </div>
-              <Select value={maintenanceAction} onChange={(event) => setMaintenanceAction(event.target.value)} aria-label="Maintenance action">
+              <Select value={maintenanceAction} onChange={(event) => setMaintenanceAction(event.target.value)} aria-label="Maintenance Action">
                 <option>Course status reviewed</option>
                 <option>Record correction staged</option>
                 <option>Carepath follow-up assigned</option>
@@ -222,16 +219,16 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
               <div className="flex flex-col">
                 <span className="flex items-center gap-2 type-body text-[var(--color-text)]">
                   {row.patient}
-                  {row.id === selectedRecord?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selectedRecord?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
                 <span className="type-supporting text-[var(--color-text-muted)]">{row.patientRef}</span>
               </div>
             ),
           },
           { key: 'diagnosis', label: 'Diagnosis' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{cleanLabel(row.phase)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{formatUiLabel(row.phase)}</Badge> },
           { key: 'course', label: 'Course' },
-          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
+          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{formatUiLabel(row.courseStatus)}</Badge> },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'documents', label: 'Docs' },
           { key: 'fractions', label: 'Fractions' },
@@ -255,10 +252,10 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="type-supporting uppercase text-[var(--color-text-muted)]">Local prototype ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged record maintenance</h2>
+            <p className="type-label text-[var(--color-text-muted)]">Local Prototype Ledger</p>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged Record Maintenance</h2>
           </div>
-          <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} entries</Badge>
+          <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} entries</Badge>
         </div>
         {ledger.length ? (
           <div className="scrollbar-soft mt-4 max-h-44 space-y-2 overflow-auto pr-1">
@@ -266,7 +263,7 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body text-[var(--color-text)]">{entry.patient}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>

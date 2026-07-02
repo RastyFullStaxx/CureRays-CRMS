@@ -13,6 +13,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import type { CarepathTask, ResponsibleParty, WorkflowItemStatus, WorkflowStep } from '@/lib/types';
 import { carepathPhaseLabels, cn, formatDate, responsiblePartyLabels } from '@/lib/workflow';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 type CarepathCommandClientProps = {
   courseRef: string;
@@ -32,10 +33,6 @@ const statusOptions: WorkflowItemStatus[] = [
   'NOT_APPLICABLE',
   'BLOCKED',
 ];
-
-function statusLabel(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 function nextActionForStep(step: WorkflowStep) {
   if (step.status === 'BLOCKED') return step.blockers[0] ?? 'Resolve blocker before advancing.';
@@ -105,7 +102,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
           : step,
       ),
     );
-    setMessage(`Staged ${statusLabel(draftStatus)} for step ${selectedStep.stepNumber}.`);
+    setMessage(`Staged ${formatUiLabel(draftStatus)} for step ${selectedStep.stepNumber}.`);
   }
 
   function markReady() {
@@ -124,10 +121,10 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
   return (
     <div className="grid min-h-0 gap-4">
       <StatGrid>
-        <StatCard icon={ClipboardList} label="Carepath Steps" value={localSteps.length} sub={`${progress}% complete`} tone="primary" />
-        <StatCard icon={CheckCircle2} label="Complete / Signed" value={completed} sub="Closed loop items" tone="success" />
-        <StatCard icon={AlertTriangle} label="Blocked" value={blocked} sub="Needs owner action" tone={blocked ? 'error' : 'success'} />
-        <StatCard icon={ShieldCheck} label="Signatures Due" value={signatureDue} sub="Review queue" tone={signatureDue ? 'warning' : 'success'} />
+        <StatCard icon={ClipboardList} label="Carepath Steps" value={localSteps.length} sub={`${progress}% complete`} tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Complete / Signed" value={completed} sub="Closed loop items" tone="positive" />
+        <StatCard icon={AlertTriangle} label="Blocked" value={blocked} sub="Needs owner action" tone={blocked ? 'negative' : 'positive'} />
+        <StatCard icon={ShieldCheck} label="Signatures Due" value={signatureDue} sub="Review queue" tone={signatureDue ? 'intermediate' : 'positive'} />
       </StatGrid>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
@@ -147,13 +144,13 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   type="button"
                   onClick={() => setFilter(item)}
                   className={cn(
-                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 type-supporting capitalize transition',
+                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 type-supporting transition',
                     filter === item
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
                       : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
                   )}
                 >
-                  {item}
+                  {formatUiLabel(item)}
                 </button>
               ))}
             </div>
@@ -184,7 +181,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   <p className="mt-1 line-clamp-1 type-supporting text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
                 </div>
                 <Badge variant={phaseTone(step.phase)}>{carepathPhaseLabels[step.phase]}</Badge>
-                <Badge variant={statusTone(step.status)}>{statusLabel(step.status)}</Badge>
+                <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
               </button>
             ))}
           </div>
@@ -203,7 +200,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     Due {selectedStep.dueDate ? formatDate(selectedStep.dueDate) : selectedStep.triggerEvent}
                   </p>
                 </div>
-                <Badge variant={statusTone(selectedStep.status)}>{statusLabel(selectedStep.status)}</Badge>
+                <Badge variant={statusTone(selectedStep.status)}>{formatUiLabel(selectedStep.status)}</Badge>
               </div>
 
               <div className="grid gap-3">
@@ -231,7 +228,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   <div key={task.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="type-body text-[var(--color-text)]">{task.title}</p>
-                      <Badge variant={statusTone(task.status)}>{statusLabel(task.status)}</Badge>
+                      <Badge variant={statusTone(task.status)}>{formatUiLabel(task.status)}</Badge>
                     </div>
                     <p className="mt-2 type-supporting text-[var(--color-text-muted)]">{task.noteAction}</p>
                   </div>
@@ -248,7 +245,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     <span className="clinical-label">Stage Status</span>
                     <Select value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as WorkflowItemStatus)}>
                       {statusOptions.map((status) => (
-                        <option key={status} value={status}>{statusLabel(status)}</option>
+                        <option key={status} value={status}>{formatUiLabel(status)}</option>
                       ))}
                     </Select>
                   </label>

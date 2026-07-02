@@ -13,9 +13,10 @@ import {
 } from 'd3-force';
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
 import { resolveUiFontFamily, uiTypography } from '@/lib/ui-typography';
+import { statusToneToken, type StatusTone } from '@/lib/status-utils';
 
 export type NeuronSignalStageId = 'chart-prep' | 'planning' | 'delivery' | 'closeout';
-export type NeuronSignalTone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral';
+export type NeuronSignalTone = StatusTone;
 export type NeuronSignalGroup = 'patient' | 'course' | 'stage' | 'task' | 'document' | 'risk' | 'domain';
 
 export type NeuronSignalNode = {
@@ -77,23 +78,13 @@ function cssVar(name: string, fallback: string) {
 }
 
 function toneColor(tone: NeuronSignalTone | undefined) {
-  if (tone === 'error') return 'var(--color-error)';
-  if (tone === 'warning') return 'var(--color-warning)';
-  if (tone === 'success') return 'var(--color-success)';
-  if (tone === 'info') return 'var(--color-info)';
-  if (tone === 'neutral') return 'var(--color-text-muted)';
-  if (tone === 'primary') return 'var(--color-primary)';
-  return undefined;
+  return tone ? statusToneToken(tone) : undefined;
 }
 
 function signalColor(node: NeuronSignalNode) {
   const tone = toneColor(node.tone);
   if (tone) return tone;
-  if (node.group === 'risk' || node.group === 'domain') return 'var(--color-error)';
-  if (node.group === 'document') return 'var(--color-info)';
-  if (node.group === 'stage') return 'var(--color-primary)';
-  if (node.group === 'task') return 'var(--color-accent)';
-  if (node.group === 'course') return 'var(--color-success)';
+  if (node.group === 'risk' || node.group === 'domain') return 'var(--status-negative-solid)';
   return 'var(--color-primary)';
 }
 
@@ -450,7 +441,7 @@ export function NeuronSignalField({
   return (
     <>
       <canvas ref={canvasRef} className={className} role="img" aria-label={ariaLabel} />
-      <div className="neuron-signal-tooltip" data-visible={hoveredNode ? 'true' : 'false'} data-tone={hoveredNode?.tone ?? 'primary'} style={tooltipStyle}>
+      <div className="neuron-signal-tooltip" data-visible={hoveredNode ? 'true' : 'false'} data-tone={hoveredNode?.tone ?? 'neutral'} style={tooltipStyle}>
         {hoveredNode ? (
           <>
             <span>{groupLabel(hoveredNode.group)}</span>

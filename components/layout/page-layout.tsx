@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/workflow';
 import { Card } from '@/components/ui/card';
+import type { StatusTone } from '@/lib/status-utils';
 
 export function AppPageShell({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={cn('flex flex-col', className)} style={{ gap: 'var(--space-section)' }}>{children}</div>;
@@ -18,21 +19,14 @@ export function SummaryMetricCard({
   value,
   detail,
   icon: Icon,
-  tone = 'blue',
+  tone = 'neutral',
 }: {
   label: string;
   value: string | number;
   detail: string;
   icon: LucideIcon;
-  tone?: 'blue' | 'orange' | 'amber' | 'indigo';
+  tone?: StatusTone;
 }) {
-  const tones = {
-    blue: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
-    orange: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
-    amber: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
-    indigo: 'bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]',
-  };
-
   return (
     <Card compact>
       <div className="flex items-start justify-between gap-3">
@@ -47,7 +41,7 @@ export function SummaryMetricCard({
             {detail}
           </p>
         </div>
-        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]', tones[tone])}>
+        <span className="stat-card-icon flex h-10 w-10 shrink-0 items-center justify-center" data-tone={tone}>
           <Icon size={18} />
         </span>
       </div>
@@ -141,7 +135,7 @@ export function SecondaryAction({ children }: { children: ReactNode }) {
   );
 }
 
-export function FieldList({ items }: { items: Array<{ label: string; value: ReactNode; tone?: 'default' | 'warning' }> }) {
+export function FieldList({ items }: { items: Array<{ label: string; value: ReactNode; tone?: 'neutral' | 'intermediate' }> }) {
   return (
     <dl className="space-y-3">
       {items.map((item) => (
@@ -150,13 +144,13 @@ export function FieldList({ items }: { items: Array<{ label: string; value: Reac
           className="flex items-start justify-between gap-3 pb-3 last:border-0 last:pb-0"
           style={{ borderBottom: '1px solid var(--color-border-soft)' }}
         >
-          <dt className="type-label uppercase text-[var(--color-text-muted)]">
+          <dt className="type-label text-[var(--color-text-muted)]">
             {item.label}
           </dt>
           <dd
             className={cn(
               'type-body text-right text-[var(--color-text)]',
-              item.tone === 'warning' && 'text-[var(--color-accent)]',
+              item.tone === 'intermediate' && 'text-[var(--status-intermediate-text)]',
             )}
           >
             {item.value}

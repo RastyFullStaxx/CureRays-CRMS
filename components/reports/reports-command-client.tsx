@@ -14,12 +14,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import type { StatusTone } from '@/lib/status-utils';
 
 export type ReportKpiRow = {
   label: string;
   value: string | number;
   detail: string;
-  tone: 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary';
+  tone: StatusTone;
 };
 
 export type ReportPackRow = {
@@ -58,11 +59,11 @@ const reportIcons = {
   billing: ShieldCheck,
 };
 
-function readinessTone(readiness: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (readiness === 'Ready') return 'success';
-  if (readiness === 'Needs Review') return 'warning';
-  if (readiness === 'Blocked') return 'error';
-  return 'info';
+function readinessTone(readiness: string) {
+  if (readiness === 'Ready') return 'positive' as const;
+  if (readiness === 'Needs Review') return 'intermediate' as const;
+  if (readiness === 'Blocked') return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPacks }: ReportsCommandClientProps) {
@@ -135,7 +136,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="type-supporting uppercase text-[var(--color-text-muted)]">Selected report pack</p>
+            <p className="type-label text-[var(--color-text-muted)]">Selected Report Pack</p>
             <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selectedReport ? selectedReport.title : 'Select a report pack'}
             </h2>
@@ -145,7 +146,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedReport ? <Badge variant={readinessTone(selectedReport.readiness)}>{selectedReport.readiness}</Badge> : null}
-            <Badge variant="info">Model as of {asOfLabel}</Badge>
+            <Badge variant="neutral">Model as of {asOfLabel}</Badge>
           </div>
         </div>
 
@@ -153,22 +154,22 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <Card compact>
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Domain</p>
+                <p className="type-label text-[var(--color-text-muted)]">Domain</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedReport.domain}</p>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedReport.cadence}</p>
               </Card>
               <Card compact>
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Output</p>
+                <p className="type-label text-[var(--color-text-muted)]">Output</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedReport.output}</p>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedReport.source}</p>
               </Card>
               <Card compact>
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Primary metric</p>
+                <p className="type-label text-[var(--color-text-muted)]">Primary Metric</p>
                 <p className="mt-1 type-body text-[var(--color-text)]">{selectedReport.metric}</p>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedReport.risk}</p>
               </Card>
               <Card compact>
-                <p className="type-supporting uppercase text-[var(--color-text-muted)]">Analytics link</p>
+                <p className="type-label text-[var(--color-text-muted)]">Analytics Link</p>
                 <Link className="mt-1 inline-flex type-body text-[var(--color-primary)]" href={selectedReport.href}>
                   Open drilldown
                 </Link>
@@ -177,7 +178,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
             </div>
 
             <div className="grid gap-3">
-              <Select value={reportAction} onChange={(event) => setReportAction(event.target.value)} aria-label="Report action">
+              <Select value={reportAction} onChange={(event) => setReportAction(event.target.value)} aria-label="Report Action">
                 <option>Prepare PHI-safe packet</option>
                 <option>Mark reviewed for huddle</option>
                 <option>Stage follow-up owner</option>
@@ -215,12 +216,12 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
                 boxShadow: selected ? 'var(--shadow-card-hover)' : 'var(--shadow-card)',
               }}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-stat-icon-bg)] text-[var(--color-primary)]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--status-neutral-surface)] text-[var(--status-neutral-text)]">
                 <Icon size={18} />
               </span>
               <div className="mt-4 flex items-start justify-between gap-3">
                 <h3 className=" type-heading text-[var(--color-text)]">{pack.title}</h3>
-                {selected ? <Badge variant="primary">Selected</Badge> : null}
+                {selected ? <Badge variant="neutral">Selected</Badge> : null}
               </div>
               <p className="mt-2 type-body text-[var(--color-text-muted)]">{pack.detail}</p>
             </button>
@@ -237,7 +238,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
             <div className="flex flex-col">
               <span className="flex items-center gap-2 type-body text-[var(--color-text)]">
                 {row.title}
-                {row.id === selectedReport?.id ? <Badge variant="primary">Selected</Badge> : null}
+                {row.id === selectedReport?.id ? <Badge variant="neutral">Selected</Badge> : null}
               </span>
               <span className="type-supporting text-[var(--color-text-muted)]">{row.domain}</span>
             </div>
@@ -262,10 +263,10 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="type-supporting uppercase text-[var(--color-text-muted)]">Prototype report ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged report actions</h2>
+            <p className="type-label text-[var(--color-text-muted)]">Prototype Report Ledger</p>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged Report Actions</h2>
           </div>
-          <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} entries</Badge>
+          <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} entries</Badge>
         </div>
         <p className="mt-3 type-body text-[var(--color-text-muted)]">{sampleNotice}</p>
         {ledger.length ? (
@@ -274,7 +275,7 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body text-[var(--color-text)]">{entry.title}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 import type {
   CarepathWorkflowPhase,
   OperationalTreatmentCourse,
@@ -61,10 +62,6 @@ const phaseLabels: Record<CarepathWorkflowPhase, string> = {
   AUDIT: 'Audit',
   CLOSED: 'Closed',
 };
-
-function label(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 function formFromStep(step: OperationalWorkflowStep): StepForm {
   return {
@@ -222,12 +219,12 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-positive-border)] bg-[var(--status-positive-surface)] px-3 py-2 type-body text-[var(--status-positive-text)]">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-negative-border)] bg-[var(--status-negative-surface)] px-3 py-2 type-body text-[var(--status-negative-text)]">
           {error}
         </div>
       ) : null}
@@ -241,10 +238,10 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
 
       <StatGrid>
         <StatCard icon={CalendarDays} label="Active Steps" value={metrics.active} sub="Stored workflow rows" />
-        <StatCard icon={FileText} label="Ready" value={metrics.ready} sub="Awaiting review" tone="primary" />
-        <StatCard icon={CheckCircle2} label="Signed" value={metrics.signed} sub="Signature evidence" tone="success" />
-        <StatCard icon={AlertTriangle} label="Blocked" value={metrics.blocked} sub="Command blockers" tone="error" />
-        <StatCard icon={ShieldCheck} label="N/A" value={metrics.notApplicable} sub="Reason required" tone="warning" />
+        <StatCard icon={FileText} label="Ready" value={metrics.ready} sub="Awaiting review" tone="intermediate" />
+        <StatCard icon={CheckCircle2} label="Signed" value={metrics.signed} sub="Signature evidence" tone="positive" />
+        <StatCard icon={AlertTriangle} label="Blocked" value={metrics.blocked} sub="Command blockers" tone="negative" />
+        <StatCard icon={ShieldCheck} label="N/A" value={metrics.notApplicable} sub="Reason required" tone="neutral" />
       </StatGrid>
 
       <DataTable
@@ -258,10 +255,10 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
             </div>
           ) },
           { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{phaseLabels[row.phase]}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{label(row.status)}</Badge> },
-          { key: 'applicability', label: 'Applicability', render: (row) => <Badge variant={row.applicability === 'REQUIRED' ? 'primary' : 'default'}>{label(row.applicability ?? 'REQUIRED')}</Badge> },
-          { key: 'role', label: 'Role', render: (row) => label(row.responsibleRole) },
-          { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? label(row.responsibleRole) },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
+          { key: 'applicability', label: 'Applicability', render: (row) => <Badge variant={row.applicability === 'REQUIRED' ? 'neutral' : 'neutral'}>{formatUiLabel(row.applicability ?? 'REQUIRED')}</Badge> },
+          { key: 'role', label: 'Role', render: (row) => formatUiLabel(row.responsibleRole) },
+          { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUserId ?? formatUiLabel(row.responsibleRole) },
           { key: 'due', label: 'Due', render: (row) => row.dueDate ?? '—' },
           { key: 'requirements', label: 'Requirements', render: (row) => row.requirementIds?.length ?? 0 },
           { key: 'blocker', label: 'Blocker', render: (row) => row.blockers[0] ?? row.naReason ?? '—' },
@@ -301,9 +298,9 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
         }}
         filters={[
           { id: 'phase', label: 'Phase', getValue: (row) => phaseLabels[row.phase] },
-          { id: 'status', label: 'Status', getValue: (row) => label(row.status) },
-          { id: 'applicability', label: 'Applicability', getValue: (row) => label(row.applicability ?? 'REQUIRED') },
-          { id: 'role', label: 'Role', getValue: (row) => label(row.responsibleRole) },
+          { id: 'status', label: 'Status', getValue: (row) => formatUiLabel(row.status) },
+          { id: 'applicability', label: 'Applicability', getValue: (row) => formatUiLabel(row.applicability ?? 'REQUIRED') },
+          { id: 'role', label: 'Role', getValue: (row) => formatUiLabel(row.responsibleRole) },
         ]}
         empty="No workflow steps are available."
         emptyDescription="Workflow command rows are generated when a patient-course bundle initializes."
@@ -320,7 +317,7 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
                 Status
                 <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as WorkflowItemStatus)}>
                   {workflowStatuses.map((status) => (
-                    <option key={status} value={status}>{label(status)}</option>
+                    <option key={status} value={status}>{formatUiLabel(status)}</option>
                   ))}
                 </Select>
               </label>
@@ -350,7 +347,7 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
               </label>
             </div>
             {blockers.length > 0 ? (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 type-supporting text-[var(--color-error)]">
+              <div className="rounded-[var(--radius-md)] bg-[var(--status-negative-surface)] p-3 type-supporting text-[var(--status-negative-text)]">
                 {blockers.map((item) => <p key={item}>{item}</p>)}
               </div>
             ) : null}

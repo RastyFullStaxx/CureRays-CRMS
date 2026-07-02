@@ -7,7 +7,7 @@ import { DataTable, type DataTableFilter } from '@/components/shared/data-table'
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/workflow';
-import { mapTone } from '@/lib/status-utils';
+import { mapTone, type StatusTone } from '@/lib/status-utils';
 
 type SerializableCell = string | number | boolean | null | undefined | string[];
 export type SerializedTableRow = Record<string, SerializableCell> & { id: string };
@@ -30,7 +30,7 @@ export type SerializedColumn = {
   kind?: 'actions' | 'badge' | 'date' | 'flag' | 'icon' | 'longText' | 'muted' | 'primary' | 'progress' | 'status' | 'text';
   subKey?: string;
   toneKey?: string;
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary';
+  variant?: StatusTone;
   width?: string;
   suffix?: string;
   actions?: SerializedAction[];
@@ -113,7 +113,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   }
 
   if (column.kind === 'badge') {
-    return <Badge variant={column.variant ?? 'default'}>{text}</Badge>;
+    return <Badge variant={column.variant ?? 'neutral'}>{text}</Badge>;
   }
 
   if (column.kind === 'status') {
@@ -142,7 +142,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   }
 
   if (column.kind === 'flag') {
-    return value ? <Flag className="h-4 w-4 text-[var(--color-error)]" aria-hidden="true" /> : <span className="text-[var(--color-text-muted)]">—</span>;
+    return value ? <Flag className="h-4 w-4 text-[var(--status-negative-text)]" aria-hidden="true" /> : <span className="text-[var(--color-text-muted)]">—</span>;
   }
 
   if (column.kind === 'icon') {
@@ -163,7 +163,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
             className="h-full rounded-full"
             style={{
               width: `${clamped}%`,
-              background: clamped > 85 ? 'var(--color-success)' : clamped > 70 ? 'var(--color-warning)' : 'var(--color-error)',
+              background: clamped > 85 ? 'var(--status-positive-solid)' : clamped > 70 ? 'var(--status-intermediate-solid)' : 'var(--status-negative-solid)',
             }}
           />
         </div>

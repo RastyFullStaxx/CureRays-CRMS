@@ -57,10 +57,14 @@ assert.doesNotMatch(globals, /Manrope/, 'Typography must use Inter exclusively')
 
 for (const token of [
   '--font-ui',
-  '--type-title-size:    1.25rem',
-  '--type-heading-size:  1rem',
-  '--type-body-size: 0.875rem',
+  '--type-title-size:    1.125rem',
+  '--type-title-line:    1.5rem',
+  '--type-heading-size:  0.875rem',
+  '--type-heading-line:  1.25rem',
+  '--type-body-size: 0.8125rem',
+  '--type-body-line: 1.1875rem',
   '--type-label-size: 0.75rem',
+  '--type-label-line: 1rem',
 ]) {
   assert.ok(globals.includes(token), `Global typography token is missing: ${token}`);
 }
@@ -123,16 +127,16 @@ assert.match(
 );
 assert.equal((globals.match(/font-size:\s*(?:2\.7|3\.2)px;/g) ?? []).length, 2, 'Only two SVG size exceptions are allowed');
 
-assert.match(button, /type-button/, 'Buttons must use the shared 14px typography role');
+assert.match(button, /type-button/, 'Buttons must use the shared 12px typography role');
 assert.doesNotMatch(button, /type-supporting/, 'Small buttons must not shrink their text');
 assert.match(
   globals,
-  /button\s*\{[^}]*font-size:\s*var\(--type-body-size\)\s*!important;[^}]*font-weight:\s*var\(--font-weight-semibold\)\s*!important;/s,
-  'All button implementations must resolve to the shared 14px/600 contract',
+  /button\s*\{[^}]*font-size:\s*var\(--type-label-size\)\s*!important;[^}]*font-weight:\s*var\(--font-weight-semibold\)\s*!important;[^}]*line-height:\s*var\(--type-label-line\)\s*!important;/s,
+  'All button implementations must resolve to the shared 12px/600 contract',
 );
 assert.match(adapter, /label:\s*12/);
-assert.match(adapter, /body:\s*14/);
-assert.match(adapter, /heading:\s*16/);
-assert.match(adapter, /title:\s*20/);
+assert.match(adapter, /body:\s*13/);
+assert.match(adapter, /heading:\s*14/);
+assert.match(adapter, /title:\s*18/);
 
 console.log('Typography guardrails passed.');

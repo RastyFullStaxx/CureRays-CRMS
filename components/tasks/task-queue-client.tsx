@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 import type {
   CarepathTaskStatus,
   OperationalTask,
@@ -62,10 +63,6 @@ const taskStatuses: CarepathTaskStatus[] = [
   'CLOSED',
   'NOT_APPLICABLE',
 ];
-
-function label(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 function formFromTask(task: OperationalTask): TaskForm {
   return {
@@ -212,23 +209,23 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-positive-border)] bg-[var(--status-positive-surface)] px-3 py-2 type-body text-[var(--status-positive-text)]">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-negative-border)] bg-[var(--status-negative-surface)] px-3 py-2 type-body text-[var(--status-negative-text)]">
           {error}
         </div>
       ) : null}
 
       <StatGrid>
         <StatCard icon={ClipboardCheck} label="All Tasks" value={metrics.all} sub="Stored queue items" />
-        <StatCard icon={UsersRound} label="My Role" value={metrics.mine} sub="Session role lane" tone="primary" />
-        <StatCard icon={PenLine} label="Signatures" value={metrics.signatures} sub="Review path" tone="info" />
-        <StatCard icon={AlertTriangle} label="Overdue" value={metrics.overdue} sub="Date-derived" tone="error" />
-        <StatCard icon={ListChecks} label="Blocked" value={metrics.blocked} sub="Reason required" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Completed" value={metrics.completed} sub="Closed work" tone="success" />
+        <StatCard icon={UsersRound} label="My Role" value={metrics.mine} sub="Session role lane" tone="neutral" />
+        <StatCard icon={PenLine} label="Signatures" value={metrics.signatures} sub="Review path" tone="intermediate" />
+        <StatCard icon={AlertTriangle} label="Overdue" value={metrics.overdue} sub="Date-derived" tone="negative" />
+        <StatCard icon={ListChecks} label="Blocked" value={metrics.blocked} sub="Reason required" tone="negative" />
+        <StatCard icon={CheckCircle2} label="Completed" value={metrics.completed} sub="Closed work" tone="positive" />
       </StatGrid>
 
       <DataTable
@@ -244,11 +241,11 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
           { key: 'course', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{row.displayLabel} / {row.courseRef}</span>
           ) },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.workflowPhase)}>{label(row.workflowPhase)}</Badge> },
-          { key: 'role', label: 'Role', render: (row) => label(row.responsibleParty) },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.workflowPhase)}>{formatUiLabel(row.workflowPhase)}</Badge> },
+          { key: 'role', label: 'Role', render: (row) => formatUiLabel(row.responsibleParty) },
           { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUser },
           { key: 'dueDate', label: 'Due', render: (row) => row.dueDate ?? '—' },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{label(row.status)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
           { key: 'reason', label: 'Reason', render: (row) => row.blockedReason ?? row.naReason ?? row.reopenReason ?? '—' },
           { key: 'action', label: '', render: (row) => (
             <Button
@@ -284,8 +281,8 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
           ].join(' '),
         }}
         filters={[
-          { id: 'status', label: 'Status', getValue: (row) => label(row.status) },
-          { id: 'role', label: 'Role', getValue: (row) => label(row.responsibleParty) },
+          { id: 'status', label: 'Status', getValue: (row) => formatUiLabel(row.status) },
+          { id: 'role', label: 'Role', getValue: (row) => formatUiLabel(row.responsibleParty) },
           { id: 'assigned', label: 'Assigned', getValue: (row) => row.assignedUser },
         ]}
         empty="No tasks are available for this queue."
@@ -303,7 +300,7 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
                 Status
                 <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as CarepathTaskStatus)}>
                   {taskStatuses.map((status) => (
-                    <option key={status} value={status}>{label(status)}</option>
+                    <option key={status} value={status}>{formatUiLabel(status)}</option>
                   ))}
                 </Select>
               </label>
@@ -333,7 +330,7 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
               </label>
             </div>
             {blockers.length > 0 ? (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 type-supporting text-[var(--color-error)]">
+              <div className="rounded-[var(--radius-md)] bg-[var(--status-negative-surface)] p-3 type-supporting text-[var(--status-negative-text)]">
                 {blockers.map((item) => <p key={item}>{item}</p>)}
               </div>
             ) : null}

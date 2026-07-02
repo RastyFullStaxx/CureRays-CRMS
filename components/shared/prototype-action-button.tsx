@@ -174,7 +174,7 @@ export function PrototypeActionButton({
           <div className="grid gap-4" role="status" aria-live="polite">
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-4">
               <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-success-soft)] text-[var(--color-success)]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--status-positive-surface)] text-[var(--status-positive-text)]">
                   <CheckCircle2 className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
@@ -334,7 +334,7 @@ export function PrototypeActionButton({
               </label>
             </div>
 
-            {error ? <p role="alert" className="type-meta text-[var(--color-error)]">{error}</p> : null}
+            {error ? <p role="alert" className="type-meta text-[var(--status-negative-text)]">{error}</p> : null}
 
             <div className="flex flex-wrap justify-end gap-2">
               <Button type="button" variant="secondary" onClick={close}>Cancel</Button>

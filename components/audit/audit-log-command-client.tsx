@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/workflow';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type AuditLogRow = {
   id: string;
@@ -43,13 +44,12 @@ function subtitleForMode(mode: AuditLogCommandClientProps['mode']) {
     : 'System events, document changes, workflow updates, and administrative action review';
 }
 
-function severityFor(row: AuditLogRow): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function severityFor(row: AuditLogRow) {
   const action = row.action.toLowerCase();
-  if (row.entityType === 'SYSTEM' || action.includes('void') || action.includes('delete')) return 'error';
-  if (action.includes('sign') || action.includes('approve')) return 'warning';
-  if (row.redacted) return 'info';
-  if (action.includes('seed') || action.includes('create')) return 'success';
-  return 'default';
+  if (row.entityType === 'SYSTEM' || action.includes('void') || action.includes('delete')) return 'negative' as const;
+  if (action.includes('sign') || action.includes('approve')) return 'intermediate' as const;
+  if (action.includes('seed') || action.includes('create')) return 'positive' as const;
+  return 'neutral' as const;
 }
 
 function domainFor(row: AuditLogRow) {
@@ -57,7 +57,7 @@ function domainFor(row: AuditLogRow) {
   if (row.entityType === 'PATIENT' || row.patientRef !== 'System') return 'Patient Course';
   if (row.entityType === 'SYSTEM') return 'System';
   if (row.entityType.includes('FRACTION')) return 'Treatment';
-  return row.entityType.replaceAll('_', ' ');
+  return formatUiLabel(row.entityType);
 }
 
 function formatDateTime(value: string) {
@@ -113,11 +113,11 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
       />
 
       <StatGrid>
-        <StatCard icon={History} label="Events" value={rows.length} sub="Redacted stream" tone="primary" />
-        <StatCard icon={ShieldCheck} label="Redacted" value={redactedEvents} sub="PHI-safe values" tone="success" />
-        <StatCard icon={FileDown} label="Document Events" value={documentEvents} sub="File lifecycle" tone="info" />
-        <StatCard icon={UserCog} label="Signatures" value={signatureEvents} sub="Approvals" tone="warning" />
-        <StatCard icon={AlertTriangle} label="System Changes" value={systemEvents || 2} sub="Admin-sensitive" tone={systemEvents ? 'error' : 'info'} />
+        <StatCard icon={History} label="Events" value={rows.length} sub="Redacted stream" tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Redacted" value={redactedEvents} sub="PHI-safe values" tone="positive" />
+        <StatCard icon={FileDown} label="Document Events" value={documentEvents} sub="File lifecycle" tone="neutral" />
+        <StatCard icon={UserCog} label="Signatures" value={signatureEvents} sub="Approvals" tone="intermediate" />
+        <StatCard icon={AlertTriangle} label="System Changes" value={systemEvents || 2} sub="Admin-sensitive" tone={systemEvents ? 'negative' : 'neutral'} />
       </StatGrid>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
@@ -131,7 +131,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
             { key: 'action', label: 'Action', render: (row) => <Badge variant={severityFor(row)}>{row.action}</Badge> },
             { key: 'domain', label: 'Domain', render: (row) => domainFor(row) },
             { key: 'entityId', label: 'Entity ID' },
-            { key: 'redacted', label: 'PHI', render: (row) => <Badge variant={row.redacted ? 'success' : 'default'}>{row.redacted ? 'Redacted' : 'Clear'}</Badge> },
+            { key: 'redacted', label: 'PHI', render: (row) => <Badge variant={row.redacted ? 'positive' : 'neutral'}>{row.redacted ? 'Redacted' : 'Clear'}</Badge> },
           ]}
           rows={rows}
           empty="No audit events are available."
@@ -186,18 +186,18 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
               <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <div className="flex items-center justify-between gap-2">
                   <p className="clinical-label">Redaction Preview</p>
-                  <Badge variant={selected.redacted ? 'success' : 'default'}>{selected.redacted ? 'PHI Redacted' : 'No PHI Delta'}</Badge>
+                  <Badge variant={selected.redacted ? 'positive' : 'neutral'}>{selected.redacted ? 'PHI Redacted' : 'No PHI Delta'}</Badge>
                 </div>
                 <div className="grid gap-2 type-body text-[var(--color-text)]">
                   <div className="grid gap-1">
-                    <span className="type-supporting uppercase text-[var(--color-text-muted)]">Previous</span>
-                    <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.previousValue === 'PHI_REDACTED' ? 'text-[var(--color-success)]' : '')}>
+                    <span className="type-label text-[var(--color-text-muted)]">Previous</span>
+                    <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.previousValue === 'PHI_REDACTED' ? 'text-[var(--status-positive-text)]' : '')}>
                       {selected.previousValue}
                     </span>
                   </div>
                   <div className="grid gap-1">
-                    <span className="type-supporting uppercase text-[var(--color-text-muted)]">New</span>
-                    <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.newValue === 'PHI_REDACTED' ? 'text-[var(--color-success)]' : '')}>
+                    <span className="type-label text-[var(--color-text-muted)]">New</span>
+                    <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.newValue === 'PHI_REDACTED' ? 'text-[var(--status-positive-text)]' : '')}>
                       {selected.newValue}
                     </span>
                   </div>

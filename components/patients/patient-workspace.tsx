@@ -49,6 +49,7 @@ import {
 } from '@/lib/workflow';
 import { patientRef } from '@/lib/hipaa';
 import { phaseTone, priorityTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 import {
   derivePatientWorkspaceState,
   type CourseGate,
@@ -85,10 +86,6 @@ const tabs: Array<{ id: PatientWorkspaceTab; label: string; shortLabel?: string;
 
 function patientDisplayName(patient: Patient) {
   return `${patient.firstName} ${patient.lastName}`;
-}
-
-function titleCase(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function currentPhaseLabel(course: TreatmentCourse) {
@@ -150,15 +147,15 @@ function PatientContext({
             {patientDisplayName(patient)}
           </h1>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <Badge variant={statusTone(patient.status)}>{titleCase(patient.status)}</Badge>
-            <Badge variant="primary">Protected record</Badge>
+            <Badge variant={statusTone(patient.status)}>{formatUiLabel(patient.status)}</Badge>
+            <Badge variant="neutral">Protected record</Badge>
           </div>
         </div>
       </div>
 
       <dl className="patient-context-details">
         <div>
-          <dt>CRMS reference</dt>
+          <dt>CRMS Reference</dt>
           <dd>{patientRef(patient.id)}</dd>
         </div>
         <div>
@@ -172,7 +169,7 @@ function PatientContext({
       </dl>
 
       <div className="patient-context-section">
-        <p className="clinical-label">Active course</p>
+        <p className="clinical-label">Active Course</p>
         <p className="mt-2 type-body text-[var(--color-text)]">
           {domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'C')}
         </p>
@@ -196,7 +193,7 @@ function PatientContext({
           <dd>{currentFraction}/{course.totalFractions}</dd>
         </div>
         <div>
-          <dt>Logged dose</dt>
+          <dt>Logged Dose</dt>
           <dd>{cumulativeDose} cGy</dd>
         </div>
         <div>
@@ -206,22 +203,22 @@ function PatientContext({
       </dl>
 
       <div className="patient-context-next">
-        <p className="clinical-label">Next action</p>
+        <p className="clinical-label">Next Action</p>
         <p className="mt-2 type-body text-[var(--color-text)]">{nextAction}</p>
       </div>
 
       <Button type="button" variant="secondary" className="mt-auto w-full" onClick={onOpenSignals}>
         <Bell className="h-4 w-4" aria-hidden="true" />
         Course signals
-        <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
+        <Badge variant={signalCount ? 'intermediate' : 'positive'}>{signalCount}</Badge>
       </Button>
     </>
   );
 }
 
 function CourseGateBanner({ gate, action }: { gate: CourseGate; action?: React.ReactNode }) {
-  const tone = gate.state === 'BLOCKED' ? 'error' : gate.state === 'REVIEW_REQUIRED' ? 'warning' : 'success';
-  const title = gate.state === 'BLOCKED' ? 'Course blocked' : gate.state === 'REVIEW_REQUIRED' ? 'Review required' : 'Ready to advance';
+  const tone = gate.state === 'BLOCKED' ? 'negative' : gate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive';
+  const title = gate.state === 'BLOCKED' ? 'Course Blocked' : gate.state === 'REVIEW_REQUIRED' ? 'Review Required' : 'Ready to Advance';
 
   return (
     <section className={`workspace-gate workspace-gate-${tone}`} aria-labelledby="course-gate-heading">
@@ -287,7 +284,7 @@ function PatientWorkspaceNavigation({ activeTab, orientation, onTabChange }: Pat
     <div
       className={cn('patient-workspace-navigation', `patient-workspace-navigation-${orientation}`, horizontal && 'scrollbar-soft')}
       role="tablist"
-      aria-label="Patient workspace sections"
+      aria-label="Patient Workspace Sections"
       aria-orientation={orientation}
     >
       {tabs.map((tab, index) => {
@@ -342,10 +339,10 @@ function PatientWorkspaceHeader({
   onOpenDetails,
   onOpenSignals,
 }: PatientWorkspaceHeaderProps) {
-  const gateTone = courseGate.state === 'BLOCKED' ? 'error' : courseGate.state === 'REVIEW_REQUIRED' ? 'warning' : 'success';
+  const gateTone = courseGate.state === 'BLOCKED' ? 'negative' : courseGate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive';
 
   return (
-    <header className="patient-workspace-header" aria-label="Patient and active course context">
+    <header className="patient-workspace-header" aria-label="Patient and Active Course Context">
       <div className="patient-workspace-header-primary">
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -355,8 +352,8 @@ function PatientWorkspaceHeader({
             </Link>
             <span className="patient-workspace-header-divider" aria-hidden="true" />
             <h1 className="type-page-title truncate">{patientDisplayName(patient)}</h1>
-            <Badge variant={statusTone(patient.status)}>{titleCase(patient.status)}</Badge>
-            <Badge variant="primary">Protected record</Badge>
+            <Badge variant={statusTone(patient.status)}>{formatUiLabel(patient.status)}</Badge>
+            <Badge variant="neutral">Protected record</Badge>
           </div>
           <dl className="patient-workspace-identifiers">
             <div><dt>External MRN</dt><dd>{patient.mrn || 'Not recorded'}</dd></div>
@@ -367,7 +364,7 @@ function PatientWorkspaceHeader({
           <Button type="button" variant="secondary" size="sm" onClick={onOpenSignals}>
             <Bell className="h-4 w-4" aria-hidden="true" />
             Signals
-            <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
+            <Badge variant={signalCount ? 'intermediate' : 'positive'}>{signalCount}</Badge>
           </Button>
           <Button type="button" variant="secondary" size="sm" onClick={onOpenDetails}>
             Patient details
@@ -377,14 +374,14 @@ function PatientWorkspaceHeader({
 
       <div className="patient-workspace-course-row">
         <div className="patient-workspace-course-summary">
-          <span className="type-label">Active course</span>
+          <span className="type-label">Active Course</span>
           <strong className="type-item-title">{domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'Course ')}</strong>
           <span className="type-meta">{course.protocolName}</span>
         </div>
         <dl className="patient-workspace-course-facts">
           <div><dt>Phase</dt><dd>{currentPhaseLabel(course)}</dd></div>
           <div><dt>Logged</dt><dd>{currentFraction}/{course.totalFractions} fractions</dd></div>
-          <div><dt>Course gate</dt><dd><Badge variant={gateTone}>{titleCase(courseGate.state)}</Badge></dd></div>
+          <div><dt>Course Gate</dt><dd><Badge variant={gateTone}>{formatUiLabel(courseGate.state)}</Badge></dd></div>
         </dl>
       </div>
     </header>
@@ -408,10 +405,10 @@ function PatientWorkspaceSidebar({
   onOpenDetails,
   onOpenSignals,
 }: PatientWorkspaceSidebarProps) {
-  const gateTone = courseGate.state === 'BLOCKED' ? 'error' : courseGate.state === 'REVIEW_REQUIRED' ? 'warning' : 'success';
+  const gateTone = courseGate.state === 'BLOCKED' ? 'negative' : courseGate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive';
 
   return (
-    <aside className="patient-workspace-sidebar clinical-surface" aria-label="Patient and active course context">
+    <aside className="patient-workspace-sidebar clinical-surface" aria-label="Patient and Active Course Context">
       <Link href="/patients" className="clinical-focus type-meta inline-flex min-h-11 items-center gap-1.5 text-[var(--color-primary)]">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Patients
@@ -420,8 +417,8 @@ function PatientWorkspaceSidebar({
       <section className="patient-workspace-sidebar-section patient-workspace-sidebar-identity">
         <h1 className="type-page-title break-words">{patientDisplayName(patient)}</h1>
         <div className="mt-2 flex flex-wrap gap-1.5">
-          <Badge variant={statusTone(patient.status)}>{titleCase(patient.status)}</Badge>
-          <Badge variant="primary">Protected record</Badge>
+          <Badge variant={statusTone(patient.status)}>{formatUiLabel(patient.status)}</Badge>
+          <Badge variant="neutral">Protected record</Badge>
         </div>
         <dl className="mt-3">
           <div><dt>External MRN</dt><dd>{patient.mrn || 'Not recorded'}</dd></div>
@@ -429,20 +426,20 @@ function PatientWorkspaceSidebar({
       </section>
 
       <section className="patient-workspace-sidebar-section patient-workspace-sidebar-course">
-        <p className="type-label">Active course</p>
+        <p className="type-label">Active Course</p>
         <p className="type-item-title mt-1">{domainCourse?.courseNumber ?? course.id.replace('COURSE-', 'Course ')}</p>
         <p className="type-meta patient-workspace-sidebar-diagnosis mt-1">{course.protocolName} · {patient.diagnosisSummary ?? patient.diagnosis}</p>
         <div className="patient-workspace-sidebar-gate mt-3">
-          <span className="type-label">Course gate</span>
-          <Badge variant={gateTone}>{titleCase(courseGate.state)}</Badge>
+          <span className="type-label">Course Gate</span>
+          <Badge variant={gateTone}>{formatUiLabel(courseGate.state)}</Badge>
         </div>
         <dl className="patient-workspace-sidebar-facts mt-3">
           <div><dt>Phase</dt><dd>{currentPhaseLabel(course)}</dd></div>
-          <div><dt>Logged</dt><dd>{currentFraction}/{course.totalFractions}</dd></div>
+          <div><dt>Logged</dt><dd>{currentFraction}/{course.totalFractions} fractions</dd></div>
         </dl>
       </section>
 
-      <nav className="patient-workspace-sidebar-section" aria-label="Patient workspace">
+      <nav className="patient-workspace-sidebar-section" aria-label="Patient Workspace">
         <PatientWorkspaceNavigation activeTab={activeTab} orientation="vertical" onTabChange={onTabChange} />
       </nav>
 
@@ -450,7 +447,7 @@ function PatientWorkspaceSidebar({
         <Button type="button" variant="secondary" size="sm" onClick={onOpenSignals}>
           <Bell className="h-4 w-4" aria-hidden="true" />
           Signals
-          <Badge variant={signalCount ? 'warning' : 'success'}>{signalCount}</Badge>
+          <Badge variant={signalCount ? 'intermediate' : 'positive'}>{signalCount}</Badge>
         </Button>
         <Button type="button" variant="secondary" size="sm" onClick={onOpenDetails}>
           Patient details
@@ -641,26 +638,26 @@ export function PatientWorkspace({
     title: action.label,
     detail: action.blocking ? 'This item blocks course advancement.' : 'Review the required patient-course work.',
     meta: `${action.owner}${action.due ? ` · Due ${formatDate(action.due)}` : ''}`,
-    tone: action.blocking ? 'error' as const : 'warning' as const,
+    tone: action.blocking ? 'negative' as const : 'intermediate' as const,
     tab: action.destination,
     targetKind: action.targetKind,
     targetId: action.targetId,
   })), [workspaceState.actions]);
   const attentionGroups = useMemo(() => [
-    { id: 'blocking', label: 'Blocking course progress', items: attentionItems.filter((item) => item.tone === 'error') },
-    { id: 'prepare', label: 'Preparation work', items: attentionItems.filter((item) => item.tone !== 'error' && item.tab === 'prepare') },
-    { id: 'treatment', label: 'Treatment work', items: attentionItems.filter((item) => item.tone !== 'error' && item.tab === 'treatment') },
-    { id: 'record', label: 'Record and closeout work', items: attentionItems.filter((item) => item.tone !== 'error' && item.tab === 'record-closeout') },
+    { id: 'blocking', label: 'Blocking Course Progress', items: attentionItems.filter((item) => item.tone === 'negative') },
+    { id: 'prepare', label: 'Preparation Work', items: attentionItems.filter((item) => item.tone !== 'negative' && item.tab === 'prepare') },
+    { id: 'treatment', label: 'Treatment Work', items: attentionItems.filter((item) => item.tone !== 'negative' && item.tab === 'treatment') },
+    { id: 'record', label: 'Record and Closeout Work', items: attentionItems.filter((item) => item.tone !== 'negative' && item.tab === 'record-closeout') },
   ].filter((group) => group.items.length > 0), [attentionItems]);
 
   const tabContent = useMemo(() => {
     if (activeTab === 'prepare') {
       return (
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        <div className="grid min-w-0 gap-4">
           <div className="prepare-workbench-layout">
             <section className="clinical-surface overflow-hidden" aria-labelledby="course-path-heading">
               <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
-                <h2 id="course-path-heading" className="type-section-title">Preparation path</h2>
+                <h2 id="course-path-heading" className="type-section-title">Preparation Path</h2>
                 <p className="type-meta mt-1">{blockedSteps.length} blocked · {urgentTasks.length} priority</p>
               </div>
               <div className="prepare-step-groups">
@@ -685,7 +682,7 @@ export function PatientWorkspace({
                               <span className="type-item-title block truncate">{step.stepName}</span>
                               <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
                             </span>
-                            <Badge variant={statusTone(step.status)}>{titleCase(step.status)}</Badge>
+                            <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
                           </button>
                         ))}
                       </div>
@@ -710,7 +707,7 @@ export function PatientWorkspace({
                     </div>
                     <div className="flex flex-wrap justify-end gap-1.5">
                       <Badge variant={phaseTone(selectedCarepathStep.phase)}>{carepathPhaseLabels[selectedCarepathStep.phase]}</Badge>
-                      <Badge variant={statusTone(selectedCarepathStep.status)}>{titleCase(selectedCarepathStep.status)}</Badge>
+                      <Badge variant={statusTone(selectedCarepathStep.status)}>{formatUiLabel(selectedCarepathStep.status)}</Badge>
                     </div>
                   </div>
 
@@ -734,7 +731,7 @@ export function PatientWorkspace({
                         />
                         {['COMPLETED', 'SIGNED', 'CLOSED'].includes(selectedCarepathStep.status) ? (
                           <PrototypeActionButton
-                            label="Reopen for correction"
+                            label="Reopen for Correction"
                             icon="refresh"
                             kind="review"
                             variant="secondary"
@@ -771,7 +768,7 @@ export function PatientWorkspace({
                       {(selectedCarepathStep.auditChecklist.length ? selectedCarepathStep.auditChecklist : ['Owner assigned', 'Evidence traceable']).map((item) => (
                         <div key={item} className="clinical-muted-surface flex min-w-0 items-center justify-between gap-3 p-3">
                           <span className="min-w-0 type-body text-[var(--color-text)]">{item}</span>
-                          <Badge variant={selectedCarepathStep.status === 'COMPLETED' || selectedCarepathStep.status === 'SIGNED' ? 'success' : 'warning'}>
+                          <Badge variant={selectedCarepathStep.status === 'COMPLETED' || selectedCarepathStep.status === 'SIGNED' ? 'positive' : 'intermediate'}>
                             {selectedCarepathStep.status === 'COMPLETED' || selectedCarepathStep.status === 'SIGNED' ? 'Ready' : 'Check'}
                           </Badge>
                         </div>
@@ -794,7 +791,7 @@ export function PatientWorkspace({
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               <Badge variant={priorityTone(task.priority)}>{task.priority}</Badge>
-                              <Badge variant={statusTone(task.status)}>{titleCase(task.status)}</Badge>
+                              <Badge variant={statusTone(task.status)}>{formatUiLabel(task.status)}</Badge>
                             </div>
                           </div>
                         </div>
@@ -820,7 +817,7 @@ export function PatientWorkspace({
 
     if (activeTab === 'record-closeout') {
       return (
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        <div className="grid min-w-0 gap-4">
           <CourseGateBanner
             gate={workspaceState.courseGate}
             action={(
@@ -831,13 +828,13 @@ export function PatientWorkspace({
             )}
           />
           <section id="closure-readiness" className="clinical-surface scroll-mt-3 p-4" aria-labelledby="closure-readiness-heading">
-            <SectionTitle id="closure-readiness-heading" title="Closure readiness" />
+            <SectionTitle id="closure-readiness-heading" title="Closure Readiness" />
             <dl className="closure-readiness-grid">
-              <div><dt>Documents & signatures</dt><dd>{unsignedDocs.length ? `${unsignedDocs.length} pending` : 'Clear'}</dd></div>
-              <div><dt>eClinicalWorks uploads (eCW)</dt><dd>{documents.filter((document) => !document.uploadedToEcwAt && !document.ecwUploadReference).length} pending</dd></div>
-              <div><dt>Treatment completion</dt><dd>{currentFraction}/{course.totalFractions} logged</dd></div>
-              <div><dt>Audit checks</dt><dd>{openChecks.length ? `${openChecks.length} open` : 'Clear'}</dd></div>
-              <div><dt>Billing evidence</dt><dd>{documents.some((document) => document.category === 'BILLING') ? 'Recorded' : 'Review required'}</dd></div>
+              <div><dt>Documents & Signatures</dt><dd>{unsignedDocs.length ? `${unsignedDocs.length} pending` : 'Clear'}</dd></div>
+              <div><dt>eClinicalWorks Uploads (eCW)</dt><dd>{documents.filter((document) => !document.uploadedToEcwAt && !document.ecwUploadReference).length} pending</dd></div>
+              <div><dt>Treatment Completion</dt><dd>{currentFraction}/{course.totalFractions} logged</dd></div>
+              <div><dt>Audit Checks</dt><dd>{openChecks.length ? `${openChecks.length} open` : 'Clear'}</dd></div>
+              <div><dt>Billing Evidence</dt><dd>{documents.some((document) => document.category === 'BILLING') ? 'Recorded' : 'Review Required'}</dd></div>
               <div><dt>AVS & follow-up</dt><dd>{workflowSteps.some((step) => step.phase === 'POST_TX' && ['COMPLETED', 'SIGNED'].includes(step.status)) ? 'Recorded' : 'Pending'}</dd></div>
             </dl>
           </section>
@@ -853,20 +850,20 @@ export function PatientWorkspace({
                 <p className="type-meta mt-1">Generate, review, sign, and transfer course records.</p>
               </div>
             }
-            toolbarActions={<PrototypeActionButton label="Generate document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
+            toolbarActions={<PrototypeActionButton label="Generate Document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
             columns={[
               { key: 'title', label: 'Document', render: (row) => <span className="type-medium">{row.title}</span> },
-              { key: 'category', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.category)}>{titleCase(row.category)}</Badge> },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{titleCase(row.status)}</Badge> },
+              { key: 'category', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.category)}>{formatUiLabel(row.category)}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
               { key: 'output', label: 'Output', render: (row) => (
                 <div className="flex flex-wrap gap-1">
-                  <Badge variant={row.outputStatus ? statusTone(row.outputStatus) : 'default'}>{row.outputStatus ? titleCase(row.outputStatus) : 'No Output'}</Badge>
-                  {row.manualEditExceptionAt ? <Badge variant="warning">Manual Edit</Badge> : null}
+                  <Badge variant={row.outputStatus ? statusTone(row.outputStatus) : 'neutral'}>{row.outputStatus ? formatUiLabel(row.outputStatus) : 'No Output'}</Badge>
+                  {row.manualEditExceptionAt ? <Badge variant="intermediate">Manual Edit</Badge> : null}
                 </div>
               ) },
               { key: 'version', label: 'Version' },
-              { key: 'signed', label: 'Signature', render: (row) => <Badge variant={row.signed ? 'success' : 'warning'}>{row.signed ? 'Signed' : 'Pending'}</Badge> },
-              { key: 'ecw', label: 'eClinicalWorks (eCW)', render: (row) => <Badge variant={row.uploadedToEcwAt || row.ecwUploadReference ? 'success' : 'default'}>{row.uploadedToEcwAt || row.ecwUploadReference ? 'Uploaded' : 'Pending'}</Badge> },
+              { key: 'signed', label: 'Signature', render: (row) => <Badge variant={row.signed ? 'positive' : 'intermediate'}>{row.signed ? 'Signed' : 'Pending'}</Badge> },
+              { key: 'ecw', label: 'eClinicalWorks (eCW)', render: (row) => <Badge variant={row.uploadedToEcwAt || row.ecwUploadReference ? 'positive' : 'neutral'}>{row.uploadedToEcwAt || row.ecwUploadReference ? 'Uploaded' : 'Pending'}</Badge> },
               { key: 'updated', label: 'Updated' },
             ]}
             rows={documents.map((document) => ({
@@ -891,7 +888,7 @@ export function PatientWorkspace({
             <Card compact>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <SectionTitle title="Clinical Forms" />
-                <PrototypeActionButton label="Open form builder" icon="file" kind="create" description="Open a prototype structured-form workflow for this course." />
+                <PrototypeActionButton label="Open Form Builder" icon="file" kind="create" description="Open a prototype structured-form workflow for this course." />
               </div>
               <div className="mt-3 grid gap-2">
                 {clinicalFormTemplates.slice(0, 4).map((template) => (
@@ -900,7 +897,7 @@ export function PatientWorkspace({
                       <span className="block truncate type-body text-[var(--color-text)]">{template.name}</span>
                       <span className="type-supporting text-[var(--color-text-muted)]">{template.diagnosisType}</span>
                     </span>
-                    <Badge variant={template.active ? 'success' : 'default'}>{template.active ? 'Active' : 'Inactive'}</Badge>
+                    <Badge variant="neutral">{template.active ? 'Active' : 'Inactive'}</Badge>
                   </div>
                 ))}
                 {clinicalFormTemplates.length === 0 ? (
@@ -913,8 +910,8 @@ export function PatientWorkspace({
 
             <Card compact>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className=" type-heading text-[var(--color-text)]">Outstanding closeout</h2>
-                <Badge variant={openChecks.length ? 'warning' : 'success'}>{openChecks.length ? `${openChecks.length} open` : 'Clear'}</Badge>
+                <h2 className=" type-heading text-[var(--color-text)]">Outstanding Closeout</h2>
+                <Badge variant={openChecks.length ? 'intermediate' : 'positive'}>{openChecks.length ? `${openChecks.length} open` : 'Clear'}</Badge>
               </div>
               <div className="space-y-2">
                 {(openChecks.length ? openChecks : auditChecks).map((check) => (
@@ -923,7 +920,7 @@ export function PatientWorkspace({
                       <p className="truncate type-body text-[var(--color-text)]">{check.label}</p>
                       <p className="type-supporting text-[var(--color-text-muted)]">{check.category}</p>
                     </div>
-                    <Badge variant={statusTone(check.status)}>{titleCase(check.status)}</Badge>
+                    <Badge variant={statusTone(check.status)}>{formatUiLabel(check.status)}</Badge>
                   </div>
                 ))}
                 {auditChecks.length === 0 ? (
@@ -941,7 +938,7 @@ export function PatientWorkspace({
                     {auditChecks.filter((check) => !openChecks.includes(check)).map((check) => (
                       <div id={`workspace-target-audit-${check.id}`} tabIndex={-1} key={check.id} className="flex items-center justify-between gap-3 px-1 py-2">
                         <span className="type-body text-[var(--color-text)]">{check.label}</span>
-                        <Badge variant={statusTone(check.status)}>{titleCase(check.status)}</Badge>
+                        <Badge variant={statusTone(check.status)}>{formatUiLabel(check.status)}</Badge>
                       </div>
                     ))}
                   </div>
@@ -964,7 +961,7 @@ export function PatientWorkspace({
                   </div>
                   <div className="min-w-0">
                     <p className="type-item-title">{event.action}</p>
-                    <p className="type-meta mt-1">{event.reason || `Updated ${titleCase(event.entityType)} record`}</p>
+                    <p className="type-meta mt-1">{event.reason || `Updated ${formatUiLabel(event.entityType)} record`}</p>
                   </div>
                 </div>
               ))}
@@ -981,7 +978,7 @@ export function PatientWorkspace({
 
     if (activeTab === 'treatment') {
       return (
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        <div className="grid min-w-0 gap-4">
           <CourseGateBanner
             gate={workspaceState.courseGate}
             action={(
@@ -991,7 +988,7 @@ export function PatientWorkspace({
               </Button>
             )}
           />
-          <div id="fraction-workflow" className="min-w-0 scroll-mt-3">
+          <div id="fraction-workflow" className="scroll-mt-3">
             <FractionWorksheetPanel
               initialEntries={fractionEntries}
               course={course}
@@ -1002,12 +999,12 @@ export function PatientWorkspace({
           </div>
 
           <Card compact>
-            <SectionTitle title="Treatment status" />
+            <SectionTitle title="Treatment Status" />
             <dl className="workspace-snapshot-grid">
-              <div><dt>Upcoming scheduled</dt><dd>{scheduledFractions.length}</dd></div>
-              <div><dt>Logged dose</dt><dd>{cumulativeDose} cGy</dd></div>
+              <div><dt>Upcoming Scheduled</dt><dd>{scheduledFractions.length}</dd></div>
+              <div><dt>Logged Dose</dt><dd>{cumulativeDose} cGy</dd></div>
               <div><dt>Imaging</dt><dd>{missingImageFractions.length ? `${missingImageFractions.length} missing` : 'Clear'}</dd></div>
-              <div><dt>On-treatment visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
+              <div><dt>On-Treatment Visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
               <div><dt>Physics</dt><dd>{physicsDueFractions.length ? `${physicsDueFractions.length} due` : 'Clear'}</dd></div>
               <div><dt>Plan</dt><dd>{currentPlan?.lockedAt ? 'Locked' : 'Open'}</dd></div>
             </dl>
@@ -1021,7 +1018,7 @@ export function PatientWorkspace({
                   Reference {clinicalValidationChecklist.referenceVersion}
                 </span>
               </span>
-              <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'warning' : 'success'}>
+              <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'intermediate' : 'positive'}>
                 {clinicalValidationChecklist.productionUseBlocked ? 'Clinical Validation Required' : planningReadiness.clinicianSignoffStatus}
               </Badge>
             </summary>
@@ -1030,13 +1027,13 @@ export function PatientWorkspace({
                 <div><dt>Site</dt><dd>{currentPlan?.site ?? course.diagnosis}</dd></div>
                 <div><dt>Energy</dt><dd>{currentPlan?.energy ?? course.energy ?? 'Pending'}</dd></div>
                 <div><dt>Applicator</dt><dd>{currentPlan?.applicatorSize ?? course.applicator ?? 'Pending'}</dd></div>
-                <div><dt>Dose per fraction</dt><dd>{currentPlan?.dosePerFraction ?? course.dose ?? 'Pending'}</dd></div>
-                <div><dt>Target depth</dt><dd>{currentPlan?.depthOfInvasion ?? course.targetDepth ?? 'Pending'}</dd></div>
+                <div><dt>Dose per Fraction</dt><dd>{currentPlan?.dosePerFraction ?? course.dose ?? 'Pending'}</dd></div>
+                <div><dt>Target Depth</dt><dd>{currentPlan?.depthOfInvasion ?? course.targetDepth ?? 'Pending'}</dd></div>
                 <div><dt>Coverage</dt><dd>{currentPlan?.percentDepthDose ? `${currentPlan.percentDepthDose}%` : 'Pending'}</dd></div>
               </dl>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 <h3 className=" type-heading text-[var(--color-text)]">Clinical Sign-Off Gate</h3>
-                <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'warning' : 'success'}>
+                <Badge variant={clinicalValidationChecklist.productionUseBlocked ? 'intermediate' : 'positive'}>
                   {planningReadiness.clinicianSignoffStatus}
                 </Badge>
               </div>
@@ -1049,7 +1046,7 @@ export function PatientWorkspace({
                         {responsiblePartyLabels[item.ownerRole]} evidence required
                       </p>
                     </div>
-                    <Badge variant="warning">{item.status}</Badge>
+                    <Badge variant="intermediate">{item.status}</Badge>
                   </div>
                 ))}
               </div>
@@ -1068,10 +1065,10 @@ export function PatientWorkspace({
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{missingImageFractions.length} missing image gate(s)</p>
               </div>
             }
-            toolbarActions={<PrototypeActionButton label="Attach image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
+            toolbarActions={<PrototypeActionButton label="Attach Image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
             columns={[
               { key: 'category', label: 'Image / Evidence', render: (row) => <span className="type-medium">{row.category}</span> },
-              { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{titleCase(row.phase)}</Badge> },
+              { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{formatUiLabel(row.phase)}</Badge> },
               { key: 'uploaded', label: 'Uploaded' },
               { key: 'uploader', label: 'Uploaded By' },
               { key: 'notes', label: 'Notes', render: (row) => <span className="line-clamp-2 text-[var(--color-text-muted)]">{row.notes}</span> },
@@ -1093,7 +1090,7 @@ export function PatientWorkspace({
     }
 
     return (
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+      <div className="grid min-w-0 gap-4">
         <CourseGateBanner
           gate={workspaceState.courseGate}
           action={(
@@ -1105,7 +1102,7 @@ export function PatientWorkspace({
         />
 
         <section className="clinical-surface p-4" aria-labelledby="phase-progress-heading">
-          <SectionTitle id="phase-progress-heading" title="Course progress" />
+          <SectionTitle id="phase-progress-heading" title="Course Progress" />
           <div className="workspace-phase-scroll scrollbar-soft">
             <ol className="workspace-phase-tracker">
               {workspacePhases.map((phase, index) => {
@@ -1120,7 +1117,7 @@ export function PatientWorkspace({
         <section className="clinical-surface overflow-hidden" aria-labelledby="attention-heading">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border-soft)] px-4 py-3">
             <div>
-              <h2 id="attention-heading" className=" type-heading text-[var(--color-text)]">Needs attention</h2>
+              <h2 id="attention-heading" className=" type-heading text-[var(--color-text)]">Needs Attention</h2>
               <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Blocking and role-ready work grouped by destination.</p>
             </div>
           </div>
@@ -1157,20 +1154,20 @@ export function PatientWorkspace({
         </section>
 
         <section className="clinical-surface p-4" aria-labelledby="snapshot-heading">
-          <SectionTitle id="snapshot-heading" title="Course snapshot" />
+          <SectionTitle id="snapshot-heading" title="Course Snapshot" />
           <dl className="workspace-snapshot-grid">
             <div><dt>Carepath</dt><dd>{carepath.completed}/{carepath.total} complete</dd></div>
             <div><dt>Documents</dt><dd>{unsignedDocs.length} unsigned</dd></div>
             <div><dt>Approvals</dt><dd>{approvedFractions.length}/{currentFraction} logged approved</dd></div>
             <div><dt>Imaging</dt><dd>{missingImageFractions.length ? `${missingImageFractions.length} missing` : 'Clear'}</dd></div>
-            <div><dt>On-treatment visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
+            <div><dt>On-Treatment Visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
             <div><dt>Physics</dt><dd>{physicsDueFractions.length ? `${physicsDueFractions.length} due` : 'Clear'}</dd></div>
           </dl>
         </section>
 
         <section className="clinical-surface overflow-hidden" aria-labelledby="recent-activity-heading">
           <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
-            <h2 id="recent-activity-heading" className="type-section-title">Recent course activity</h2>
+            <h2 id="recent-activity-heading" className="type-section-title">Recent Course Activity</h2>
           </div>
           <div className="divide-y divide-[var(--color-border-soft)]">
             {auditEvents.slice(0, 3).map((event) => (
@@ -1305,7 +1302,7 @@ export function PatientWorkspace({
 function carepathStepAction(step: WorkflowStep) {
   if (step.status === 'BLOCKED' || step.blockers.length > 0) {
     return {
-      label: 'Resolve blocker',
+      label: 'Resolve Blocker',
       detail: step.blockers[0] ?? step.notes ?? 'Clear the blocker before this course can advance.',
       kind: 'review' as const,
       icon: 'play' as const,
@@ -1314,7 +1311,7 @@ function carepathStepAction(step: WorkflowStep) {
 
   if (step.status === 'COMPLETED' || step.status === 'SIGNED' || step.status === 'CLOSED') {
     return {
-      label: 'Review record',
+      label: 'Review Record',
       detail: 'This step is already complete. Open it only when a correction or audit check is needed.',
       kind: 'review' as const,
       icon: 'check' as const,
@@ -1332,7 +1329,7 @@ function carepathStepAction(step: WorkflowStep) {
 
   if (step.linkedDocumentId || step.requirementIds?.length) {
     return {
-      label: 'Generate document',
+      label: 'Generate Document',
       detail: 'Complete the mapped fields, preview the output, then finalize the generated document record.',
       kind: 'document' as const,
       icon: 'file' as const,
@@ -1340,7 +1337,7 @@ function carepathStepAction(step: WorkflowStep) {
   }
 
   return {
-    label: 'Review step',
+    label: 'Review Step',
     detail: step.notes ?? step.triggerEvent,
     kind: 'review' as const,
     icon: 'play' as const,
@@ -1363,10 +1360,10 @@ function ContextRail({
   nextAction: string;
 }) {
   const signals = [
-    { label: 'Urgent tasks', value: urgentTasks, icon: AlertTriangle, variant: urgentTasks ? 'warning' : 'success' },
-    { label: 'Blocked steps', value: blockedSteps, icon: Route, variant: blockedSteps ? 'error' : 'success' },
-    { label: 'Unsigned docs', value: unsignedDocs, icon: FileCheck2, variant: unsignedDocs ? 'warning' : 'success' },
-    { label: 'Open audit checks', value: openChecks, icon: ShieldCheck, variant: openChecks ? 'warning' : 'success' },
+    { label: 'Urgent Tasks', value: urgentTasks, icon: AlertTriangle, variant: urgentTasks ? 'intermediate' : 'positive' },
+    { label: 'Blocked Steps', value: blockedSteps, icon: Route, variant: blockedSteps ? 'negative' : 'positive' },
+    { label: 'Unsigned Docs', value: unsignedDocs, icon: FileCheck2, variant: unsignedDocs ? 'intermediate' : 'positive' },
+    { label: 'Open Audit Checks', value: openChecks, icon: ShieldCheck, variant: openChecks ? 'intermediate' : 'positive' },
   ] as const;
 
   return (
@@ -1387,7 +1384,7 @@ function ContextRail({
       </div>
 
       <div className="mt-5">
-        <p className="clinical-label">Next action</p>
+        <p className="clinical-label">Next Action</p>
         <p className="mt-2 type-body text-[var(--color-text)]">{nextAction}</p>
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between type-supporting text-[var(--color-text-muted)]">

@@ -73,13 +73,12 @@ type TemplatesCommandClientProps = {
   placeholders: TemplatePlaceholderRow[];
 };
 
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('verified') || normalized.includes('active') || normalized.includes('approved') || normalized.includes('ready')) return 'success';
-  if (normalized.includes('deferred') || normalized.includes('review') || normalized.includes('draft') || normalized.includes('missing')) return 'warning';
-  if (normalized.includes('mismatch') || normalized.includes('retired')) return 'error';
-  if (normalized.includes('complete')) return 'info';
-  return 'default';
+  if (normalized.includes('verified') || normalized.includes('approved') || normalized.includes('ready')) return 'positive' as const;
+  if (normalized.includes('deferred') || normalized.includes('review') || normalized.includes('draft')) return 'intermediate' as const;
+  if (normalized.includes('mismatch') || normalized.includes('retired') || normalized.includes('missing')) return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function TemplatesCommandClient({
@@ -137,11 +136,11 @@ export function TemplatesCommandClient({
       />
 
       <StatGrid>
-        <StatCard icon={FileText} label="Active Sources" value={stats.active} sub={`${stats.sourceCount} cataloged`} tone="success" />
-        <StatCard icon={ShieldCheck} label="Pilot Approved" value={stats.pilotApproved} sub={stats.schemaVersion} tone="primary" />
-        <StatCard icon={GitBranch} label="Field Maps" value={stats.completeFieldMaps} sub={`${stats.fieldMapCount} tracked`} tone="info" />
-        <StatCard icon={CheckCircle2} label="Hash Verified" value={stats.hashVerified} sub={`${stats.hashMismatched} mismatches`} tone="success" />
-        <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="warning" />
+        <StatCard icon={FileText} label="Active Sources" value={stats.active} sub={`${stats.sourceCount} cataloged`} tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Pilot Approved" value={stats.pilotApproved} sub={stats.schemaVersion} tone="positive" />
+        <StatCard icon={GitBranch} label="Field Maps" value={stats.completeFieldMaps} sub={`${stats.fieldMapCount} tracked`} tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Hash Verified" value={stats.hashVerified} sub={`${stats.hashMismatched} mismatches`} tone="positive" />
+        <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="neutral" />
       </StatGrid>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
@@ -285,9 +284,9 @@ export function TemplatesCommandClient({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Registry Snapshot</p>
-              <h2 className="mt-1 type-heading text-[var(--color-text)]">Pilot readiness controls</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">Pilot Readiness Controls</h2>
             </div>
-            <Badge variant="primary">{stats.generatedAt.slice(0, 10)}</Badge>
+            <Badge variant="neutral">{stats.generatedAt.slice(0, 10)}</Badge>
           </div>
           <div className="mt-4 grid gap-3">
             <div className="clinical-muted-surface p-3">
@@ -310,14 +309,14 @@ export function TemplatesCommandClient({
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Template Review Ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged review decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Review Decisions</h2>
           </div>
-          <Badge variant="info">No external sync</Badge>
+          <Badge variant="neutral">No External Sync</Badge>
         </div>
         <div className="grid gap-2">
           {reviewLedger.length ? reviewLedger.map((record) => (
             <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_minmax(0,1fr)_160px]">
-              <span className="type-supporting text-[var(--color-primary)]">{record.id}</span>
+              <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
               <span className="truncate type-body text-[var(--color-text)]">{record.template}</span>
               <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
             </div>

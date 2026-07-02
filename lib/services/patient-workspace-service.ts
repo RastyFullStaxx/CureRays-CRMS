@@ -75,7 +75,7 @@ function latestTimestamp(values: Array<string | undefined>): string {
 function taskActionLabel(task: Task): string {
   const subject = task.title.replace(/\s+(sign|review)$/i, '').trim();
   if (task.status === 'BLOCKED') return `Resolve blocker: ${subject}`;
-  if (task.type === 'SIGN_DOCUMENT') return `Review and sign ${subject}`;
+  if (task.type === 'SIGN_DOCUMENT') return `Review and Sign ${subject}`;
   if (task.type === 'LAUNCH_DOCUMENT') return `Generate ${subject}`;
   if (task.type === 'UPLOAD_IMAGE') return `Attach evidence for ${subject}`;
   return task.title;
@@ -124,7 +124,7 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
     ...blockedSteps.map((step) => ({
       id: `step-${step.id}`,
       label: step.requiresSignature && !step.signedAt
-        ? `Review and sign ${step.stepName.replace(/\s+sign$/i, '').trim()}`
+        ? `Review and Sign ${step.stepName.replace(/\s+sign$/i, '').trim()}`
         : `Resolve blocker: ${step.stepName}`,
       owner: step.assignedUserId ?? responsiblePartyLabels[step.responsibleRole],
       due: step.dueDate,
@@ -156,7 +156,7 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
     ...reviewFractions.map(({ entry }) => ({
       id: `fraction-${entry.id}`,
       label: `Review fraction ${entry.fractionNumber}`,
-      owner: !entry.dotApproval ? 'Target depth reviewer' : 'Physician reviewer',
+      owner: !entry.dotApproval ? 'DOT reviewer' : 'Medical reviewer',
       due: entry.date,
       blocking: false,
       destination: 'treatment' as const,
@@ -165,7 +165,7 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
     })),
     ...unsignedDocuments.map((document) => ({
       id: `document-${document.id}`,
-      label: `Review and sign ${document.title}`,
+      label: `Review and Sign ${document.title}`,
       owner: document.signedByUserId ?? 'Document reviewer',
       blocking: false,
       destination: 'record-closeout' as const,

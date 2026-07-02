@@ -4,8 +4,9 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
+import type { StatusTone } from '@/lib/status-utils';
 
-type ToastType = 'success' | 'error' | 'warning' | 'info';
+type ToastType = StatusTone;
 
 type Toast = {
   id: number;
@@ -31,17 +32,17 @@ export function useToast() {
 }
 
 const icons: Record<ToastType, ReactNode> = {
-  success: <CheckCircle2 size={16} className="text-emerald-500" />,
-  error: <XCircle size={16} className="text-red-500" />,
-  warning: <AlertTriangle size={16} className="text-amber-500" />,
-  info: <Info size={16} className="text-blue-500" />,
+  positive: <CheckCircle2 size={16} className="text-[var(--status-positive-text)]" />,
+  negative: <XCircle size={16} className="text-[var(--status-negative-text)]" />,
+  intermediate: <AlertTriangle size={16} className="text-[var(--status-intermediate-text)]" />,
+  neutral: <Info size={16} className="text-[var(--status-neutral-text)]" />,
 };
 
 const bgClasses: Record<ToastType, string> = {
-  success: 'bg-emerald-50 border-emerald-200',
-  error: 'bg-red-50 border-red-200',
-  warning: 'bg-amber-50 border-amber-200',
-  info: 'bg-blue-50 border-blue-200',
+  positive: 'border-[var(--status-positive-border)] bg-[var(--status-positive-surface)]',
+  negative: 'border-[var(--status-negative-border)] bg-[var(--status-negative-surface)]',
+  intermediate: 'border-[var(--status-intermediate-border)] bg-[var(--status-intermediate-surface)]',
+  neutral: 'border-[var(--status-neutral-border)] bg-[var(--status-neutral-surface)]',
 };
 
 let toastId = 0;
@@ -58,10 +59,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toast = {
-    success: (msg: string) => addToast('success', msg),
-    error: (msg: string) => addToast('error', msg),
-    warning: (msg: string) => addToast('warning', msg),
-    info: (msg: string) => addToast('info', msg),
+    success: (msg: string) => addToast('positive', msg),
+    error: (msg: string) => addToast('negative', msg),
+    warning: (msg: string) => addToast('intermediate', msg),
+    info: (msg: string) => addToast('neutral', msg),
   };
 
   return (

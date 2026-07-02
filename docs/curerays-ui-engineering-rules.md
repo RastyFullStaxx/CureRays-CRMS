@@ -10,12 +10,15 @@ CureRays CRMS is a clinical workflow tool for older clinic staff and radiation o
 
 - Read `app/globals.css` before creating visual styles.
 - Read `docs/curerays-typography-style-guide.md` before changing text, controls, tables, charts, or headings.
+- Read `docs/curerays-color-system-style-guide.md` before changing colors, statuses, badges, charts, progress, or selection treatments.
 - Use CSS custom properties and shared classes for colors, spacing, radii, modal sizing, action widths, file pickers, section navs, and badge/pill treatments.
 - Use only the shared Inter typography roles. Do not add page-local font sizes, families, weights, leading, tracking, or arbitrary Tailwind text utilities.
 - Do not hardcode hex values, ad hoc Tailwind palette colors, translucent status pills, or one-off rounded badge styles in components.
 - Add or extend tokens/classes when a visual pattern will recur.
-- Stay inside the CureRays palette: brand primary, accent, clinical neutrals, and status tokens.
+- Stay inside the CureRays palette: primary for interaction, accent for brand artwork, clinical neutrals, and the positive/intermediate/negative/neutral status tokens.
 - Status text must use `Badge`, `StatusBadge`, or `clinical-pill` tone classes. Do not create translucent rounded status pills in page code.
+- Phases, diagnoses, roles, disciplines, modalities, categories, and record types are neutral. Do not assign categorical colors.
+- Charts use semantic tones only for valenced data. Non-valenced series use primary and neutral treatments.
 
 ## Component Rules
 

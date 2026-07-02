@@ -70,15 +70,15 @@ type AuditLedgerEntry = {
   note: string;
 };
 
-function scoreTone(value: number): 'success' | 'warning' | 'error' | 'info' {
-  if (value >= 86) return 'success';
-  if (value >= 72) return 'info';
-  if (value >= 58) return 'warning';
-  return 'error';
+function scoreTone(value: number) {
+  if (value >= 86) return 'positive' as const;
+  if (value >= 72) return 'neutral' as const;
+  if (value >= 58) return 'intermediate' as const;
+  return 'negative' as const;
 }
 
-function evidenceTone(count: number): 'success' | 'warning' {
-  return count > 0 ? 'warning' : 'success';
+function evidenceTone(count: number) {
+  return count > 0 ? 'intermediate' as const : 'positive' as const;
 }
 
 export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
@@ -132,11 +132,11 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
 
       <StatGrid>
         <StatCard icon={ShieldCheck} label="Audit Rows" value={stats.total} sub="Course closeout review" />
-        <StatCard icon={ClipboardCheck} label="Closeout Queue" value={stats.closeoutQueue} sub="Audit/post treatment" tone="info" />
-        <StatCard icon={AlertTriangle} label="Blocked Checks" value={stats.blockedChecks} sub="Needs remediation" tone="error" />
-        <StatCard icon={FileText} label="Doc Gaps" value={stats.missingDocuments} sub="Missing evidence" tone="warning" />
-        <StatCard icon={PenLine} label="Signatures" value={stats.unsignedDocuments} sub="Provider queue" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Avg Readiness" value={`${stats.averageReadiness}%`} sub="Evidence score" tone="success" />
+        <StatCard icon={ClipboardCheck} label="Closeout Queue" value={stats.closeoutQueue} sub="Audit/post treatment" tone="neutral" />
+        <StatCard icon={AlertTriangle} label="Blocked Checks" value={stats.blockedChecks} sub="Needs remediation" tone="negative" />
+        <StatCard icon={FileText} label="Doc Gaps" value={stats.missingDocuments} sub="Missing evidence" tone="negative" />
+        <StatCard icon={PenLine} label="Signatures" value={stats.unsignedDocuments} sub="Provider queue" tone="intermediate" />
+        <StatCard icon={CheckCircle2} label="Avg Readiness" value={`${stats.averageReadiness}%`} sub="Evidence score" tone="positive" />
       </StatGrid>
 
       <DataTable
@@ -151,7 +151,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
               <div className="flex flex-col">
                 <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.course}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
                 <span className="type-supporting text-[var(--color-text-muted)]">{row.patientRef}</span>
               </div>
@@ -221,7 +221,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
                 <p className="mt-1 type-body text-[var(--color-text)]">
                   {selected.requiredChecks - selected.openChecks}/{selected.requiredChecks} complete
                 </p>
-                <Badge variant={selected.blockedChecks ? 'error' : evidenceTone(selected.openChecks)}>
+                <Badge variant={selected.blockedChecks ? 'negative' : evidenceTone(selected.openChecks)}>
                   {selected.blockedChecks} blocked
                 </Badge>
               </div>
@@ -286,7 +286,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
                   </Button>
                 </Link>
               </div>
-              <Select value={auditAction} onChange={(event) => setAuditAction(event.target.value)} aria-label="Audit action">
+              <Select value={auditAction} onChange={(event) => setAuditAction(event.target.value)} aria-label="Audit Action">
                 <option>Closeout readiness reviewed</option>
                 <option>Document follow-up assigned</option>
                 <option>Billing evidence reviewed</option>
@@ -312,12 +312,12 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Audit Ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged closeout decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Closeout Decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={stats.blockedChecks ? 'warning' : 'success'}>{stats.blockedChecks} blocked checks</Badge>
-            <Badge variant={stats.billingOpen ? 'warning' : 'success'}>{stats.billingOpen} billing open</Badge>
-            <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+            <Badge variant={stats.blockedChecks ? 'intermediate' : 'positive'}>{stats.blockedChecks} blocked checks</Badge>
+            <Badge variant={stats.billingOpen ? 'intermediate' : 'positive'}>{stats.billingOpen} billing open</Badge>
+            <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
           </div>
         </div>
         {ledger.length ? (
@@ -326,7 +326,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body text-[var(--color-text)]">{entry.course}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>

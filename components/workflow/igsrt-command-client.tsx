@@ -69,13 +69,12 @@ type IgsrtCommandClientProps = {
   gates: IgsrtGateRow[];
 };
 
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('clear') || normalized.includes('signed') || normalized.includes('ready') || normalized.includes('complete') || normalized.includes('yes')) return 'success';
-  if (normalized.includes('due') || normalized.includes('required') || normalized.includes('review') || normalized.includes('pending') || normalized.includes('missing')) return 'warning';
-  if (normalized.includes('blocked') || normalized.includes('void') || normalized.includes('no')) return 'error';
-  if (normalized.includes('scheduled') || normalized.includes('active')) return 'primary';
-  return 'default';
+  if (normalized.includes('clear') || normalized.includes('signed') || normalized.includes('ready') || normalized.includes('complete') || normalized.includes('yes')) return 'positive' as const;
+  if (normalized.includes('due') || normalized.includes('required') || normalized.includes('review') || normalized.includes('pending')) return 'intermediate' as const;
+  if (normalized.includes('blocked') || normalized.includes('void') || normalized.includes('missing') || normalized.includes('no')) return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandClientProps) {
@@ -121,8 +120,8 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         <StatCard icon={ClipboardCheck} label="Simulation" value={summary.simulationStatus} sub={summary.simulationSigned} tone={toneFor(summary.simulationStatus)} />
         <StatCard icon={ShieldCheck} label="Prescription" value={summary.prescriptionStatus} sub={summary.prescriptionSigned} tone={toneFor(summary.prescriptionStatus)} />
         <StatCard icon={CalendarDays} label="Schedule" value={`${summary.scheduledFractions}/${summary.plannedFractions}`} sub={summary.scheduleStatus} tone={toneFor(summary.scheduleStatus)} />
-        <StatCard icon={FileText} label="Documents" value={`${readyDocuments}/${documents.length}`} sub="Audit ready" tone={readyDocuments === documents.length ? 'success' : 'warning'} />
-        <StatCard icon={CheckCircle2} label="Gates" value={blockedGates ? `${blockedGates} open` : 'Clear'} sub={summary.clinicalValidationStatus} tone={blockedGates ? 'warning' : 'success'} />
+        <StatCard icon={FileText} label="Documents" value={`${readyDocuments}/${documents.length}`} sub="Audit ready" tone={readyDocuments === documents.length ? 'positive' : 'intermediate'} />
+        <StatCard icon={CheckCircle2} label="Gates" value={blockedGates ? `${blockedGates} open` : 'Clear'} sub={summary.clinicalValidationStatus} tone={blockedGates ? 'negative' : 'positive'} />
       </StatGrid>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
@@ -161,9 +160,9 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             <p className="clinical-label">Missing Inputs</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {summary.missingInputs.length ? summary.missingInputs.map((input) => (
-                <Badge key={input} variant="warning">{input}</Badge>
+                <Badge key={input} variant="intermediate">{input}</Badge>
               )) : (
-                <Badge variant="success">Core inputs present</Badge>
+                <Badge variant="positive">Core inputs present</Badge>
               )}
             </div>
           </div>
@@ -173,9 +172,9 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Review Staging</p>
-              <h2 className="mt-1 type-heading text-[var(--color-text)]">IGSRT readiness decision</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">IGSRT Readiness Decision</h2>
             </div>
-            <Badge variant="info">Prototype only</Badge>
+            <Badge variant="neutral">Prototype Only</Badge>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-[220px_minmax(0,1fr)_auto]">
             <label className="grid gap-1">
@@ -201,7 +200,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="mt-4 grid gap-2">
             {ledger.length ? ledger.map((record) => (
               <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_190px_minmax(0,1fr)]">
-                <span className="type-supporting text-[var(--color-primary)]">{record.id}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
                 <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
                 <span className="truncate type-body text-[var(--color-text-muted)]">{record.note}</span>
               </div>

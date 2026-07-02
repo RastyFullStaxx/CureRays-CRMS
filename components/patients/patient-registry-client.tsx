@@ -37,6 +37,7 @@ import type {
 } from '@/lib/types';
 import type { PatientRegistryRow } from '@/lib/services/patient-service';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 type PatientRegistryClientProps = {
   rows: PatientRegistryRow[];
@@ -145,8 +146,8 @@ function formFromPatient(patient: PatientEditDto): PatientFormState {
 function checksForStep(form: PatientFormState, step: FormStep, isEdit: boolean, changeReason: string): FieldCheck[] {
   if (step === 'identity') {
     return [
-      { label: 'First name', complete: requiredText(form.firstName), field: 'firstName' },
-      { label: 'Last name', complete: requiredText(form.lastName), field: 'lastName' },
+      { label: 'First Name', complete: requiredText(form.firstName), field: 'firstName' },
+      { label: 'Last Name', complete: requiredText(form.lastName), field: 'lastName' },
     ];
   }
 
@@ -155,21 +156,21 @@ function checksForStep(form: PatientFormState, step: FormStep, isEdit: boolean, 
       { label: 'Diagnosis', complete: requiredText(form.diagnosis), field: 'diagnosis' },
       { label: 'Location', complete: requiredText(form.location), field: 'location' },
       { label: 'Physician', complete: requiredText(form.physician), field: 'physician' },
-      { label: 'Assigned staff', complete: requiredText(form.assignedStaff), field: 'assignedStaff' },
+      { label: 'Assigned Staff', complete: requiredText(form.assignedStaff), field: 'assignedStaff' },
     ];
   }
 
   if (step === 'course') {
     return [
       { label: 'Protocol', complete: requiredText(form.initialCourse?.protocol), field: 'initialCourse.protocol' },
-      { label: 'Body region', complete: requiredText(form.initialCourse?.bodyRegion), field: 'initialCourse.bodyRegion' },
+      { label: 'Body Region', complete: requiredText(form.initialCourse?.bodyRegion), field: 'initialCourse.bodyRegion' },
       { label: 'Fractions', complete: Number(form.initialCourse?.totalFractions ?? 0) > 0, field: 'initialCourse.totalFractions' },
       { label: 'Modality', complete: requiredText(form.initialCourse?.treatmentModality), field: 'initialCourse.treatmentModality' },
     ];
   }
 
   return isEdit
-    ? [{ label: 'Change reason', complete: requiredText(changeReason), field: 'changeReason' }]
+    ? [{ label: 'Change Reason', complete: requiredText(changeReason), field: 'changeReason' }]
     : [];
 }
 
@@ -212,7 +213,7 @@ function Field({
 }) {
   return (
     <label data-patient-field={field} className={`grid gap-1.5 type-supporting text-[var(--color-text-muted)] ${className}`}>
-      <span>{label}{required ? <span className="ml-1 text-[var(--color-error)]">*</span> : null}</span>
+      <span>{label}{required ? <span className="ml-1 text-[var(--status-negative-text)]">*</span> : null}</span>
       {children}
       {helper ? <span className="type-supporting text-[var(--color-text-muted)]">{helper}</span> : null}
     </label>
@@ -222,20 +223,16 @@ function Field({
 function ReviewRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2">
-      <p className="type-supporting uppercase text-[var(--color-text-muted)]">{label}</p>
+      <p className="type-label text-[var(--color-text-muted)]">{label}</p>
       <div className="mt-1 type-body text-[var(--color-text)]">{value || '—'}</div>
     </div>
   );
 }
 
 function prefillStatusVariant(status: PatientPrefillField['status']) {
-  if (status === 'FOUND') return 'success';
-  if (status === 'NEEDS_REVIEW') return 'warning';
-  return 'default';
-}
-
-function prefillStatusLabel(status: PatientPrefillField['status']) {
-  return status.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  if (status === 'FOUND') return 'positive';
+  if (status === 'NEEDS_REVIEW') return 'intermediate';
+  return 'neutral';
 }
 
 function applyPrefillDraft(form: PatientFormState, prefill: PatientPrefillResult): PatientFormState {
@@ -281,7 +278,7 @@ function ClinicalFields({
 }) {
   return (
     <div className={`grid gap-3 sm:grid-cols-2 ${compact ? '' : 'xl:grid-cols-2'}`}>
-      <Field label="Diagnosis category" required>
+      <Field label="Diagnosis Category" required>
         <Select value={form.diagnosisCategory} onChange={(event) => updateForm('diagnosisCategory', event.target.value as DiagnosisCategory)}>
           <option value="SKIN_CANCER">Skin Cancer</option>
           <option value="ARTHRITIS">Arthritis</option>
@@ -304,7 +301,7 @@ function ClinicalFields({
       <Field label="Physician" field="physician" required>
         <Input value={form.physician} onChange={(event) => updateForm('physician', event.target.value)} />
       </Field>
-      <Field label="Assigned staff" field="assignedStaff" required>
+      <Field label="Assigned Staff" field="assignedStaff" required>
         <Input value={form.assignedStaff} onChange={(event) => updateForm('assignedStaff', event.target.value)} />
       </Field>
       <Field label="Status" required>
@@ -340,7 +337,7 @@ function CourseFields({
           <option value="Universal">Universal</option>
         </Select>
       </Field>
-      <Field label="Body region" field="initialCourse.bodyRegion" required>
+      <Field label="Body Region" field="initialCourse.bodyRegion" required>
         <Select value={form.initialCourse?.bodyRegion ?? 'SITE'} onChange={(event) => updateInitialCourse('bodyRegion', event.target.value)}>
           <option value="SITE">Site</option>
           <option value="HAND">Hand</option>
@@ -367,10 +364,10 @@ function CourseFields({
           onChange={(event) => updateInitialCourse('totalFractions', Number(event.target.value))}
         />
       </Field>
-      <Field label="Start date">
+      <Field label="Start Date">
         <Input type="date" value={form.initialCourse?.startDate ?? ''} onChange={(event) => updateInitialCourse('startDate', event.target.value)} />
       </Field>
-      <Field label="Next action" className="xl:col-span-3">
+      <Field label="Next Action" className="xl:col-span-3">
         <Input value={form.nextAction ?? ''} onChange={(event) => updateForm('nextAction', event.target.value)} />
       </Field>
       <Field label="Notes" className="xl:col-span-3">
@@ -643,21 +640,21 @@ export function PatientRegistryClient({
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-positive-border)] bg-[var(--status-positive-surface)] px-3 py-2 type-body text-[var(--status-positive-text)]">
           {message}
         </div>
       ) : null}
       {error && !modalMode ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--status-negative-border)] bg-[var(--status-negative-surface)] px-3 py-2 type-body text-[var(--status-negative-text)]">
           {error}
         </div>
       ) : null}
 
       <StatGrid>
-        <StatCard icon={UsersRound} label="Operational Records" value={metrics.total} tone="primary" />
-        <StatCard icon={UserRoundCheck} label="On Treatment" value={metrics.onTreatment} tone="success" />
-        <StatCard icon={ShieldCheck} label="Upcoming" value={metrics.upcoming} tone="info" />
-        <StatCard icon={FileWarning} label="Needs Action" value={metrics.needsAction} tone="warning" />
+        <StatCard icon={UsersRound} label="Operational Records" value={metrics.total} tone="neutral" />
+        <StatCard icon={UserRoundCheck} label="On Treatment" value={metrics.onTreatment} tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Upcoming" value={metrics.upcoming} tone="neutral" />
+        <StatCard icon={FileWarning} label="Needs Action" value={metrics.needsAction} tone="intermediate" />
       </StatGrid>
 
       <DataTable
@@ -671,9 +668,9 @@ export function PatientRegistryClient({
               <p className="truncate type-supporting text-[var(--color-text-muted)]">{row.phiRecordId}</p>
             </div>
           ) },
-          { key: 'diagnosisCategory', label: 'Diagnosis', render: (row) => <Badge variant="info">{diagnosisLabels[row.diagnosisCategory]}</Badge> },
+          { key: 'diagnosisCategory', label: 'Diagnosis', render: (row) => <Badge variant="neutral">{diagnosisLabels[row.diagnosisCategory]}</Badge> },
           { key: 'chartRoundsPhase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.chartRoundsPhase)}>{phaseLabels[row.chartRoundsPhase]}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{row.status.replaceAll('_', ' ')}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
           { key: 'course', label: 'Course', render: (row) => (
             <div className="min-w-0">
               <p className="truncate type-medium text-[var(--color-primary)]">{row.activeCourseRef}</p>
@@ -712,7 +709,7 @@ export function PatientRegistryClient({
         filters={[
           { id: 'diagnosisCategory', label: 'Diagnosis', getValue: (row) => diagnosisLabels[row.diagnosisCategory] },
           { id: 'chartRoundsPhase', label: 'Phase', getValue: (row) => phaseLabels[row.chartRoundsPhase] },
-          { id: 'status', label: 'Status', getValue: (row) => row.status.replaceAll('_', ' ') },
+          { id: 'status', label: 'Status', getValue: (row) => formatUiLabel(row.status) },
           { id: 'needsAction', label: 'Needs Action', getValue: (row) => row.openTasks > 0 || row.pendingDocuments > 0 || row.flags > 0 ? 'Needs Action' : 'Clear' },
         ]}
         onRowClick={openWorkspace}
@@ -737,7 +734,7 @@ export function PatientRegistryClient({
                     Upload AVS/Intake to prefill draft fields, or continue manually.
                   </p>
                 </div>
-                <Badge variant={formStep === 'detected' ? 'warning' : 'primary'}>{formStep === 'detected' ? 'Review detected details' : 'Step 0'}</Badge>
+                <Badge variant={formStep === 'detected' ? 'intermediate' : 'neutral'}>{formStep === 'detected' ? 'Review detected details' : 'Step 0'}</Badge>
               </div>
             </div>
           ) : null}
@@ -762,7 +759,7 @@ export function PatientRegistryClient({
                       }`}
                       onClick={() => canOpen && setFormStep(step.id)}
                     >
-                      <span className="type-supporting uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
+                      <span className="type-label text-[var(--color-text-muted)]">Step {index + 1}</span>
                       <span className="mt-1 block type-body text-[var(--color-text)]">{step.label}</span>
                       <span className="mt-1 block type-supporting text-[var(--color-text-muted)]">{complete ? 'Ready' : 'Needs required info'}</span>
                     </button>
@@ -779,14 +776,14 @@ export function PatientRegistryClient({
                   <p className="type-body text-[var(--color-text)]">All editable fields are shown together.</p>
                   <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Save requires a change reason and validates stale edits before updating.</p>
                 </div>
-                <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
+                <Badge variant="neutral">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
             </div>
           ) : null}
 
           <div className="clinical-modal-body grid content-start gap-4 py-4">
             {error ? (
-              <div className="clinical-alert-error p-3 type-body" role="alert">
+              <div className="clinical-alert-negative p-3 type-body" role="alert">
                 {error}
               </div>
             ) : null}
@@ -871,7 +868,7 @@ export function PatientRegistryClient({
                         {prefillFileName || 'Uploaded DOCX'} | File retained: No
                       </p>
                     </div>
-                    <Badge variant="warning">Staff review required</Badge>
+                    <Badge variant="intermediate">Staff review required</Badge>
                   </div>
                 </div>
 
@@ -885,7 +882,7 @@ export function PatientRegistryClient({
                             {field.value || 'Not found'}
                           </p>
                         </div>
-                        <Badge variant={prefillStatusVariant(field.status)}>{prefillStatusLabel(field.status)}</Badge>
+                        <Badge variant={prefillStatusVariant(field.status)}>{formatUiLabel(field.status)}</Badge>
                       </div>
                     </div>
                   ))}
@@ -906,7 +903,7 @@ export function PatientRegistryClient({
                 {prefill.warnings.length ? (
                   <div className="grid gap-2">
                     {prefill.warnings.map((warning) => (
-                      <div key={warning} className="clinical-alert-error p-3 type-supporting">
+                      <div key={warning} className="clinical-alert-negative p-3 type-supporting">
                         {warning}
                       </div>
                     ))}
@@ -918,10 +915,10 @@ export function PatientRegistryClient({
             {isCreate && formStep === 'identity' ? (
               <div className="grid gap-4">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="First name" field="firstName" required>
+                  <Field label="First Name" field="firstName" required>
                     <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
                   </Field>
-                  <Field label="Last name" field="lastName" required>
+                  <Field label="Last Name" field="lastName" required>
                     <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
                   </Field>
                   <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional. Use the EMR/registration MRN only when it already exists.">
@@ -961,10 +958,10 @@ export function PatientRegistryClient({
                   <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                     <p className=" type-body text-[var(--color-text)]">Patient Identity</p>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <Field label="First name" field="firstName" required>
+                      <Field label="First Name" field="firstName" required>
                         <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
                       </Field>
-                      <Field label="Last name" field="lastName" required>
+                      <Field label="Last Name" field="lastName" required>
                         <Input value={form.lastName} onChange={(event) => updateForm('lastName', event.target.value)} />
                       </Field>
                       <Field label="External MRN" field="mrn" className="sm:col-span-2" helper="Optional external/EMR identifier. Leave blank if it is not assigned yet.">
@@ -982,7 +979,7 @@ export function PatientRegistryClient({
                   <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} compact />
                 </div>
                 <div>
-                  <Field label="Change reason" field="changeReason" required>
+                  <Field label="Change Reason" field="changeReason" required>
                     <Textarea rows={2} value={changeReason} onChange={(event) => setChangeReason(event.target.value)} placeholder="What changed and why" />
                   </Field>
                 </div>

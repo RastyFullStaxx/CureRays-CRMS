@@ -16,12 +16,14 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DataTable } from "@/components/shared/data-table";
 import { statusTone } from "@/lib/status-utils";
+import { formatUiLabel } from "@/lib/ui-copy";
 import type {
   FractionApprovalType,
   FractionLogEntry,
@@ -103,16 +105,12 @@ function formatPercent(value: number | undefined) {
   return value === undefined ? "-" : `${value.toFixed(1).replace(/\.0$/, "")}%`;
 }
 
-function statusLabel(status: FractionLogStatus | undefined) {
-  return (status ?? "RECORDED").replaceAll("_", " ");
-}
-
 function approvalBadge(label: "MD" | "DOT", approved: boolean, state?: string) {
   const revisionNeeded = state === "REVISION_NEEDED";
-  const reviewLabel = label === "DOT" ? "Target depth" : "Physician";
+  const reviewLabel = label === "DOT" ? "Target Depth" : "Physician";
   return (
-    <Badge variant={approved ? "success" : revisionNeeded ? "warning" : "default"}>
-      {reviewLabel} {approved ? "approved" : revisionNeeded ? "revision" : "pending"}
+    <Badge variant={approved ? "positive" : revisionNeeded ? "intermediate" : "neutral"}>
+      {reviewLabel} {approved ? "Approved" : revisionNeeded ? "Revision" : "Pending"}
     </Badge>
   );
 }
@@ -237,9 +235,9 @@ function requiredFractionFieldsMissing(draft: DraftFraction) {
 function ActionFeedback({ message, error }: { message: string | null; error: string | null }) {
   if (!message && !error) return null;
   return error ? (
-    <div className="clinical-alert-error p-3 type-body" role="alert">{error}</div>
+    <div className="clinical-alert-negative p-3 type-body" role="alert">{error}</div>
   ) : (
-    <div className="clinical-alert-success p-3 type-body" role="status" aria-live="polite">{message}</div>
+    <div className="clinical-alert-positive p-3 type-body" role="status" aria-live="polite">{message}</div>
   );
 }
 
@@ -414,14 +412,9 @@ export function FractionWorksheetPanel({
 
   async function updateCorrection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const input = correctionFormToInput(new FormData(event.currentTarget));
-    if (input.isodoseToDotPercent !== undefined && !input.isodoseOverrideReason) {
-      setError("Enter a clinical reason for the manual isodose override.");
-      return;
-    }
     const workspace = await requestJson(
       "updateFraction",
-      input,
+      correctionFormToInput(new FormData(event.currentTarget)),
       "Fraction corrected. Approvals were reset for review."
     );
 
@@ -538,7 +531,7 @@ export function FractionWorksheetPanel({
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+    <div className="grid gap-4">
       <ActionFeedback message={message} error={error} />
 
       {showEntryFlow ? (
@@ -563,7 +556,7 @@ export function FractionWorksheetPanel({
                     Confirm the course, enter treatment values, and review the live calculation before recording.
                   </p>
                 </div>
-                <Badge variant={recordReady ? "success" : "warning"}>
+                <Badge variant={recordReady ? "positive" : "intermediate"}>
                   {recordReady ? "Ready" : "Needs attention"}
                 </Badge>
               </div>
@@ -572,20 +565,20 @@ export function FractionWorksheetPanel({
             <div className="clinical-modal-body grid content-start gap-4 py-4">
               <ActionFeedback message={message} error={error} />
               {missingFractionFields.length || invalidFractionValues.length ? (
-                <div id="fraction-record-errors" className="clinical-alert-error p-3 type-body" role="alert">
+                <div id="fraction-record-errors" className="clinical-alert-negative p-3 type-body" role="alert">
                   {missingFractionFields.length ? `Complete ${missingFractionFields.join(", ")}. ` : ''}
                   {invalidFractionValues.length ? `Correct ${invalidFractionValues.join(", ")}.` : ''}
                 </div>
               ) : null}
               {overrideReasonMissing ? (
-                <div id="fraction-override-error" className="clinical-alert-error p-3 type-body" role="alert">
+                <div id="fraction-override-error" className="clinical-alert-negative p-3 type-body" role="alert">
                   Enter a clinical reason for the manual isodose override.
                 </div>
               ) : null}
 
               <div className="clinical-fraction-entry-grid">
                 <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                  <h4 className=" type-body text-[var(--color-text)]">Confirm course and fraction</h4>
+                  <h4 className=" type-body text-[var(--color-text)]">Confirm Course and Fraction</h4>
                   <label className="grid gap-1">
                     <span className={labelClass}>Fraction number</span>
                     <Input
@@ -628,7 +621,7 @@ export function FractionWorksheetPanel({
                 </section>
 
                 <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                  <h4 className=" type-body text-[var(--color-text)]">Enter treatment values</h4>
+                  <h4 className=" type-body text-[var(--color-text)]">Enter Treatment Values</h4>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="grid gap-1">
                       <span className={labelClass}>Energy (kV)</span>
@@ -722,9 +715,9 @@ export function FractionWorksheetPanel({
 
                 <section className="grid content-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h4 className=" type-body text-[var(--color-text)]">Review calculated dose</h4>
-                    <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "success" : "warning"}>
-                      {(preview.entry?.calculationStatus ?? "pending").replaceAll("_", " ")}
+                    <h4 className=" type-body text-[var(--color-text)]">Review Calculated Dose</h4>
+                    <Badge variant={preview.entry?.calculationStatus === "AUTO_LOOKUP" ? "positive" : "intermediate"}>
+                      {formatUiLabel(preview.entry?.calculationStatus ?? "pending")}
                     </Badge>
                   </div>
 
@@ -733,14 +726,14 @@ export function FractionWorksheetPanel({
                   </div>
 
                   {preview.error ? (
-                    <div className="clinical-alert-error mt-3 p-3 type-body">
+                    <div className="clinical-alert-negative mt-3 p-3 type-body">
                       {preview.error}
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <PreviewMetric label="Dose to target depth" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
+                      <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
                       <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
-                      <PreviewMetric label="Cumulative target dose" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
+                      <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
                       <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
                     </div>
                   )}
@@ -774,7 +767,7 @@ export function FractionWorksheetPanel({
                     <div className="grid gap-2">
                       {compactWarnings(preview.entry ?? undefined).map((warning) => (
                         <div key={warning} className="flex gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3 type-body text-[var(--color-text-muted)]">
-                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
+                          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--status-intermediate-text)]" aria-hidden="true" />
                           <span>{warning}</span>
                         </div>
                       ))}
@@ -832,13 +825,7 @@ export function FractionWorksheetPanel({
               <Button type="button" variant="ghost" className="clinical-action" onClick={closeReason}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="clinical-action-lg"
-                variant={reasonRequest.type === "void" ? "danger" : "primary"}
-                disabled={!reasonText.trim() || pendingAction === `${reasonRequest.type === "void" ? "voidFraction" : "requestFractionRevision"}-${reasonRequest.entryId}`}
-                aria-busy={pendingAction === `${reasonRequest.type === "void" ? "voidFraction" : "requestFractionRevision"}-${reasonRequest.entryId}`}
-              >
+              <Button type="submit" className="clinical-action-lg" variant={reasonRequest.type === "void" ? "danger" : "primary"} disabled={!reasonText.trim()}>
                 {reasonRequest.type === "void" ? <XCircle className="h-4 w-4" aria-hidden="true" /> : <Undo2 className="h-4 w-4" aria-hidden="true" />}
                 {reasonRequest.type === "void" ? "Void fraction" : "Submit revision request"}
               </Button>
@@ -859,13 +846,13 @@ export function FractionWorksheetPanel({
                 <p className={labelClass}>Correct Fraction</p>
                 <h3 className="mt-1 type-heading text-[var(--color-text)]">Fraction {correctionEntry.fractionNumber}</h3>
               </div>
-              <Badge variant="warning">Approvals reset after correction</Badge>
+              <Badge variant="intermediate">Approvals reset after correction</Badge>
             </div>
             <div className="clinical-modal-body grid content-start gap-4 py-4">
               <ActionFeedback message={message} error={error} />
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <CorrectionInput label="Fraction number" name="fractionNumber" type="number" defaultValue={correctionEntry.fractionNumber} required />
-                <CorrectionInput label="Treatment date" name="date" type="date" defaultValue={correctionEntry.date} required />
+                <CorrectionInput label="Fraction Number" name="fractionNumber" type="number" defaultValue={correctionEntry.fractionNumber} required />
+                <CorrectionInput label="Treatment Date" name="date" type="date" defaultValue={correctionEntry.date} required />
                 <label className="grid gap-1">
                   <span className={labelClass}>Phase</span>
                   <Select name="phase" defaultValue={correctionEntry.phase} required>
@@ -896,11 +883,11 @@ export function FractionWorksheetPanel({
                     ))}
                   </Select>
                 </label>
-                <CorrectionInput label="Dose per fraction (cGy)" name="dosePerFractionCgy" type="number" defaultValue={correctionEntry.dosePerFractionCgy ?? correctionEntry.dosePerFraction} required />
-                <CorrectionInput label="Depth of target (DOT, mm)" name="depthOfTargetMm" type="number" step="0.1" defaultValue={correctionEntry.depthOfTargetMm ?? parseNumeric(correctionEntry.depthOfTarget)} required />
+                <CorrectionInput label="Dose per Fraction (cGy)" name="dosePerFractionCgy" type="number" defaultValue={correctionEntry.dosePerFractionCgy ?? correctionEntry.dosePerFraction} required />
+                <CorrectionInput label="Depth of Target (DOT, mm)" name="depthOfTargetMm" type="number" step="0.1" defaultValue={correctionEntry.depthOfTargetMm ?? parseNumeric(correctionEntry.depthOfTarget)} required />
                 <CorrectionInput label="Source-to-surface distance (SSD, cm)" name="ssdCm" type="number" step="0.1" defaultValue={correctionEntry.ssdCm ?? parseNumeric(correctionEntry.ssd)} required />
-                <CorrectionInput label="Treatment time (minutes)" name="treatmentTimeMinutes" type="number" step="0.1" defaultValue={correctionEntry.treatmentTimeMinutes ?? 0} required />
-                <CorrectionInput label="Technician initials" name="technicianInitials" defaultValue={correctionEntry.technicianInitials} required />
+                <CorrectionInput label="Treatment Time (Minutes)" name="treatmentTimeMinutes" type="number" step="0.1" defaultValue={correctionEntry.treatmentTimeMinutes ?? 0} required />
+                <CorrectionInput label="Technician Initials" name="technicianInitials" defaultValue={correctionEntry.technicianInitials} required />
                 <CorrectionInput label="Override %" name="isodoseToDotPercent" type="number" step="0.1" defaultValue={correctionEntry.isodoseOverrideReason ? correctionEntry.isodoseToDotPercent ?? correctionEntry.isodosePercent : ""} />
                 <CorrectionInput label="Override Reason" name="isodoseOverrideReason" defaultValue={correctionEntry.isodoseOverrideReason ?? ""} />
               </div>
@@ -914,9 +901,9 @@ export function FractionWorksheetPanel({
               <Button type="button" variant="ghost" className="clinical-action" onClick={closeCorrection}>
                 Cancel
               </Button>
-              <Button type="submit" className="clinical-action-lg" disabled={pendingAction === `updateFraction-${correctionEntry.id}`} aria-busy={pendingAction === `updateFraction-${correctionEntry.id}`}>
+              <Button type="submit" className="clinical-action-lg">
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                {pendingAction === `updateFraction-${correctionEntry.id}` ? "Saving correction" : "Save correction"}
+                Save Correction
               </Button>
             </div>
           </form>
@@ -954,12 +941,12 @@ export function FractionWorksheetPanel({
         </Modal>
       ) : null}
 
-      <div className="min-w-0">
+      <Card className="min-h-[420px]">
         <DataTable
           minTableWidth="1320px"
           toolbarPrefix={
             <div className="min-w-[220px]">
-              <h3 className="type-heading text-[var(--color-text)]">{title} History</h3>
+              <h3 className=" type-heading text-[var(--color-text)]">{title} History</h3>
               <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                 {reviewQueue.length ? `${reviewQueue.length} need review` : "Review queue clear"} | {approvedCount}/{sortedActiveEntries.length} approved
               </p>
@@ -990,9 +977,9 @@ export function FractionWorksheetPanel({
             { key: "date", label: "Date", render: (row) => formatDate(row.entry.date) },
             { key: "phase", label: "Phase", render: (row) => row.entry.phase },
             { key: "dose", label: "Dose", render: (row) => formatDose(row.entry.dosePerFractionCgy ?? row.entry.dosePerFraction) },
-            { key: "dot", label: "Target depth (DOT)", render: (row) => `${row.entry.depthOfTargetMm ?? parseNumeric(row.entry.depthOfTarget) ?? "-"} mm` },
+            { key: "dot", label: "Target Depth (DOT)", render: (row) => `${row.entry.depthOfTargetMm ?? parseNumeric(row.entry.depthOfTarget) ?? "-"} mm` },
             { key: "isodose", label: "Isodose", render: (row) => formatPercent(row.entry.isodoseToDotPercent ?? row.entry.isodosePercent) },
-            { key: "cumDot", label: "Cumulative target dose", render: (row) => formatDose(row.entry.cumulativeDoseToDotCgy ?? row.entry.cumulativeDoseToDepth) },
+            { key: "cumDot", label: "Cumulative Target Dose", render: (row) => formatDose(row.entry.cumulativeDoseToDotCgy ?? row.entry.cumulativeDoseToDepth) },
             {
               key: "review",
               label: "Review",
@@ -1008,7 +995,7 @@ export function FractionWorksheetPanel({
               label: "Status",
               render: (row) => {
                 const status = deriveFractionLogStatus(row.entry);
-                return <Badge variant={statusTone(status)}>{statusLabel(status)}</Badge>;
+                return <Badge variant={statusTone(status)}>{formatUiLabel(status)}</Badge>;
               }
             },
             {
@@ -1034,18 +1021,17 @@ export function FractionWorksheetPanel({
           ]}
           rows={sortedEntries.map((entry) => ({
             id: entry.id,
-            status: statusLabel(deriveFractionLogStatus(entry)),
+            status: formatUiLabel(deriveFractionLogStatus(entry)),
             review: `${entry.mdApprovalState ?? ""} ${entry.dotApprovalState ?? ""}`,
             entry
           }))}
           keyField="id"
           getRowId={(row) => `workspace-target-fraction-${row.entry.id}`}
-          getRowLabel={(row) => `Open fraction ${row.entry.fractionNumber} details`}
           onRowClick={(row) => {
             setSelectedEntryId(row.entry.id);
             setAdvancedPanel("note");
           }}
-          pageSize={Math.min(10, Math.max(sortedEntries.length, 1))}
+          pageSize={10}
           empty="No fraction rows recorded."
           search={{
             placeholder: "Search fraction history...",
@@ -1055,11 +1041,11 @@ export function FractionWorksheetPanel({
             {
               id: "status",
               label: "Status",
-              getValue: (row) => statusLabel(deriveFractionLogStatus(row.entry))
+              getValue: (row) => formatUiLabel(deriveFractionLogStatus(row.entry))
             }
           ]}
         />
-      </div>
+      </Card>
 
       <Modal
         open={advancedPanel !== null}
@@ -1079,29 +1065,29 @@ export function FractionWorksheetPanel({
               </div>
               {selectedEntry ? (() => {
                 const status = deriveFractionLogStatus(selectedEntry);
-                return <Badge variant={statusTone(status)}>{statusLabel(status)}</Badge>;
+                return <Badge variant={statusTone(status)}>{formatUiLabel(status)}</Badge>;
               })() : null}
             </div>
             {selectedEntry ? (
               <>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <PreviewMetric label="Depth of target (DOT)" value={`${selectedEntry.depthOfTargetMm ?? parseNumeric(selectedEntry.depthOfTarget) ?? "-"} mm`} />
+                  <PreviewMetric label="DOT" value={`${selectedEntry.depthOfTargetMm ?? parseNumeric(selectedEntry.depthOfTarget) ?? "-"} mm`} />
                   <PreviewMetric label="Isodose" value={formatPercent(selectedEntry.isodoseToDotPercent ?? selectedEntry.isodosePercent)} />
-                  <PreviewMetric label="Dose to target depth" value={formatDose(selectedEntry.doseToDotCgy ?? selectedEntry.doseToDepth)} />
-                  <PreviewMetric label="Cumulative target dose" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
+                  <PreviewMetric label="Dose to DOT" value={formatDose(selectedEntry.doseToDotCgy ?? selectedEntry.doseToDepth)} />
+                  <PreviewMetric label="Cumulative DOT" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {approvalBadge("DOT", selectedEntry.dotApproval, selectedEntry.dotApprovalState)}
                   {approvalBadge("MD", selectedEntry.mdApproval, selectedEntry.mdApprovalState)}
                   {scheduleByFraction.get(selectedEntry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? (
-                    <Badge variant="warning">Image missing</Badge>
+                    <Badge variant="intermediate">Image missing</Badge>
                   ) : null}
                   {compactWarnings(selectedEntry).map((warning) => (
-                    <Badge key={warning} variant="warning">{warning}</Badge>
+                    <Badge key={warning} variant="intermediate">{warning}</Badge>
                   ))}
                 </div>
                 <details className="clinical-muted-surface mt-4 p-3 type-body text-[var(--color-text-muted)]">
-                  <summary className="clinical-focus cursor-pointer type-medium text-[var(--color-primary)]">Treatment abbreviations</summary>
+                  <summary className="clinical-focus cursor-pointer type-medium text-[var(--color-primary)]">Treatment Abbreviations</summary>
                   <dl className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div><dt className="type-medium text-[var(--color-text)]">DOT</dt><dd>Depth of target</dd></div>
                     <div><dt className="type-medium text-[var(--color-text)]">SSD</dt><dd>Source-to-surface distance</dd></div>
@@ -1118,7 +1104,7 @@ export function FractionWorksheetPanel({
                 {!isVoidedFractionEntry(selectedEntry) ? (
                   <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--color-border-soft)] pt-3">
                     {scheduleByFraction.get(selectedEntry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? (
-                      <p className="w-full type-body text-[var(--color-warning)]" role="status">
+                      <p className="w-full type-body text-[var(--status-intermediate-text)]" role="status">
                         Attach imaging evidence before target depth approval.
                       </p>
                     ) : null}
@@ -1194,7 +1180,7 @@ export function FractionWorksheetPanel({
           <div className="scrollbar-soft overflow-x-auto">
             <table className="w-full min-w-[900px] border-collapse">
               <thead>
-                <tr className="bg-[var(--color-table-header-bg)] text-left type-supporting uppercase text-[var(--color-text-muted)]">
+                <tr className="bg-[var(--color-table-header-bg)] text-left type-label text-[var(--color-text-muted)]">
                   <th className="px-3 py-3">Energy</th>
                   <th className="px-3 py-3">Field</th>
                   {referenceDepths.map((depth) => <th key={depth} className="px-3 py-3">{depth.toFixed(1)} mm</th>)}
@@ -1230,12 +1216,12 @@ export function FractionWorksheetPanel({
               { key: "date", label: "Date", render: (row) => formatDate(row.date) },
               { key: "phase", label: "Phase" },
               { key: "activity", label: "Activity" },
-              { key: "cptCode", label: "Billing code (CPT)" },
+              { key: "cptCode", label: "Billing Code (CPT)" },
               { key: "reviewer", label: "Reviewer" },
               {
                 key: "status",
                 label: "Status",
-                render: (row) => <Badge variant={row.status === "Ready" ? "success" : "warning"}>{row.status}</Badge>
+                render: (row) => <Badge variant={row.status === "Ready" ? "positive" : "intermediate"}>{row.status}</Badge>
               }
             ]}
             rows={billingRows}
@@ -1274,7 +1260,7 @@ function CorrectionInput({
 }) {
   return (
     <label className="grid gap-1">
-      <span className={cn(labelClass, required ? "after:ml-1 after:text-[var(--color-error)] after:content-['*']" : "")}>{label}</span>
+      <span className={cn(labelClass, required ? "after:ml-1 after:text-[var(--status-negative-text)] after:content-['*']" : "")}>{label}</span>
       <Input name={name} type={type} step={step} defaultValue={defaultValue} required={required} />
     </label>
   );

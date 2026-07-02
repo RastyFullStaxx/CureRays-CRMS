@@ -57,19 +57,16 @@ type StagedAccessChange = {
 };
 
 function AccessIcon({ level }: { level: string }) {
-  if (level === 'full') return <Badge variant="success">Full</Badge>;
-  if (level === 'edit') return <Badge variant="info">Edit</Badge>;
-  if (level === 'view') return <Badge variant="default">View</Badge>;
-  if (level === 'none') return <Badge variant="error">None</Badge>;
+  if (level === 'full') return <Badge variant="positive">Full</Badge>;
+  if (level === 'edit') return <Badge variant="neutral">Edit</Badge>;
+  if (level === 'view') return <Badge variant="neutral">View</Badge>;
+  if (level === 'none') return <Badge variant="negative">None</Badge>;
   return <span style={{ color: 'var(--color-text-muted)' }}>-</span>;
 }
 
-function accessTone(level: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
-  if (level === 'full') return 'success';
-  if (level === 'edit') return 'info';
-  if (level === 'view') return 'default';
-  if (level === 'none') return 'error';
-  return 'warning';
+function accessTone(level: string) {
+  if (level === 'none') return 'negative' as const;
+  return 'neutral' as const;
 }
 
 function StableStatGrid({ children }: { children: ReactNode }) {
@@ -111,7 +108,7 @@ function CommandPanel({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="type-label" style={{ color: 'var(--color-text-muted)' }}>
             {eyebrow}
           </p>
           <h2 className="mt-1 type-heading" style={{ color: 'var(--color-text)' }}>
@@ -220,28 +217,28 @@ export function UsersRolesCommandClient({
       {active === 0 && (
         <>
           <StableStatGrid>
-            <StatCard icon={UsersRound} label="Total Users" value={32} tone="primary" />
-            <StatCard icon={UsersRound} label="Active" value={26} sub="81%" tone="success" />
-            <StatCard icon={ShieldCheck} label="Roles" value={roleRows.length} tone="warning" />
+            <StatCard icon={UsersRound} label="Total Users" value={32} tone="neutral" />
+            <StatCard icon={UsersRound} label="Active" value={26} sub="81%" tone="neutral" />
+            <StatCard icon={ShieldCheck} label="Roles" value={roleRows.length} tone="neutral" />
             <StatCard icon={UserCog} label="Locations" value={2} />
           </StableStatGrid>
           <CommandPanel
             eyebrow="Selected staff record"
             title={selectedUser ? `${selectedUser.name} access review` : 'Select a user to review access'}
-            action={<Badge variant={selectedUser?.status === 'Active' ? 'success' : 'error'}>{selectedUser?.status ?? 'No user'}</Badge>}
+            action={<Badge variant="neutral">{selectedUser?.status ?? 'No User'}</Badge>}
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>Role</p>
+                  <p className="type-label" style={{ color: 'var(--color-text-muted)' }}>Role</p>
                   <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.role ?? '-'}</p>
                 </div>
                 <div>
-                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>Location</p>
+                  <p className="type-label" style={{ color: 'var(--color-text-muted)' }}>Location</p>
                   <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.location ?? '-'}</p>
                 </div>
                 <div>
-                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>MFA</p>
+                  <p className="type-label" style={{ color: 'var(--color-text-muted)' }}>MFA</p>
                   <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.mfa ?? '-'}</p>
                 </div>
               </div>
@@ -275,14 +272,14 @@ export function UsersRolesCommandClient({
                 <div className="flex flex-col">
                   <span className="flex items-center gap-2 type-body" style={{ color: 'var(--color-text)' }}>
                     {row.name}
-                    {row.id === selectedUser?.id ? <Badge variant="primary">Selected</Badge> : null}
+                    {row.id === selectedUser?.id ? <Badge variant="neutral">Selected</Badge> : null}
                   </span>
                   <span className="type-supporting" style={{ color: 'var(--color-text-muted)' }}>{row.email}</span>
                 </div>
               )},
-              { key: 'role', label: 'Role', render: (row) => <Badge variant="default">{row.role}</Badge> },
+              { key: 'role', label: 'Role', render: (row) => <Badge variant="neutral">{row.role}</Badge> },
               { key: 'location', label: 'Location' },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'error'}>{row.status}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant="neutral">{row.status}</Badge> },
               { key: 'lastLogin', label: 'Last Login' },
               { key: 'mfa', label: 'MFA' },
             ]}
@@ -304,13 +301,13 @@ export function UsersRolesCommandClient({
       {active === 1 && (
         <>
           <StableStatGrid>
-            <StatCard icon={ShieldCheck} label="Total Roles" value={roleRows.length} tone="primary" />
-            <StatCard icon={ShieldCheck} label="Active Roles" value={roleRows.filter((role) => role.status === 'Active').length} tone="success" />
+            <StatCard icon={ShieldCheck} label="Total Roles" value={roleRows.length} tone="neutral" />
+            <StatCard icon={ShieldCheck} label="Active Roles" value={roleRows.filter((role) => role.status === 'Active').length} tone="neutral" />
           </StableStatGrid>
           <CommandPanel
             eyebrow="Role governance"
             title={selectedRole ? `${selectedRole.name} permission package` : 'Select a role package'}
-            action={<Badge variant={selectedRole?.status === 'Active' ? 'success' : 'warning'}>{selectedRole?.status ?? 'No role'}</Badge>}
+            action={<Badge variant="neutral">{selectedRole?.status ?? 'No Role'}</Badge>}
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div>
@@ -318,8 +315,8 @@ export function UsersRolesCommandClient({
                   {selectedRole?.description ?? 'Role details will appear after selecting a row.'}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge variant="default">{selectedRole?.users ?? 0} assigned users</Badge>
-                  <Badge variant="info">Updated {selectedRole?.updated ?? '-'}</Badge>
+                  <Badge variant="neutral">{selectedRole?.users ?? 0} assigned users</Badge>
+                  <Badge variant="neutral">Updated {selectedRole?.updated ?? '-'}</Badge>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 lg:justify-end">
@@ -351,12 +348,12 @@ export function UsersRolesCommandClient({
               { key: 'name', label: 'Role Name', render: (row) => (
                 <span className="flex items-center gap-2 type-medium" style={{ color: 'var(--color-primary)' }}>
                   {row.name}
-                  {row.id === selectedRole?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selectedRole?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
               ) },
               { key: 'description', label: 'Description' },
               { key: 'users', label: 'Users' },
-              { key: 'status', label: 'Status', render: (row) => <Badge variant={row.status === 'Active' ? 'success' : 'warning'}>{row.status}</Badge> },
+              { key: 'status', label: 'Status', render: (row) => <Badge variant="neutral">{row.status}</Badge> },
               { key: 'updated', label: 'Last Updated' },
             ]}
             rows={roleRows}
@@ -374,13 +371,13 @@ export function UsersRolesCommandClient({
       {active === 2 && (
         <>
           <StableStatGrid>
-            <StatCard icon={ShieldCheck} label="Permission Modules" value={permissionRows.length} tone="primary" />
-            <StatCard icon={UserCog} label="Role Columns" value={permissionRoles.length} tone="info" />
+            <StatCard icon={ShieldCheck} label="Permission Modules" value={permissionRows.length} tone="neutral" />
+            <StatCard icon={UserCog} label="Role Columns" value={permissionRoles.length} tone="neutral" />
           </StableStatGrid>
           <CommandPanel
             eyebrow="Permission matrix"
             title={selectedModule ? `${selectedModule.module} access levels` : 'Select a permission module'}
-            action={<Badge variant="info">{stagedChanges.length} staged</Badge>}
+            action={<Badge variant="neutral">{stagedChanges.length} staged</Badge>}
           >
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -391,7 +388,7 @@ export function UsersRolesCommandClient({
                       key={role}
                       className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3"
                     >
-                      <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>{role}</p>
+                      <p className="type-label" style={{ color: 'var(--color-text-muted)' }}>{role}</p>
                       <div className="mt-2">
                         <Badge variant={accessTone(level)}>{level === 'na' ? 'N/A' : level}</Badge>
                       </div>
@@ -401,10 +398,10 @@ export function UsersRolesCommandClient({
               </div>
               <div className="grid gap-3">
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <Select value={targetRole} onChange={(event) => setTargetRole(event.target.value)} aria-label="Target role">
+                  <Select value={targetRole} onChange={(event) => setTargetRole(event.target.value)} aria-label="Target Role">
                     {permissionRoles.map((role) => <option key={role}>{role}</option>)}
                   </Select>
-                  <Select value={targetAccess} onChange={(event) => setTargetAccess(event.target.value)} aria-label="Target access">
+                  <Select value={targetAccess} onChange={(event) => setTargetAccess(event.target.value)} aria-label="Target Access">
                     {accessLevels.map((level) => (
                       <option key={level} value={level}>{level === 'na' ? 'N/A' : level}</option>
                     ))}
@@ -435,7 +432,7 @@ export function UsersRolesCommandClient({
               { key: 'module', label: 'Module / Feature', render: (row) => (
                 <span className="flex items-center gap-2 type-medium" style={{ color: 'var(--color-text)' }}>
                   {row.module}
-                  {row.id === selectedModule?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selectedModule?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
               ) },
               { key: 'description', label: 'Description' },
@@ -460,8 +457,8 @@ export function UsersRolesCommandClient({
 
       <CommandPanel
         eyebrow="Prototype access ledger"
-        title="Staged admin decisions"
-        action={<Badge variant={stagedChanges.length > 0 ? 'primary' : 'default'}>{stagedChanges.length} local entries</Badge>}
+        title="Staged Admin Decisions"
+        action={<Badge variant="neutral">{stagedChanges.length} local entries</Badge>}
       >
         {stagedChanges.length > 0 ? (
           <div className="scrollbar-soft max-h-40 space-y-2 overflow-auto pr-1">
@@ -472,7 +469,7 @@ export function UsersRolesCommandClient({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body" style={{ color: 'var(--color-text)' }}>{change.target}</p>
-                  <Badge variant="info">{change.change}</Badge>
+                  <Badge variant="neutral">{change.change}</Badge>
                 </div>
                 <p className="mt-1 type-supporting" style={{ color: 'var(--color-text-muted)' }}>{change.note}</p>
               </div>

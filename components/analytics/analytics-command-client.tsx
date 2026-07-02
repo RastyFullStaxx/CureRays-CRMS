@@ -44,6 +44,7 @@ import type {
   AnalyticsTelemetry,
   AnalyticsTone,
 } from '@/lib/services/analytics-telemetry-service';
+import { statusToneClass, statusToneToken } from '@/lib/status-utils';
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
 import type { NeuronSignalLink, NeuronSignalNode } from '@/components/shared/neuron-signal-field';
@@ -57,33 +58,23 @@ type AnalyticsCommandClientProps = {
 type AnalyticsDateRange = '7' | '14' | '30';
 
 type Palette = {
-  primary: string;
-  accent: string;
-  success: string;
-  warning: string;
-  error: string;
-  info: string;
+  positive: string;
+  intermediate: string;
+  negative: string;
+  neutral: string;
   text: string;
-  muted: string;
   border: string;
-  softBorder: string;
   card: string;
-  cardMuted: string;
 };
 
 const defaultPalette: Palette = {
-  primary: 'CanvasText',
-  accent: 'Highlight',
-  success: 'CanvasText',
-  warning: 'CanvasText',
-  error: 'CanvasText',
-  info: 'Highlight',
+  positive: 'CanvasText',
+  intermediate: 'CanvasText',
+  negative: 'CanvasText',
+  neutral: 'GrayText',
   text: 'CanvasText',
-  muted: 'GrayText',
   border: 'GrayText',
-  softBorder: 'GrayText',
   card: 'Canvas',
-  cardMuted: 'Canvas',
 };
 
 const tabLabels: Record<AnalyticsPanel, string> = {
@@ -122,15 +113,6 @@ const panelCopy: Record<AnalyticsPanel, { title: string; meta: string }> = {
   },
 };
 
-const toneClasses: Record<AnalyticsTone, string> = {
-  primary: 'is-primary',
-  success: 'is-success',
-  warning: 'is-warning',
-  error: 'is-error',
-  info: 'is-info',
-  neutral: 'is-neutral',
-};
-
 const dateRangeOptions: { label: string; value: AnalyticsDateRange }[] = [
   { label: '7-day', value: '7' },
   { label: '14-day', value: '14' },
@@ -144,18 +126,13 @@ function cssVar(name: string, fallback: string) {
 
 function readPalette(): Palette {
   return {
-    primary: cssVar('--color-primary', defaultPalette.primary),
-    accent: cssVar('--color-accent', defaultPalette.accent),
-    success: cssVar('--color-success', defaultPalette.success),
-    warning: cssVar('--color-warning', defaultPalette.warning),
-    error: cssVar('--color-error', defaultPalette.error),
-    info: cssVar('--color-accent', defaultPalette.info),
+    positive: cssVar('--status-positive-solid', defaultPalette.positive),
+    intermediate: cssVar('--status-intermediate-solid', defaultPalette.intermediate),
+    negative: cssVar('--status-negative-solid', defaultPalette.negative),
+    neutral: cssVar('--status-neutral-solid', defaultPalette.neutral),
     text: cssVar('--color-text', defaultPalette.text),
-    muted: cssVar('--color-text-muted', defaultPalette.muted),
     border: cssVar('--color-border', defaultPalette.border),
-    softBorder: cssVar('--color-border-soft', defaultPalette.softBorder),
     card: cssVar('--color-card', defaultPalette.card),
-    cardMuted: cssVar('--color-card-muted', defaultPalette.cardMuted),
   };
 }
 
@@ -180,12 +157,11 @@ function usePalette() {
 }
 
 function toneColor(tone: AnalyticsTone, palette: Palette) {
-  if (tone === 'success') return palette.success;
-  if (tone === 'warning') return palette.warning;
-  if (tone === 'error') return palette.error;
-  if (tone === 'info') return palette.info;
-  if (tone === 'neutral') return palette.muted;
-  return palette.primary;
+  if (tone === 'positive') return palette.positive;
+  if (tone === 'intermediate') return palette.intermediate;
+  if (tone === 'negative') return palette.negative;
+  if (tone === 'neutral') return palette.neutral;
+  return palette.neutral;
 }
 
 function tooltipStyle() {
@@ -214,7 +190,7 @@ function AnalyticsRangeFilter({
     <label className="analytics-range-filter">
       <span>Date range</span>
       <select
-        aria-label="Analytics date range"
+        aria-label="Analytics Date Range"
         value={value}
         onChange={(event) => onChange(event.target.value as AnalyticsDateRange)}
       >
@@ -348,7 +324,7 @@ function KpiStrip({ items }: { items: AnalyticsTelemetry['overview']['kpis'] }) 
   return (
     <div className="analytics-kpi-strip">
       {items.map((item) => (
-        <article key={item.label} className={`analytics-kpi ${toneClasses[item.tone]}`}>
+        <article key={item.label} className={`analytics-kpi ${statusToneClass(item.tone)}`}>
           <span>{item.label}</span>
           <strong>{item.value}</strong>
           <p>{item.detail}</p>
@@ -371,7 +347,7 @@ function InsightRail({ insights, title = 'Insight Brief' }: { insights: Analytic
       </div>
       <div className="analytics-insight-list">
         {insights.map((insight) => (
-          <article key={insight.id} className={`analytics-insight ${toneClasses[insight.tone]}`}>
+          <article key={insight.id} className={`analytics-insight ${statusToneClass(insight.tone)}`}>
             <div className="analytics-insight-severity-row">
               <span>{insight.severity}</span>
             </div>
@@ -408,9 +384,9 @@ function ForecastChart({ dateRange, telemetry }: { dateRange: AnalyticsDateRange
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Area type="monotone" dataKey="workload" name="Modeled workload" fill="url(#analyticsForecastLoad)" stroke="var(--color-primary)" strokeWidth={2} />
-        <Line type="monotone" dataKey="risk" name="Risk weight" stroke="var(--color-error)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
-        <Line type="monotone" dataKey="capacity" name="Capacity band" stroke="var(--color-success)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-        <Bar dataKey="projectedCourses" name="Projected courses" fill="var(--color-accent)" opacity={0.28} radius={[7, 7, 2, 2]} />
+        <Line type="monotone" dataKey="risk" name="Risk weight" stroke="var(--status-negative-solid)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
+        <Line type="monotone" dataKey="capacity" name="Capacity band" stroke="var(--status-positive-solid)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+        <Bar dataKey="projectedCourses" name="Projected courses" fill="color-mix(in srgb, var(--color-primary) 42%, var(--color-card-muted))" opacity={0.72} radius={[7, 7, 2, 2]} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -556,9 +532,9 @@ function RoleLoadChart({ rows }: { rows: AnalyticsRoleLoad[] }) {
         <YAxis type="category" dataKey="role" width={112} tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="assigned" name="Assigned tasks" stackId="load" fill="var(--color-primary)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="review" name="Review items" stackId="load" fill="var(--color-accent)" radius={[0, 0, 0, 0]} />
-        <Bar dataKey="overdue" name="Overdue" stackId="load" fill="var(--color-error)" radius={[0, 7, 7, 0]} />
-        <Line dataKey="pressure" name="Pressure" stroke="var(--color-accent)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
+        <Bar dataKey="review" name="Review items" stackId="load" fill="var(--status-intermediate-solid)" radius={[0, 0, 0, 0]} />
+        <Bar dataKey="overdue" name="Overdue" stackId="load" fill="var(--status-negative-solid)" radius={[0, 7, 7, 0]} />
+        <Line dataKey="pressure" name="Pressure" stroke="var(--color-text-muted)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3, fill: 'var(--color-card)' }} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -570,7 +546,7 @@ function QueueDrilldown({ telemetry }: { telemetry: AnalyticsTelemetry }) {
       <SectionTitle icon={ClipboardList} title="Tokenized Inspection Queue" meta="Course refs only, sorted by modeled pressure" />
       <div className="analytics-queue-list">
         {telemetry.workflow.courseDrilldown.map((item, index) => (
-          <article key={item.id} className={`analytics-queue-item ${toneClasses[item.tone]}`}>
+          <article key={item.id} className={`analytics-queue-item ${statusToneClass(item.tone)}`}>
             <span className="analytics-queue-rank">{index + 1}</span>
             <div>
               <strong>{item.courseRef}</strong>
@@ -594,7 +570,7 @@ function TreatmentProgressList({ telemetry }: { telemetry: AnalyticsTelemetry })
       <SectionTitle icon={Activity} title="Active Course Progress" meta="Tokenized course progress against planned fractions" />
       <div className="analytics-progress-list">
         {telemetry.treatment.courseProgress.map((course) => (
-          <article key={course.courseRef} className={`analytics-progress-row ${toneClasses[course.tone]}`}>
+          <article key={course.courseRef} className={`analytics-progress-row ${statusToneClass(course.tone)}`}>
             <div>
               <strong>{course.courseRef}</strong>
               <span>{course.protocol}</span>
@@ -620,9 +596,9 @@ function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="fractions" name="Fractions" fill="var(--color-primary)" radius={[7, 7, 2, 2]} />
-        <Line type="monotone" dataKey="approvals" name="Fully approved" stroke="var(--color-success)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
-        <Line type="monotone" dataKey="reviews" name="Review issues" stroke="var(--color-warning)" strokeWidth={2} />
-        <Line type="monotone" dataKey="controlLimit" name="Control limit" stroke="var(--color-error)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="approvals" name="Fully approved" stroke="var(--status-positive-solid)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-card)' }} />
+        <Line type="monotone" dataKey="reviews" name="Review issues" stroke="var(--status-intermediate-solid)" strokeWidth={2} />
+        <Line type="monotone" dataKey="controlLimit" name="Control limit" stroke="var(--status-negative-solid)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -652,9 +628,9 @@ function SignatureAgingChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
         <XAxis dataKey="bucket" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
-        <Bar dataKey="count" name="Documents" fill="var(--color-accent)" radius={[8, 8, 2, 2]} />
-        <Line type="monotone" dataKey="signatures" name="Signature queue" stroke="var(--color-warning)" strokeWidth={2} />
-        <Line type="monotone" dataKey="risk" name="Risk" stroke="var(--color-error)" strokeWidth={2} />
+        <Bar dataKey="count" name="Documents" fill="var(--color-primary)" radius={[8, 8, 2, 2]} />
+        <Line type="monotone" dataKey="signatures" name="Signature queue" stroke="var(--status-intermediate-solid)" strokeWidth={2} />
+        <Line type="monotone" dataKey="risk" name="Risk" stroke="var(--status-negative-solid)" strokeWidth={2} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -700,9 +676,9 @@ function CapacityChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-primary)" fillOpacity={0.16} stroke="var(--color-primary)" />
-        <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-accent)" fillOpacity={0.12} stroke="var(--color-accent)" />
-        <Line type="monotone" dataKey="review" name="Review" stroke="var(--color-accent)" strokeWidth={2} />
-        <Line type="monotone" dataKey="capacity" name="Capacity" stroke="var(--color-error)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+        <Area type="monotone" dataKey="simulation" name="Simulation" fill="var(--color-text-muted)" fillOpacity={0.12} stroke="var(--color-text-muted)" />
+        <Line type="monotone" dataKey="review" name="Review" stroke="var(--status-intermediate-solid)" strokeWidth={2} />
+        <Line type="monotone" dataKey="capacity" name="Capacity" stroke="var(--status-negative-solid)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -714,7 +690,7 @@ function ProviderPressure({ telemetry }: { telemetry: AnalyticsTelemetry }) {
       <SectionTitle icon={CalendarDays} title="Provider Pressure" meta="Appointment load against modeled daily capacity" />
       <div className="analytics-provider-list">
         {telemetry.staffing.providerPressure.map((provider) => (
-          <article key={provider.provider} className={`analytics-provider-row ${toneClasses[provider.tone]}`}>
+          <article key={provider.provider} className={`analytics-provider-row ${statusToneClass(provider.tone)}`}>
             <div>
               <strong>{provider.provider}</strong>
               <span>{provider.appointments}/{provider.capacity} appointments</span>
@@ -734,14 +710,14 @@ function BillingReadiness({ rows }: { rows: AnalyticsBillingReadiness[] }) {
     label: item.label,
     value: item.value,
     tone: item.tone,
-    color: `var(--color-${item.tone === 'primary' ? 'primary' : item.tone === 'neutral' ? 'text-muted' : item.tone})`,
+    color: statusToneToken(item.tone),
   }));
 
   return (
     <div className="analytics-billing-grid">
       <div className="analytics-billing-chip-grid">
         {rows.map((item) => (
-          <article key={item.label} className={`analytics-billing-chip ${toneClasses[item.tone]}`}>
+          <article key={item.label} className={`analytics-billing-chip ${statusToneClass(item.tone)}`}>
             <span>{item.label}</span>
             <strong>{item.value}</strong>
             <em>{Math.round((item.value / Math.max(total, 1)) * 100)}%</em>
@@ -761,7 +737,7 @@ function PhiBoundary({ rows }: { rows: AnalyticsPhiSignal[] }) {
       <SectionTitle icon={LockKeyhole} title="PHI Boundary Assurance" meta="Client payload guardrails for analytics telemetry" />
       <div className="analytics-phi-grid">
         {rows.map((row) => (
-          <article key={row.label} className={`analytics-phi-signal ${toneClasses[row.tone]}`}>
+          <article key={row.label} className={`analytics-phi-signal ${statusToneClass(row.tone)}`}>
             <span>{row.label}</span>
             <strong>{row.value}</strong>
             <p>{row.detail}</p>
@@ -817,7 +793,7 @@ function WorkflowPanel({ telemetry, palette }: { telemetry: AnalyticsTelemetry; 
       </ChartFrame>
       <ChartFrame
         icon={UsersRound}
-        title="Phase x Owner Heatmap"
+        title="Phase × Owner Heatmap"
         meta="Open tasks and document pressure by accountable role"
         change="Review and blocked work are fused into one role pressure map."
         matters="The next bottleneck is usually a role lane, not a single page."

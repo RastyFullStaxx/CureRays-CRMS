@@ -24,7 +24,7 @@ export default function LoginPage() {
             <p className="landing-description">
               Review patient-course operations, treatment readiness, documents, and risk signals in one calm CureRays command surface.
             </p>
-            <ul className="landing-trust-list" aria-label="Workspace assurances">
+            <ul className="landing-trust-list" aria-label="Workspace Assurances">
               <li className="landing-trust-item mac-glass-surface">Local demo data</li>
               <li className="landing-trust-item mac-glass-surface">OPS / PHI split</li>
               <li className="landing-trust-item mac-glass-surface">Dashboard first</li>

@@ -1,9 +1,9 @@
 export const uiTypography = {
   size: {
     label: 12,
-    body: 14,
-    heading: 16,
-    title: 20,
+    body: 13,
+    heading: 14,
+    title: 18,
   },
   weight: {
     normal: 400,

@@ -20,12 +20,13 @@ import {
   WalletCards
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { StatusTone } from "@/lib/status-utils";
 
 export type Metric = {
   label: string;
   value: string | number;
   detail: string;
-  tone?: "blue" | "orange" | "amber" | "indigo";
+  tone?: StatusTone;
   icon: LucideIcon;
 };
 
@@ -55,74 +56,74 @@ export const pageMetrics = {
     { label: "Upcoming", value: 24, detail: "Filtered phase", icon: CalendarDays },
     { label: "On Treatment", value: 27, detail: "Active delivery", icon: Activity },
     { label: "Post-Tx", value: 41, detail: "Closeout workflows", icon: CheckCircle2 },
-    { label: "Blocked", value: 6, detail: "Needs attention", tone: "orange", icon: AlertTriangle },
-    { label: "Missing Follow-Up", value: 5, detail: "Post-care scheduling", tone: "amber", icon: Clock3 }
+    { label: "Blocked", value: 6, detail: "Needs attention", tone: "negative", icon: AlertTriangle },
+    { label: "Missing Follow-Up", value: 5, detail: "Post-care scheduling", tone: "intermediate", icon: Clock3 }
   ] satisfies Metric[],
   workflow: [
     { label: "Pending Steps", value: 18, detail: "Across active courses", icon: ClipboardList },
     { label: "Ready for Review", value: 9, detail: "Awaiting clinical check", icon: PenLine },
     { label: "Signed Today", value: 6, detail: "Completed approvals", icon: FileCheck2 },
-    { label: "Blocked Courses", value: 3, detail: "Needs escalation", tone: "orange", icon: AlertTriangle },
-    { label: "Overdue Steps", value: 7, detail: "Past target date", tone: "orange", icon: Clock3 }
+    { label: "Blocked Courses", value: 3, detail: "Needs escalation", tone: "negative", icon: AlertTriangle },
+    { label: "Overdue Steps", value: 7, detail: "Past target date", tone: "negative", icon: Clock3 }
   ] satisfies Metric[],
   tasks: [
     { label: "My Open Tasks", value: 12, detail: "Assigned to current role", icon: ListChecks },
     { label: "Due Today", value: 5, detail: "Needs action", icon: Clock3 },
-    { label: "Overdue", value: 7, detail: "Escalate today", tone: "orange", icon: AlertTriangle },
+    { label: "Overdue", value: 7, detail: "Escalate today", tone: "negative", icon: AlertTriangle },
     { label: "Signatures Needed", value: 16, detail: "Document review", icon: PenLine },
     { label: "Completed This Week", value: 28, detail: "Closed work", icon: CheckCircle2 }
   ] satisfies Metric[],
   schedule: [
     { label: "Appointments Today", value: 6, detail: "Across providers", icon: CalendarDays },
     { label: "Treatments Today", value: 18, detail: "Active fractions", icon: Activity },
-    { label: "Unscheduled Tasks", value: 4, detail: "Need timing", tone: "amber", icon: Clock3 },
-    { label: "Conflicts", value: 2, detail: "Review schedule", tone: "orange", icon: AlertTriangle }
+    { label: "Unscheduled Tasks", value: 4, detail: "Need timing", tone: "intermediate", icon: Clock3 },
+    { label: "Conflicts", value: 2, detail: "Review schedule", tone: "negative", icon: AlertTriangle }
   ] satisfies Metric[],
   forms: [
     { label: "Draft Forms", value: 8, detail: "Incomplete mapping", icon: NotebookTabs },
     { label: "Pending Review", value: 5, detail: "Provider queue", icon: PenLine },
     { label: "Signed This Week", value: 12, detail: "Completed forms", icon: CheckCircle2 },
-    { label: "Missing Data", value: 4, detail: "Validation needed", tone: "orange", icon: FileWarning }
+    { label: "Missing Data", value: 4, detail: "Validation needed", tone: "negative", icon: FileWarning }
   ] satisfies Metric[],
   planning: [
     { label: "Plans in Draft", value: 7, detail: "Parameter entry", icon: Radiation },
     { label: "Physics Review", value: 5, detail: "Awaiting physicist", icon: ShieldCheck },
     { label: "Rad Onc Signature", value: 4, detail: "Ready to sign", icon: PenLine },
     { label: "Signed Plans", value: 18, detail: "Locked plans", icon: CheckCircle2 },
-    { label: "Blocked Plans", value: 2, detail: "Missing inputs", tone: "orange", icon: AlertTriangle }
+    { label: "Blocked Plans", value: 2, detail: "Missing inputs", tone: "negative", icon: AlertTriangle }
   ] satisfies Metric[],
   imaging: [
     { label: "Required Complete", value: "8/12", detail: "Protocol checklist", icon: Image },
-    { label: "Missing Images", value: 4, detail: "Needed for audit", tone: "orange", icon: FileWarning },
+    { label: "Missing Images", value: 4, detail: "Needed for audit", tone: "negative", icon: FileWarning },
     { label: "Uploaded Today", value: 9, detail: "New attachments", icon: FileCheck2 },
-    { label: "Upload Queue", value: 3, detail: "Pending tagging", tone: "amber", icon: Clock3 }
+    { label: "Upload Queue", value: 3, detail: "Pending tagging", tone: "intermediate", icon: Clock3 }
   ] satisfies Metric[],
   delivery: [
     { label: "Treatments Today", value: 18, detail: "Scheduled fractions", icon: Activity },
     { label: "Completed Today", value: 11, detail: "Delivered fractions", icon: CheckCircle2 },
-    { label: "Held / Missed", value: 2, detail: "Needs follow-up", tone: "orange", icon: AlertTriangle },
+    { label: "Held / Missed", value: 2, detail: "Needs follow-up", tone: "negative", icon: AlertTriangle },
     { label: "Reviews Needed", value: 4, detail: "Physician queue", icon: PenLine },
-    { label: "Weekly Physics Due", value: 3, detail: "Chart checks", tone: "amber", icon: ShieldCheck }
+    { label: "Weekly Physics Due", value: 3, detail: "Chart checks", tone: "intermediate", icon: ShieldCheck }
   ] satisfies Metric[],
   documents: [
     { label: "Pending Signatures", value: 16, detail: "Needs review", icon: PenLine },
     { label: "Draft Documents", value: 10, detail: "In progress", icon: FileText },
     { label: "Generated This Week", value: 31, detail: "New outputs", icon: FileCheck2 },
-    { label: "Missing Required", value: 5, detail: "Audit blockers", tone: "orange", icon: FileWarning },
+    { label: "Missing Required", value: 5, detail: "Audit blockers", tone: "negative", icon: FileWarning },
     { label: "Uploaded to eCW", value: 22, detail: "Tracked outputs", icon: CheckCircle2 }
   ] satisfies Metric[],
   billing: [
     { label: "Ready to Bill", value: 14, detail: "Documentation ready", icon: WalletCards },
-    { label: "Missing Documentation", value: 6, detail: "Needs evidence", tone: "orange", icon: FileWarning },
-    { label: "Pending Preauth", value: 5, detail: "Authorization work", tone: "amber", icon: Clock3 },
+    { label: "Missing Documentation", value: 6, detail: "Needs evidence", tone: "negative", icon: FileWarning },
+    { label: "Pending Preauth", value: 5, detail: "Authorization work", tone: "intermediate", icon: Clock3 },
     { label: "Billed This Week", value: 21, detail: "Completed items", icon: CheckCircle2 },
-    { label: "Audit Issues", value: 3, detail: "Billing blockers", tone: "orange", icon: AlertTriangle }
+    { label: "Audit Issues", value: 3, detail: "Billing blockers", tone: "negative", icon: AlertTriangle }
   ] satisfies Metric[],
   audit: [
     { label: "Ready for Audit", value: 9, detail: "Can close soon", icon: ShieldCheck },
-    { label: "Blocked", value: 6, detail: "Needs remediation", tone: "orange", icon: AlertTriangle },
+    { label: "Blocked", value: 6, detail: "Needs remediation", tone: "negative", icon: AlertTriangle },
     { label: "Missing Signatures", value: 8, detail: "Provider queue", icon: PenLine },
-    { label: "Missing Documents", value: 5, detail: "Evidence gaps", tone: "orange", icon: FileWarning },
+    { label: "Missing Documents", value: 5, detail: "Evidence gaps", tone: "negative", icon: FileWarning },
     { label: "Closed This Month", value: 17, detail: "Finalized courses", icon: CheckCircle2 }
   ] satisfies Metric[],
   analytics: [
@@ -136,13 +137,13 @@ export const pageMetrics = {
     { label: "Config Areas", value: 11, detail: "Admin sections", icon: Settings },
     { label: "Active Templates", value: 9, detail: "Workflow/document", icon: FileText },
     { label: "Roles", value: 9, detail: "Access model", icon: ShieldCheck },
-    { label: "Storage Status", value: "Stub", detail: "Drive pending", tone: "amber", icon: FileWarning }
+    { label: "Storage Status", value: "Stub", detail: "Drive pending", tone: "intermediate", icon: FileWarning }
   ] satisfies Metric[],
   security: [
     { label: "Events Today", value: 24, detail: "Audit trail", icon: ShieldCheck },
     { label: "Document Events", value: 9, detail: "Generated/opened/signed", icon: FileText },
     { label: "Signature Events", value: 6, detail: "Review activity", icon: PenLine },
-    { label: "Admin Changes", value: 2, detail: "Settings edits", tone: "amber", icon: Settings }
+    { label: "Admin Changes", value: 2, detail: "Settings edits", icon: Settings }
   ] satisfies Metric[]
 };
 

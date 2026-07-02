@@ -35,6 +35,8 @@ import {
   workflowBottlenecksByParty,
 } from '@/lib/workflow';
 import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
+import { statusToneToken, type StatusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type AnalyticsPanel =
   | 'overview'
@@ -44,7 +46,7 @@ export type AnalyticsPanel =
   | 'staffing'
   | 'billing-risk';
 
-export type AnalyticsTone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral';
+export type AnalyticsTone = StatusTone;
 
 export type AnalyticsKpi = {
   label: string;
@@ -277,15 +279,6 @@ const readyDocumentStatuses = ['SIGNED', 'EXPORTED', 'UPLOADED', 'COMPLETED', 'C
 const reviewDocumentStatuses = ['READY_FOR_REVIEW', 'NEEDS_REVIEW', 'PENDING_NEEDED', 'PENDING', 'MISSING_FIELDS'];
 const blockedDocumentStatuses = ['BLOCKED', 'OVERDUE', 'MISSING_FIELDS'];
 
-const toneColors: Record<AnalyticsTone, string> = {
-  primary: 'var(--color-primary)',
-  success: 'var(--color-success)',
-  warning: 'var(--color-warning)',
-  error: 'var(--color-error)',
-  info: 'var(--color-accent)',
-  neutral: 'var(--color-text-muted)',
-};
-
 function parseDate(value: string | undefined) {
   if (!value) {
     return Number.NaN;
@@ -338,16 +331,15 @@ function dueState(dueDate: string | undefined, asOf: Date) {
 }
 
 function pressureTone(value: number): AnalyticsTone {
-  if (value >= 85) return 'error';
-  if (value >= 65) return 'warning';
-  if (value >= 35) return 'info';
-  return 'success';
+  if (value >= 85) return 'negative';
+  if (value >= 65) return 'intermediate';
+  return 'neutral';
 }
 
 function severityTone(severity: AnalyticsInsight['severity']): AnalyticsTone {
-  if (severity === 'HIGH') return 'error';
-  if (severity === 'MEDIUM') return 'warning';
-  return 'info';
+  if (severity === 'HIGH') return 'negative';
+  if (severity === 'MEDIUM') return 'intermediate';
+  return 'neutral';
 }
 
 function courseRefMap() {
@@ -359,10 +351,6 @@ function courseRefMap() {
 
 function courseRefFor(courseId: string, refs: Record<string, string>) {
   return refs[courseId] ?? courseId.replace('COURSE-', 'CRS-');
-}
-
-function statusLabel(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function appointmentHour(time: string) {
@@ -454,28 +442,28 @@ function buildOverviewKpis(asOf: Date): AnalyticsKpi[] {
       label: 'Operational Cohort',
       value: patients.length,
       detail: `${courses.length} tokenized courses`,
-      tone: 'primary',
+      tone: 'neutral',
       delta: 'Live mock ops state',
     },
     {
       label: 'Carepath Pressure',
       value: openTasks.length + signatures.length,
       detail: `${openTasks.length} tasks + ${signatures.length} signatures`,
-      tone: openTasks.length + signatures.length > 8 ? 'warning' : 'info',
+      tone: openTasks.length + signatures.length > 8 ? 'intermediate' : 'neutral',
       delta: `As of ${shortDate(asOf)}`,
     },
     {
       label: 'Audit Readiness',
       value: `${auditReady}%`,
       detail: 'Tasks, documents, fractions',
-      tone: auditReady >= 80 ? 'success' : auditReady >= 60 ? 'warning' : 'error',
+      tone: auditReady >= 80 ? 'positive' : auditReady >= 60 ? 'intermediate' : 'negative',
       delta: 'Closeout evidence score',
     },
     {
       label: 'Intervention Watch',
       value: highFlags.length + holdCourses,
       detail: `${highFlags.length} high flags, ${holdCourses} holds`,
-      tone: highFlags.length + holdCourses > 0 ? 'error' : 'success',
+      tone: highFlags.length + holdCourses > 0 ? 'negative' : 'positive',
       delta: 'Ops huddle priority',
     },
   ];
@@ -515,10 +503,12 @@ function buildDiagnosisMix(): AnalyticsDistributionDatum[] {
   }, {});
 
   return Object.entries(counts).map(([label, value], index) => ({
-    label: statusLabel(label),
+    label: formatUiLabel(label),
     value,
-    tone: index === 0 ? 'primary' : index === 1 ? 'info' : 'primary',
-    color: index === 0 ? toneColors.primary : index === 1 ? toneColors.info : 'var(--color-primary-dark)',
+    tone: 'neutral',
+    color: index === 0
+      ? 'var(--color-primary)'
+      : `color-mix(in srgb, var(--color-primary) ${Math.max(28, 68 - index * 12)}%, var(--color-card-muted))`,
   }));
 }
 
@@ -531,8 +521,10 @@ function buildPhaseMix(): AnalyticsDistributionDatum[] {
   return Object.entries(chartRoundsPhaseLabels).map(([phase, label], index) => ({
     label,
     value: counts[phase] ?? 0,
-    tone: index === 0 ? 'primary' : index === 1 ? 'info' : 'primary',
-    color: index === 0 ? toneColors.primary : index === 1 ? toneColors.info : 'var(--color-primary-dark)',
+    tone: 'neutral',
+    color: index === 0
+      ? 'var(--color-primary)'
+      : `color-mix(in srgb, var(--color-primary) ${Math.max(28, 68 - index * 10)}%, var(--color-card-muted))`,
   }));
 }
 
@@ -657,7 +649,7 @@ function buildCourseDrilldown(asOf: Date): AnalyticsQueueItem[] {
         label: task.title,
         owner: responsiblePartyLabels[task.responsibleParty],
         phase: carepathPhaseLabels[task.workflowPhase],
-        status: statusLabel(task.status),
+        status: formatUiLabel(task.status),
         signal: dueState(task.dueDate, asOf),
         score,
         tone: pressureTone(score * 8),
@@ -674,8 +666,8 @@ function buildCourseDrilldown(asOf: Date): AnalyticsQueueItem[] {
         label: document.name,
         owner: responsiblePartyLabels[document.responsibleParty],
         phase: carepathPhaseLabels[document.clinicalPhase],
-        status: statusLabel(document.status),
-        signal: document.signReviewState === 'SIGNED' ? 'Evidence gap' : statusLabel(document.signReviewState),
+        status: formatUiLabel(document.status),
+        signal: document.signReviewState === 'SIGNED' ? 'Evidence gap' : formatUiLabel(document.signReviewState),
         score,
         tone: pressureTone(score * 8),
       };
@@ -723,12 +715,10 @@ function buildTreatmentProgress(): AnalyticsTreatmentProgress[] {
     .map((course) => {
       const percent = Math.round((course.currentFraction / Math.max(course.totalFractions, 1)) * 100);
       const tone: AnalyticsTone = course.status === 'ON_HOLD'
-        ? 'error'
+        ? 'negative'
         : course.chartRoundsPhase === 'ON_TREATMENT'
-          ? 'success'
-          : course.chartRoundsPhase === 'POST'
-            ? 'primary'
-            : 'info';
+          ? 'positive'
+          : 'neutral';
 
       return {
         courseRef: course.courseRef,
@@ -737,7 +727,7 @@ function buildTreatmentProgress(): AnalyticsTreatmentProgress[] {
         completed: course.currentFraction,
         total: course.totalFractions,
         percent,
-        status: statusLabel(course.status),
+        status: formatUiLabel(course.status),
         tone,
       };
     })
@@ -756,28 +746,28 @@ function buildTreatmentSignals(): AnalyticsKpi[] {
       label: 'Active Tx Courses',
       value: active.length,
       detail: `${active.reduce((sum, course) => sum + course.currentFraction, 0)} fractions progressed`,
-      tone: 'success',
+      tone: 'neutral',
       delta: 'Current course state',
     },
     {
       label: 'Approval Completion',
       value: `${fractionSignals.percent}%`,
       detail: `${fractionSignals.complete}/${fractionSignals.total} logged fractions`,
-      tone: fractionSignals.percent >= 90 ? 'success' : 'warning',
+      tone: fractionSignals.percent >= 90 ? 'positive' : 'intermediate',
       delta: 'MD + DOT approvals',
     },
     {
       label: 'Held Courses',
       value: held.length,
       detail: 'Requires release review',
-      tone: held.length > 0 ? 'error' : 'success',
+      tone: held.length > 0 ? 'negative' : 'positive',
       delta: 'Treatment safety signal',
     },
     {
       label: 'Review Fractions',
       value: reviewFractions,
       detail: 'Revision or approval watch',
-      tone: reviewFractions > 0 ? 'warning' : 'success',
+      tone: reviewFractions > 0 ? 'intermediate' : 'positive',
       delta: 'Before next fraction',
     },
   ];
@@ -791,10 +781,10 @@ function buildDocumentLifecycle(): AnalyticsDistributionDatum[] {
   const draft = counts.DRAFT + counts.NOT_STARTED + counts.IN_PROGRESS;
 
   return [
-    { label: 'Ready / Signed', value: ready, tone: 'success', color: toneColors.success },
-    { label: 'Review Path', value: review, tone: 'warning', color: toneColors.warning },
-    { label: 'Blocked / Missing', value: blocked, tone: 'error', color: toneColors.error },
-    { label: 'Draft Work', value: draft, tone: 'info', color: toneColors.info },
+    { label: 'Ready / Signed', value: ready, tone: 'positive', color: statusToneToken('positive') },
+    { label: 'Review Path', value: review, tone: 'intermediate', color: statusToneToken('intermediate') },
+    { label: 'Blocked / Missing', value: blocked, tone: 'negative', color: statusToneToken('negative') },
+    { label: 'Draft Work', value: draft, tone: 'neutral', color: statusToneToken('neutral') },
   ];
 }
 
@@ -829,7 +819,7 @@ function buildTemplateCoverage(): AnalyticsTemplateCoverage[] {
     });
 
     return {
-      label: `${statusLabel(workflow.diagnosis)} · ${workflow.protocol}`,
+      label: `${formatUiLabel(workflow.diagnosis)} · ${workflow.protocol}`,
       active: statuses.filter((status) => status === 'ACTIVE').length,
       draft: statuses.filter((status) => status === 'DRAFT').length,
       mapping: statuses.filter((status) => status === 'MAPPING_IN_PROGRESS').length,
@@ -943,9 +933,9 @@ function buildBillingReadiness(): AnalyticsBillingReadiness[] {
   }, {});
 
   return [
-    { label: 'Completed / Ready', value: counts.COMPLETED ?? 0, tone: 'success' },
-    { label: 'Ready For Review', value: counts.READY_FOR_REVIEW ?? 0, tone: 'warning' },
-    { label: 'Blocked', value: counts.BLOCKED ?? 0, tone: 'error' },
+    { label: 'Completed / Ready', value: counts.COMPLETED ?? 0, tone: 'positive' },
+    { label: 'Ready For Review', value: counts.READY_FOR_REVIEW ?? 0, tone: 'intermediate' },
+    { label: 'Blocked', value: counts.BLOCKED ?? 0, tone: 'negative' },
     { label: 'N/A', value: counts.NOT_APPLICABLE ?? 0, tone: 'neutral' },
   ];
 }
@@ -957,10 +947,10 @@ function buildAuditReadiness(): AnalyticsDistributionDatum[] {
   }, {});
 
   return [
-    { label: 'Complete', value: counts.COMPLETED ?? 0, tone: 'success', color: toneColors.success },
-    { label: 'Review', value: counts.READY_FOR_REVIEW ?? 0, tone: 'warning', color: toneColors.warning },
-    { label: 'Blocked', value: counts.BLOCKED ?? 0, tone: 'error', color: toneColors.error },
-    { label: 'Pending', value: counts.PENDING ?? 0, tone: 'info', color: toneColors.info },
+    { label: 'Complete', value: counts.COMPLETED ?? 0, tone: 'positive', color: statusToneToken('positive') },
+    { label: 'Review', value: counts.READY_FOR_REVIEW ?? 0, tone: 'intermediate', color: statusToneToken('intermediate') },
+    { label: 'Blocked', value: counts.BLOCKED ?? 0, tone: 'negative', color: statusToneToken('negative') },
+    { label: 'Pending', value: counts.PENDING ?? 0, tone: 'neutral', color: statusToneToken('neutral') },
   ];
 }
 
@@ -983,20 +973,20 @@ function buildRiskGraph() {
 
   operationalPriorityFlags().forEach((flag) => {
     const course = operationalPatients().find((patient) => patient.patientRef === flag.patientRef)?.activeCourseRef ?? flag.patientRef;
-    addRisk(course, 'Priority Flag', flag.severity === 'HIGH' ? 9 : 5, flag.severity === 'HIGH' ? 'error' : 'warning');
+    addRisk(course, 'Priority Flag', flag.severity === 'HIGH' ? 9 : 5, flag.severity === 'HIGH' ? 'negative' : 'intermediate');
   });
 
   carepathTasks
     .filter((task) => task.status === 'BLOCKED' || task.status === 'OVERDUE' || task.status === 'NEEDS_REVIEW')
-    .forEach((task) => addRisk(courseRefFor(task.courseId, refs), riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6, task.status === 'BLOCKED' ? 'error' : 'warning'));
+    .forEach((task) => addRisk(courseRefFor(task.courseId, refs), riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6, task.status === 'BLOCKED' ? 'negative' : 'intermediate'));
 
   generatedDocuments
     .filter((document) => document.signReviewState !== 'SIGNED' || blockedDocumentStatuses.includes(document.status))
-    .forEach((document) => addRisk(courseRefFor(document.courseId, refs), riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3, document.status === 'BLOCKED' ? 'error' : 'warning'));
+    .forEach((document) => addRisk(courseRefFor(document.courseId, refs), riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3, document.status === 'BLOCKED' ? 'negative' : 'intermediate'));
 
   fractionLogEntries
     .filter((entry) => !entry.mdApproval || !entry.dotApproval || entry.status !== 'APPROVED')
-    .forEach((entry) => addRisk(courseRefFor(entry.courseId, refs), 'Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6, 'warning'));
+    .forEach((entry) => addRisk(courseRefFor(entry.courseId, refs), 'Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6, 'intermediate'));
 
   const domainNodes: AnalyticsRiskNode[] = [...domainScores.entries()].map(([name, value]) => ({
     id: name,
@@ -1038,7 +1028,7 @@ function fallbackInsight(id: string, title: string, evidence: string, recommenda
   return {
     id,
     title,
-    severity: tone === 'error' ? 'HIGH' : tone === 'warning' ? 'MEDIUM' : 'LOW',
+    severity: tone === 'negative' ? 'HIGH' : tone === 'intermediate' ? 'MEDIUM' : 'LOW',
     summary: 'Current prototype data is sparse, so the chart should be interpreted as an ops signal rather than a statistical conclusion.',
     evidence,
     recommendation,
@@ -1069,35 +1059,35 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
     'Workflow pressure is concentrated where review and signature states overlap',
     `${roleLoad[0]?.role ?? 'Role queue'} has the highest modeled load.`,
     'Use the tokenized drilldown list before adding new handoffs to that lane.',
-    roleLoad[0]?.tone ?? 'info',
+    roleLoad[0]?.tone ?? 'neutral',
   );
   const treatmentFallback = fallbackInsight(
     'ANL-TREATMENT-FALLBACK',
     'Treatment analytics should be read as course-progress control signals',
     `${treatmentSignals[1]?.value ?? '0%'} approval completion in the current fraction sample.`,
     'Escalate held courses and review fractions before the next treatment slot.',
-    treatmentSignals.some((signal) => signal.tone === 'error') ? 'error' : 'warning',
+    treatmentSignals.some((signal) => signal.tone === 'negative') ? 'negative' : 'intermediate',
   );
   const documentFallback = fallbackInsight(
     'ANL-DOCUMENT-FALLBACK',
     'Document lifecycle risk is driven by signatures and audit evidence',
     `${documentHotspots[0]?.count ?? 0} open signals in the top document family.`,
     'Close signature and evidence gaps before export or billing review.',
-    documentHotspots.length > 0 ? 'warning' : 'info',
+    documentHotspots.length > 0 ? 'intermediate' : 'neutral',
   );
   const staffingFallback = fallbackInsight(
     'ANL-STAFFING-FALLBACK',
     'Staffing pressure follows role queue load more than appointment count',
     `${roleLoad[0]?.pressure ?? 0}% modeled pressure in the highest role lane.`,
     'Balance review-heavy work before schedule slots become downstream blockers.',
-    roleLoad[0]?.tone ?? 'info',
+    roleLoad[0]?.tone ?? 'neutral',
   );
   const billingFallback = fallbackInsight(
     'ANL-BILLING-FALLBACK',
     'Billing and audit readiness must stay tied to evidence state',
     `${auditChecks.filter((check) => check.status !== 'COMPLETED').length} audit checks remain open.`,
     'Treat billing readiness as blocked until required evidence and signatures are closed.',
-    'warning',
+    'intermediate',
   );
 
   return {
@@ -1146,25 +1136,25 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
           label: 'Client Payload',
           value: 'Tokenized',
           detail: 'Analytics receives patient refs, course refs, aggregates, and redacted audit events only.',
-          tone: 'success',
+          tone: 'positive',
         },
         {
           label: 'Raw PHI',
           value: 'Excluded',
           detail: 'No names, MRNs, DOBs, notes, or document previews are returned by analytics telemetry.',
-          tone: 'success',
+          tone: 'positive',
         },
         {
           label: 'Audit Stream',
           value: operationalAuditEvents().length,
           detail: 'Operational events are redacted before reaching the analytics client.',
-          tone: 'info',
+          tone: 'neutral',
         },
         {
           label: 'Forecasts',
           value: 'Labeled',
           detail: 'Projection charts are explicitly marked as prototype model output.',
-          tone: 'warning',
+          tone: 'intermediate',
         },
       ],
       insights: scopedInsights(insights, ['billing', 'audit', 'risk', 'readiness'], [billingFallback]),

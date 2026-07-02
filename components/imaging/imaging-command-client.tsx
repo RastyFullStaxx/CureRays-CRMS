@@ -106,10 +106,10 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
 
       <StatGrid>
         <StatCard icon={ImageIcon} label="Total Assets" value={stats.total} sub="Tagged records" />
-        <StatCard icon={FileImage} label="Ultrasound" value={stats.ultrasound} sub="US/IGSRT" tone="success" />
-        <StatCard icon={Camera} label="X-ray" value={stats.xray} sub="Mapping" tone="primary" />
-        <StatCard icon={ImageIcon} label="Clinical Photos" value={stats.photos} sub="Skin evidence" tone="warning" />
-        <StatCard icon={Upload} label="Missing Required" value={stats.missingRequired} sub="Asset gaps" tone="error" />
+        <StatCard icon={FileImage} label="Ultrasound" value={stats.ultrasound} sub="US/IGSRT" tone="neutral" />
+        <StatCard icon={Camera} label="X-ray" value={stats.xray} sub="Mapping" tone="neutral" />
+        <StatCard icon={ImageIcon} label="Clinical Photos" value={stats.photos} sub="Skin evidence" tone="neutral" />
+        <StatCard icon={Upload} label="Missing Required" value={stats.missingRequired} sub="Asset gaps" tone="negative" />
       </StatGrid>
 
       <DataTable
@@ -128,7 +128,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
                 <span className="flex min-w-0 flex-col">
                   <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                     {row.name}
-                    {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                    {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                   </span>
                   <span className="truncate type-supporting text-[var(--color-text-muted)]">{row.course}</span>
                 </span>
@@ -137,7 +137,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
           },
           { key: 'patient', label: 'Patient' },
           { key: 'patientRef', label: 'Patient Ref' },
-          { key: 'modality', label: 'Modality', render: (row) => <Badge variant="info">{row.modality}</Badge> },
+          { key: 'modality', label: 'Modality', render: (row) => <Badge variant="neutral">{row.modality}</Badge> },
           { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge> },
           { key: 'uploaded', label: 'Uploaded' },
           { key: 'uploader', label: 'Uploader' },
@@ -180,7 +180,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
             <div className="grid gap-3 md:grid-cols-[300px_minmax(0,1fr)]">
               <div className="min-h-[260px] rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-4">
                 <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] bg-[var(--color-card)] text-center">
-                  <ImageIcon className="h-12 w-12 text-[var(--color-primary)]" aria-hidden="true" />
+                  <ImageIcon className="h-12 w-12 text-[var(--status-neutral-text)]" aria-hidden="true" />
                   <p className="mt-3 px-4 type-body text-[var(--color-text)]">{selected.modality} evidence</p>
                   <p className="mt-1 px-4 type-supporting text-[var(--color-text-muted)]">Prototype preview placeholder</p>
                 </div>
@@ -194,12 +194,12 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Phase Evidence</p>
                   <p className="mt-1 type-body text-[var(--color-text)]">{selected.phase}</p>
-                  <Badge variant="info">{selected.requiredForPhase}</Badge>
+                  <Badge variant="neutral">{selected.requiredForPhase}</Badge>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Treatment Link</p>
                   <p className="mt-1 type-body text-[var(--color-text)]">{selected.linkedFractions} fraction link(s)</p>
-                  <Badge variant={selected.linkedFractions ? 'success' : 'warning'}>Fraction evidence</Badge>
+                  <Badge variant={selected.linkedFractions ? 'positive' : 'intermediate'}>Fraction evidence</Badge>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Notes</p>
@@ -235,7 +235,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
                   </Button>
                 </Link>
               </div>
-              <Select value={imagingAction} onChange={(event) => setImagingAction(event.target.value)} aria-label="Imaging action">
+              <Select value={imagingAction} onChange={(event) => setImagingAction(event.target.value)} aria-label="Imaging Action">
                 <option>Asset metadata reviewed</option>
                 <option>Required category gap assigned</option>
                 <option>Carepath evidence linked</option>
@@ -261,9 +261,9 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Required Category Matrix</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Imaging evidence by category</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Imaging Evidence by Category</h2>
           </div>
-          <Badge variant={categoryGaps.length ? 'warning' : 'success'}>{categoryGaps.length} gaps</Badge>
+          <Badge variant={categoryGaps.length ? 'intermediate' : 'positive'}>{categoryGaps.length} gaps</Badge>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
           {categories.map((category) => {
@@ -272,7 +272,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
               <div key={category} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="line-clamp-2 type-supporting text-[var(--color-text)]">{category}</p>
                 <div className="mt-3">
-                  <Badge variant={present ? 'success' : 'warning'}>{present ? 'Present' : 'Required gap'}</Badge>
+                  <Badge variant={present ? 'positive' : 'intermediate'}>{present ? 'Present' : 'Required gap'}</Badge>
                 </div>
               </div>
             );
@@ -284,11 +284,11 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Imaging Ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged imaging decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Imaging Decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={categoryGaps.length ? 'warning' : 'success'}>{categoryGaps.length} category gaps</Badge>
-            <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+            <Badge variant={categoryGaps.length ? 'intermediate' : 'positive'}>{categoryGaps.length} category gaps</Badge>
+            <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
           </div>
         </div>
         {ledger.length ? (
@@ -297,7 +297,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body text-[var(--color-text)]">{entry.asset}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>

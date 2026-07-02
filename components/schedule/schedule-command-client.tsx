@@ -13,13 +13,14 @@ import { Select } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { statusTone } from '@/lib/status-utils';
 import type { OperationalAppointment } from '@/lib/types';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 type ScheduleCommandClientProps = {
   appointments: OperationalAppointment[];
 };
 
 const days = [
-  { key: 'all', label: 'All week' },
+  { key: 'all', label: 'All Week' },
   { key: 'mon', label: 'Mon 5/4' },
   { key: 'tue', label: 'Tue 5/5' },
   { key: 'wed', label: 'Wed 5/6' },
@@ -31,14 +32,6 @@ const days = [
 
 const gridDays = days.slice(1);
 const hours = ['7 AM', '9 AM', '11 AM', '1 PM', '3 PM', '5 PM'];
-
-function statusLabel(value: string | undefined) {
-  return value ? value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Scheduled';
-}
-
-function appointmentTypeLabel(value: string | undefined) {
-  return value ? value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Carepath visit';
-}
 
 function dayForIndex(index: number) {
   return gridDays[index % gridDays.length]?.key ?? 'mon';
@@ -103,29 +96,29 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
 
       <StatGrid>
         <StatCard icon={CalendarDays} label="Total" value={appointmentRows.length} sub="Appointments" />
-        <StatCard icon={CheckCircle2} label="Treatments" value={treatments} sub="Fractions" tone="success" />
-        <StatCard icon={Clock3} label="Simulations" value={simulations} sub="Mapping/sim" tone="warning" />
-        <StatCard icon={UsersRound} label="Providers" value={providers} sub="On schedule" tone="primary" />
+        <StatCard icon={CheckCircle2} label="Treatments" value={treatments} sub="Fractions" tone="neutral" />
+        <StatCard icon={Clock3} label="Simulations" value={simulations} sub="Mapping/sim" tone="neutral" />
+        <StatCard icon={UsersRound} label="Providers" value={providers} sub="On schedule" tone="neutral" />
       </StatGrid>
 
       <Card compact>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex min-w-[180px] items-center gap-2 type-supporting uppercase text-[var(--color-text-muted)]">
+          <div className="flex min-w-[180px] items-center gap-2 type-label text-[var(--color-text-muted)]">
             <Filter className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
             Schedule Controls
           </div>
           <div className="min-w-[150px] flex-1">
-            <Select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Schedule day">
+            <Select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Schedule Day">
               {days.map((day) => (
                 <option key={day.key} value={day.key}>{day.label}</option>
               ))}
             </Select>
           </div>
           <div className="min-w-[180px] flex-1">
-            <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} aria-label="Appointment type">
+            <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} aria-label="Appointment Type">
               <option value="all">All visit types</option>
               {typeOptions.map((type) => (
-                <option key={type} value={type}>{appointmentTypeLabel(type)}</option>
+                <option key={type} value={type}>{formatUiLabel(type)}</option>
               ))}
             </Select>
           </div>
@@ -149,7 +142,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                 {filteredAppointments.length} visible after filters
               </p>
             </div>
-            <Badge variant="primary">Next 7 days</Badge>
+            <Badge variant="neutral">Next 7 days</Badge>
           </div>
           <ScrollArea axis="x" className="-mx-1 px-1 pb-1">
             <div className="flex min-w-max gap-3">
@@ -172,8 +165,8 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                   <p className="mt-2 truncate type-body text-[var(--color-text)]">{appointment.displayLabel}</p>
                   <p className="truncate type-supporting text-[var(--color-text-muted)]">{appointment.title}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge variant={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
-                    <Badge variant="default">{appointmentTypeLabel(appointment.appointmentType)}</Badge>
+                    <Badge variant={statusTone(appointment.status)}>{formatUiLabel(appointment.status, 'Scheduled')}</Badge>
+                    <Badge variant="neutral">{formatUiLabel(appointment.appointmentType ?? '', 'Carepath Visit')}</Badge>
                   </div>
                 </button>
               ))}
@@ -189,7 +182,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                 {selectedAppointment?.title ?? 'No appointment selected'}
               </h2>
             </div>
-            {selectedAppointment ? <Badge variant={statusTone(selectedAppointment.status)}>{statusLabel(selectedAppointment.status)}</Badge> : null}
+            {selectedAppointment ? <Badge variant={statusTone(selectedAppointment.status)}>{formatUiLabel(selectedAppointment.status, 'Scheduled')}</Badge> : null}
           </div>
           {selectedAppointment ? (
             <div className="mt-4 grid gap-3">
@@ -258,8 +251,8 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                             className="clinical-focus rounded-[var(--radius-md)] border p-2 text-left"
                             style={{
                               background: appointment.appointmentType === 'TREATMENT_FRACTION'
-                                ? 'color-mix(in srgb, var(--color-success) 8%, var(--color-card))'
-                                : 'color-mix(in srgb, var(--color-info) 8%, var(--color-card))',
+                                ? 'var(--status-positive-surface)'
+                                : 'var(--status-neutral-surface)',
                               borderColor: appointment.id === selectedAppointment?.id ? 'var(--color-primary)' : 'var(--color-border-soft)',
                             }}
                           >

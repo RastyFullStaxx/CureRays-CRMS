@@ -9,13 +9,12 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     <div className="flex min-h-0 flex-1 items-center justify-center">
       <div className="clinical-surface w-full max-w-lg p-6 text-center">
         <div
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-error)]"
-          style={{ background: 'color-mix(in srgb, var(--color-error) 10%, transparent)' }}
+          className="mx-auto flex h-12 w-12 items-center justify-center rounded-[var(--radius-md)] bg-[var(--status-negative-surface)] text-[var(--status-negative-text)]"
         >
           <AlertTriangle className="h-6 w-6" aria-hidden="true" />
         </div>
         <h2 className="mt-4 type-heading text-[var(--color-text)]">
-          This view could not load
+          This View Could Not Load
         </h2>
         <p className="mt-2 type-body text-[var(--color-text-muted)]">
           Error details are kept out of the browser view. Try loading the route again.

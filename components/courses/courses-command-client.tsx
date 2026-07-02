@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type CourseCommandRow = {
   id: string;
@@ -73,12 +74,8 @@ type StagedCourseAction = {
   note: string;
 };
 
-function cleanLabel(value: string) {
-  return value.replace(/_/g, ' ');
-}
-
 function evidenceTone(value: number) {
-  return value > 0 ? 'warning' : 'success';
+  return value > 0 ? 'intermediate' : 'positive';
 }
 
 export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) {
@@ -137,11 +134,11 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
       />
 
       <StatGrid>
-        <StatCard icon={ClipboardList} label="Active Courses" value={stats.active} sub="Across patients" tone="primary" />
-        <StatCard icon={CalendarDays} label="Upcoming" value={stats.upcoming} sub="Chart prep" tone="info" />
-        <StatCard icon={CheckCircle2} label="On Treatment" value={stats.onTreatment} sub="Active delivery" tone="success" />
-        <StatCard icon={FolderKanban} label="Post-Tx" value={stats.post} sub="Summary and audit" tone="primary" />
-        <StatCard icon={AlertTriangle} label="Needs Action" value={stats.blocked} sub="Blocked or flagged" tone="warning" />
+        <StatCard icon={ClipboardList} label="Active Courses" value={stats.active} sub="Across patients" tone="neutral" />
+        <StatCard icon={CalendarDays} label="Upcoming" value={stats.upcoming} sub="Chart prep" tone="neutral" />
+        <StatCard icon={CheckCircle2} label="On Treatment" value={stats.onTreatment} sub="Active delivery" tone="neutral" />
+        <StatCard icon={FolderKanban} label="Post-Tx" value={stats.post} sub="Summary and audit" tone="neutral" />
+        <StatCard icon={AlertTriangle} label="Needs Action" value={stats.blocked} sub="Blocked or flagged" tone="negative" />
       </StatGrid>
 
       <DataTable
@@ -156,7 +153,7 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
               <div className="flex flex-col">
                 <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.course}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
                 <span className="type-supporting text-[var(--color-text-muted)]">{row.courseNumber}</span>
               </div>
@@ -165,8 +162,8 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
           { key: 'patient', label: 'Patient' },
           { key: 'diagnosis', label: 'Diagnosis' },
           { key: 'site', label: 'Site' },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{cleanLabel(row.phase)}</Badge> },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{cleanLabel(row.status)}</Badge> },
+          { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{formatUiLabel(row.phase)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'missingDocuments', label: 'Doc Gaps' },
           { key: 'fractionsLogged', label: 'Fx Logged' },
@@ -203,8 +200,8 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            {selected ? <Badge variant={phaseTone(selected.phase)}>{cleanLabel(selected.phase)}</Badge> : null}
-            {selected ? <Badge variant={statusTone(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
+            {selected ? <Badge variant={phaseTone(selected.phase)}>{formatUiLabel(selected.phase)}</Badge> : null}
+            {selected ? <Badge variant={statusTone(selected.status)}>{formatUiLabel(selected.status)}</Badge> : null}
           </div>
         </div>
 
@@ -266,7 +263,7 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
                   </Button>
                 </Link>
               </div>
-              <Select value={courseAction} onChange={(event) => setCourseAction(event.target.value)} aria-label="Course action">
+              <Select value={courseAction} onChange={(event) => setCourseAction(event.target.value)} aria-label="Course Action">
                 <option>Course readiness reviewed</option>
                 <option>Carepath phase handoff staged</option>
                 <option>Document gap follow-up assigned</option>
@@ -292,12 +289,12 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Course Ledger</p>
-            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged course decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged Course Decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={openTasks ? 'warning' : 'success'}>{openTasks} open tasks</Badge>
-            <Badge variant={missingDocuments ? 'warning' : 'success'}>{missingDocuments} document gaps</Badge>
-            <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+            <Badge variant={openTasks ? 'intermediate' : 'positive'}>{openTasks} open tasks</Badge>
+            <Badge variant={missingDocuments ? 'intermediate' : 'positive'}>{missingDocuments} document gaps</Badge>
+            <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
           </div>
         </div>
         {ledger.length ? (
@@ -306,7 +303,7 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="type-body text-[var(--color-text)]">{entry.course}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>

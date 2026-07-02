@@ -68,7 +68,7 @@ export function MacNavigation() {
   return (
     <header className="mac-command-bar">
       <div className="mac-command-inner">
-        <Link href="/dashboard" className="mac-brand" aria-label="CureRays dashboard">
+        <Link href="/dashboard" className="mac-brand" aria-label="CureRays Dashboard">
           <Image
             src="/System_Logo.svg"
             alt=""
@@ -79,7 +79,7 @@ export function MacNavigation() {
           <span className="mac-brand-name">CureRays</span>
         </Link>
 
-        <nav className="mac-command-nav" aria-label="Primary navigation">
+        <nav className="mac-command-nav" aria-label="Primary Navigation">
           {commandItems.map((item) => {
             const Icon = item.icon;
             const isActive = matchesRoute(pathname, item.href);
@@ -99,7 +99,7 @@ export function MacNavigation() {
         </nav>
 
         <div className="mac-command-tools">
-          <button type="button" className="mac-spotlight" aria-label="Search patient records">
+          <button type="button" className="mac-spotlight" aria-label="Search Patient Records">
             <Search className="h-4 w-4" aria-hidden="true" />
             <span className="mac-spotlight-label">Search patient, MRN, course, or action</span>
             <span className="mac-spotlight-shortcut">
@@ -109,7 +109,7 @@ export function MacNavigation() {
           </button>
 
           <div className="mac-menu-actions">
-            <button type="button" className="mac-icon-button" aria-label="Course notifications">
+            <button type="button" className="mac-icon-button" aria-label="Course Notifications">
               <Bell className="h-4 w-4" aria-hidden="true" />
             </button>
             <button
