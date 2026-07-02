@@ -122,7 +122,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="sidebar-nav scrollbar-soft" aria-label="Primary navigation">
+      <nav className="sidebar-nav scrollbar-soft" aria-label="Primary Navigation">
         {NAV_SECTIONS.map((section) => (
           <div key={section.key} className="sidebar-section">
             <div className="sidebar-section-label" aria-hidden={collapsed}>

@@ -8,11 +8,8 @@ import {
 } from '@/components/workflow/igsrt-command-client';
 import { courseRef, patientRef } from '@/lib/hipaa';
 import { getIgsrtWorkspace } from '@/lib/services/operational-page-service';
+import { formatUiLabel } from '@/lib/ui-copy';
 import { carepathPhaseLabels } from '@/lib/workflow';
-
-function label(value: string | undefined) {
-  return value ? value.replace(/_/g, ' ') : 'Not set';
-}
 
 function yesNo(value: boolean) {
   return value ? 'Yes' : 'No';
@@ -35,16 +32,16 @@ export default function IgsrtWorkflowPage() {
     site: workspace.prescription.site,
     laterality: workspace.prescription.laterality,
     protocol: workspace.course.protocolName,
-    courseStatus: label(workspace.course.status),
+    courseStatus: formatUiLabel(workspace.course.status),
     currentFraction: workspace.course.currentFraction,
     totalFractions: workspace.course.totalFractions,
-    simulationStatus: label(workspace.simulationOrder.status),
+    simulationStatus: formatUiLabel(workspace.simulationOrder.status),
     simulationSigned: signedLabel(workspace.simulationOrder.signedAt),
-    prescriptionStatus: label(workspace.prescription.status),
+    prescriptionStatus: formatUiLabel(workspace.prescription.status),
     prescriptionSigned: signedLabel(workspace.prescription.signedAt),
     sensusVerified: yesNo(workspace.prescription.verifiedInSensus),
     preAuthorized: yesNo(workspace.prescription.preAuthorized),
-    scheduleStatus: label(workspace.planningReadiness.status),
+    scheduleStatus: formatUiLabel(workspace.planningReadiness.status),
     scheduledFractions: workspace.planningReadiness.scheduledFractions,
     plannedFractions: workspace.planningReadiness.plannedFractions,
     recordedFractions: workspace.courseFractions.length,
@@ -55,10 +52,10 @@ export default function IgsrtWorkflowPage() {
     id: document.id,
     name: document.name,
     phase: carepathPhaseLabels[document.clinicalPhase],
-    owner: label(document.responsibleParty),
-    status: label(document.status),
-    signature: label(document.signReviewState),
-    auditReady: document.auditReady ? 'Audit ready' : 'Audit pending',
+    owner: formatUiLabel(document.responsibleParty),
+    status: formatUiLabel(document.status),
+    signature: formatUiLabel(document.signReviewState),
+    auditReady: document.auditReady ? 'Audit Ready' : 'Audit Pending',
     requiredAction: document.requiredAction,
   }));
   const gates: IgsrtGateRow[] = [

@@ -27,6 +27,8 @@ import type {
   ResponsibleParty,
   TemplateSourceStatus,
 } from '@/lib/types';
+import type { StatusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type DashboardPanel = 'ops' | 'flow' | 'risk';
 
@@ -66,7 +68,7 @@ export type CarepathLaneToken = {
   id: string;
   label: string;
   offset: number;
-  tone: 'primary' | 'success' | 'warning' | 'info';
+  tone: StatusTone;
 };
 
 export type CarepathLaneDatum = {
@@ -111,7 +113,7 @@ export type ProviderLoad = {
   capacity: number;
 };
 
-export type DashboardTone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral';
+export type DashboardTone = StatusTone;
 
 export type DashboardKpiDatum = {
   label: string;
@@ -290,7 +292,7 @@ export type PhiGraphNode = {
   detail: string;
   x: number;
   y: number;
-  tone: 'primary' | 'success' | 'warning' | 'error' | 'info';
+  tone: StatusTone;
 };
 
 export type PhiGraphLink = {
@@ -476,34 +478,34 @@ function courseRefFor(courseId: string, refs: Record<string, string>) {
 
 function taskStatusTone(status: CarepathTaskStatus): DashboardTone {
   if (status === 'BLOCKED' || status === 'OVERDUE') {
-    return 'error';
+    return 'negative';
   }
 
   if (status === 'NEEDS_REVIEW' || status === 'READY_FOR_REVIEW') {
-    return 'warning';
+    return 'intermediate';
   }
 
   if (completedTaskStatuses.includes(status)) {
-    return 'success';
+    return 'positive';
   }
 
-  return 'info';
+  return 'neutral';
 }
 
 function documentStatusTone(status: DocumentStatus): DashboardTone {
   if (status === 'BLOCKED' || status === 'OVERDUE' || status === 'MISSING_FIELDS') {
-    return 'error';
+    return 'negative';
   }
 
   if (status === 'NEEDS_REVIEW' || status === 'READY_FOR_REVIEW' || status === 'PENDING_NEEDED') {
-    return 'warning';
+    return 'intermediate';
   }
 
   if (readyDocumentStatuses.includes(status)) {
-    return 'success';
+    return 'positive';
   }
 
-  return 'info';
+  return 'neutral';
 }
 
 function flagSeverityScore(severity: FlagSeverity) {
@@ -513,10 +515,10 @@ function flagSeverityScore(severity: FlagSeverity) {
 }
 
 function riskTone(score: number): DashboardTone {
-  if (score >= 8) return 'error';
-  if (score >= 4) return 'warning';
-  if (score > 0) return 'info';
-  return 'success';
+  if (score >= 8) return 'negative';
+  if (score >= 4) return 'intermediate';
+  if (score > 0) return 'neutral';
+  return 'positive';
 }
 
 function taskPriority(status: CarepathTaskStatus, due: string | undefined, asOf: Date) {
@@ -686,7 +688,7 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
     phase: carepathPhaseLabels[task.workflowPhase],
     owner: responsiblePartyLabels[task.responsibleParty],
     dueState: dueState(task.dueDate, asOf),
-    status: task.status.replaceAll('_', ' '),
+    status: formatUiLabel(task.status),
     reasonCategory: taskRiskDomain(task.title, task.documentName),
     tone: taskStatusTone(task.status),
     priorityScore: taskPriority(task.status, task.dueDate, asOf),
@@ -700,7 +702,7 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
       phase: carepathPhaseLabels[document.clinicalPhase],
       owner: responsiblePartyLabels[document.responsibleParty],
       dueState: 'Signature path',
-      status: document.status.replaceAll('_', ' '),
+      status: formatUiLabel(document.status),
       reasonCategory: documentRiskDomain(document.name),
       tone: documentStatusTone(document.status),
       priorityScore: documentPriority(document.status, document.signReviewState),
@@ -717,7 +719,7 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
     });
 
     return {
-      label: `${workflow.diagnosis.replaceAll('_', ' ')} · ${workflow.protocol}`,
+      label: `${formatUiLabel(workflow.diagnosis)} · ${workflow.protocol}`,
       ...templateStatusCounts(statuses),
     };
   });
@@ -742,10 +744,10 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
   return {
     asOfLabel: shortDate(asOf),
     metrics: [
-      { label: 'Open handoffs', value: openTasks.length + signatureQueue.length, detail: `${blockedTasks.length} blocked`, tone: blockedTasks.length > 0 ? 'warning' : 'success' },
-      { label: 'Template gaps', value: templateCoverage.reduce((sum, item) => sum + item.missing + item.draft + item.mapping, 0), detail: 'Draft, missing, or mapping', tone: 'info' },
-      { label: 'Audit not ready', value: documentsNotReady.length, detail: 'Documents and task evidence', tone: documentsNotReady.length > 0 ? 'warning' : 'success' },
-      { label: 'Signature queue', value: signatureQueue.length, detail: 'Review path still open', tone: signatureQueue.length > 0 ? 'warning' : 'success' },
+      { label: 'Open handoffs', value: openTasks.length + signatureQueue.length, detail: `${blockedTasks.length} blocked`, tone: blockedTasks.length > 0 ? 'intermediate' : 'positive' },
+      { label: 'Template gaps', value: templateCoverage.reduce((sum, item) => sum + item.missing + item.draft + item.mapping, 0), detail: 'Draft, missing, or mapping', tone: 'neutral' },
+      { label: 'Audit not ready', value: documentsNotReady.length, detail: 'Documents and task evidence', tone: documentsNotReady.length > 0 ? 'intermediate' : 'positive' },
+      { label: 'Signature queue', value: signatureQueue.length, detail: 'Review path still open', tone: signatureQueue.length > 0 ? 'intermediate' : 'positive' },
     ],
     sankey: {
       nodes: sankeyNodes,
@@ -782,24 +784,24 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
     .filter((item) => item.priorityScore > 0);
   const auditGapDocuments = generatedDocuments.filter((document) => !document.auditReady);
   const components: RiskScoreComponent[] = [
-    { label: 'High flags', value: highFlags.length, points: highFlags.length * 10, detail: 'High-severity operational flags', tone: highFlags.length > 0 ? 'error' : 'success' },
-    { label: 'Blocked work', value: blockedTasks.length, points: blockedTasks.length * 14, detail: 'Blocked or overdue carepath tasks', tone: blockedTasks.length > 0 ? 'error' : 'success' },
-    { label: 'Treatment holds', value: treatmentHolds.length, points: treatmentHolds.length * 15, detail: 'Courses paused before release', tone: treatmentHolds.length > 0 ? 'error' : 'success' },
-    { label: 'Unsigned critical docs', value: unsignedCriticalDocuments.length, points: unsignedCriticalDocuments.length * 8, detail: 'Planning or treatment docs not signed', tone: unsignedCriticalDocuments.length > 0 ? 'warning' : 'success' },
-    { label: 'Fraction issues', value: fractionIssues.length, points: fractionIssues.length * 8, detail: 'Approval, revision, or override watch', tone: fractionIssues.length > 0 ? 'warning' : 'success' },
-    { label: 'Audit gaps', value: auditGapDocuments.length, points: auditGapDocuments.length * 4, detail: 'Evidence not audit-ready', tone: auditGapDocuments.length > 0 ? 'info' : 'success' },
+    { label: 'High flags', value: highFlags.length, points: highFlags.length * 10, detail: 'High-severity operational flags', tone: highFlags.length > 0 ? 'negative' : 'positive' },
+    { label: 'Blocked work', value: blockedTasks.length, points: blockedTasks.length * 14, detail: 'Blocked or overdue carepath tasks', tone: blockedTasks.length > 0 ? 'negative' : 'positive' },
+    { label: 'Treatment holds', value: treatmentHolds.length, points: treatmentHolds.length * 15, detail: 'Courses paused before release', tone: treatmentHolds.length > 0 ? 'negative' : 'positive' },
+    { label: 'Unsigned critical docs', value: unsignedCriticalDocuments.length, points: unsignedCriticalDocuments.length * 8, detail: 'Planning or treatment docs not signed', tone: unsignedCriticalDocuments.length > 0 ? 'intermediate' : 'positive' },
+    { label: 'Fraction issues', value: fractionIssues.length, points: fractionIssues.length * 8, detail: 'Approval, revision, or override watch', tone: fractionIssues.length > 0 ? 'intermediate' : 'positive' },
+    { label: 'Audit gaps', value: auditGapDocuments.length, points: auditGapDocuments.length * 4, detail: 'Evidence not audit-ready', tone: auditGapDocuments.length > 0 ? 'intermediate' : 'positive' },
   ];
   const totalPoints = components.reduce((sum, item) => sum + item.points, 0);
   const safetyScore = Math.max(0, Math.min(100, 100 - totalPoints));
   const domainNodes: RiskGraphNode[] = [
-    { id: 'domain-high-flag', name: 'High flag', category: 'domain', value: highFlags.length, detail: 'Priority flag', tone: 'error' },
-    { id: 'domain-blocker', name: 'Workflow blocker', category: 'domain', value: blockedTasks.length, detail: 'Blocked task', tone: 'error' },
-    { id: 'domain-hold', name: 'Treatment hold', category: 'domain', value: treatmentHolds.length, detail: 'Course hold', tone: 'error' },
-    { id: 'domain-prescription', name: 'Prescription', category: 'domain', value: unsignedCriticalDocuments.filter((document) => documentRiskDomain(document.name) === 'Prescription').length, detail: 'Unsigned review', tone: 'warning' },
-    { id: 'domain-physics', name: 'Physics review', category: 'domain', value: blockedTasks.filter((task) => taskRiskDomain(task.title, task.documentName) === 'Physics review').length, detail: 'Physics path', tone: 'warning' },
-    { id: 'domain-fraction', name: 'Fraction approval', category: 'domain', value: fractionIssues.length, detail: 'MD/DOT approval', tone: 'warning' },
-    { id: 'domain-signature', name: 'Document signature', category: 'domain', value: unsignedCriticalDocuments.length, detail: 'Signature queue', tone: 'info' },
-    { id: 'domain-audit', name: 'Audit gap', category: 'domain', value: auditGapDocuments.length, detail: 'Audit readiness', tone: 'info' },
+    { id: 'domain-high-flag', name: 'High flag', category: 'domain', value: highFlags.length, detail: 'Priority flag', tone: 'negative' },
+    { id: 'domain-blocker', name: 'Workflow blocker', category: 'domain', value: blockedTasks.length, detail: 'Blocked task', tone: 'negative' },
+    { id: 'domain-hold', name: 'Treatment hold', category: 'domain', value: treatmentHolds.length, detail: 'Course hold', tone: 'negative' },
+    { id: 'domain-prescription', name: 'Prescription', category: 'domain', value: unsignedCriticalDocuments.filter((document) => documentRiskDomain(document.name) === 'Prescription').length, detail: 'Unsigned review', tone: 'intermediate' },
+    { id: 'domain-physics', name: 'Physics review', category: 'domain', value: blockedTasks.filter((task) => taskRiskDomain(task.title, task.documentName) === 'Physics review').length, detail: 'Physics path', tone: 'intermediate' },
+    { id: 'domain-fraction', name: 'Fraction approval', category: 'domain', value: fractionIssues.length, detail: 'MD/DOT approval', tone: 'intermediate' },
+    { id: 'domain-signature', name: 'Document signature', category: 'domain', value: unsignedCriticalDocuments.length, detail: 'Signature queue', tone: 'intermediate' },
+    { id: 'domain-audit', name: 'Audit gap', category: 'domain', value: auditGapDocuments.length, detail: 'Audit readiness', tone: 'intermediate' },
   ];
   const courseRiskScores: Record<string, number> = {};
   const riskLinks: RiskGraphLink[] = [];
@@ -808,16 +810,16 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
     riskLinks.push({ source: courseRef, target, value, reason, tone });
   };
 
-  highFlags.forEach((flag) => addCourseRisk(patientRefToCourseRef[flag.patientRef] ?? flag.patientRef, 'domain-high-flag', flagSeverityScore(flag.severity) + 2, flag.summary, 'error'));
-  blockedTasks.forEach((task) => addCourseRisk(courseRefFor(task.courseId, refs), 'domain-blocker', taskPriority(task.status, task.dueDate, asOf), taskRiskDomain(task.title, task.documentName), 'error'));
-  treatmentHolds.forEach((course) => addCourseRisk(course.courseRef, 'domain-hold', 12, 'Course hold', 'error'));
+  highFlags.forEach((flag) => addCourseRisk(patientRefToCourseRef[flag.patientRef] ?? flag.patientRef, 'domain-high-flag', flagSeverityScore(flag.severity) + 2, flag.summary, 'negative'));
+  blockedTasks.forEach((task) => addCourseRisk(courseRefFor(task.courseId, refs), 'domain-blocker', taskPriority(task.status, task.dueDate, asOf), taskRiskDomain(task.title, task.documentName), 'negative'));
+  treatmentHolds.forEach((course) => addCourseRisk(course.courseRef, 'domain-hold', 12, 'Course hold', 'negative'));
   unsignedCriticalDocuments.forEach((document) => {
     const domain = documentRiskDomain(document.name);
     const target = domain === 'Prescription' ? 'domain-prescription' : domain === 'Physics review' ? 'domain-physics' : 'domain-signature';
     addCourseRisk(courseRefFor(document.courseId, refs), target, documentPriority(document.status, document.signReviewState), domain, documentStatusTone(document.status));
   });
-  fractionIssues.forEach(({ entry, issue, priorityScore }) => addCourseRisk(courseRefFor(entry.courseId, refs), 'domain-fraction', priorityScore, issue, priorityScore >= 10 ? 'error' : 'warning'));
-  auditGapDocuments.forEach((document) => addCourseRisk(courseRefFor(document.courseId, refs), 'domain-audit', 3, 'Audit gap', 'info'));
+  fractionIssues.forEach(({ entry, issue, priorityScore }) => addCourseRisk(courseRefFor(entry.courseId, refs), 'domain-fraction', priorityScore, issue, priorityScore >= 10 ? 'negative' : 'intermediate'));
+  auditGapDocuments.forEach((document) => addCourseRisk(courseRefFor(document.courseId, refs), 'domain-audit', 3, 'Audit gap', 'intermediate'));
 
   const courseNodes = Object.entries(courseRiskScores)
     .sort(([, a], [, b]) => b - a)
@@ -874,8 +876,8 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
       fraction: `Fx ${entry.fractionNumber}`,
       issue,
       approvalState: `MD ${entry.mdApprovalState ?? (entry.mdApproval ? 'APPROVED' : 'PENDING')} · DOT ${entry.dotApprovalState ?? (entry.dotApproval ? 'APPROVED' : 'PENDING')}`,
-      calculation: entry.calculationStatus?.replaceAll('_', ' ') ?? 'Standard calc',
-      tone: priorityScore >= 10 ? 'error' : 'warning',
+      calculation: entry.calculationStatus ? formatUiLabel(entry.calculationStatus) : 'Standard calculation',
+      tone: priorityScore >= 10 ? 'negative' : 'intermediate',
       priorityScore,
     }));
   const interventions = [
@@ -887,7 +889,7 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
       phase: carepathPhaseLabels[task.workflowPhase],
       dueState: dueState(task.dueDate, asOf),
       reasonCategory: taskRiskDomain(task.title, task.documentName),
-      tone: 'error',
+      tone: 'negative',
       priorityScore: taskPriority(task.status, task.dueDate, asOf),
     })),
     ...fractionWatch.map<InterventionQueueItem>((item) => ({
@@ -935,10 +937,10 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
     fractionWatch,
     interventions,
     phiAssurance: [
-      { label: 'Client payload', value: 'Tokenized', detail: 'No direct identifiers in dashboard telemetry', tone: 'success' },
-      { label: 'PHI boundary', value: 'Isolated', detail: 'PHI vault is not exposed to dashboard charts', tone: 'success' },
-      { label: 'Audit events', value: operationalAuditEvents().length, detail: 'Redacted operational audit stream', tone: 'info' },
-      { label: 'Risk tooltips', value: 'Safe', detail: 'Plain labels only, no raw HTML formatter', tone: 'success' },
+      { label: 'Client payload', value: 'Tokenized', detail: 'No direct identifiers in dashboard telemetry', tone: 'positive' },
+      { label: 'PHI boundary', value: 'Isolated', detail: 'PHI vault is not exposed to dashboard charts', tone: 'positive' },
+      { label: 'Audit events', value: operationalAuditEvents().length, detail: 'Redacted operational audit stream', tone: 'neutral' },
+      { label: 'Risk tooltips', value: 'Safe', detail: 'Plain labels only, no raw HTML formatter', tone: 'positive' },
     ],
   };
 }
@@ -1017,12 +1019,6 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
       { source: course.courseRef, target: `stage-${stageId}`, value: Math.max(1, course.currentFraction) },
     ];
   });
-  const laneTone: Record<DashboardSignalStageId, CarepathLaneToken['tone']> = {
-    'chart-prep': 'info',
-    planning: 'warning',
-    delivery: 'success',
-    closeout: 'primary',
-  };
   const carepathLanes = stageIds.map<CarepathLaneDatum>((stageId, stageIndex) => {
     const stageCourses = courses.filter((course) => courseStage(course.chartRoundsPhase) === stageId).slice(0, 3);
     const nextStageId = stageIds[stageIndex + 1];
@@ -1030,14 +1026,14 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
       id: `${stageId}-queue-${index + 1}`,
       label: `Q${index + 1}`,
       offset: (index * 23 + stageIndex * 11) % 62,
-      tone: laneTone[stageId],
+      tone: 'neutral' as const,
     }));
     const tokens = stageCourses.length > 0
       ? stageCourses.map((course, index) => ({
         id: course.courseRef,
         label: course.courseRef,
         offset: (index * 19 + stageIndex * 13) % 64,
-        tone: laneTone[stageId],
+        tone: 'neutral' as const,
       }))
       : fallbackTokens;
 
@@ -1079,8 +1075,8 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
     carepathLanes,
     courseDistribution: [
       { name: 'Upcoming', value: upcoming, color: 'var(--color-primary)' },
-      { name: 'On Tx', value: active, color: 'var(--color-accent)' },
-      { name: 'Post', value: post, color: 'var(--color-primary-dark)' },
+      { name: 'On Tx', value: active, color: 'color-mix(in srgb, var(--color-primary) 62%, var(--color-card-muted))' },
+      { name: 'Post', value: post, color: 'color-mix(in srgb, var(--color-primary) 34%, var(--color-card-muted))' },
     ],
     throughput: [
       { day: 'Mon', fractions: 18, activeLoad: active + 4 },
@@ -1092,10 +1088,10 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
       { day: 'Sun', fractions: Math.max(4, completedFractions + active), activeLoad: active },
     ],
     attention: [
-      { label: 'High-priority flags', value: highFlags, color: 'var(--color-error)' },
-      { label: 'Blocked tasks', value: blockedTasks, color: 'var(--color-warning)' },
-      { label: 'Pending signatures', value: signatureQueue, color: 'var(--color-accent)' },
-      { label: 'Audit events today', value: auditEvents.length, color: 'var(--color-primary)' },
+      { label: 'High-priority flags', value: highFlags, color: 'var(--status-negative-solid)' },
+      { label: 'Blocked tasks', value: blockedTasks, color: 'var(--status-negative-solid)' },
+      { label: 'Pending signatures', value: signatureQueue, color: 'var(--status-intermediate-solid)' },
+      { label: 'Audit events today', value: auditEvents.length, color: 'var(--status-neutral-solid)' },
     ],
     capacityBands: buildCapacityBands(),
     providerLoad: buildProviderLoad(),
@@ -1103,12 +1099,12 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
     risk: buildRiskTelemetry(courses),
     phiBoundary: {
       nodes: [
-        { id: 'client', label: 'Dashboard client', detail: 'Tokenized telemetry only', x: 10, y: 56, tone: 'primary' },
-        { id: 'api', label: 'Operational API', detail: 'Server derivation layer', x: 34, y: 24, tone: 'info' },
-        { id: 'ops', label: 'OPS DB', detail: 'Course/task refs', x: 64, y: 20, tone: 'success' },
-        { id: 'redaction', label: 'Redaction gate', detail: 'PHI keys stripped', x: 42, y: 68, tone: 'warning' },
-        { id: 'audit', label: 'Audit stream', detail: `${auditEvents.length} events today`, x: 72, y: 66, tone: 'info' },
-        { id: 'phi', label: 'PHI vault', detail: 'Identifiers isolated', x: 92, y: 42, tone: 'error' },
+        { id: 'client', label: 'Dashboard client', detail: 'Tokenized telemetry only', x: 10, y: 56, tone: 'neutral' },
+        { id: 'api', label: 'Operational API', detail: 'Server derivation layer', x: 34, y: 24, tone: 'neutral' },
+        { id: 'ops', label: 'OPS DB', detail: 'Course/task refs', x: 64, y: 20, tone: 'neutral' },
+        { id: 'redaction', label: 'Redaction gate', detail: 'PHI keys stripped', x: 42, y: 68, tone: 'positive' },
+        { id: 'audit', label: 'Audit stream', detail: `${auditEvents.length} events today`, x: 72, y: 66, tone: 'neutral' },
+        { id: 'phi', label: 'PHI vault', detail: 'Identifiers isolated', x: 92, y: 42, tone: 'neutral' },
       ],
       links: [
         { source: 'client', target: 'api', label: 'read model' },

@@ -15,6 +15,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { TreatmentDeliveryTabs } from '@/components/treatment-delivery/treatment-delivery-tabs';
 import type { FractionLogRegistryRow } from '@/lib/services/fraction-log-registry-service';
+import { formatUiLabel } from '@/lib/ui-copy';
 import { formatDate } from '@/lib/workflow';
 
 type StagedFractionReview = {
@@ -28,21 +29,16 @@ type FractionLogCommandClientProps = {
   rows: FractionLogRegistryRow[];
 };
 
-function label(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('approved') || normalized.includes('signed') || normalized.includes('exported') || normalized.includes('completed') || normalized.includes('clear')) return 'success';
-  if (normalized.includes('revision') || normalized.includes('missing') || normalized.includes('void')) return 'error';
-  if (normalized.includes('review') || normalized.includes('pending') || normalized.includes('approval') || normalized.includes('calculation')) return 'warning';
-  if (normalized.includes('recorded')) return 'primary';
-  return 'default';
+  if (normalized.includes('approved') || normalized.includes('signed') || normalized.includes('exported') || normalized.includes('completed') || normalized.includes('clear')) return 'positive' as const;
+  if (normalized.includes('revision') || normalized.includes('missing') || normalized.includes('void')) return 'negative' as const;
+  if (normalized.includes('review') || normalized.includes('pending') || normalized.includes('approval') || normalized.includes('calculation')) return 'intermediate' as const;
+  return 'neutral' as const;
 }
 
 function approvalBadge(state: string) {
-  return <Badge variant={toneFor(state)}>{label(state)}</Badge>;
+  return <Badge variant={toneFor(state)}>{formatUiLabel(state)}</Badge>;
 }
 
 export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps) {
@@ -71,7 +67,7 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
   function selectRow(row: FractionLogRegistryRow) {
     setSelectedId(row.id);
     setDisposition(row.review === 'Clear' ? 'Ready for closeout evidence' : `Needs ${row.review.toLowerCase()} review`);
-    setNote(`Reviewed ${row.courseRef} Fx ${row.fractionNumber}: ${row.review} / ${label(row.status)}.`);
+    setNote(`Reviewed ${row.courseRef} Fx ${row.fractionNumber}: ${row.review} / ${formatUiLabel(row.status)}.`);
   }
 
   function stageReview() {
@@ -103,11 +99,11 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
       <TreatmentDeliveryTabs active="fraction-logs" />
 
       <StatGrid>
-        <StatCard icon={FileSpreadsheet} label="Active Rows" value={rows.length} tone="primary" />
-        <StatCard icon={AlertTriangle} label="Review" value={reviewNeeded} tone={reviewNeeded > 0 ? 'warning' : 'success'} />
-        <StatCard icon={CheckCircle2} label="Approved" value={approved} tone="success" />
-        <StatCard icon={ClipboardCheck} label="Documents" value={documentReady} tone="info" />
-        <StatCard icon={ShieldCheck} label="Revisions" value={revisionRows} tone={revisionRows > 0 ? 'error' : 'success'} />
+        <StatCard icon={FileSpreadsheet} label="Active Rows" value={rows.length} tone="neutral" />
+        <StatCard icon={AlertTriangle} label="Review" value={reviewNeeded} tone={reviewNeeded > 0 ? 'intermediate' : 'positive'} />
+        <StatCard icon={CheckCircle2} label="Approved" value={approved} tone="positive" />
+        <StatCard icon={ClipboardCheck} label="Documents" value={documentReady} tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Revisions" value={revisionRows} tone={revisionRows > 0 ? 'negative' : 'positive'} />
       </StatGrid>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.75fr)]">
@@ -118,18 +114,18 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
             {
               key: 'patientRef',
               label: 'Patient Ref',
-              render: (row) => <span className="font-bold text-[var(--color-text)]">{row.patientRef}</span>,
+              render: (row) => <span className="type-medium text-[var(--color-text)]">{row.patientRef}</span>,
             },
             {
               key: 'courseRef',
               label: 'Course Ref',
-              render: (row) => <span className="font-bold text-[var(--color-primary)]">{row.courseRef}</span>,
+              render: (row) => <span className="type-medium text-[var(--color-primary)]">{row.courseRef}</span>,
             },
             {
               key: 'fractionNumber',
               label: 'Fx',
               width: '72px',
-              render: (row) => <span className="font-bold">Fx {row.fractionNumber}</span>,
+              render: (row) => <span className="type-medium">Fx {row.fractionNumber}</span>,
             },
             { key: 'date', label: 'Date', render: (row) => formatDate(row.date) },
             { key: 'phase', label: 'Phase' },
@@ -140,12 +136,12 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
             {
               key: 'status',
               label: 'Status',
-              render: (row) => <Badge variant={toneFor(row.status)}>{label(row.status)}</Badge>,
+              render: (row) => <Badge variant={toneFor(row.status)}>{formatUiLabel(row.status)}</Badge>,
             },
             {
               key: 'document',
               label: 'Document',
-              render: (row) => <Badge variant={toneFor(row.document)}>{label(row.document)}</Badge>,
+              render: (row) => <Badge variant={toneFor(row.document)}>{formatUiLabel(row.document)}</Badge>,
             },
           ]}
           rows={rows}
@@ -167,12 +163,12 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
           }}
           filters={[
             { id: 'review', label: 'Review', getValue: (row) => row.review },
-            { id: 'status', label: 'Status', getValue: (row) => label(row.status) },
+            { id: 'status', label: 'Status', getValue: (row) => formatUiLabel(row.status) },
             { id: 'courseRef', label: 'Course', getValue: (row) => row.courseRef },
-            { id: 'document', label: 'Document', getValue: (row) => label(row.document) },
+            { id: 'document', label: 'Document', getValue: (row) => formatUiLabel(row.document) },
           ]}
           toolbarPrefix={
-            <Badge variant={reviewNeeded > 0 ? 'warning' : 'success'}>
+            <Badge variant={reviewNeeded > 0 ? 'intermediate' : 'positive'}>
               {reviewNeeded} Review
             </Badge>
           }
@@ -186,10 +182,10 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="clinical-label">Selected Fraction</p>
-                  <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                  <h2 className="mt-1 type-heading text-[var(--color-text)]">
                     {selected.courseRef} / Fx {selected.fractionNumber}
                   </h2>
-                  <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <p className="mt-1 type-body text-[var(--color-text-muted)]">
                     {selected.patientRef} / {formatDate(selected.date)} / {selected.phase}
                   </p>
                 </div>
@@ -199,11 +195,11 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Delivered Dose</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selected.doseCgy.toLocaleString()} cGy</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selected.doseCgy.toLocaleString()} cGy</p>
                 </div>
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Cumulative</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selected.cumulativeDoseCgy.toLocaleString()} cGy</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selected.cumulativeDoseCgy.toLocaleString()} cGy</p>
                 </div>
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">DOT</p>
@@ -218,10 +214,10 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="clinical-label">Document Evidence</p>
-                  <Badge variant={toneFor(selected.document)}>{label(selected.document)}</Badge>
+                  <Badge variant={toneFor(selected.document)}>{formatUiLabel(selected.document)}</Badge>
                 </div>
-                <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
-                  Technician {selected.technicianInitials || 'not recorded'} / status {label(selected.status)}
+                <p className="mt-2 type-body text-[var(--color-text-muted)]">
+                  Technician {selected.technicianInitials || 'not recorded'} / status {formatUiLabel(selected.status)}
                 </p>
               </div>
 
@@ -254,7 +250,7 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No fraction row is selected.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No fraction row is selected.</div>
           )}
         </Card>
       </div>
@@ -264,18 +260,18 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Course Rollup</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">On-treatment worksheet coverage</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">On-Treatment Worksheet Coverage</h2>
             </div>
-            <Badge variant="info">{Object.keys(courseSummary).length} courses</Badge>
+            <Badge variant="neutral">{Object.keys(courseSummary).length} courses</Badge>
           </div>
           <div className="grid gap-2">
             {Object.entries(courseSummary).map(([courseRef, summary]) => (
               <div key={courseRef} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{courseRef}</p>
-                  <Badge variant={summary.review > 0 ? 'warning' : 'success'}>{summary.review} review</Badge>
+                  <p className="type-body text-[var(--color-text)]">{courseRef}</p>
+                  <Badge variant={summary.review > 0 ? 'intermediate' : 'positive'}>{summary.review} review</Badge>
                 </div>
-                <p className="mt-2 text-xs font-bold uppercase text-[var(--color-text-muted)]">
+                <p className="mt-2 type-label text-[var(--color-text-muted)]">
                   {summary.approved}/{summary.total} approved rows
                 </p>
               </div>
@@ -287,20 +283,20 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Fraction Review Ledger</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged registry decisions</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Registry Decisions</h2>
             </div>
-            <Badge variant="info">No external sync</Badge>
+            <Badge variant="neutral">No External Sync</Badge>
           </div>
           <div className="grid gap-2">
             {ledger.length ? ledger.map((record) => (
               <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[140px_150px_190px_minmax(0,1fr)]">
-                <span className="text-xs font-bold text-[var(--color-primary)]">{record.id}</span>
-                <span className="text-sm font-bold text-[var(--color-text)]">{record.row}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
+                <span className="type-body text-[var(--color-text)]">{record.row}</span>
                 <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
-                <span className="truncate text-sm font-semibold text-[var(--color-text-muted)]">{record.note}</span>
+                <span className="truncate type-body text-[var(--color-text-muted)]">{record.note}</span>
               </div>
             )) : (
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 type-body text-[var(--color-text-muted)]">
                 No fraction registry decisions have been staged in this demo session.
               </div>
             )}

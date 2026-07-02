@@ -28,7 +28,7 @@ export function TreatmentDeliveryTabs({ active }: { active: TreatmentDeliveryTab
           <Link
             key={tab.id}
             href={tab.href}
-            className="clinical-focus inline-flex h-8 min-w-fit items-center rounded-[var(--radius-md)] px-3 text-xs font-bold transition"
+            className="clinical-focus inline-flex h-8 min-w-fit items-center rounded-[var(--radius-md)] px-3 type-supporting transition"
             style={{
               background: active === tab.id ? "var(--color-bg-elevated)" : "transparent",
               color: active === tab.id ? "var(--color-text)" : "var(--color-text-muted)",

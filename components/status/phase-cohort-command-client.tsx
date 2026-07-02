@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type PhaseCohortMode = 'upcoming' | 'on-treatment' | 'post';
 
@@ -61,27 +62,20 @@ type PhaseCohortCommandClientProps = {
   stats: PhaseCohortStats;
 };
 
-const modeCopy: Record<PhaseCohortMode, { primaryLabel: string; reviewAction: string; tone: 'primary' | 'success' | 'info' }> = {
+const modeCopy: Record<PhaseCohortMode, { primaryLabel: string; reviewAction: string }> = {
   upcoming: {
     primaryLabel: 'Upcoming Patients',
     reviewAction: 'Planning readiness reviewed',
-    tone: 'info',
   },
   'on-treatment': {
     primaryLabel: 'On Treatment',
     reviewAction: 'Treatment-day readiness reviewed',
-    tone: 'success',
   },
   post: {
     primaryLabel: 'Post-Treatment',
     reviewAction: 'Closeout readiness reviewed',
-    tone: 'primary',
   },
 };
-
-function cleanLabel(value: string) {
-  return value.replace(/_/g, ' ');
-}
 
 export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }: PhaseCohortCommandClientProps) {
   const [selectedId, setSelectedId] = useState(rows[0]?.id ?? '');
@@ -138,24 +132,24 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
       />
 
       <StatGrid>
-        <StatCard icon={RadioTower} label={modeCopy[mode].primaryLabel} value={stats.cohortCount} tone={modeCopy[mode].tone} />
-        <StatCard icon={CalendarDays} label="Total Courses" value={stats.totalCourses} tone="primary" />
-        <StatCard icon={ClipboardList} label="Open Tasks" value={openTaskCount} tone={openTaskCount ? 'warning' : 'success'} />
-        <StatCard icon={FileText} label="Documents" value={stats.documents} tone="info" />
+        <StatCard icon={RadioTower} label={modeCopy[mode].primaryLabel} value={stats.cohortCount} tone="neutral" />
+        <StatCard icon={CalendarDays} label="Total Courses" value={stats.totalCourses} tone="neutral" />
+        <StatCard icon={ClipboardList} label="Open Tasks" value={openTaskCount} tone={openTaskCount ? 'intermediate' : 'positive'} />
+        <StatCard icon={FileText} label="Documents" value={stats.documents} tone="neutral" />
         <StatCard icon={CheckCircle2} label="Avg Fraction Progress" value={`${averageProgress}%`} />
       </StatGrid>
 
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Selected cohort record</p>
-            <h2 className="mt-1 text-base font-bold text-[var(--color-text)]">
+            <p className="type-label text-[var(--color-text-muted)]">Selected Cohort Record</p>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selectedRow ? `${selectedRow.patient} operational review` : 'Select a patient to review'}
             </h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            {selectedRow ? <Badge variant={statusTone(selectedRow.courseStatus)}>{cleanLabel(selectedRow.courseStatus)}</Badge> : null}
-            {blockedTaskCount ? <Badge variant="warning">{blockedTaskCount} blocked</Badge> : <Badge variant="success">No blocked tasks</Badge>}
+            {selectedRow ? <Badge variant={statusTone(selectedRow.courseStatus)}>{formatUiLabel(selectedRow.courseStatus)}</Badge> : null}
+            {blockedTaskCount ? <Badge variant="intermediate">{blockedTaskCount} blocked</Badge> : <Badge variant="positive">No blocked tasks</Badge>}
           </div>
         </div>
 
@@ -163,26 +157,26 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
           <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Course</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selectedRow.course}</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{cleanLabel(selectedRow.coursePhase)}</p>
+                <p className="type-label text-[var(--color-text-muted)]">Course</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selectedRow.course}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{formatUiLabel(selectedRow.coursePhase)}</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Fractions</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                <p className="type-label text-[var(--color-text-muted)]">Fractions</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">
                   {selectedRow.currentFraction}/{selectedRow.totalFractions}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{stats.fractions} total logged</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{stats.fractions} total logged</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Carepath</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selectedRow.openTasks} open tasks</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{selectedRow.nextAction}</p>
+                <p className="type-label text-[var(--color-text-muted)]">Carepath</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selectedRow.openTasks} open tasks</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedRow.nextAction}</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Documents</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selectedRow.documents} linked</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{selectedRow.assignedStaff}</p>
+                <p className="type-label text-[var(--color-text-muted)]">Documents</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selectedRow.documents} linked</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selectedRow.assignedStaff}</p>
               </div>
             </div>
 
@@ -213,7 +207,7 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
                   </Button>
                 </Link>
               </div>
-              <Select value={action} onChange={(event) => setAction(event.target.value)} aria-label="Cohort action">
+              <Select value={action} onChange={(event) => setAction(event.target.value)} aria-label="Cohort Action">
                 <option>{modeCopy[mode].reviewAction}</option>
                 <option>Carepath follow-up staged</option>
                 <option>Document evidence reviewed</option>
@@ -245,17 +239,17 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
             label: 'Patient',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-text)]">
                   {row.patient}
-                  {row.id === selectedRow?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selectedRow?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.patientRef}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.patientRef}</span>
               </div>
             ),
           },
           { key: 'diagnosis', label: 'Diagnosis' },
           { key: 'course', label: 'Course' },
-          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{cleanLabel(row.courseStatus)}</Badge> },
+          { key: 'courseStatus', label: 'Course Status', render: (row) => <Badge variant={statusTone(row.courseStatus)}>{formatUiLabel(row.courseStatus)}</Badge> },
           { key: 'currentFraction', label: 'Fx' },
           { key: 'openTasks', label: 'Open Tasks' },
           { key: 'documents', label: 'Docs' },
@@ -278,25 +272,25 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Prototype cohort ledger</p>
-            <h2 className="mt-1 text-base font-bold text-[var(--color-text)]">Staged phase updates</h2>
+            <p className="type-label text-[var(--color-text-muted)]">Prototype Cohort Ledger</p>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged Phase Updates</h2>
           </div>
-          <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} entries</Badge>
+          <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} entries</Badge>
         </div>
         {ledger.length ? (
           <div className="scrollbar-soft mt-4 max-h-44 space-y-2 overflow-auto pr-1">
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.patient}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{entry.patient}</p>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a patient above and stage a phase-specific review action for the demo walkthrough.
           </p>
         )}

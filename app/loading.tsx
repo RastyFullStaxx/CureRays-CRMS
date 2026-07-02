@@ -6,10 +6,10 @@ export default function Loading() {
       <div className="mac-loading-panel clinical-surface flex w-full max-w-md flex-col items-center gap-3 p-6 text-center">
         <LoadingSpinner size="lg" />
         <div>
-          <p className="font-heading text-base font-bold text-[var(--color-text)]">
+          <p className=" type-body text-[var(--color-text)]">
             Loading workspace
           </p>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-1 type-body text-[var(--color-text-muted)]">
             Preparing operational data.
           </p>
         </div>

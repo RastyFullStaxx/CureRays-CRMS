@@ -75,8 +75,9 @@ assert.doesNotMatch(macNavigation, /mac-dock/, "Primary navigation must not rend
 assert.match(macNavigation, /className="mac-command-bar"/, "Shell must render a Mac-style top command bar");
 assert.match(macNavigation, /Search patient, MRN, course, or action/, "Mac shell must keep patient search prominent");
 assert.match(macNavigation, /curerays_theme_mode/, "Mac shell must use the explicit light-first theme preference key");
-assert.match(workspace, /patient-workspace-chrome clinical-surface/, "Patient workspace must keep compact patient and course context in sticky chrome");
-assert.match(workspace, /PatientWorkspaceHeader/, "Patient workspace must use the shared compact patient header");
+assert.match(workspace, /patient-workspace-sidebar clinical-surface/, "Patient workspace must keep desktop patient context in the left sidebar");
+assert.match(workspace, /patient-workspace-compact clinical-surface/, "Patient workspace must retain compact patient context below the sidebar breakpoint");
+assert.match(workspace, /PatientWorkspaceNavigation/, "Patient workspace must share navigation behavior across sidebar and compact layouts");
 assert.doesNotMatch(workspace, /clinical-floating-action/, "Patient workspace must not cover content with floating actions");
 assert.match(workspace, /selectedCarepathStep/, "Patient Carepath must use a selected step as the working surface");
 assert.match(workspace, /Related Work Items/, "Patient Carepath must fold related work items into the selected step panel");
@@ -180,14 +181,17 @@ assert.match(dataTable, /tableMinWidth/, "DataTable must calculate a default min
 assert.match(dataTable, /overflow-x-auto/, "DataTable must keep horizontal scrolling for wide tables");
 assert.match(dataTable, /scrollbar-soft/, "DataTable scroll regions must use the shared styled scrollbar");
 assert.match(dataTable, /flex-wrap items-center gap-2/, "DataTable toolbar controls must wrap instead of clipping");
-assert.match(workspace, /patient-workspace-surface patient-workspace-canvas clinical-surface/, "Patient workspace must use the shared tab content surface");
+assert.match(workspace, /patient-workspace-surface patient-workspace-canvas/, "Patient workspace must use the shared full-width tab content canvas");
 assert.match(globals, /\.patient-workspace[\s\S]*overflow-y: auto/, "Patient workspace page must own vertical scrolling");
-assert.match(globals, /\.patient-workspace-chrome[\s\S]*position: sticky/, "Patient and tab chrome must remain visible while the page scrolls");
+assert.match(globals, /\.patient-workspace-sidebar[\s\S]*overflow: hidden[\s\S]*position: sticky/, "Patient sidebar must remain sticky without an independent scrollbar");
+assert.match(globals, /@media \(min-width: 1280px\)[\s\S]*patient-workspace-layout[\s\S]*grid-template-columns: clamp\(232px, 17vw, 248px\)/, "Patient sidebar must use the approved desktop width and breakpoint");
 assert.doesNotMatch(workspace, /patient-workspace-canvas scrollbar-soft/, "Patient workspace canvas must not render its own vertical scrollbar");
 assert.match(workspace, /role="tablist"/, "Patient workspace must expose semantic tab navigation");
 assert.match(workspace, /aria-selected=\{selected\}/, "Patient workspace tabs must expose selected state");
-assert.match(workspace, /minTableWidth="980px"/, "Carepath workflow table must fit beside the selected-step action panel without forcing a wide duplicate-table experience");
+assert.match(workspace, /aria-orientation=\{orientation\}/, "Patient workspace navigation must declare horizontal or vertical orientation");
+assert.match(workspace, /ArrowUp/, "Vertical patient workspace navigation must support Up and Down arrow keys");
 assert.match(workspace, /minTableWidth="1240px"/, "Patient workspace document table must preserve readable lifecycle columns");
+assert.match(fractionWorksheet, /deriveFractionLogStatus\(row\.entry\)/, "Fraction history must derive displayed status from current approval state");
 assert.match(patientRegistry, /minTableWidth="1480px"/, "Patient registry must preserve readable columns for the main work list");
 assert.match(fractionWorksheet, /minTableWidth="1320px"/, "Fraction worksheet history must preserve readable treatment columns");
 

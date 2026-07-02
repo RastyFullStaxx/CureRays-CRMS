@@ -42,6 +42,7 @@ type DataTableProps<T extends object> = {
   emptyDescription?: string;
   pageSize?: number;
   keyField?: string;
+  getRowId?: (row: T) => string;
   onRowClick?: (row: T) => void;
   toolbar?: ReactNode;
   toolbarPrefix?: ReactNode;
@@ -120,6 +121,7 @@ export function DataTable<T extends object>({
   emptyDescription,
   pageSize = 20,
   keyField = 'id',
+  getRowId,
   onRowClick,
   toolbar,
   toolbarPrefix,
@@ -241,7 +243,7 @@ export function DataTable<T extends object>({
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="clinical-focus h-[var(--height-input)] rounded-[var(--radius-md)] px-3 text-xs font-bold text-[var(--color-primary)] transition hover:bg-[var(--color-hover)]"
+                    className="clinical-focus h-[var(--height-input)] rounded-[var(--radius-md)] px-3 type-supporting text-[var(--color-primary)] transition hover:bg-[var(--color-hover)]"
                   >
                     Reset
                   </button>
@@ -274,16 +276,12 @@ export function DataTable<T extends object>({
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className="text-left font-semibold whitespace-nowrap"
+                    className="type-label whitespace-nowrap text-left"
                     style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: 'var(--font-size-label)',
                       paddingLeft: '14px',
                       paddingRight: '14px',
                       width: col.width,
                       color: 'var(--color-text-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0,
                     }}
                   >
                     {col.label}
@@ -297,6 +295,8 @@ export function DataTable<T extends object>({
                 {filteredRows.map((row) => (
                   <tr
                     key={rowKey(row, keyField)}
+                    id={getRowId?.(row)}
+                    tabIndex={getRowId ? -1 : undefined}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
                     className={[
                       'last:border-b-0',
@@ -306,20 +306,16 @@ export function DataTable<T extends object>({
                     style={{
                       height: 'var(--height-table-row)',
                       borderBottom: '1px solid var(--color-border-soft)',
-                      fontFamily: 'var(--font-body)',
                       color: 'var(--color-text)',
                     }}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        style={{
-                          fontSize: 'var(--font-size-small)',
-                          paddingLeft: '14px',
-                          paddingRight: '14px',
-                        }}
+                        className="type-body"
+                        style={{ paddingLeft: '14px', paddingRight: '14px' }}
                         >
-                        <div className="min-w-0 break-words leading-5">
+                        <div className="min-w-0 break-words">
                           {col.render ? col.render(row) : displayCell((row as Record<string, unknown>)[col.key])}
                         </div>
                       </td>
@@ -344,11 +340,11 @@ export function DataTable<T extends object>({
               {hasError ? (
                 <EmptyState
                   icon={AlertTriangle}
-                  title="Unable to load this table."
+                  title="Unable to Load This Table"
                   description={error}
                 />
               ) : loading ? (
-                <div className="flex flex-col items-center gap-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                <div className="flex flex-col items-center gap-3 type-body text-[var(--color-text-muted)]">
                   <LoadingSpinner size="md" />
                   <span>{loadingLabel}</span>
                 </div>

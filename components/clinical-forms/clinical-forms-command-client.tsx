@@ -15,6 +15,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type ClinicalFormCommandRow = {
   id: string;
@@ -115,9 +116,9 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
 
       <StatGrid>
         <StatCard icon={NotebookTabs} label="Drafts" value={stats.drafts} sub="Structured forms" />
-        <StatCard icon={PenLine} label="Ready Review" value={stats.review} sub="Provider queue" tone="primary" />
-        <StatCard icon={CheckCircle2} label="Signed" value={stats.signed} sub="Completed" tone="success" />
-        <StatCard icon={FileText} label="Field Gaps" value={stats.missingFields} sub="Need completion" tone="warning" />
+        <StatCard icon={PenLine} label="Ready Review" value={stats.review} sub="Provider queue" tone="intermediate" />
+        <StatCard icon={CheckCircle2} label="Signed" value={stats.signed} sub="Completed" tone="positive" />
+        <StatCard icon={FileText} label="Field Gaps" value={stats.missingFields} sub="Need completion" tone="negative" />
         <StatCard icon={RefreshCw} label="Documents" value={stats.total} sub="Editable through fields" />
       </StatGrid>
 
@@ -131,11 +132,11 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
             label: 'Document Name',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.title}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.course}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.course}</span>
               </div>
             ),
           },
@@ -168,11 +169,11 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Form Review</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? selected.title : 'Select a form'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.phase} / {selected.requiredAction}
               </p>
             ) : null}
@@ -185,25 +186,25 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Mapped Fields</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                <p className="mt-1 type-body text-[var(--color-text)]">
                   {selected.mappedFields - selected.missingFields}/{selected.mappedFields} ready
                 </p>
-                <Badge variant={selected.missingFields ? 'warning' : 'success'}>{selected.missingFields} missing</Badge>
+                <Badge variant={selected.missingFields ? 'intermediate' : 'positive'}>{selected.missingFields} missing</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Signature</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.signReviewState.replaceAll('_', ' ')}</p>
-                <Badge variant={selected.signReviewState === 'SIGNED' ? 'success' : 'warning'}>Provider review</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{formatUiLabel(selected.signReviewState)}</p>
+                <Badge variant={selected.signReviewState === 'SIGNED' ? 'positive' : 'intermediate'}>Provider review</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Regeneration</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.auditReady ? 'Audit ready' : 'Review first'}</p>
-                <Badge variant={selected.auditReady ? 'success' : 'info'}>{selected.formType}</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.auditReady ? 'Audit ready' : 'Review first'}</p>
+                <Badge variant={selected.auditReady ? 'positive' : 'neutral'}>{selected.formType}</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Workflow Route</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.route}</p>
-                <Badge variant="info">Structured form</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.route}</p>
+                <Badge variant="neutral">Structured form</Badge>
               </div>
             </div>
 
@@ -234,7 +235,7 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
                   </Button>
                 </Link>
               </div>
-              <Select value={formAction} onChange={(event) => setFormAction(event.target.value)} aria-label="Clinical form action">
+              <Select value={formAction} onChange={(event) => setFormAction(event.target.value)} aria-label="Clinical Form Action">
                 <option>Mapped field review staged</option>
                 <option>Missing fields assigned</option>
                 <option>Provider signature requested</option>
@@ -259,12 +260,12 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
       <div className="grid gap-4 xl:grid-cols-2">
         <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
           <p className="clinical-label">Structured Field Editor</p>
-          <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Mapped values before regeneration</h2>
+          <h2 className="mt-1 type-heading text-[var(--color-text)]">Mapped Values Before Regeneration</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {['Patient token', 'Date of service', 'Laterality', 'Exam type', 'Performed by', 'Narrative note'].map((field, index) => (
               <label key={field} className={index === 5 ? 'sm:col-span-2' : ''}>
                 <span className="clinical-label">{field}</span>
-                <span className="mt-1 block rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 text-xs font-semibold text-[var(--color-text)]">
+                <span className="mt-1 block rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 py-2 type-supporting text-[var(--color-text)]">
                   {selected
                     ? index === 0
                       ? selected.patientRef
@@ -280,22 +281,22 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
 
         <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
           <p className="clinical-label">Hand Joint X-ray Data Table</p>
-          <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Structured mapping capture</h2>
+          <h2 className="mt-1 type-heading text-[var(--color-text)]">Structured Mapping Capture</h2>
           <ScrollArea axis="x" className="mt-3">
-            <table className="min-w-[620px] w-full text-xs">
+            <table className="min-w-[620px] w-full type-supporting">
               <thead>
                 <tr className="border-b border-[var(--color-border-soft)]">
-                  <th className="px-2 py-1.5 text-left font-bold text-[var(--color-text-muted)]">Zone</th>
-                  <th className="px-2 py-1.5 text-left font-bold text-[var(--color-text-muted)]">JS Narrowing</th>
-                  <th className="px-2 py-1.5 text-left font-bold text-[var(--color-text-muted)]">Osteophytes</th>
-                  <th className="px-2 py-1.5 text-left font-bold text-[var(--color-text-muted)]">Sclerosis</th>
-                  <th className="px-2 py-1.5 text-left font-bold text-[var(--color-text-muted)]">Decision</th>
+                  <th className="px-2 py-1.5 text-left type-medium text-[var(--color-text-muted)]">Zone</th>
+                  <th className="px-2 py-1.5 text-left type-medium text-[var(--color-text-muted)]">JS Narrowing</th>
+                  <th className="px-2 py-1.5 text-left type-medium text-[var(--color-text-muted)]">Osteophytes</th>
+                  <th className="px-2 py-1.5 text-left type-medium text-[var(--color-text-muted)]">Sclerosis</th>
+                  <th className="px-2 py-1.5 text-left type-medium text-[var(--color-text-muted)]">Decision</th>
                 </tr>
               </thead>
               <tbody>
                 {handJointRows.map((zone, index) => (
                   <tr key={zone} className="border-b border-[var(--color-border-soft)]">
-                    <td className="px-2 py-1.5 font-semibold text-[var(--color-text)]">{zone}</td>
+                    <td className="px-2 py-1.5 type-medium text-[var(--color-text)]">{zone}</td>
                     <td className="px-2 py-1.5 text-[var(--color-text-muted)]">{index % 3 === 0 ? 'Mild' : 'Mapped'}</td>
                     <td className="px-2 py-1.5 text-[var(--color-text-muted)]">{index % 2 === 0 ? 'Present' : 'None'}</td>
                     <td className="px-2 py-1.5 text-[var(--color-text-muted)]">{index % 4 === 0 ? 'Review' : 'None'}</td>
@@ -312,11 +313,11 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Form Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged form decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Form Decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={stats.missingFields ? 'warning' : 'success'}>{stats.missingFields} field gaps</Badge>
-            <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+            <Badge variant={stats.missingFields ? 'intermediate' : 'positive'}>{stats.missingFields} field gaps</Badge>
+            <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
           </div>
         </div>
         {ledger.length ? (
@@ -324,15 +325,15 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.title}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{entry.title}</p>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a form above and stage a PHI-free structured documentation decision for the demo walkthrough.
           </p>
         )}

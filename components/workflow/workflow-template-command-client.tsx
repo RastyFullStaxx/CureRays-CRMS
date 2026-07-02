@@ -71,13 +71,12 @@ type WorkflowTemplateCommandClientProps = {
   requirements: WorkflowTemplateRequirementRow[];
 };
 
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('active') || normalized.includes('ready') || normalized.includes('complete') || normalized.includes('approved')) return 'success';
-  if (normalized.includes('mapping') || normalized.includes('review') || normalized.includes('partial') || normalized.includes('deferred')) return 'warning';
-  if (normalized.includes('missing') || normalized.includes('retired')) return 'error';
-  if (normalized.includes('draft')) return 'info';
-  return 'default';
+  if (normalized.includes('ready') || normalized.includes('complete') || normalized.includes('approved')) return 'positive' as const;
+  if (normalized.includes('mapping') || normalized.includes('review') || normalized.includes('partial') || normalized.includes('deferred')) return 'intermediate' as const;
+  if (normalized.includes('missing') || normalized.includes('retired')) return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function WorkflowTemplateCommandClient({
@@ -144,12 +143,12 @@ export function WorkflowTemplateCommandClient({
       />
 
       <StatGrid>
-        <StatCard icon={Workflow} label="Workflow Definitions" value={stats.workflowCount} sub={`${stats.activeWorkflows} active`} tone="primary" />
-        <StatCard icon={Layers3} label="Mapping Workflows" value={stats.mappingWorkflows} sub="Diagnosis-specific" tone="warning" />
-        <StatCard icon={FileText} label="Requirements" value={stats.requirementCount} sub="Document/task rules" tone="info" />
-        <StatCard icon={ShieldCheck} label="Pilot Ready" value={stats.pilotReadyRequirements} sub="Requirements" tone="success" />
-        <StatCard icon={GitBranch} label="Complete Maps" value={stats.completeFieldMaps} sub="Field maps" tone="success" />
-        <StatCard icon={CheckCircle2} label="Deferred" value={stats.deferredRequirements} sub="Explicitly tracked" tone="warning" />
+        <StatCard icon={Workflow} label="Workflow Definitions" value={stats.workflowCount} sub={`${stats.activeWorkflows} active`} tone="neutral" />
+        <StatCard icon={Layers3} label="Mapping Workflows" value={stats.mappingWorkflows} sub="Diagnosis-specific" tone="neutral" />
+        <StatCard icon={FileText} label="Requirements" value={stats.requirementCount} sub="Document/task rules" tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Pilot Ready" value={stats.pilotReadyRequirements} sub="Requirements" tone="positive" />
+        <StatCard icon={GitBranch} label="Complete Maps" value={stats.completeFieldMaps} sub="Field maps" tone="positive" />
+        <StatCard icon={CheckCircle2} label="Deferred" value={stats.deferredRequirements} sub="Explicitly tracked" tone="neutral" />
       </StatGrid>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.75fr)]">
@@ -157,7 +156,7 @@ export function WorkflowTemplateCommandClient({
           keyField="id"
           className="min-h-[520px]"
           columns={[
-            { key: 'name', label: 'Workflow', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
+            { key: 'name', label: 'Workflow', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.name}</span> },
             { key: 'diagnosis', label: 'Diagnosis' },
             { key: 'protocol', label: 'Protocol' },
             { key: 'status', label: 'Status', render: (row) => <Badge variant={toneFor(row.status)}>{row.status}</Badge> },
@@ -172,7 +171,7 @@ export function WorkflowTemplateCommandClient({
           toolbarPrefix={
             <div className="min-w-[240px]">
               <p className="clinical-label">Definition Catalog</p>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Select a workflow to review generated carepath rules.</p>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Select a workflow to review generated carepath rules.</p>
             </div>
           }
           toolbarActions={<PrototypeActionButton label="Export Definitions" icon="download" kind="export" size="sm" description="Prepare a PHI-free workflow template export." />}
@@ -193,8 +192,8 @@ export function WorkflowTemplateCommandClient({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Definition</p>
-                  <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{selectedWorkflow.name}</h2>
-                  <p className="mt-2 text-sm leading-5 text-[var(--color-text-muted)]">{selectedWorkflow.description}</p>
+                  <h2 className="mt-1 type-heading text-[var(--color-text)]">{selectedWorkflow.name}</h2>
+                  <p className="mt-2 type-body text-[var(--color-text-muted)]">{selectedWorkflow.description}</p>
                 </div>
                 <Badge variant={toneFor(selectedWorkflow.status)}>{selectedWorkflow.status}</Badge>
               </div>
@@ -202,13 +201,13 @@ export function WorkflowTemplateCommandClient({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Bundle Rules</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                  <p className="mt-2 type-body text-[var(--color-text)]">
                     {selectedWorkflow.totalRequirements} docs / {selectedWorkflow.taskCreatingRequirements} tasks
                   </p>
                 </div>
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Readiness</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                  <p className="mt-2 type-body text-[var(--color-text)]">
                     {selectedWorkflow.pilotReady} ready / {selectedWorkflow.deferredRequirements} deferred
                   </p>
                 </div>
@@ -220,12 +219,12 @@ export function WorkflowTemplateCommandClient({
                   {phaseSummary.map((phase) => (
                     <div key={phase.phase} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-bold text-[var(--color-text)]">{phase.phase}</p>
-                        <Badge variant={phase.total === phase.ready ? 'success' : phase.ready > 0 ? 'warning' : 'default'}>
+                        <p className="type-body text-[var(--color-text)]">{phase.phase}</p>
+                        <Badge variant={phase.total === phase.ready ? 'positive' : phase.ready > 0 ? 'intermediate' : 'neutral'}>
                           {phase.ready}/{phase.total} ready
                         </Badge>
                       </div>
-                      <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{phase.tasks} task-creating requirements</p>
+                      <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{phase.tasks} task-creating requirements</p>
                     </div>
                   ))}
                 </div>
@@ -235,11 +234,11 @@ export function WorkflowTemplateCommandClient({
                 <label className="grid gap-1">
                   <span className="clinical-label">Review Disposition</span>
                   <Select value={disposition} onChange={(event) => setDisposition(event.target.value)}>
-                    <option>ACTIVE</option>
-                    <option>MAPPING IN PROGRESS</option>
-                    <option>DRAFT</option>
-                    <option>NEEDS SOURCE REVIEW</option>
-                    <option>READY FOR PILOT REVIEW</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="MAPPING IN PROGRESS">Mapping in Progress</option>
+                    <option value="DRAFT">Draft</option>
+                    <option value="NEEDS SOURCE REVIEW">Needs Source Review</option>
+                    <option value="READY FOR PILOT REVIEW">Ready for Pilot Review</option>
                   </Select>
                 </label>
                 <label className="grid gap-1">
@@ -254,7 +253,7 @@ export function WorkflowTemplateCommandClient({
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No workflow definition is selected.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No workflow definition is selected.</div>
           )}
         </Card>
       </div>
@@ -263,7 +262,7 @@ export function WorkflowTemplateCommandClient({
         keyField="id"
         className="min-h-[500px]"
         columns={[
-          { key: 'requirement', label: 'Generated Requirement', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.requirement}</span> },
+          { key: 'requirement', label: 'Generated Requirement', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.requirement}</span> },
           { key: 'phase', label: 'Phase' },
           { key: 'owner', label: 'Owner' },
           { key: 'reviewer', label: 'Reviewer' },
@@ -279,7 +278,7 @@ export function WorkflowTemplateCommandClient({
         toolbarPrefix={
           <div className="min-w-[260px]">
             <p className="clinical-label">Selected Workflow Requirements</p>
-            <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+            <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
               {selectedWorkflow ? selectedWorkflow.name : 'No workflow selected'}
             </p>
           </div>
@@ -300,20 +299,20 @@ export function WorkflowTemplateCommandClient({
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Workflow Review Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Decisions</h2>
           </div>
-          <Badge variant="info">Prototype only</Badge>
+          <Badge variant="neutral">Prototype Only</Badge>
         </div>
         <div className="grid gap-2">
           {ledger.length ? ledger.map((record) => (
             <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[140px_minmax(0,1fr)_160px_110px]">
-              <span className="text-xs font-bold text-[var(--color-primary)]">{record.id}</span>
-              <span className="truncate text-sm font-bold text-[var(--color-text)]">{record.workflow}</span>
+              <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
+              <span className="truncate type-body text-[var(--color-text)]">{record.workflow}</span>
               <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
-              <span className="text-xs font-bold text-[var(--color-text-muted)]">{record.requirements} reqs</span>
+              <span className="type-supporting text-[var(--color-text-muted)]">{record.requirements} reqs</span>
             </div>
           )) : (
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 type-body text-[var(--color-text-muted)]">
               No workflow template decisions have been staged in this demo session.
             </div>
           )}

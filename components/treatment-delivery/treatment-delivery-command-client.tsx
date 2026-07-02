@@ -121,24 +121,24 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
 
       <StatGrid>
         <StatCard icon={Activity} label="Today's Treatments" value={stats.scheduled} sub="Scheduled" />
-        <StatCard icon={Clock3} label="In Progress" value={stats.inProgress} sub="Active queue" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Completed" value={stats.completed} sub="Today" tone="success" />
-        <StatCard icon={AlertTriangle} label="Held/Missed" value={stats.held} sub="Needs follow-up" tone="error" />
-        <StatCard icon={UsersRound} label="OTV Due" value={stats.otvDue} sub="Scheduled checks" tone="warning" />
-        <StatCard icon={ShieldCheck} label="Physics Due" value={stats.physicsDue} sub="Weekly checks" tone="info" />
+        <StatCard icon={Clock3} label="In Progress" value={stats.inProgress} sub="Active queue" tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Completed" value={stats.completed} sub="Today" tone="positive" />
+        <StatCard icon={AlertTriangle} label="Held/Missed" value={stats.held} sub="Needs follow-up" tone="negative" />
+        <StatCard icon={UsersRound} label="OTV Due" value={stats.otvDue} sub="Scheduled checks" tone="intermediate" />
+        <StatCard icon={ShieldCheck} label="Physics Due" value={stats.physicsDue} sub="Weekly checks" tone="intermediate" />
       </StatGrid>
 
       <section className="clinical-surface rounded-[var(--radius-lg)] p-[var(--space-card)]">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Today&apos;s Treatment Queue</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">{activeRows.length} active treatment cards</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">{activeRows.length} active treatment cards</h2>
           </div>
-          <Badge variant="primary">Live queue</Badge>
+          <Badge variant="neutral">Live queue</Badge>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {activeRows.length === 0 ? (
-            <div className="clinical-muted-surface p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+            <div className="clinical-muted-surface p-4 type-body text-[var(--color-text-muted)]">
               No treatments are available in the queue.
             </div>
           ) : activeRows.map((row) => (
@@ -150,12 +150,12 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-[var(--color-text)]">{row.patient}</p>
-                  <p className="mt-1 text-xs font-bold text-[var(--color-primary)]">{row.course}</p>
+                  <p className="truncate type-body text-[var(--color-text)]">{row.patient}</p>
+                  <p className="mt-1 type-supporting text-[var(--color-primary)]">{row.course}</p>
                 </div>
                 <Badge variant={statusTone(row.status)}>{row.status}</Badge>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-semibold text-[var(--color-text-muted)]">
+              <div className="mt-4 grid grid-cols-2 gap-3 type-supporting text-[var(--color-text-muted)]">
                 <span>Fraction <b className="block text-[var(--color-text)]">{row.fractionNumber}</b></span>
                 <span>Room <b className="block text-[var(--color-text)]">{row.room}</b></span>
                 <span>Dose <b className="block text-[var(--color-text)]">{row.plannedDose} cGy</b></span>
@@ -179,11 +179,11 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
             label: 'Patient',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.patient}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.patientRef}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.patientRef}</span>
               </div>
             ),
           },
@@ -217,11 +217,11 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Treatment Review</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? `${selected.course} fraction ${selected.fractionNumber}` : 'Select a treatment'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.room} / {selected.apptTime}
               </p>
             ) : null}
@@ -234,27 +234,27 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Dose</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.plannedDose} cGy planned</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{selected.cumulativeDose} cGy cumulative</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.plannedDose} cGy planned</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selected.cumulativeDose} cGy cumulative</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Image Guidance</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.imageGuidanceStatus}</p>
-                <Badge variant={selected.imageGuidanceCompleted ? 'success' : 'warning'}>{selected.imageEvidence} evidence</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.imageGuidanceStatus}</p>
+                <Badge variant={selected.imageGuidanceCompleted ? 'positive' : 'intermediate'}>{selected.imageEvidence} evidence</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">OTV</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.otvRequired ? 'Required' : 'Not required'}</p>
-                <Badge variant={selected.otvRequired && !selected.otvComplete ? 'warning' : 'success'}>{selected.otvComplete ? 'Complete' : 'Open'}</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.otvRequired ? 'Required' : 'Not required'}</p>
+                <Badge variant={selected.otvRequired && !selected.otvComplete ? 'intermediate' : 'positive'}>{selected.otvComplete ? 'Complete' : 'Open'}</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Physics</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.physicsRequired ? 'Required' : 'Not required'}</p>
-                <Badge variant={selected.physicsRequired && !selected.physicsComplete ? 'warning' : 'success'}>{selected.physicsComplete ? 'Complete' : 'Open'}</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.physicsRequired ? 'Required' : 'Not required'}</p>
+                <Badge variant={selected.physicsRequired && !selected.physicsComplete ? 'intermediate' : 'positive'}>{selected.physicsComplete ? 'Complete' : 'Open'}</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Worksheet</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.fractionLabel}</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.fractionLabel}</p>
                 <Badge variant={phaseTone(selected.phase)}>{selected.phase}</Badge>
               </div>
             </div>
@@ -286,7 +286,7 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
                   </Button>
                 </Link>
               </div>
-              <Select value={deliveryAction} onChange={(event) => setDeliveryAction(event.target.value)} aria-label="Treatment delivery action">
+              <Select value={deliveryAction} onChange={(event) => setDeliveryAction(event.target.value)} aria-label="Treatment Delivery Action">
                 <option>Treatment queue reviewed</option>
                 <option>Imaging guidance follow-up staged</option>
                 <option>OTV check routed</option>
@@ -312,24 +312,24 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Delivery Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged treatment decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Treatment Decisions</h2>
           </div>
-          <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+          <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
         </div>
         {ledger.length ? (
           <div className="scrollbar-soft mt-4 max-h-44 space-y-2 overflow-auto pr-1">
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.treatment}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{entry.treatment}</p>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a treatment above and stage a PHI-free delivery decision for the demo walkthrough.
           </p>
         )}

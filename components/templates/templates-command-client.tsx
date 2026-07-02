@@ -73,13 +73,12 @@ type TemplatesCommandClientProps = {
   placeholders: TemplatePlaceholderRow[];
 };
 
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('verified') || normalized.includes('active') || normalized.includes('approved') || normalized.includes('ready')) return 'success';
-  if (normalized.includes('deferred') || normalized.includes('review') || normalized.includes('draft') || normalized.includes('missing')) return 'warning';
-  if (normalized.includes('mismatch') || normalized.includes('retired')) return 'error';
-  if (normalized.includes('complete')) return 'info';
-  return 'default';
+  if (normalized.includes('verified') || normalized.includes('approved') || normalized.includes('ready')) return 'positive' as const;
+  if (normalized.includes('deferred') || normalized.includes('review') || normalized.includes('draft')) return 'intermediate' as const;
+  if (normalized.includes('mismatch') || normalized.includes('retired') || normalized.includes('missing')) return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function TemplatesCommandClient({
@@ -137,11 +136,11 @@ export function TemplatesCommandClient({
       />
 
       <StatGrid>
-        <StatCard icon={FileText} label="Active Sources" value={stats.active} sub={`${stats.sourceCount} cataloged`} tone="success" />
-        <StatCard icon={ShieldCheck} label="Pilot Approved" value={stats.pilotApproved} sub={stats.schemaVersion} tone="primary" />
-        <StatCard icon={GitBranch} label="Field Maps" value={stats.completeFieldMaps} sub={`${stats.fieldMapCount} tracked`} tone="info" />
-        <StatCard icon={CheckCircle2} label="Hash Verified" value={stats.hashVerified} sub={`${stats.hashMismatched} mismatches`} tone="success" />
-        <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="warning" />
+        <StatCard icon={FileText} label="Active Sources" value={stats.active} sub={`${stats.sourceCount} cataloged`} tone="neutral" />
+        <StatCard icon={ShieldCheck} label="Pilot Approved" value={stats.pilotApproved} sub={stats.schemaVersion} tone="positive" />
+        <StatCard icon={GitBranch} label="Field Maps" value={stats.completeFieldMaps} sub={`${stats.fieldMapCount} tracked`} tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Hash Verified" value={stats.hashVerified} sub={`${stats.hashMismatched} mismatches`} tone="positive" />
+        <StatCard icon={Archive} label="Deferred/Future" value={stats.deferredOrFuture} sub="Explicitly visible" tone="neutral" />
       </StatGrid>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
@@ -149,7 +148,7 @@ export function TemplatesCommandClient({
           keyField="id"
           className="min-h-[640px] min-w-0"
           columns={[
-            { key: 'name', label: 'Template Source', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
+            { key: 'name', label: 'Template Source', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.name}</span> },
             { key: 'fileType', label: 'File' },
             { key: 'registryStatus', label: 'Status', render: (row) => <Badge variant={toneFor(row.registryStatus)}>{row.registryStatus}</Badge> },
             { key: 'approval', label: 'Approval', render: (row) => <Badge variant={toneFor(row.approval)}>{row.approval}</Badge> },
@@ -164,7 +163,7 @@ export function TemplatesCommandClient({
           toolbarPrefix={
             <div className="min-w-[240px]">
               <p className="clinical-label">Template Registry</p>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                 Generated {stats.generatedAt.slice(0, 10)}
               </p>
             </div>
@@ -187,8 +186,8 @@ export function TemplatesCommandClient({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Source</p>
-                  <h2 className="mt-1 line-clamp-2 font-heading text-lg font-bold text-[var(--color-text)]">{selected.name}</h2>
-                  <p className="mt-1 break-all text-xs font-semibold text-[var(--color-text-muted)]">{selected.sourcePath}</p>
+                  <h2 className="mt-1 line-clamp-2 type-heading text-[var(--color-text)]">{selected.name}</h2>
+                  <p className="mt-1 break-all type-supporting text-[var(--color-text-muted)]">{selected.sourcePath}</p>
                 </div>
                 <Badge variant={toneFor(selected.hash)}>{selected.hash}</Badge>
               </div>
@@ -196,13 +195,13 @@ export function TemplatesCommandClient({
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Requirements</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                  <p className="mt-2 type-body text-[var(--color-text)]">
                     {linkedRequirements.length} linked / {readyRequirements} ready
                   </p>
                 </div>
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Field Maps</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selected.fieldMaps} mapped</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selected.fieldMaps} mapped</p>
                 </div>
               </div>
 
@@ -211,15 +210,15 @@ export function TemplatesCommandClient({
                 {linkedRequirements.length ? linkedRequirements.slice(0, 4).map((requirement) => (
                   <div key={requirement.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold text-[var(--color-text)]">{requirement.requirement}</p>
+                      <p className="type-body text-[var(--color-text)]">{requirement.requirement}</p>
                       <Badge variant={toneFor(requirement.readiness)}>{requirement.readiness}</Badge>
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">
+                    <p className="mt-2 type-supporting text-[var(--color-text-muted)]">
                       {requirement.phase} / {requirement.responsible} / {requirement.fieldMap}
                     </p>
                   </div>
                 )) : (
-                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 type-body text-[var(--color-text-muted)]">
                     No active document requirement is linked to this source.
                   </div>
                 )}
@@ -249,7 +248,7 @@ export function TemplatesCommandClient({
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No template source is selected.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No template source is selected.</div>
           )}
         </Card>
       </div>
@@ -285,19 +284,19 @@ export function TemplatesCommandClient({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Registry Snapshot</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Pilot readiness controls</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">Pilot Readiness Controls</h2>
             </div>
-            <Badge variant="primary">{stats.generatedAt.slice(0, 10)}</Badge>
+            <Badge variant="neutral">{stats.generatedAt.slice(0, 10)}</Badge>
           </div>
           <div className="mt-4 grid gap-3">
             <div className="clinical-muted-surface p-3">
               <p className="clinical-label">Missing Field Maps</p>
-              <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{missingMaps}</p>
+              <p className="mt-2 type-body text-[var(--color-text)]">{missingMaps}</p>
             </div>
             {Object.entries(placeholderSummary).map(([disposition, count]) => (
               <div key={disposition} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{disposition}</p>
+                  <p className="type-body text-[var(--color-text)]">{disposition}</p>
                   <Badge variant={toneFor(disposition)}>{count}</Badge>
                 </div>
               </div>
@@ -310,19 +309,19 @@ export function TemplatesCommandClient({
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Template Review Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged review decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Review Decisions</h2>
           </div>
-          <Badge variant="info">No external sync</Badge>
+          <Badge variant="neutral">No External Sync</Badge>
         </div>
         <div className="grid gap-2">
           {reviewLedger.length ? reviewLedger.map((record) => (
             <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_minmax(0,1fr)_160px]">
-              <span className="text-xs font-bold text-[var(--color-primary)]">{record.id}</span>
-              <span className="truncate text-sm font-bold text-[var(--color-text)]">{record.template}</span>
+              <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
+              <span className="truncate type-body text-[var(--color-text)]">{record.template}</span>
               <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
             </div>
           )) : (
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 type-body text-[var(--color-text-muted)]">
               No template review decisions have been staged in this demo session.
             </div>
           )}

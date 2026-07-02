@@ -129,11 +129,11 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
 
       <StatGrid>
         <StatCard icon={Radiation} label="Plans in Progress" value={stats.open} sub="Open planning work" />
-        <StatCard icon={ShieldCheck} label="Physics Review" value={stats.physics} sub="Physicist queue" tone="info" />
-        <StatCard icon={PenLine} label="Rad Onc Signature" value={stats.radOnc} sub="Ready to sign" tone="primary" />
-        <StatCard icon={CalendarCheck2} label="Schedules" value={`${stats.scheduled}/${stats.total}`} sub="Generated from Rx" tone="success" />
-        <StatCard icon={AlertTriangle} label="Gated" value={stats.gated} sub="Imaging or review gates" tone="warning" />
-        <StatCard icon={ShieldCheck} label="Clinical Gate" value={stats.clinicalGate} sub="Production sign-off required" tone="warning" />
+        <StatCard icon={ShieldCheck} label="Physics Review" value={stats.physics} sub="Physicist queue" tone="intermediate" />
+        <StatCard icon={PenLine} label="Rad Onc Signature" value={stats.radOnc} sub="Ready to sign" tone="intermediate" />
+        <StatCard icon={CalendarCheck2} label="Schedules" value={`${stats.scheduled}/${stats.total}`} sub="Generated from Rx" tone="neutral" />
+        <StatCard icon={AlertTriangle} label="Gated" value={stats.gated} sub="Imaging or review gates" tone="intermediate" />
+        <StatCard icon={ShieldCheck} label="Clinical Gate" value={stats.clinicalGate} sub="Production sign-off required" tone="intermediate" />
       </StatGrid>
 
       <DataTable
@@ -146,17 +146,17 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
             label: 'Plan ID',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.id}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.course}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.course}</span>
               </div>
             ),
           },
           { key: 'patient', label: 'Patient' },
           { key: 'patientRef', label: 'Patient Ref' },
-          { key: 'diagnosis', label: 'Diagnosis', render: (row) => <Badge variant={row.diagnosis === 'Skin' ? 'info' : 'primary'}>{row.diagnosis}</Badge> },
+          { key: 'diagnosis', label: 'Diagnosis', render: (row) => <Badge variant="neutral">{row.diagnosis}</Badge> },
           { key: 'site', label: 'Site' },
           { key: 'energy', label: 'Energy' },
           { key: 'applicator', label: 'Applicator' },
@@ -188,11 +188,11 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Plan Review</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? `${selected.id} planning evidence` : 'Select a treatment plan'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.site} / {selected.course}
               </p>
             ) : null}
@@ -205,25 +205,25 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Prescription</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.energy} / {selected.applicator}</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{selected.dose} x {selected.fractions}</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.energy} / {selected.applicator}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selected.dose} x {selected.fractions}</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Schedule</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.schedule}</p>
-                <Badge variant={selected.scheduledFractions >= selected.plannedFractions ? 'success' : 'warning'}>Fractions generated</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.schedule}</p>
+                <Badge variant={selected.scheduledFractions >= selected.plannedFractions ? 'positive' : 'intermediate'}>Fractions Generated</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Missing Inputs</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.missingInputs.length}</p>
-                <p className="mt-1 line-clamp-2 text-xs font-semibold text-[var(--color-text-muted)]">
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.missingInputs.length}</p>
+                <p className="mt-1 line-clamp-2 type-supporting text-[var(--color-text-muted)]">
                   {selected.missingInputs.join(', ') || 'Required planning inputs are present.'}
                 </p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Validation</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">Reference {selected.referenceVersion}</p>
-                <Badge variant="warning">{selected.clinicalValidationStatus}</Badge>
+                <p className="mt-1 type-body text-[var(--color-text)]">Reference {selected.referenceVersion}</p>
+                <Badge variant="intermediate">{selected.clinicalValidationStatus}</Badge>
               </div>
             </div>
 
@@ -254,7 +254,7 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
                   </Button>
                 </Link>
               </div>
-              <Select value={planningAction} onChange={(event) => setPlanningAction(event.target.value)} aria-label="Treatment planning action">
+              <Select value={planningAction} onChange={(event) => setPlanningAction(event.target.value)} aria-label="Treatment Planning Action">
                 <option>Planning readiness reviewed</option>
                 <option>Schedule generation staged</option>
                 <option>Physics review routed</option>
@@ -281,9 +281,9 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Clinical Gates</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Schedule and treatment delivery blockers</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">Schedule and Treatment Delivery Blockers</h2>
             </div>
-            <Badge variant="warning">Clinical validation required</Badge>
+            <Badge variant="intermediate">Clinical Validation Required</Badge>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {[
@@ -293,10 +293,10 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
             ].map((gate) => (
               <div key={gate.label} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{gate.label}</p>
+                  <p className="type-body text-[var(--color-text)]">{gate.label}</p>
                   <Badge variant={statusTone(gate.status)}>{gate.status}</Badge>
                 </div>
-                <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">{gate.due} fraction(s) due</p>
+                <p className="mt-2 type-supporting text-[var(--color-text-muted)]">{gate.due} fraction(s) due</p>
               </div>
             ))}
           </div>
@@ -308,19 +308,19 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Phase 6 Clinical Sign-Off Checklist</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Reference {selected.referenceVersion}</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">Reference {selected.referenceVersion}</h2>
             </div>
-            <Badge variant="warning">{selected.clinicalValidationStatus}</Badge>
+            <Badge variant="intermediate">{selected.clinicalValidationStatus}</Badge>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {selected.checklist.map((item) => (
               <div key={item.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{item.label}</p>
-                  <Badge variant="warning">{item.status}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{item.label}</p>
+                  <Badge variant="intermediate">{item.status}</Badge>
                 </div>
-                <p className="mt-2 text-xs font-bold uppercase text-[var(--color-text-muted)]">{item.owner}</p>
-                <p className="mt-2 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">{item.evidenceRequired}</p>
+                <p className="mt-2 type-label text-[var(--color-text-muted)]">{item.owner}</p>
+                <p className="mt-2 type-supporting text-[var(--color-text-muted)]">{item.evidenceRequired}</p>
               </div>
             ))}
           </div>
@@ -331,24 +331,24 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Planning Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged planning decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local Staged Planning Decisions</h2>
           </div>
-          <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+          <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
         </div>
         {ledger.length ? (
           <div className="scrollbar-soft mt-4 max-h-44 space-y-2 overflow-auto pr-1">
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.plan}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{entry.plan}</p>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a plan above and stage a PHI-free planning decision for the demo walkthrough.
           </p>
         )}

@@ -13,6 +13,7 @@ import { StatCard } from '@/components/shared/stat-card';
 import type { CarepathTask, ResponsibleParty, WorkflowItemStatus, WorkflowStep } from '@/lib/types';
 import { carepathPhaseLabels, cn, formatDate, responsiblePartyLabels } from '@/lib/workflow';
 import { phaseTone, statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 type CarepathCommandClientProps = {
   courseRef: string;
@@ -32,10 +33,6 @@ const statusOptions: WorkflowItemStatus[] = [
   'NOT_APPLICABLE',
   'BLOCKED',
 ];
-
-function statusLabel(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 function nextActionForStep(step: WorkflowStep) {
   if (step.status === 'BLOCKED') return step.blockers[0] ?? 'Resolve blocker before advancing.';
@@ -105,7 +102,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
           : step,
       ),
     );
-    setMessage(`Staged ${statusLabel(draftStatus)} for step ${selectedStep.stepNumber}.`);
+    setMessage(`Staged ${formatUiLabel(draftStatus)} for step ${selectedStep.stepNumber}.`);
   }
 
   function markReady() {
@@ -124,10 +121,10 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
   return (
     <div className="grid min-h-0 gap-4">
       <StatGrid>
-        <StatCard icon={ClipboardList} label="Carepath Steps" value={localSteps.length} sub={`${progress}% complete`} tone="primary" />
-        <StatCard icon={CheckCircle2} label="Complete / Signed" value={completed} sub="Closed loop items" tone="success" />
-        <StatCard icon={AlertTriangle} label="Blocked" value={blocked} sub="Needs owner action" tone={blocked ? 'error' : 'success'} />
-        <StatCard icon={ShieldCheck} label="Signatures Due" value={signatureDue} sub="Review queue" tone={signatureDue ? 'warning' : 'success'} />
+        <StatCard icon={ClipboardList} label="Carepath Steps" value={localSteps.length} sub={`${progress}% complete`} tone="neutral" />
+        <StatCard icon={CheckCircle2} label="Complete / Signed" value={completed} sub="Closed loop items" tone="positive" />
+        <StatCard icon={AlertTriangle} label="Blocked" value={blocked} sub="Needs owner action" tone={blocked ? 'negative' : 'positive'} />
+        <StatCard icon={ShieldCheck} label="Signatures Due" value={signatureDue} sub="Review queue" tone={signatureDue ? 'intermediate' : 'positive'} />
       </StatGrid>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
@@ -135,10 +132,10 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="clinical-label">Carepath Command</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">
                 {courseRef} canonical step review
               </h2>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{message}</p>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{message}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {(['all', 'open', 'blocked', 'review', 'signed'] as FilterValue[]).map((item) => (
@@ -147,13 +144,13 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   type="button"
                   onClick={() => setFilter(item)}
                   className={cn(
-                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 text-xs font-bold capitalize transition',
+                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 type-supporting transition',
                     filter === item
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
                       : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
                   )}
                 >
-                  {item}
+                  {formatUiLabel(item)}
                 </button>
               ))}
             </div>
@@ -176,15 +173,15 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     : 'border-[var(--color-border-soft)] bg-[var(--color-bg)] hover:border-[var(--color-primary)]/35',
                 )}
               >
-                <div className="font-heading text-lg font-bold text-[var(--color-primary)]">
+                <div className=" type-heading text-[var(--color-primary)]">
                   {String(step.stepNumber).padStart(2, '0')}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-[var(--color-text)]">{step.stepName}</p>
-                  <p className="mt-1 line-clamp-1 text-xs font-semibold text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
+                  <p className="truncate type-body text-[var(--color-text)]">{step.stepName}</p>
+                  <p className="mt-1 line-clamp-1 type-supporting text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
                 </div>
                 <Badge variant={phaseTone(step.phase)}>{carepathPhaseLabels[step.phase]}</Badge>
-                <Badge variant={statusTone(step.status)}>{statusLabel(step.status)}</Badge>
+                <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
               </button>
             ))}
           </div>
@@ -196,29 +193,29 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Step</p>
-                  <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                  <h2 className="mt-1 type-heading text-[var(--color-text)]">
                     {selectedStep.stepNumber}. {selectedStep.stepName}
                   </h2>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                     Due {selectedStep.dueDate ? formatDate(selectedStep.dueDate) : selectedStep.triggerEvent}
                   </p>
                 </div>
-                <Badge variant={statusTone(selectedStep.status)}>{statusLabel(selectedStep.status)}</Badge>
+                <Badge variant={statusTone(selectedStep.status)}>{formatUiLabel(selectedStep.status)}</Badge>
               </div>
 
               <div className="grid gap-3">
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Next Action</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{nextActionForStep(selectedStep)}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{nextActionForStep(selectedStep)}</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="clinical-muted-surface p-3">
                     <p className="clinical-label">Owner</p>
-                    <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{responsiblePartyLabels[selectedStep.responsibleRole]}</p>
+                    <p className="mt-2 type-body text-[var(--color-text)]">{responsiblePartyLabels[selectedStep.responsibleRole]}</p>
                   </div>
                   <div className="clinical-muted-surface p-3">
                     <p className="clinical-label">Signature</p>
-                    <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                    <p className="mt-2 type-body text-[var(--color-text)]">
                       {selectedStep.requiresSignature ? selectedStep.signedAt ? 'Signed' : 'Required' : 'Not required'}
                     </p>
                   </div>
@@ -230,13 +227,13 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                 {selectedTasks.length ? selectedTasks.map((task) => (
                   <div key={task.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold text-[var(--color-text)]">{task.title}</p>
-                      <Badge variant={statusTone(task.status)}>{statusLabel(task.status)}</Badge>
+                      <p className="type-body text-[var(--color-text)]">{task.title}</p>
+                      <Badge variant={statusTone(task.status)}>{formatUiLabel(task.status)}</Badge>
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">{task.noteAction}</p>
+                    <p className="mt-2 type-supporting text-[var(--color-text-muted)]">{task.noteAction}</p>
                   </div>
                 )) : (
-                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 type-body text-[var(--color-text-muted)]">
                     No linked task is required for this step in the current demo data.
                   </div>
                 )}
@@ -248,7 +245,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     <span className="clinical-label">Stage Status</span>
                     <Select value={draftStatus} onChange={(event) => setDraftStatus(event.target.value as WorkflowItemStatus)}>
                       {statusOptions.map((status) => (
-                        <option key={status} value={status}>{statusLabel(status)}</option>
+                        <option key={status} value={status}>{formatUiLabel(status)}</option>
                       ))}
                     </Select>
                   </label>
@@ -286,7 +283,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No carepath step is available.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No carepath step is available.</div>
           )}
         </Card>
       </div>

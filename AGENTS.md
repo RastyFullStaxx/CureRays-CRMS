@@ -37,7 +37,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
-- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md`.
+- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md`, `docs/curerays-typography-style-guide.md`, and `docs/curerays-color-system-style-guide.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
 - **TypeScript**: Strict mode enabled in `tsconfig.json`. Prefer explicit types over inference. No `any`.
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).
@@ -210,8 +210,11 @@ Never hardcode hex values in components. Always reference tokens:
 | `--color-warning` | `#F59E0B` | Warning states |
 | `--color-error` | `#EF4444` | Error states |
 | `--color-info` | `#3B82F6` | Info states |
-| `--font-heading` | `Manrope` | All headings, stat values |
-| `--font-body` | `Inter` | All body text, labels, inputs |
+| `--font-ui` | `Inter` | Every UI surface, control, chart, and label |
+| `--type-title-size` | `18px` | Page titles, patient identity, critical KPI values |
+| `--type-heading-size` | `14px` | Section, modal, and card headings |
+| `--type-body-size` | `13px` | Body, form values, and table cells |
+| `--type-label-size` | `12px` | Navigation, controls, labels, statuses, and chart text |
 | `--space-page` | `clamp(16px, 1.7vw, 28px)` | Outer page gutter |
 | `--space-card` | `20px` | Card internal padding |
 | `--space-section` | `16px` | Vertical gap between sections |
@@ -226,11 +229,21 @@ Never hardcode hex values in components. Always reference tokens:
 
 ## Typography
 
-- **Headings**: Manrope, font-weight 800 (via `--font-weight-bold`)
-- **Body**: Inter, font-weight 400-600
-- **Stat values**: Manrope, 21px, bold
-- **Labels**: Inter, 11px, uppercase, bold
-- **Small text**: Inter, 13px
+- Read and follow `docs/curerays-typography-style-guide.md`.
+- Use Inter exclusively through the global `--font-ui` token.
+- Use only the 18px title, 14px heading, 13px body, and 12px supporting/control roles.
+- Buttons remain 12px/600 in every size variant.
+- Use 700 only for page titles, patient identity, and critical KPI values. Ordinary records and metadata must not be bold.
+- Do not add local font sizes, families, weights, line heights, tracking utilities, or text below 12px.
+- Use source-level Title Case for structural UI copy. Do not use visual casing transforms or alter dynamic clinical content.
+
+## Color
+
+- Read and follow `docs/curerays-color-system-style-guide.md`.
+- Use primary blue only for interaction and non-valenced single-series charts. CureRays orange is reserved for brand artwork.
+- Status APIs use only positive, intermediate, negative, and neutral.
+- Phases, diagnoses, roles, disciplines, modalities, categories, and record types are neutral.
+- Do not add hardcoded colors, page-local palettes, duplicate tone maps, or color-only status indicators.
 
 ## Naming Conventions
 

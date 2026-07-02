@@ -4,7 +4,7 @@
 **Updated:** 2026-07-01  
 **Target:** `/patients/[id]` and legacy patient workspace subroutes
 
-**Implementation:** Phases 1–4 implemented for the mock-data prototype; release hardening remains deferred.
+**Implementation:** Phases 1–5 implemented for the mock-data prototype; release hardening remains deferred.
 
 ## 1. Executive Decision
 
@@ -174,24 +174,7 @@ Legacy routes and query values map as follows:
 
 ## 6. Typography Contract
 
-Typography must be consistent across all patient workspaces and shared patient tables.
-
-- Keep **Manrope** for patient/page titles and section headings only.
-- Use **Inter** for navigation, body text, fields, buttons, table content, metadata, and pills.
-- Remove page-local arbitrary font sizes and map text to shared semantic classes/tokens.
-- Do not render functional text below 12px. Avoid long uppercase labels; reserve uppercase for compact table headers where scanability improves.
-- Reserve bold emphasis for patient identity, section headings, primary actions, critical values, and exceptions. Normal records should not compete at the same weight.
-
-| Role | Font | Size / line height | Weight |
-|---|---|---:|---:|
-| Patient/page title | Manrope | 20px / 28px | 800 |
-| Workspace section title | Manrope | 16px / 24px | 700 |
-| Item title / control / table cell | Inter | 14px / 20px | 600 |
-| Body text | Inter | 14px / 21px | 400–500 |
-| Secondary metadata | Inter | 13px / 18px | 500 |
-| Label / table header / status pill | Inter | 12px / 16px | 600 |
-
-Shared typography classes should cover these roles so `text-xs`, `text-sm`, `text-base`, inline `fontSize`, and one-off heading utilities do not drift between workspace panels.
+Patient workspaces follow `docs/curerays-typography-style-guide.md`: Inter only, with 18px title, 14px heading, 13px body, and 12px supporting/control roles. Page-local font declarations are prohibited. Ordinary records use normal or medium weight; 700 is reserved for patient identity and critical values.
 
 ## 7. Visual and Interaction Direction
 
@@ -229,6 +212,14 @@ Shared typography classes should cover these roles so `text-xs`, `text-sm`, `tex
 - Connect verb-specific actions to existing store/service mutations.
 - Add inline success, validation, recovery, version/reopen reasons, and course gate refresh behavior.
 - Update mock data so every supported diagnosis demonstrates valid normal, blocked, review-required, and completed states.
+
+### Phase 5 - Patient context sidebar and usability hardening - Complete
+
+- Move patient identity, essential course context, gate state, and workspace navigation into a 232-248px sticky left sidebar at 1280px and wider.
+- Retain compact sticky patient context and horizontal tabs below the sidebar breakpoint.
+- Add orientation-correct keyboard navigation, Alt+1-4 workspace shortcuts, browser history for tab changes, grouped attention queues, contextual gate guidance, and correction/reopen recovery.
+- Derive every displayed fraction status from its current approvals so stale stored status cannot display an unsafe approved state.
+- Preserve page-owned scrolling, horizontal table overflow, modal focus containment, and full patient details through the existing modal.
 
 ## 9. Development Verification
 

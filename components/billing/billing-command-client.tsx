@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 export type BillingCommandRow = {
   id: string;
@@ -53,10 +54,6 @@ type BillingLedgerEntry = {
   action: string;
   note: string;
 };
-
-function cleanLabel(value: string) {
-  return value.replaceAll('_', ' ');
-}
 
 function quantityProgress(row: BillingCommandRow) {
   if (!row.planned) return 0;
@@ -117,10 +114,10 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
 
       <StatGrid>
         <StatCard icon={WalletCards} label="Total Items" value={stats.total} sub="All billing items" />
-        <StatCard icon={FileText} label="Ready Review" value={stats.ready} sub="Documentation queue" tone="info" />
-        <StatCard icon={History} label="Under Review" value={stats.review} sub="Pending checks" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Billed" value={stats.billed} sub="Completed" tone="success" />
-        <StatCard icon={ShieldCheck} label="Audit Issues" value={stats.blocked} sub="Needs remediation" tone="error" />
+        <StatCard icon={FileText} label="Ready Review" value={stats.ready} sub="Documentation queue" tone="intermediate" />
+        <StatCard icon={History} label="Under Review" value={stats.review} sub="Pending checks" tone="intermediate" />
+        <StatCard icon={CheckCircle2} label="Billed" value={stats.billed} sub="Completed" tone="positive" />
+        <StatCard icon={ShieldCheck} label="Audit Issues" value={stats.blocked} sub="Needs remediation" tone="negative" />
       </StatGrid>
 
       <DataTable
@@ -133,11 +130,11 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
             label: 'Code',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.code}
-                  {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
+                  {row.id === selected?.id ? <Badge variant="neutral">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.course}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.course}</span>
               </div>
             ),
           },
@@ -146,7 +143,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
           { key: 'planned', label: 'Planned' },
           { key: 'completed', label: 'Completed' },
           { key: 'billed', label: 'Billed' },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{cleanLabel(row.status)}</Badge> },
+          { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{formatUiLabel(row.status)}</Badge> },
           { key: 'linkedDocTitle', label: 'Evidence Document' },
           { key: 'auditStatus', label: 'Audit' },
         ]}
@@ -170,16 +167,16 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Billing Item</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? `${selected.code} evidence review` : 'Select a billing item'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.course} / {selected.description}
               </p>
             ) : null}
           </div>
-          {selected ? <Badge variant={statusTone(selected.status)}>{cleanLabel(selected.status)}</Badge> : null}
+          {selected ? <Badge variant={statusTone(selected.status)}>{formatUiLabel(selected.status)}</Badge> : null}
         </div>
 
         {selected ? (
@@ -187,7 +184,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Quantity</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                <p className="mt-1 type-body text-[var(--color-text)]">
                   {selected.completed}/{selected.planned} complete
                 </p>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]">
@@ -196,18 +193,18 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Document Evidence</p>
-                <p className="mt-1 line-clamp-2 text-sm font-bold text-[var(--color-text)]">{selected.linkedDocTitle}</p>
-                <Badge variant={statusTone(selected.documentStatus)}>{cleanLabel(selected.documentStatus)}</Badge>
+                <p className="mt-1 line-clamp-2 type-body text-[var(--color-text)]">{selected.linkedDocTitle}</p>
+                <Badge variant={statusTone(selected.documentStatus)}>{formatUiLabel(selected.documentStatus)}</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Fractions</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.fractions} logged</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Treatment evidence</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.fractions} logged</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Treatment evidence</p>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Closeout</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.auditStatus}</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{selected.notes}</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.auditStatus}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{selected.notes}</p>
               </div>
             </div>
 
@@ -238,7 +235,7 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
                   </Button>
                 </Link>
               </div>
-              <Select value={billingAction} onChange={(event) => setBillingAction(event.target.value)} aria-label="Billing action">
+              <Select value={billingAction} onChange={(event) => setBillingAction(event.target.value)} aria-label="Billing Action">
                 <option>Billing evidence reviewed</option>
                 <option>Document follow-up assigned</option>
                 <option>Charge quantity checked</option>
@@ -264,12 +261,12 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Billing Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Staged billing decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Staged Billing Decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant={documentationGaps ? 'warning' : 'success'}>{documentationGaps} documentation gaps</Badge>
-            <Badge variant={quantityGaps ? 'warning' : 'success'}>{quantityGaps} quantity gaps</Badge>
-            <Badge variant={ledger.length ? 'primary' : 'default'}>{ledger.length} staged</Badge>
+            <Badge variant={documentationGaps ? 'intermediate' : 'positive'}>{documentationGaps} documentation gaps</Badge>
+            <Badge variant={quantityGaps ? 'intermediate' : 'positive'}>{quantityGaps} quantity gaps</Badge>
+            <Badge variant={ledger.length ? 'neutral' : 'neutral'}>{ledger.length} staged</Badge>
           </div>
         </div>
         {ledger.length ? (
@@ -277,15 +274,15 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.code}</p>
-                  <Badge variant="info">{entry.action}</Badge>
+                  <p className="type-body text-[var(--color-text)]">{entry.code}</p>
+                  <Badge variant="neutral">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a billing item above and stage a PHI-free decision for the demo walkthrough.
           </p>
         )}

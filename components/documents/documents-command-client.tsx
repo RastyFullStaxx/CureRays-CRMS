@@ -65,22 +65,22 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
       />
       <StatGrid>
         <StatCard icon={FileText} label="Total Documents" value={metrics.total} sub="All records" />
-        <StatCard icon={Eye} label="Ready for Review" value={metrics.pending} sub="Needs check" tone="primary" />
-        <StatCard icon={PenLine} label="Pending Signatures" value={metrics.pendingSignatures} sub="Signature queue" tone="warning" />
-        <StatCard icon={LockKeyhole} label="Locked Evidence" value={metrics.locked} sub={`${metrics.signed} signed`} tone="success" />
+        <StatCard icon={Eye} label="Ready for Review" value={metrics.pending} sub="Needs check" tone="intermediate" />
+        <StatCard icon={PenLine} label="Pending Signatures" value={metrics.pendingSignatures} sub="Signature queue" tone="intermediate" />
+        <StatCard icon={LockKeyhole} label="Locked Evidence" value={metrics.locked} sub={`${metrics.signed} signed`} tone="positive" />
         <StatCard icon={Upload} label="Uploaded/eCW" value={metrics.uploaded} sub="External upload" />
       </StatGrid>
       <DataTable
         className="min-h-[720px]"
         columns={[
           { key: 'doc', label: 'Document', render: (row) => (
-            <span className="block truncate font-bold text-[var(--color-primary)]">{row.title}</span>
+            <span className="block truncate type-medium text-[var(--color-primary)]">{row.title}</span>
           )},
           { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{row.patientToken} / {row.courseToken}</span>
           )},
           { key: 'category', label: 'Category', render: (row) => (
-            <Badge variant="info">{row.category}</Badge>
+            <Badge variant="neutral">{row.category}</Badge>
           )},
           { key: 'phase', label: 'Phase', render: (row) => (
             <Badge variant={phaseTone(row.phase)}>{row.phase}</Badge>
@@ -90,25 +90,25 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
           )},
           { key: 'version', label: 'Output', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
-              <span className="font-bold">{`v${row.version}`}</span>
-              <Badge variant={row.latestOutputStatus ? statusTone(row.latestOutputStatus) : 'default'}>
+              <span className="type-medium">{`v${row.version}`}</span>
+              <Badge variant={row.latestOutputStatus ? statusTone(row.latestOutputStatus) : 'neutral'}>
                 {row.latestOutputStatus ?? 'Pending'}
               </Badge>
             </span>
           )},
           { key: 'storage', label: 'Storage', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
-              <Badge variant={row.storageProvider === 'APP_STORAGE' ? 'primary' : 'default'}>{row.storageProvider}</Badge>
-              <span className="truncate text-xs font-semibold text-[var(--color-text-muted)]">{row.storageKey ?? 'Pending'}</span>
+              <Badge variant={row.storageProvider === 'APP_STORAGE' ? 'neutral' : 'neutral'}>{row.storageProvider}</Badge>
+              <span className="truncate type-supporting text-[var(--color-text-muted)]">{row.storageKey ?? 'Pending'}</span>
             </span>
           )},
           { key: 'updated', label: 'Updated', render: (row) => row.renderedAt ?? row.generatedAt ?? 'Pending' },
           { key: 'lifecycle', label: 'Lifecycle', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
-              <Badge variant={row.lockedAt ? 'success' : row.manualEditExceptionAt || row.voidedAt ? 'warning' : 'default'}>
+              <Badge variant={row.lockedAt ? 'positive' : row.manualEditExceptionAt || row.voidedAt ? 'intermediate' : 'neutral'}>
                 {row.lifecycle}
               </Badge>
-              <span className="truncate text-xs font-semibold text-[var(--color-text-muted)]">
+              <span className="truncate type-supporting text-[var(--color-text-muted)]">
                 {row.ecwUploadReference ?? row.manualEditReason ?? row.voidReason ?? 'App-owned state'}
               </span>
             </span>
