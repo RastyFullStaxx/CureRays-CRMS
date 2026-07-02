@@ -156,7 +156,7 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
     ...reviewFractions.map(({ entry }) => ({
       id: `fraction-${entry.id}`,
       label: `Review fraction ${entry.fractionNumber}`,
-      owner: !entry.dotApproval ? 'DOT reviewer' : 'Medical reviewer',
+      owner: !entry.dotApproval ? 'Target Depth Reviewer' : 'Physician Reviewer',
       due: entry.date,
       blocking: false,
       destination: 'treatment' as const,

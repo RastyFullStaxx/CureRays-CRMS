@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Calculator,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
@@ -27,7 +26,6 @@ import { formatUiLabel } from "@/lib/ui-copy";
 import type {
   FractionApprovalType,
   FractionLogEntry,
-  FractionLogStatus,
   IgsrtWorkspace,
   PrescriptionPhase,
   TreatmentCourse,
@@ -268,7 +266,7 @@ export function FractionWorksheetPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [approvalRequest, setApprovalRequest] = useState<{ entry: FractionLogEntry; approvalType: FractionApprovalType } | null>(null);
-  const draftBaselineRef = useRef("");
+  const [draftBaseline, setDraftBaseline] = useState("");
 
   const sortedEntries = useMemo(() => [...entries].sort((a, b) => a.fractionNumber - b.fractionNumber), [entries]);
   const sortedActiveEntries = useMemo(() => activeEntries(sortedEntries), [sortedEntries]);
@@ -383,7 +381,7 @@ export function FractionWorksheetPanel({
     if (workspace?.courseFractions) {
       const nextDraft = buildInitialDraft(course, phases, workspace.courseFractions, workspace.treatmentFractions ?? schedule);
       setDraft(nextDraft);
-      draftBaselineRef.current = JSON.stringify(nextDraft);
+      setDraftBaseline(JSON.stringify(nextDraft));
       setShowEntryFlow(false);
     }
   }
@@ -412,9 +410,14 @@ export function FractionWorksheetPanel({
 
   async function updateCorrection(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const input = correctionFormToInput(new FormData(event.currentTarget));
+    if (input.isodoseToDotPercent !== undefined && !input.isodoseOverrideReason) {
+      setError("Enter a clinical reason for the manual isodose override.");
+      return;
+    }
     const workspace = await requestJson(
       "updateFraction",
-      correctionFormToInput(new FormData(event.currentTarget)),
+      input,
       "Fraction corrected. Approvals were reset for review."
     );
 
@@ -493,10 +496,10 @@ export function FractionWorksheetPanel({
   ].filter(Boolean);
   const overrideReasonMissing = Boolean(draft.isodoseToDotPercent.trim()) && !draft.isodoseOverrideReason.trim();
   const recordReady = missingFractionFields.length === 0 && invalidFractionValues.length === 0 && !preview.error && !overrideReasonMissing;
-  const hasUnsavedDraft = showEntryFlow && JSON.stringify(draft) !== draftBaselineRef.current;
+  const hasUnsavedDraft = showEntryFlow && JSON.stringify(draft) !== draftBaseline;
 
   function openEntryFlow() {
-    draftBaselineRef.current = JSON.stringify(draft);
+    setDraftBaseline(JSON.stringify(draft));
     setError(null);
     setMessage(null);
     setShowEntryFlow(true);
@@ -531,7 +534,7 @@ export function FractionWorksheetPanel({
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <ActionFeedback message={message} error={error} />
 
       {showEntryFlow ? (
@@ -731,9 +734,9 @@ export function FractionWorksheetPanel({
                     </div>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <PreviewMetric label="DOT Dose" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
+                      <PreviewMetric label="Dose to Target Depth" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
                       <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
-                      <PreviewMetric label="Cumulative DOT" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
+                      <PreviewMetric label="Cumulative Target Dose" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
                       <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
                     </div>
                   )}
@@ -825,7 +828,13 @@ export function FractionWorksheetPanel({
               <Button type="button" variant="ghost" className="clinical-action" onClick={closeReason}>
                 Cancel
               </Button>
-              <Button type="submit" className="clinical-action-lg" variant={reasonRequest.type === "void" ? "danger" : "primary"} disabled={!reasonText.trim()}>
+              <Button
+                type="submit"
+                className="clinical-action-lg"
+                variant={reasonRequest.type === "void" ? "danger" : "primary"}
+                disabled={!reasonText.trim() || pendingAction === `${reasonRequest.type === "void" ? "voidFraction" : "requestFractionRevision"}-${reasonRequest.entryId}`}
+                aria-busy={pendingAction === `${reasonRequest.type === "void" ? "voidFraction" : "requestFractionRevision"}-${reasonRequest.entryId}`}
+              >
                 {reasonRequest.type === "void" ? <XCircle className="h-4 w-4" aria-hidden="true" /> : <Undo2 className="h-4 w-4" aria-hidden="true" />}
                 {reasonRequest.type === "void" ? "Void fraction" : "Submit revision request"}
               </Button>
@@ -901,9 +910,9 @@ export function FractionWorksheetPanel({
               <Button type="button" variant="ghost" className="clinical-action" onClick={closeCorrection}>
                 Cancel
               </Button>
-              <Button type="submit" className="clinical-action-lg">
+              <Button type="submit" className="clinical-action-lg" disabled={pendingAction === `updateFraction-${correctionEntry.id}`} aria-busy={pendingAction === `updateFraction-${correctionEntry.id}`}>
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                Save Correction
+                {pendingAction === `updateFraction-${correctionEntry.id}` ? "Saving Correction" : "Save Correction"}
               </Button>
             </div>
           </form>
@@ -941,7 +950,7 @@ export function FractionWorksheetPanel({
         </Modal>
       ) : null}
 
-      <Card className="min-h-[420px]">
+      <div className="min-w-0">
         <DataTable
           minTableWidth="1320px"
           toolbarPrefix={
@@ -1027,11 +1036,12 @@ export function FractionWorksheetPanel({
           }))}
           keyField="id"
           getRowId={(row) => `workspace-target-fraction-${row.entry.id}`}
+          getRowLabel={(row) => `Open fraction ${row.entry.fractionNumber} details`}
           onRowClick={(row) => {
             setSelectedEntryId(row.entry.id);
             setAdvancedPanel("note");
           }}
-          pageSize={10}
+          pageSize={Math.min(10, Math.max(sortedEntries.length, 1))}
           empty="No fraction rows recorded."
           search={{
             placeholder: "Search fraction history...",
@@ -1045,7 +1055,7 @@ export function FractionWorksheetPanel({
             }
           ]}
         />
-      </Card>
+      </div>
 
       <Modal
         open={advancedPanel !== null}
@@ -1071,10 +1081,10 @@ export function FractionWorksheetPanel({
             {selectedEntry ? (
               <>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <PreviewMetric label="DOT" value={`${selectedEntry.depthOfTargetMm ?? parseNumeric(selectedEntry.depthOfTarget) ?? "-"} mm`} />
+                  <PreviewMetric label="Depth of Target (DOT)" value={`${selectedEntry.depthOfTargetMm ?? parseNumeric(selectedEntry.depthOfTarget) ?? "-"} mm`} />
                   <PreviewMetric label="Isodose" value={formatPercent(selectedEntry.isodoseToDotPercent ?? selectedEntry.isodosePercent)} />
-                  <PreviewMetric label="Dose to DOT" value={formatDose(selectedEntry.doseToDotCgy ?? selectedEntry.doseToDepth)} />
-                  <PreviewMetric label="Cumulative DOT" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
+                  <PreviewMetric label="Dose to Target Depth" value={formatDose(selectedEntry.doseToDotCgy ?? selectedEntry.doseToDepth)} />
+                  <PreviewMetric label="Cumulative Target Dose" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {approvalBadge("DOT", selectedEntry.dotApproval, selectedEntry.dotApprovalState)}

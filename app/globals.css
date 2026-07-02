@@ -2796,7 +2796,25 @@ button {
   }
 
   .patient-workspace-sidebar-section {
-    padding-block: 8px;
+    padding-block: 6px;
+  }
+
+  .patient-workspace-sidebar-identity dl > div {
+    align-items: baseline;
+    display: flex;
+    gap: 6px;
+  }
+
+  .patient-workspace-sidebar-identity dd {
+    margin-top: 0;
+  }
+
+  .patient-workspace-sidebar-course > .type-label {
+    display: none;
+  }
+
+  .patient-workspace-sidebar-course > .type-item-title {
+    margin-top: 0;
   }
 
   .patient-workspace-sidebar-diagnosis {
@@ -2806,12 +2824,7 @@ button {
   .patient-workspace-sidebar-actions {
     gap: 4px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding-top: 8px;
-  }
-
-  .patient-workspace-nav-item,
-  .patient-workspace-sidebar-actions button {
-    min-height: 40px;
+    padding-top: 6px;
   }
 }
 
@@ -3198,7 +3211,7 @@ button {
   margin-right: auto;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (max-width: 1279px) and (max-height: 600px) {
   .patient-workspace-compact {
     display: contents;
     overflow: visible;
@@ -3289,6 +3302,18 @@ button {
 
   .workspace-snapshot-grid div:nth-child(-n + 2) {
     border-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-item {
+    flex: 1 0 auto;
+    justify-content: center;
+    min-width: max-content;
+  }
+
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-item > svg {
+    display: none;
   }
 }
 

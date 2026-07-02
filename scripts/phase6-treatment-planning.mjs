@@ -25,7 +25,7 @@ const patientPage = read("app/patients/[id]/page.tsx");
 const patientWorkspace = read("components/patients/patient-workspace.tsx");
 const worksheetPanel = read("components/fraction-worksheet-panel.tsx");
 const routeSmoke = read("scripts/route-smoke.mjs");
-const progressTracker = read("docs/curerays-system-progress-tracker.md");
+const currentState = read("docs/status/current-state.md");
 
 for (const expected of [
   'import "server-only"',
@@ -152,7 +152,7 @@ for (const expected of [
   "Image missing",
   "Record Next Fraction",
   "Fraction Details",
-  "Link imaging evidence before DOT approval"
+  "Attach imaging evidence before target depth approval."
 ]) {
   assertIncludes(worksheetPanel, expected, `Fraction worksheet panel must include ${expected}`);
 }
@@ -172,7 +172,7 @@ assertIncludes(patientWorkspace, "setSignalsOpen(true)", "Patient workspace must
 
 assertIncludes(packageJson, '"test:phase6"', "package.json must expose npm run test:phase6");
 assertIncludes(packageJson, "npm run test:phase6", "npm run test:guardrails must include Phase 6 guardrails");
-assertIncludes(progressTracker, "Current completion: 100% for de-identified pilot/code-owned scope", "Progress tracker must record Phase 6 pilot-scope completion");
-assertIncludes(progressTracker, "formal clinical validation remains a production blocker", "Progress tracker must not imply production clinical validation is complete");
+assertIncludes(currentState, "Treatment planning/fractions | Strong prototype, clinically unvalidated", "Current state must record Phase 6 prototype capability");
+assertIncludes(currentState, "Clinical validation | Not complete", "Current state must not imply production clinical validation is complete");
 
 console.log("Phase 6 treatment planning guardrails passed");

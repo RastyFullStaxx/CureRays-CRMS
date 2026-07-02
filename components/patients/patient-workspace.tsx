@@ -435,7 +435,7 @@ function PatientWorkspaceSidebar({
         </div>
         <dl className="patient-workspace-sidebar-facts mt-3">
           <div><dt>Phase</dt><dd>{currentPhaseLabel(course)}</dd></div>
-          <div><dt>Logged</dt><dd>{currentFraction}/{course.totalFractions} fractions</dd></div>
+          <div><dt>Logged</dt><dd>{currentFraction}/{course.totalFractions}</dd></div>
         </dl>
       </section>
 
@@ -653,7 +653,7 @@ export function PatientWorkspace({
   const tabContent = useMemo(() => {
     if (activeTab === 'prepare') {
       return (
-        <div className="grid min-w-0 gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <div className="prepare-workbench-layout">
             <section className="clinical-surface overflow-hidden" aria-labelledby="course-path-heading">
               <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
@@ -817,7 +817,7 @@ export function PatientWorkspace({
 
     if (activeTab === 'record-closeout') {
       return (
-        <div className="grid min-w-0 gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <CourseGateBanner
             gate={workspaceState.courseGate}
             action={(
@@ -978,7 +978,7 @@ export function PatientWorkspace({
 
     if (activeTab === 'treatment') {
       return (
-        <div className="grid min-w-0 gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <CourseGateBanner
             gate={workspaceState.courseGate}
             action={(
@@ -988,7 +988,7 @@ export function PatientWorkspace({
               </Button>
             )}
           />
-          <div id="fraction-workflow" className="scroll-mt-3">
+          <div id="fraction-workflow" className="min-w-0 scroll-mt-3">
             <FractionWorksheetPanel
               initialEntries={fractionEntries}
               course={course}
@@ -1090,7 +1090,7 @@ export function PatientWorkspace({
     }
 
     return (
-      <div className="grid min-w-0 gap-4">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
         <CourseGateBanner
           gate={workspaceState.courseGate}
           action={(
@@ -1208,7 +1208,6 @@ export function PatientWorkspace({
     planningReadiness.clinicianSignoffStatus,
     physicsDueFractions,
     prescriptionPhases,
-    readiness,
     scheduledFractions.length,
     selectTab,
     selectedCarepathAction,

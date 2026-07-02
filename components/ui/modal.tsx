@@ -27,8 +27,11 @@ export function Modal({ open, onClose, title, children, width = 480, height, con
   const onCloseRef = useRef(onClose);
   const shouldCloseRef = useRef(shouldClose);
   const titleId = useId();
-  onCloseRef.current = onClose;
-  shouldCloseRef.current = shouldClose;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    shouldCloseRef.current = shouldClose;
+  }, [onClose, shouldClose]);
 
   const requestClose = useCallback(() => {
     if (shouldCloseRef.current && !shouldCloseRef.current()) return;

@@ -43,6 +43,7 @@ type DataTableProps<T extends object> = {
   pageSize?: number;
   keyField?: string;
   getRowId?: (row: T) => string;
+  getRowLabel?: (row: T) => string;
   onRowClick?: (row: T) => void;
   toolbar?: ReactNode;
   toolbarPrefix?: ReactNode;
@@ -122,6 +123,7 @@ export function DataTable<T extends object>({
   pageSize = 20,
   keyField = 'id',
   getRowId,
+  getRowLabel,
   onRowClick,
   toolbar,
   toolbarPrefix,
@@ -296,8 +298,14 @@ export function DataTable<T extends object>({
                   <tr
                     key={rowKey(row, keyField)}
                     id={getRowId?.(row)}
-                    tabIndex={getRowId ? -1 : undefined}
+                    tabIndex={onRowClick ? 0 : getRowId ? -1 : undefined}
+                    aria-label={onRowClick ? getRowLabel?.(row) : undefined}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={onRowClick ? (event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
+                      event.preventDefault();
+                      onRowClick(row);
+                    } : undefined}
                     className={[
                       'last:border-b-0',
                       'transition-colors duration-100',

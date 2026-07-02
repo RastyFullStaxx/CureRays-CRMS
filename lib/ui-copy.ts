@@ -56,8 +56,8 @@ function formatUiWord(word: string, index: number, lastIndex: number): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
-export function formatUiLabel(value: string, fallback = 'Not Set'): string {
-  const normalized = value.trim().replaceAll('_', ' ').replace(/\s+/g, ' ');
+export function formatUiLabel(value: string | null | undefined, fallback = 'Not Set'): string {
+  const normalized = String(value ?? '').trim().replaceAll('_', ' ').replace(/\s+/g, ' ');
   if (!normalized) return fallback;
 
   const words = normalized.split(' ');
