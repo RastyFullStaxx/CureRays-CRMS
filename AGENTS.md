@@ -38,6 +38,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
+- Never mind mobile responsiveness for now. Leave it be and let's just focus on a desktop view and laptop views such as a macbook
 - **Documentation entrypoint**: Start with `docs/README.md`. Treat `docs/status/current-state.md` as the only prose source for current implementation status and `docs/roadmap/implementation-roadmap.md` as the active gap-closure plan. Files under `docs/archive/` are historical and non-authoritative.
 - **Must-read UI rules**: Before designing UI or writing UI code, read `docs/design/ui-engineering.md`, `docs/design/typography.md`, and `docs/design/color-system.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
