@@ -111,10 +111,10 @@ function CommandPanel({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>
             {eyebrow}
           </p>
-          <h2 className="mt-1 text-base font-bold" style={{ color: 'var(--color-text)' }}>
+          <h2 className="mt-1 type-heading" style={{ color: 'var(--color-text)' }}>
             {title}
           </h2>
         </div>
@@ -186,7 +186,7 @@ export function UsersRolesCommandClient({
         <Link
           key={tab.key}
           href={tab.href}
-          className="clinical-focus inline-flex h-8 items-center gap-2 rounded-[var(--radius-md)] px-3 text-xs font-bold transition"
+          className="clinical-focus inline-flex h-8 items-center gap-2 rounded-[var(--radius-md)] px-3 type-supporting transition"
           style={{
             background: active === index ? 'var(--color-bg-elevated)' : 'transparent',
             color: active === index ? 'var(--color-text)' : 'var(--color-text-muted)',
@@ -196,11 +196,10 @@ export function UsersRolesCommandClient({
         >
           {tab.label}
           <span
-            className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5"
+            className="type-supporting inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5"
             style={{
               background: 'var(--color-card-muted)',
               color: 'var(--color-text-muted)',
-              fontSize: 10,
             }}
           >
             {tab.count}
@@ -234,16 +233,16 @@ export function UsersRolesCommandClient({
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>Role</p>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: 'var(--color-text)' }}>{selectedUser?.role ?? '-'}</p>
+                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>Role</p>
+                  <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.role ?? '-'}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>Location</p>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: 'var(--color-text)' }}>{selectedUser?.location ?? '-'}</p>
+                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>Location</p>
+                  <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.location ?? '-'}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>MFA</p>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: 'var(--color-text)' }}>{selectedUser?.mfa ?? '-'}</p>
+                  <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>MFA</p>
+                  <p className="mt-1 type-body" style={{ color: 'var(--color-text)' }}>{selectedUser?.mfa ?? '-'}</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 lg:justify-end">
@@ -274,11 +273,11 @@ export function UsersRolesCommandClient({
             columns={[
               { key: 'name', label: 'User', render: (row) => (
                 <div className="flex flex-col">
-                  <span className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
+                  <span className="flex items-center gap-2 type-body" style={{ color: 'var(--color-text)' }}>
                     {row.name}
                     {row.id === selectedUser?.id ? <Badge variant="primary">Selected</Badge> : null}
                   </span>
-                  <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{row.email}</span>
+                  <span className="type-supporting" style={{ color: 'var(--color-text-muted)' }}>{row.email}</span>
                 </div>
               )},
               { key: 'role', label: 'Role', render: (row) => <Badge variant="default">{row.role}</Badge> },
@@ -315,7 +314,7 @@ export function UsersRolesCommandClient({
           >
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
               <div>
-                <p className="text-sm leading-6" style={{ color: 'var(--color-text-muted)' }}>
+                <p className="type-body" style={{ color: 'var(--color-text-muted)' }}>
                   {selectedRole?.description ?? 'Role details will appear after selecting a row.'}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -350,7 +349,7 @@ export function UsersRolesCommandClient({
             onRowClick={(row) => setSelectedRoleId(row.id)}
             columns={[
               { key: 'name', label: 'Role Name', render: (row) => (
-                <span className="flex items-center gap-2 font-bold" style={{ color: 'var(--color-primary)' }}>
+                <span className="flex items-center gap-2 type-medium" style={{ color: 'var(--color-primary)' }}>
                   {row.name}
                   {row.id === selectedRole?.id ? <Badge variant="primary">Selected</Badge> : null}
                 </span>
@@ -392,7 +391,7 @@ export function UsersRolesCommandClient({
                       key={role}
                       className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3"
                     >
-                      <p className="text-[11px] font-bold uppercase" style={{ color: 'var(--color-text-muted)' }}>{role}</p>
+                      <p className="type-supporting uppercase" style={{ color: 'var(--color-text-muted)' }}>{role}</p>
                       <div className="mt-2">
                         <Badge variant={accessTone(level)}>{level === 'na' ? 'N/A' : level}</Badge>
                       </div>
@@ -434,7 +433,7 @@ export function UsersRolesCommandClient({
             onRowClick={(row) => setSelectedModuleId(row.id)}
             columns={[
               { key: 'module', label: 'Module / Feature', render: (row) => (
-                <span className="flex items-center gap-2 font-bold" style={{ color: 'var(--color-text)' }}>
+                <span className="flex items-center gap-2 type-medium" style={{ color: 'var(--color-text)' }}>
                   {row.module}
                   {row.id === selectedModule?.id ? <Badge variant="primary">Selected</Badge> : null}
                 </span>
@@ -472,15 +471,15 @@ export function UsersRolesCommandClient({
                 className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>{change.target}</p>
+                  <p className="type-body" style={{ color: 'var(--color-text)' }}>{change.target}</p>
                   <Badge variant="info">{change.change}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5" style={{ color: 'var(--color-text-muted)' }}>{change.note}</p>
+                <p className="mt-1 type-supporting" style={{ color: 'var(--color-text-muted)' }}>{change.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="type-body" style={{ color: 'var(--color-text-muted)' }}>
             Select a row and stage an access review, MFA reset, role package change, or permission update.
           </p>
         )}

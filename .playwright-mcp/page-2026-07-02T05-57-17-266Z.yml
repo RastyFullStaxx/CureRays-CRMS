@@ -1,0 +1,202 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - banner [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - link "CureRays dashboard" [ref=f11e5] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=f11e229]: CureRays
+        - navigation "Primary navigation" [ref=f11e6]:
+          - link "Dashboard" [ref=f11e7] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=f11e8]
+            - generic [ref=f11e13]: Dashboard
+          - link "Patients" [ref=f11e14] [cursor=pointer]:
+            - /url: /patients
+            - img [ref=f11e15]
+            - generic [ref=f11e17]: Patients
+          - link "Today" [ref=f11e18] [cursor=pointer]:
+            - /url: /today
+            - img [ref=f11e19]
+            - generic [ref=f11e23]: Today
+          - link "Schedule" [ref=f11e24] [cursor=pointer]:
+            - /url: /schedule
+            - img [ref=f11e25]
+            - generic [ref=f11e27]: Schedule
+          - link "Analytics" [ref=f11e28] [cursor=pointer]:
+            - /url: /analytics
+            - img [ref=f11e29]
+            - generic [ref=f11e32]: Analytics
+          - link "Settings" [ref=f11e33] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=f11e34]
+            - generic [ref=f11e37]: Settings
+        - generic [ref=f11e38]:
+          - button "Search patient records" [ref=f11e39] [cursor=pointer]:
+            - img [ref=f11e40]
+            - generic [ref=f11e43]: Search patient, MRN, course, or action
+            - generic [ref=f11e230]:
+              - img [ref=f11e231]
+              - text: K
+          - generic [ref=f11e44]:
+            - button "Course notifications" [ref=f11e233] [cursor=pointer]:
+              - img [ref=f11e234]
+            - button "Switch to dark mode" [ref=f11e237] [cursor=pointer]:
+              - img [ref=f11e238]
+            - generic "Signed in as Dr. Sarah Johnson" [ref=f11e45]:
+              - generic [ref=f11e46]: SJ
+              - generic:
+                - generic: Dr. Sarah Johnson
+                - generic: Physician
+    - main [ref=f11e48]:
+      - generic [ref=f11e67]:
+        - complementary "Patient and active course context" [ref=f11e240]:
+          - link "Patients" [ref=f11e241] [cursor=pointer]:
+            - /url: /patients
+            - img [ref=f11e242]
+            - text: Patients
+          - generic [ref=f11e244]:
+            - heading "Amelia Grant" [level=1] [ref=f11e245]
+            - generic [ref=f11e246]:
+              - generic [ref=f11e247]: Active
+              - generic [ref=f11e248]: Protected record
+            - generic [ref=f11e250]:
+              - term [ref=f11e251]: External MRN
+              - definition [ref=f11e252]: MRN-700241
+          - generic [ref=f11e253]:
+            - paragraph [ref=f11e254]: Active course
+            - paragraph [ref=f11e255]: Course 2401
+            - paragraph [ref=f11e256]: Skin Cancer IGSRT · Basal cell carcinoma, right cheek
+            - generic [ref=f11e257]:
+              - generic [ref=f11e258]: Course gate
+              - generic [ref=f11e259]: Blocked
+            - generic [ref=f11e260]:
+              - generic [ref=f11e261]:
+                - term [ref=f11e262]: Phase
+                - definition [ref=f11e263]: On Treatment
+              - generic [ref=f11e264]:
+                - term [ref=f11e265]: Logged
+                - definition [ref=f11e266]: 6/20 fractions
+          - navigation "Patient workspace" [ref=f11e267]:
+            - tablist "Patient workspace sections" [ref=f11e268]:
+              - tab "Overview Alt 1" [selected] [ref=f11e269] [cursor=pointer]:
+                - img [ref=f11e270]
+                - generic [ref=f11e272]: Overview
+                - generic [ref=f11e273]: Alt 1
+              - tab "Prepare Alt 2" [ref=f11e274] [cursor=pointer]:
+                - img [ref=f11e275]
+                - generic [ref=f11e279]: Prepare
+                - generic [ref=f11e280]: Alt 2
+              - tab "Treatment Alt 3" [ref=f11e281] [cursor=pointer]:
+                - img [ref=f11e282]
+                - generic [ref=f11e286]: Treatment
+                - generic [ref=f11e287]: Alt 3
+              - tab "Record & Closeout Alt 4" [ref=f11e288] [cursor=pointer]:
+                - img [ref=f11e289]
+                - generic [ref=f11e293]: Record & Closeout
+                - generic [ref=f11e294]: Alt 4
+          - generic [ref=f11e295]:
+            - button "Signals 13" [ref=f11e296] [cursor=pointer]:
+              - img [ref=f11e297]
+              - text: Signals
+              - generic [ref=f11e300]: "13"
+            - button "Patient details" [ref=f11e301] [cursor=pointer]
+        - main [ref=f11e68]:
+          - tabpanel "Overview workspace" [ref=f11e729]:
+            - generic [ref=f11e131]:
+              - region "Course blocked" [ref=f11e132]:
+                - generic [ref=f11e133]:
+                  - generic [ref=f11e134]:
+                    - img [ref=f11e135]
+                    - heading "Course blocked" [level=2] [ref=f11e138]
+                  - paragraph [ref=f11e139]: Workflow mapping must be reviewed before final closeout
+                  - paragraph [ref=f11e140]: Complete the listed requirement, then the course gate refreshes automatically.
+                  - paragraph [ref=f11e141]: Last evaluated Jul 2
+                - button "Review and sign Carepath Audit Note" [ref=f11e730] [cursor=pointer]:
+                  - img [ref=f11e144]
+                  - text: Review and sign Carepath Audit Note
+              - region "Course progress" [ref=f11e731]:
+                - heading "Course progress" [level=2] [ref=f11e733]
+                - list [ref=f11e735]:
+                  - listitem [ref=f11e736]: Consultation
+                  - listitem [ref=f11e738]: Chart Prep
+                  - listitem [ref=f11e740]: Simulation
+                  - listitem [ref=f11e742]: Planning
+                  - listitem [ref=f11e744]: On Treatment
+                  - listitem [ref=f11e746]: Post-Tx
+                  - listitem [ref=f11e748]: Audit
+                  - listitem [ref=f11e750]: Closed
+              - region "Needs attention" [ref=f11e752]:
+                - generic [ref=f11e754]:
+                  - heading "Needs attention" [level=2] [ref=f11e755]
+                  - paragraph [ref=f11e756]: Blocking and role-ready work grouped by destination.
+                - generic [ref=f11e757]:
+                  - group [ref=f11e758]:
+                    - generic "› Blocking course progress 1 item" [ref=f11e759] [cursor=pointer]:
+                      - text: ›
+                      - generic [ref=f11e760]: Blocking course progress
+                      - generic [ref=f11e761]: 1 item
+                    - button "Review and sign Carepath Audit Note This item blocks course advancement. Admin · Due May 19 Open" [ref=f11e763] [cursor=pointer]:
+                      - generic [ref=f11e764]:
+                        - generic [ref=f11e765]: Review and sign Carepath Audit Note
+                        - generic [ref=f11e766]: This item blocks course advancement.
+                      - generic [ref=f11e767]: Admin · Due May 19
+                      - generic [ref=f11e768]: Open
+                  - group [ref=f11e769]:
+                    - generic "› Preparation work 6 items" [ref=f11e770] [cursor=pointer]:
+                      - text: ›
+                      - generic [ref=f11e771]: Preparation work
+                      - generic [ref=f11e772]: 6 items
+                  - group [ref=f11e773]:
+                    - generic "› Treatment work 2 items" [active] [ref=f11e774] [cursor=pointer]:
+                      - text: ›
+                      - generic [ref=f11e775]: Treatment work
+                      - generic [ref=f11e776]: 2 items
+                    - generic [ref=f11e812]:
+                      - button "Review fraction 5 Review the required patient-course work. DOT reviewer · Due Jun 6 Open" [ref=f11e813] [cursor=pointer]:
+                        - generic [ref=f11e814]:
+                          - generic [ref=f11e815]: Review fraction 5
+                          - generic [ref=f11e816]: Review the required patient-course work.
+                        - generic [ref=f11e817]: DOT reviewer · Due Jun 6
+                        - generic [ref=f11e818]: Open
+                      - button "Review fraction 6 Review the required patient-course work. DOT reviewer · Due Jun 7 Open" [ref=f11e819] [cursor=pointer]:
+                        - generic [ref=f11e820]:
+                          - generic [ref=f11e821]: Review fraction 6
+                          - generic [ref=f11e822]: Review the required patient-course work.
+                        - generic [ref=f11e823]: DOT reviewer · Due Jun 7
+                        - generic [ref=f11e824]: Open
+                  - group [ref=f11e777]:
+                    - generic "› Record and closeout work 4 items" [ref=f11e778] [cursor=pointer]:
+                      - text: ›
+                      - generic [ref=f11e779]: Record and closeout work
+                      - generic [ref=f11e780]: 4 items
+              - region "Course snapshot" [ref=f11e781]:
+                - heading "Course snapshot" [level=2] [ref=f11e783]
+                - generic [ref=f11e784]:
+                  - generic [ref=f11e785]:
+                    - term [ref=f11e786]: Carepath
+                    - definition [ref=f11e787]: 2/6 complete
+                  - generic [ref=f11e788]:
+                    - term [ref=f11e789]: Documents
+                    - definition [ref=f11e790]: 3 unsigned
+                  - generic [ref=f11e791]:
+                    - term [ref=f11e792]: Approvals
+                    - definition [ref=f11e793]: 4/6 logged approved
+                  - generic [ref=f11e794]:
+                    - term [ref=f11e795]: Imaging
+                    - definition [ref=f11e796]: Clear
+                  - generic [ref=f11e797]:
+                    - term [ref=f11e798]: On-treatment visit
+                    - definition [ref=f11e799]: Clear
+                  - generic [ref=f11e800]:
+                    - term [ref=f11e801]: Physics
+                    - definition [ref=f11e802]: Clear
+              - region "Recent course activity" [ref=f11e803]:
+                - heading "Recent course activity" [level=2] [ref=f11e805]
+                - generic [ref=f11e807]:
+                  - generic [ref=f11e808]:
+                    - paragraph [ref=f11e809]: SEED
+                    - paragraph [ref=f11e810]: Seed Script
+                  - time [ref=f11e811]: Jun 14
+  - button "Open Next.js Dev Tools" [ref=f11e61] [cursor=pointer]:
+    - img [ref=f11e62]
+  - alert [ref=f11e65]

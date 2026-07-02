@@ -9,7 +9,9 @@ CureRays CRMS is a clinical workflow tool for older clinic staff and radiation o
 ## Token-First Styling
 
 - Read `app/globals.css` before creating visual styles.
+- Read `docs/curerays-typography-style-guide.md` before changing text, controls, tables, charts, or headings.
 - Use CSS custom properties and shared classes for colors, spacing, radii, modal sizing, action widths, file pickers, section navs, and badge/pill treatments.
+- Use only the shared Inter typography roles. Do not add page-local font sizes, families, weights, leading, tracking, or arbitrary Tailwind text utilities.
 - Do not hardcode hex values, ad hoc Tailwind palette colors, translucent status pills, or one-off rounded badge styles in components.
 - Add or extend tokens/classes when a visual pattern will recur.
 - Stay inside the CureRays palette: brand primary, accent, clinical neutrals, and status tokens.
@@ -21,7 +23,7 @@ CureRays CRMS is a clinical workflow tool for older clinic staff and radiation o
 - Keep modals stable: fixed header/footer zones, scrollable body, consistent action widths, and no layout jump between steps.
 - For large clinical edit/review modals, use the largest appropriate shared modal token and rebalance fields into grouped sections before accepting unnecessary scrolling.
 - Any scrollable modal body, tab panel, table wrapper, list, or workspace region must use the shared styled scrollbar behavior (`scrollbar-soft` or the shared modal body scrollbar rules).
-- Use full-width patient workspace content; do not reintroduce right rails.
+- Use full-width patient workspace content and do not reintroduce right review rails. A compact left patient-context and workspace-navigation sidebar is allowed at 1280px and wider when the page remains the sole vertical scroll owner and dense content retains horizontal overflow.
 - Use the Mac-style app shell for primary navigation: one glass top command bar with patient/MRN/course/action search, account controls, and the few global destinations. Do not reintroduce the legacy sidebar or bottom Dock.
 - Keep command-bar-safe top spacing and internal scroll containment for long pages so fixed chrome never covers clinical controls or table rows.
 - Prefer history/review first, then action. Creation forms should be intentional, not the first visual object users see.

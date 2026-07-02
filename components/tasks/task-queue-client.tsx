@@ -212,12 +212,12 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
           {error}
         </div>
       ) : null}
@@ -237,8 +237,8 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
         columns={[
           { key: 'task', label: 'Task', render: (row) => (
             <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-text)]">{row.title}</p>
-              <p className="truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{row.documentName}</p>
+              <p className="truncate type-medium text-[var(--color-text)]">{row.title}</p>
+              <p className="truncate type-supporting text-[var(--color-text-muted)]">{row.documentName}</p>
             </div>
           ) },
           { key: 'course', label: 'Patient / Course', render: (row) => (
@@ -295,11 +295,11 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
       <Modal open={Boolean(selectedTask && form)} onClose={closeModal} title="Update Task" width={620}>
         {selectedTask && form ? (
           <form className="grid gap-3" onSubmit={submitTask}>
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 type-supporting text-[var(--color-text-muted)]">
               {selectedTask.title} / {selectedTask.courseRef}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Status
                 <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as CarepathTaskStatus)}>
                   {taskStatuses.map((status) => (
@@ -307,33 +307,33 @@ export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientPr
                   ))}
                 </Select>
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Due date
                 <Input type="date" value={form.dueDate} onChange={(event) => updateForm('dueDate', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Assigned user
                 <Input value={form.assignedUser} onChange={(event) => updateForm('assignedUser', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Blocked reason
                 <Input value={form.blockedReason} onChange={(event) => updateForm('blockedReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 N/A reason
                 <Input value={form.naReason} onChange={(event) => updateForm('naReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Reopen reason
                 <Input value={form.reopenReason} onChange={(event) => updateForm('reopenReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)] sm:col-span-2">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)] sm:col-span-2">
                 Change reason
                 <Input value={form.changeReason} onChange={(event) => updateForm('changeReason', event.target.value)} required />
               </label>
             </div>
             {blockers.length > 0 ? (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 text-xs font-semibold text-[var(--color-error)]">
+              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 type-supporting text-[var(--color-error)]">
                 {blockers.map((item) => <p key={item}>{item}</p>)}
               </div>
             ) : null}

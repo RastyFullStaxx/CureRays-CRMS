@@ -211,10 +211,10 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label data-patient-field={field} className={`grid gap-1.5 text-xs font-bold text-[var(--color-text-muted)] ${className}`}>
+    <label data-patient-field={field} className={`grid gap-1.5 type-supporting text-[var(--color-text-muted)] ${className}`}>
       <span>{label}{required ? <span className="ml-1 text-[var(--color-error)]">*</span> : null}</span>
       {children}
-      {helper ? <span className="text-[11px] font-semibold leading-4 text-[var(--color-text-muted)]">{helper}</span> : null}
+      {helper ? <span className="type-supporting text-[var(--color-text-muted)]">{helper}</span> : null}
     </label>
   );
 }
@@ -222,8 +222,8 @@ function Field({
 function ReviewRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2">
-      <p className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">{label}</p>
-      <div className="mt-1 text-sm font-semibold text-[var(--color-text)]">{value || '—'}</div>
+      <p className="type-supporting uppercase text-[var(--color-text-muted)]">{label}</p>
+      <div className="mt-1 type-body text-[var(--color-text)]">{value || '—'}</div>
     </div>
   );
 }
@@ -643,12 +643,12 @@ export function PatientRegistryClient({
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
           {message}
         </div>
       ) : null}
       {error && !modalMode ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
           {error}
         </div>
       ) : null}
@@ -667,8 +667,8 @@ export function PatientRegistryClient({
         columns={[
           { key: 'displayLabel', label: 'Patient', render: (row) => (
             <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-text)]">{row.displayLabel}</p>
-              <p className="truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{row.phiRecordId}</p>
+              <p className="truncate type-medium text-[var(--color-text)]">{row.displayLabel}</p>
+              <p className="truncate type-supporting text-[var(--color-text-muted)]">{row.phiRecordId}</p>
             </div>
           ) },
           { key: 'diagnosisCategory', label: 'Diagnosis', render: (row) => <Badge variant="info">{diagnosisLabels[row.diagnosisCategory]}</Badge> },
@@ -676,13 +676,13 @@ export function PatientRegistryClient({
           { key: 'status', label: 'Status', render: (row) => <Badge variant={statusTone(row.status)}>{row.status.replaceAll('_', ' ')}</Badge> },
           { key: 'course', label: 'Course', render: (row) => (
             <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-primary)]">{row.activeCourseRef}</p>
-              <p className="truncate text-[11px] text-[var(--color-text-muted)]">{row.protocolFamily}</p>
+              <p className="truncate type-medium text-[var(--color-primary)]">{row.activeCourseRef}</p>
+              <p className="truncate type-supporting text-[var(--color-text-muted)]">{row.protocolFamily}</p>
             </div>
           ) },
           { key: 'fractions', label: 'Fractions', render: (row) => `${row.currentFraction}/${row.totalFractions}` },
           { key: 'signals', label: 'Signals', render: (row) => (
-            <span className="text-xs font-semibold text-[var(--color-text-muted)]">
+            <span className="type-supporting text-[var(--color-text-muted)]">
               {row.openTasks} tasks | {row.pendingDocuments} docs | {row.flags} flags
             </span>
           ) },
@@ -732,8 +732,8 @@ export function PatientRegistryClient({
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[var(--color-text)]">Start patient registration</p>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                  <p className="type-body text-[var(--color-text)]">Start patient registration</p>
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                     Upload AVS/Intake to prefill draft fields, or continue manually.
                   </p>
                 </div>
@@ -762,9 +762,9 @@ export function PatientRegistryClient({
                       }`}
                       onClick={() => canOpen && setFormStep(step.id)}
                     >
-                      <span className="text-[11px] font-bold uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
-                      <span className="mt-1 block text-sm font-bold text-[var(--color-text)]">{step.label}</span>
-                      <span className="mt-1 block text-xs font-semibold text-[var(--color-text-muted)]">{complete ? 'Ready' : 'Needs required info'}</span>
+                      <span className="type-supporting uppercase text-[var(--color-text-muted)]">Step {index + 1}</span>
+                      <span className="mt-1 block type-body text-[var(--color-text)]">{step.label}</span>
+                      <span className="mt-1 block type-supporting text-[var(--color-text-muted)]">{complete ? 'Ready' : 'Needs required info'}</span>
                     </button>
                   );
                 })}
@@ -776,8 +776,8 @@ export function PatientRegistryClient({
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--color-text)]">All editable fields are shown together.</p>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Save requires a change reason and validates stale edits before updating.</p>
+                  <p className="type-body text-[var(--color-text)]">All editable fields are shown together.</p>
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Save requires a change reason and validates stale edits before updating.</p>
                 </div>
                 <Badge variant="primary">{editingPhiId ?? 'PHI record'}</Badge>
               </div>
@@ -786,7 +786,7 @@ export function PatientRegistryClient({
 
           <div className="clinical-modal-body grid content-start gap-4 py-4">
             {error ? (
-              <div className="clinical-alert-error p-3 text-sm font-semibold" role="alert">
+              <div className="clinical-alert-error p-3 type-body" role="alert">
                 {error}
               </div>
             ) : null}
@@ -800,8 +800,8 @@ export function PatientRegistryClient({
                         <Upload className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <div className="min-w-0">
-                        <p className="font-heading text-base font-bold text-[var(--color-text)]">Upload AVS / Intake</p>
-                        <p className="mt-1 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                        <p className=" type-body text-[var(--color-text)]">Upload AVS / Intake</p>
+                        <p className="mt-1 type-body text-[var(--color-text-muted)]">
                           CRMS will read one DOCX file in memory and prefill draft fields for review.
                         </p>
                       </div>
@@ -826,7 +826,7 @@ export function PatientRegistryClient({
                         }}
                       />
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">
+                    <p className="mt-2 type-supporting text-[var(--color-text-muted)]">
                       DOCX only. File is not stored after extraction.
                     </p>
                   </div>
@@ -837,8 +837,8 @@ export function PatientRegistryClient({
                         <Edit3 className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <div className="min-w-0">
-                        <p className="font-heading text-base font-bold text-[var(--color-text)]">Enter Manually</p>
-                        <p className="mt-1 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+                        <p className=" type-body text-[var(--color-text)]">Enter Manually</p>
+                        <p className="mt-1 type-body text-[var(--color-text-muted)]">
                           Start with a blank form when there is no AVS or Intake file.
                         </p>
                       </div>
@@ -851,7 +851,7 @@ export function PatientRegistryClient({
                 </div>
 
                 {prefillPending ? (
-                  <div className="clinical-muted-surface p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <div className="clinical-muted-surface p-3 type-body text-[var(--color-text-muted)]">
                     Reading DOCX and detecting patient details...
                   </div>
                 ) : null}
@@ -864,10 +864,10 @@ export function PatientRegistryClient({
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="clinical-label">Detected Details Review</p>
-                      <h3 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                      <h3 className="mt-1 type-heading text-[var(--color-text)]">
                         {prefill.templateType === 'AVS' ? 'AVS document' : 'Intake document'}
                       </h3>
-                      <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                      <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                         {prefillFileName || 'Uploaded DOCX'} | File retained: No
                       </p>
                     </div>
@@ -881,7 +881,7 @@ export function PatientRegistryClient({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="clinical-label">{field.label}</p>
-                          <p className="mt-1 min-h-5 break-words text-sm font-bold text-[var(--color-text)]">
+                          <p className="mt-1 min-h-5 break-words type-body text-[var(--color-text)]">
                             {field.value || 'Not found'}
                           </p>
                         </div>
@@ -898,7 +898,7 @@ export function PatientRegistryClient({
                     checked={prefillIdentityConfirmed}
                     onChange={(event) => setPrefillIdentityConfirmed(event.target.checked)}
                   />
-                  <span className="text-sm font-semibold leading-6 text-[var(--color-text)]">
+                  <span className="type-body text-[var(--color-text)]">
                     I reviewed the detected patient identity and understand these values are draft only.
                   </span>
                 </label>
@@ -906,7 +906,7 @@ export function PatientRegistryClient({
                 {prefill.warnings.length ? (
                   <div className="grid gap-2">
                     {prefill.warnings.map((warning) => (
-                      <div key={warning} className="clinical-alert-error p-3 text-xs font-semibold">
+                      <div key={warning} className="clinical-alert-error p-3 type-supporting">
                         {warning}
                       </div>
                     ))}
@@ -949,7 +949,7 @@ export function PatientRegistryClient({
                   <ReviewRow label="Phase / Status" value={`${phaseLabels[form.chartRoundsPhase]} | ${statusLabels[form.status]}`} />
                   <ReviewRow label="Course" value={`${form.initialCourse?.protocol ?? '—'} | ${form.initialCourse?.bodyRegion ?? '—'} | ${form.initialCourse?.totalFractions ?? 0} fx`} />
                 </div>
-                <div className="clinical-muted-surface p-3 text-xs font-semibold text-[var(--color-text-muted)]">
+                <div className="clinical-muted-surface p-3 type-supporting text-[var(--color-text-muted)]">
                   Prototype PHI action uses server-owned session claims. Mutation responses and correction history stay redacted.
                 </div>
               </div>
@@ -959,7 +959,7 @@ export function PatientRegistryClient({
               <div className="grid gap-4">
                 <div className="grid gap-4 xl:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)]">
                   <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                    <p className="font-heading text-base font-bold text-[var(--color-text)]">Patient Identity</p>
+                    <p className=" type-body text-[var(--color-text)]">Patient Identity</p>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field label="First name" field="firstName" required>
                         <Input value={form.firstName} onChange={(event) => updateForm('firstName', event.target.value)} autoFocus />
@@ -973,12 +973,12 @@ export function PatientRegistryClient({
                     </div>
                   </div>
                   <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                    <p className="font-heading text-base font-bold text-[var(--color-text)]">Clinical Basics</p>
+                    <p className=" type-body text-[var(--color-text)]">Clinical Basics</p>
                     <ClinicalFields form={form} updateForm={updateForm} compact />
                   </div>
                 </div>
                 <div className="grid gap-3 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-3">
-                  <p className="font-heading text-base font-bold text-[var(--color-text)]">Course Setup</p>
+                  <p className=" type-body text-[var(--color-text)]">Course Setup</p>
                   <CourseFields form={form} updateForm={updateForm} updateInitialCourse={updateInitialCourse} compact />
                 </div>
                 <div>

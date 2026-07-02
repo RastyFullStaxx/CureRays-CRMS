@@ -84,8 +84,8 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
                 key={action.label}
                 href={href}
                 className={cn(
-                  'clinical-focus inline-flex items-center justify-center rounded-[var(--radius-md)] border font-semibold transition',
-                  action.size === 'default' ? 'h-[var(--height-btn)] px-4 text-sm' : 'h-[var(--height-btn-sm)] px-3 text-xs',
+                  'clinical-focus inline-flex items-center justify-center rounded-[var(--radius-md)] border type-medium transition',
+                  action.size === 'default' ? 'h-[var(--height-btn)] px-4 type-body' : 'h-[var(--height-btn-sm)] px-3 type-supporting',
                   action.variant === 'primary'
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-dark)]'
                     : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-primary)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary-soft)]',
@@ -123,8 +123,8 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   if (column.kind === 'primary') {
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="truncate font-bold text-[var(--color-primary)]">{text}</span>
-        {column.subKey ? <span className="truncate text-[11px] text-[var(--color-text-muted)]">{cellText(row[column.subKey])}</span> : null}
+        <span className="truncate type-medium text-[var(--color-primary)]">{text}</span>
+        {column.subKey ? <span className="truncate type-supporting text-[var(--color-text-muted)]">{cellText(row[column.subKey])}</span> : null}
       </span>
     );
   }
@@ -167,7 +167,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
             }}
           />
         </div>
-        <span className="text-xs font-semibold text-[var(--color-text-muted)]">{clamped}%</span>
+        <span className="type-supporting text-[var(--color-text-muted)]">{clamped}%</span>
       </div>
     );
   }

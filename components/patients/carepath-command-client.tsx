@@ -135,10 +135,10 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
           <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="clinical-label">Carepath Command</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">
                 {courseRef} canonical step review
               </h2>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{message}</p>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{message}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {(['all', 'open', 'blocked', 'review', 'signed'] as FilterValue[]).map((item) => (
@@ -147,7 +147,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   type="button"
                   onClick={() => setFilter(item)}
                   className={cn(
-                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 text-xs font-bold capitalize transition',
+                    'clinical-focus h-[var(--height-btn-sm)] rounded-[var(--radius-md)] border px-3 type-supporting capitalize transition',
                     filter === item
                       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
                       : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]',
@@ -176,12 +176,12 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                     : 'border-[var(--color-border-soft)] bg-[var(--color-bg)] hover:border-[var(--color-primary)]/35',
                 )}
               >
-                <div className="font-heading text-lg font-bold text-[var(--color-primary)]">
+                <div className=" type-heading text-[var(--color-primary)]">
                   {String(step.stepNumber).padStart(2, '0')}
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-[var(--color-text)]">{step.stepName}</p>
-                  <p className="mt-1 line-clamp-1 text-xs font-semibold text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
+                  <p className="truncate type-body text-[var(--color-text)]">{step.stepName}</p>
+                  <p className="mt-1 line-clamp-1 type-supporting text-[var(--color-text-muted)]">{nextActionForStep(step)}</p>
                 </div>
                 <Badge variant={phaseTone(step.phase)}>{carepathPhaseLabels[step.phase]}</Badge>
                 <Badge variant={statusTone(step.status)}>{statusLabel(step.status)}</Badge>
@@ -196,10 +196,10 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Step</p>
-                  <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+                  <h2 className="mt-1 type-heading text-[var(--color-text)]">
                     {selectedStep.stepNumber}. {selectedStep.stepName}
                   </h2>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                     Due {selectedStep.dueDate ? formatDate(selectedStep.dueDate) : selectedStep.triggerEvent}
                   </p>
                 </div>
@@ -209,16 +209,16 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
               <div className="grid gap-3">
                 <div className="clinical-muted-surface p-3">
                   <p className="clinical-label">Next Action</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{nextActionForStep(selectedStep)}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{nextActionForStep(selectedStep)}</p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="clinical-muted-surface p-3">
                     <p className="clinical-label">Owner</p>
-                    <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{responsiblePartyLabels[selectedStep.responsibleRole]}</p>
+                    <p className="mt-2 type-body text-[var(--color-text)]">{responsiblePartyLabels[selectedStep.responsibleRole]}</p>
                   </div>
                   <div className="clinical-muted-surface p-3">
                     <p className="clinical-label">Signature</p>
-                    <p className="mt-2 text-sm font-bold text-[var(--color-text)]">
+                    <p className="mt-2 type-body text-[var(--color-text)]">
                       {selectedStep.requiresSignature ? selectedStep.signedAt ? 'Signed' : 'Required' : 'Not required'}
                     </p>
                   </div>
@@ -230,13 +230,13 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                 {selectedTasks.length ? selectedTasks.map((task) => (
                   <div key={task.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-bold text-[var(--color-text)]">{task.title}</p>
+                      <p className="type-body text-[var(--color-text)]">{task.title}</p>
                       <Badge variant={statusTone(task.status)}>{statusLabel(task.status)}</Badge>
                     </div>
-                    <p className="mt-2 text-xs font-semibold text-[var(--color-text-muted)]">{task.noteAction}</p>
+                    <p className="mt-2 type-supporting text-[var(--color-text-muted)]">{task.noteAction}</p>
                   </div>
                 )) : (
-                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                  <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 type-body text-[var(--color-text-muted)]">
                     No linked task is required for this step in the current demo data.
                   </div>
                 )}
@@ -286,7 +286,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No carepath step is available.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No carepath step is available.</div>
           )}
         </Card>
       </div>

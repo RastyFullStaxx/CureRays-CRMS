@@ -37,7 +37,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
-- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md`.
+- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md` and `docs/curerays-typography-style-guide.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
 - **TypeScript**: Strict mode enabled in `tsconfig.json`. Prefer explicit types over inference. No `any`.
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).
@@ -210,8 +210,11 @@ Never hardcode hex values in components. Always reference tokens:
 | `--color-warning` | `#F59E0B` | Warning states |
 | `--color-error` | `#EF4444` | Error states |
 | `--color-info` | `#3B82F6` | Info states |
-| `--font-heading` | `Manrope` | All headings, stat values |
-| `--font-body` | `Inter` | All body text, labels, inputs |
+| `--font-ui` | `Inter` | Every UI surface, control, chart, and label |
+| `--type-title-size` | `20px` | Page titles, patient identity, critical KPI values |
+| `--type-heading-size` | `16px` | Section, modal, and card headings |
+| `--type-body-size` | `14px` | Body, controls, buttons, and table cells |
+| `--type-label-size` | `12px` | Supporting copy, labels, statuses, and chart text |
 | `--space-page` | `clamp(16px, 1.7vw, 28px)` | Outer page gutter |
 | `--space-card` | `20px` | Card internal padding |
 | `--space-section` | `16px` | Vertical gap between sections |
@@ -226,11 +229,12 @@ Never hardcode hex values in components. Always reference tokens:
 
 ## Typography
 
-- **Headings**: Manrope, font-weight 800 (via `--font-weight-bold`)
-- **Body**: Inter, font-weight 400-600
-- **Stat values**: Manrope, 21px, bold
-- **Labels**: Inter, 11px, uppercase, bold
-- **Small text**: Inter, 13px
+- Read and follow `docs/curerays-typography-style-guide.md`.
+- Use Inter exclusively through the global `--font-ui` token.
+- Use only the 20px title, 16px heading, 14px body/control, and 12px supporting roles.
+- Buttons remain 14px/600 in every size variant.
+- Use 700 only for page titles, patient identity, and critical KPI values. Ordinary records and metadata must not be bold.
+- Do not add local font sizes, families, weights, line heights, tracking utilities, or text below 12px.
 
 ## Naming Conventions
 

@@ -222,17 +222,17 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
       />
 
       {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-success)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-success)]">
           {message}
         </div>
       ) : null}
       {error ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-error)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-body text-[var(--color-error)]">
           {error}
         </div>
       ) : null}
       {blockers.length > 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-xs font-semibold text-[var(--color-text-muted)]">
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 type-supporting text-[var(--color-text-muted)]">
           {blockers.slice(0, 4).map((item) => (
             <p key={item}>{item}</p>
           ))}
@@ -253,8 +253,8 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
         columns={[
           { key: 'step', label: 'Step', render: (row) => (
             <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-primary)]">{row.stepNumber}. {row.stepName}</p>
-              <p className="truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{row.courseRef} / {row.displayLabel}</p>
+              <p className="truncate type-medium text-[var(--color-primary)]">{row.stepNumber}. {row.stepName}</p>
+              <p className="truncate type-supporting text-[var(--color-text-muted)]">{row.courseRef} / {row.displayLabel}</p>
             </div>
           ) },
           { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{phaseLabels[row.phase]}</Badge> },
@@ -312,11 +312,11 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
       <Modal open={Boolean(selectedStep && form)} onClose={closeModal} title="Update Workflow Step" width={620}>
         {selectedStep && form ? (
           <form className="grid gap-3" onSubmit={submitStep}>
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 type-supporting text-[var(--color-text-muted)]">
               {selectedStep.stepNumber}. {selectedStep.stepName} / {selectedStep.courseRef}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Status
                 <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as WorkflowItemStatus)}>
                   {workflowStatuses.map((status) => (
@@ -324,33 +324,33 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
                   ))}
                 </Select>
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Due date
                 <Input type="date" value={form.dueDate} onChange={(event) => updateForm('dueDate', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Assigned user
                 <Input value={form.assignedUserId} onChange={(event) => updateForm('assignedUserId', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Blocked reason
                 <Input value={form.blockedReason} onChange={(event) => updateForm('blockedReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 N/A reason
                 <Input value={form.naReason} onChange={(event) => updateForm('naReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                 Reopen reason
                 <Input value={form.reopenReason} onChange={(event) => updateForm('reopenReason', event.target.value)} />
               </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)] sm:col-span-2">
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)] sm:col-span-2">
                 Change reason
                 <Input value={form.changeReason} onChange={(event) => updateForm('changeReason', event.target.value)} required />
               </label>
             </div>
             {blockers.length > 0 ? (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 text-xs font-semibold text-[var(--color-error)]">
+              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 type-supporting text-[var(--color-error)]">
                 {blockers.map((item) => <p key={item}>{item}</p>)}
               </div>
             ) : null}

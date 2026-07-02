@@ -12,6 +12,7 @@ import {
   forceY,
 } from 'd3-force';
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
+import { resolveUiFontFamily, uiTypography } from '@/lib/ui-typography';
 
 export type NeuronSignalStageId = 'chart-prep' | 'planning' | 'delivery' | 'closeout';
 export type NeuronSignalTone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral';
@@ -191,11 +192,8 @@ function chargeStrength(node: NeuronSignalNode) {
 
 function shouldShowLabel(node: NeuronSignalNode) {
   return node.group === 'stage'
-    || node.group === 'task'
-    || node.group === 'document'
     || node.group === 'risk'
-    || node.group === 'domain'
-    || node.group === 'course';
+    || node.group === 'domain';
 }
 
 function groupLabel(group: NeuronSignalGroup) {
@@ -362,10 +360,10 @@ export function NeuronSignalField({
         context.globalAlpha = isHovered ? 1 : node.group === 'stage' || node.group === 'domain' ? 0.96 : 0.82;
         context.fill();
 
-        if (shouldShowLabel(node)) {
+        if (shouldShowLabel(node) || isHovered) {
           context.globalAlpha = isHovered ? 1 : 0.9;
           context.fillStyle = isHovered ? cssVar('--color-text', 'CanvasText') : text;
-          context.font = `700 10px ${cssVar('--font-body', 'Inter, sans-serif')}`;
+          context.font = `${uiTypography.weight.semibold} ${uiTypography.size.label}px ${resolveUiFontFamily()}`;
           context.textAlign = 'center';
           context.fillText(node.label, x, y + radius + 14);
         }

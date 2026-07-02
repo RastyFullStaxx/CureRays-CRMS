@@ -11,7 +11,7 @@ export function CourseTimeline({ currentPhase }: { currentPhase: CarepathWorkflo
           <li
             key={phase}
             className={cn(
-              "flex flex-1 items-center justify-center rounded-xl px-3 py-2 text-center text-xs font-bold",
+              "flex flex-1 items-center justify-center rounded-xl px-3 py-2 text-center type-supporting",
               index <= activeIndex ? "bg-[var(--color-primary)] text-white" : "bg-[var(--color-bg-elevated)] text-[var(--color-text-soft)]"
             )}
           >

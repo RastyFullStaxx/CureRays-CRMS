@@ -23,7 +23,7 @@ export function ProgressBar({
   return (
     <div>
       {label ? (
-        <p className="mb-1 text-xs font-bold text-[var(--color-text-muted)]">{label}</p>
+        <p className="mb-1 type-supporting text-[var(--color-text-muted)]">{label}</p>
       ) : null}
       <div className={cn('h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]', width)}>
         <div

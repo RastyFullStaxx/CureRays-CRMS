@@ -130,8 +130,8 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Selected Course</p>
-              <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{summary.patientRef} / {summary.courseRef}</h2>
-              <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">{summary.patientRef} / {summary.courseRef}</h2>
+              <p className="mt-2 type-body text-[var(--color-text-muted)]">
                 {summary.diagnosis} / {summary.site} / {summary.laterality}
               </p>
             </div>
@@ -149,7 +149,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             </div>
             <div className="clinical-muted-surface p-3">
               <p className="clinical-label">Recorded Fractions</p>
-              <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{summary.recordedFractions}</p>
+              <p className="mt-2 type-body text-[var(--color-text)]">{summary.recordedFractions}</p>
             </div>
             <div className="clinical-muted-surface p-3">
               <p className="clinical-label">Clinical Validation</p>
@@ -173,7 +173,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Review Staging</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">IGSRT readiness decision</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">IGSRT readiness decision</h2>
             </div>
             <Badge variant="info">Prototype only</Badge>
           </div>
@@ -201,12 +201,12 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="mt-4 grid gap-2">
             {ledger.length ? ledger.map((record) => (
               <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_190px_minmax(0,1fr)]">
-                <span className="text-xs font-bold text-[var(--color-primary)]">{record.id}</span>
+                <span className="type-supporting text-[var(--color-primary)]">{record.id}</span>
                 <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
-                <span className="truncate text-sm font-semibold text-[var(--color-text-muted)]">{record.note}</span>
+                <span className="truncate type-body text-[var(--color-text-muted)]">{record.note}</span>
               </div>
             )) : (
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 type-body text-[var(--color-text-muted)]">
                 No IGSRT review decisions have been staged in this demo session.
               </div>
             )}
@@ -219,7 +219,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Selected Gate</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">{selectedGate?.gate ?? 'No gate selected'}</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">{selectedGate?.gate ?? 'No gate selected'}</h2>
             </div>
             {selectedGate ? <Badge variant={toneFor(selectedGate.status)}>{selectedGate.status}</Badge> : null}
           </div>
@@ -227,21 +227,21 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             <div className="grid gap-3">
               <div className="clinical-muted-surface p-3">
                 <p className="clinical-label">Detail</p>
-                <p className="mt-2 text-sm font-semibold leading-5 text-[var(--color-text)]">{selectedGate.detail}</p>
+                <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.detail}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                   <p className="clinical-label">Due Fractions</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selectedGate.dueFractions}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.dueFractions}</p>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                   <p className="clinical-label">Evidence</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selectedGate.evidence}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.evidence}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm font-semibold text-[var(--color-text-muted)]">No gate information is available.</p>
+            <p className="type-body text-[var(--color-text-muted)]">No gate information is available.</p>
           )}
         </Card>
 
@@ -249,7 +249,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           keyField="id"
           className="min-h-[380px]"
           columns={[
-            { key: 'gate', label: 'Gate', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.gate}</span> },
+            { key: 'gate', label: 'Gate', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.gate}</span> },
             { key: 'status', label: 'Status', render: (row) => <Badge variant={toneFor(row.status)}>{row.status}</Badge> },
             { key: 'detail', label: 'Detail' },
             { key: 'dueFractions', label: 'Due Fx' },
@@ -272,7 +272,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         keyField="id"
         className="min-h-[430px]"
         columns={[
-          { key: 'name', label: 'Generated Document', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
+          { key: 'name', label: 'Generated Document', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.name}</span> },
           { key: 'phase', label: 'Phase' },
           { key: 'owner', label: 'Owner' },
           { key: 'status', label: 'Status', render: (row) => <Badge variant={toneFor(row.status)}>{row.status}</Badge> },
@@ -286,7 +286,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         toolbarPrefix={
           <div className="min-w-[240px]">
             <p className="clinical-label">IGSRT Document Evidence</p>
-            <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Simulation, prescription, fraction log, treatment summary, and audit note readiness.</p>
+            <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Simulation, prescription, fraction log, treatment summary, and audit note readiness.</p>
           </div>
         }
         toolbarActions={<PrototypeActionButton label="Render Missing Docs" icon="refresh" kind="document" size="sm" description="Stage simulated rendering for documents that still need output." />}

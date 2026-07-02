@@ -149,11 +149,11 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
             label: 'Course',
             render: (row) => (
               <div className="flex flex-col">
-                <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                   {row.course}
                   {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
                 </span>
-                <span className="text-[11px] text-[var(--color-text-muted)]">{row.patientRef}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{row.patientRef}</span>
               </div>
             ),
           },
@@ -166,7 +166,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
             render: (row) => (
               <div className="min-w-[140px]">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-[var(--color-text)]">{row.readinessPct}%</span>
+                  <span className="type-supporting text-[var(--color-text)]">{row.readinessPct}%</span>
                   <Badge variant={scoreTone(row.readinessPct)}>{row.readiness}</Badge>
                 </div>
                 <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--color-border-soft)]">
@@ -201,11 +201,11 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Audit Review</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? `${selected.course} closeout evidence` : 'Select a course'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.diagnosis} / {selected.nextAction}
               </p>
             ) : null}
@@ -218,7 +218,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Checklist</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+                <p className="mt-1 type-body text-[var(--color-text)]">
                   {selected.requiredChecks - selected.openChecks}/{selected.requiredChecks} complete
                 </p>
                 <Badge variant={selected.blockedChecks ? 'error' : evidenceTone(selected.openChecks)}>
@@ -227,22 +227,22 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Documents</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.missingDocuments} missing</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.missingDocuments} missing</p>
                 <Badge variant={evidenceTone(selected.unsignedDocuments)}>{selected.unsignedDocuments} unsigned</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Billing</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.billingOpen} open</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.billingOpen} open</p>
                 <Badge variant={evidenceTone(selected.billingOpen)}>Closeout evidence</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Treatment</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.fractionGaps} fraction gaps</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.fractionGaps} fraction gaps</p>
                 <Badge variant={evidenceTone(selected.fractionGaps)}>Fraction log</Badge>
               </div>
               <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <p className="clinical-label">Tasks</p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.openTasks} open</p>
+                <p className="mt-1 type-body text-[var(--color-text)]">{selected.openTasks} open</p>
                 <Badge variant={statusTone(selected.followUp)}>{selected.followUp}</Badge>
               </div>
             </div>
@@ -312,7 +312,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Audit Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged closeout decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged closeout decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant={stats.blockedChecks ? 'warning' : 'success'}>{stats.blockedChecks} blocked checks</Badge>
@@ -325,15 +325,15 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.course}</p>
+                  <p className="type-body text-[var(--color-text)]">{entry.course}</p>
                   <Badge variant="info">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select a course above and stage a PHI-free closeout decision for the demo walkthrough.
           </p>
         )}

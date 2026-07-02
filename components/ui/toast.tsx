@@ -72,7 +72,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((t) => (
             <div
               key={t.id}
-              className={`flex items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 text-sm font-medium shadow-lg ${bgClasses[t.type]}`}
+              className={`flex items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 type-body shadow-lg ${bgClasses[t.type]}`}
               style={{ color: 'var(--color-text)' }}
             >
               {icons[t.type]}

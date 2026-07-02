@@ -40,23 +40,14 @@ export function StatCard({ icon, label, value, sub, className = '' }: StatCardPr
           </div>
         )}
         <div className="min-w-0">
-          <div
-            className="font-body font-bold uppercase"
-            style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.2, letterSpacing: 0 }}
-          >
+          <div className="type-label uppercase text-[var(--color-text-muted)]">
             {label}
           </div>
-          <div
-            className="truncate font-heading font-bold"
-            style={{ marginTop: 5, fontSize: 21, lineHeight: 1.1, color: 'var(--color-text)' }}
-          >
+          <div className="type-title mt-1 truncate text-[var(--color-text)]">
             {value}
           </div>
           {sub && (
-            <div
-              className="truncate"
-              style={{ marginTop: 3, fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)', fontFamily: 'var(--font-body)' }}
-            >
+            <div className="type-supporting mt-1 truncate text-[var(--color-text-muted)]">
               {sub}
             </div>
           )}

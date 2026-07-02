@@ -14,16 +14,16 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         >
           <AlertTriangle className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 font-heading text-lg font-bold text-[var(--color-text)]">
+        <h2 className="mt-4 type-heading text-[var(--color-text)]">
           This view could not load
         </h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-[var(--color-text-muted)]">
+        <p className="mt-2 type-body text-[var(--color-text-muted)]">
           Error details are kept out of the browser view. Try loading the route again.
         </p>
         <button
           type="button"
           onClick={reset}
-          className="clinical-focus mt-5 inline-flex h-[var(--height-btn)] items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-primary-foreground)] transition hover:bg-[var(--color-primary-dark)]"
+          className="clinical-focus mt-5 inline-flex h-[var(--height-btn)] items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 type-body text-[var(--color-primary-foreground)] transition hover:bg-[var(--color-primary-dark)]"
         >
           <RotateCcw className="h-4 w-4" aria-hidden="true" />
           Retry

@@ -126,11 +126,11 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
                   <ImageIcon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">
+                  <span className="flex items-center gap-2 type-body text-[var(--color-primary)]">
                     {row.name}
                     {row.id === selected?.id ? <Badge variant="primary">Selected</Badge> : null}
                   </span>
-                  <span className="truncate text-[11px] text-[var(--color-text-muted)]">{row.course}</span>
+                  <span className="truncate type-supporting text-[var(--color-text-muted)]">{row.course}</span>
                 </span>
               </div>
             ),
@@ -163,11 +163,11 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Selected Imaging Asset</p>
-            <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               {selected ? selected.name : 'Select an imaging asset'}
             </h2>
             {selected ? (
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">
                 {selected.patient} / {selected.course} / {selected.requiredForPhase}
               </p>
             ) : null}
@@ -181,29 +181,29 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
               <div className="min-h-[260px] rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-4">
                 <div className="flex h-full min-h-[220px] flex-col items-center justify-center rounded-[var(--radius-md)] border border-dashed border-[var(--color-border)] bg-[var(--color-card)] text-center">
                   <ImageIcon className="h-12 w-12 text-[var(--color-primary)]" aria-hidden="true" />
-                  <p className="mt-3 px-4 text-sm font-bold text-[var(--color-text)]">{selected.modality} evidence</p>
-                  <p className="mt-1 px-4 text-xs font-semibold text-[var(--color-text-muted)]">Prototype preview placeholder</p>
+                  <p className="mt-3 px-4 type-body text-[var(--color-text)]">{selected.modality} evidence</p>
+                  <p className="mt-1 px-4 type-supporting text-[var(--color-text-muted)]">Prototype preview placeholder</p>
                 </div>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">File Reference</p>
-                  <p className="mt-1 line-clamp-2 text-sm font-bold text-[var(--color-text)]">{selected.filePath}</p>
+                  <p className="mt-1 line-clamp-2 type-body text-[var(--color-text)]">{selected.filePath}</p>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Phase Evidence</p>
-                  <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.phase}</p>
+                  <p className="mt-1 type-body text-[var(--color-text)]">{selected.phase}</p>
                   <Badge variant="info">{selected.requiredForPhase}</Badge>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Treatment Link</p>
-                  <p className="mt-1 text-sm font-bold text-[var(--color-text)]">{selected.linkedFractions} fraction link(s)</p>
+                  <p className="mt-1 type-body text-[var(--color-text)]">{selected.linkedFractions} fraction link(s)</p>
                   <Badge variant={selected.linkedFractions ? 'success' : 'warning'}>Fraction evidence</Badge>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                   <p className="clinical-label">Notes</p>
-                  <p className="mt-1 line-clamp-3 text-sm font-bold text-[var(--color-text)]">{selected.notes}</p>
+                  <p className="mt-1 line-clamp-3 type-body text-[var(--color-text)]">{selected.notes}</p>
                 </div>
               </div>
             </div>
@@ -261,7 +261,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Required Category Matrix</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Imaging evidence by category</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Imaging evidence by category</h2>
           </div>
           <Badge variant={categoryGaps.length ? 'warning' : 'success'}>{categoryGaps.length} gaps</Badge>
         </div>
@@ -270,7 +270,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
             const present = rows.some((row) => row.name === category);
             return (
               <div key={category} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-                <p className="line-clamp-2 text-xs font-bold text-[var(--color-text)]">{category}</p>
+                <p className="line-clamp-2 type-supporting text-[var(--color-text)]">{category}</p>
                 <div className="mt-3">
                   <Badge variant={present ? 'success' : 'warning'}>{present ? 'Present' : 'Required gap'}</Badge>
                 </div>
@@ -284,7 +284,7 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Prototype Imaging Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged imaging decisions</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged imaging decisions</h2>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant={categoryGaps.length ? 'warning' : 'success'}>{categoryGaps.length} category gaps</Badge>
@@ -296,15 +296,15 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
             {ledger.map((entry) => (
               <div key={entry.id} className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{entry.asset}</p>
+                  <p className="type-body text-[var(--color-text)]">{entry.asset}</p>
                   <Badge variant="info">{entry.action}</Badge>
                 </div>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">{entry.note}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{entry.note}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">
+          <p className="mt-4 type-body text-[var(--color-text-muted)]">
             Select an imaging asset above and stage a PHI-free evidence decision for the demo walkthrough.
           </p>
         )}

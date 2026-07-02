@@ -46,7 +46,7 @@ function Pill({ color, children }: { color: string; children: React.ReactNode })
   return (
     <span
       className={cn(
-        'clinical-pill px-2 py-0.5 text-xs',
+        'clinical-pill type-label px-2 py-0.5',
         color
       )}
     >

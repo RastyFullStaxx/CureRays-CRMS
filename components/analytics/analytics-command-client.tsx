@@ -47,6 +47,7 @@ import type {
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
 import type { NeuronSignalLink, NeuronSignalNode } from '@/components/shared/neuron-signal-field';
+import { resolveUiFontFamily, uiTypography } from '@/lib/ui-typography';
 
 type AnalyticsCommandClientProps = {
   telemetry: AnalyticsTelemetry;
@@ -193,7 +194,6 @@ function tooltipStyle() {
     border: 'var(--border-container)',
     borderRadius: 'var(--radius-md)',
     color: 'var(--color-text)',
-    fontFamily: 'var(--font-body)',
   };
 }
 
@@ -404,7 +404,7 @@ function ForecastChart({ dateRange, telemetry }: { dateRange: AnalyticsDateRange
           </linearGradient>
         </defs>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Area type="monotone" dataKey="workload" name="Modeled workload" fill="url(#analyticsForecastLoad)" stroke="var(--color-primary)" strokeWidth={2} />
@@ -465,7 +465,11 @@ function sankeyOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsC
       renderMode: 'richText',
       borderColor: palette.border,
       backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
+      textStyle: {
+        color: palette.text,
+        fontFamily: resolveUiFontFamily(),
+        fontSize: uiTypography.size.body,
+      },
     },
     series: [
       {
@@ -480,8 +484,8 @@ function sankeyOption(telemetry: AnalyticsTelemetry, palette: Palette): EChartsC
           },
           label: {
             color: palette.text,
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: uiTypography.size.label,
+            fontWeight: uiTypography.weight.semibold,
           },
         })),
         links: telemetry.workflow.sankey.links.map((link) => ({
@@ -549,7 +553,7 @@ function RoleLoadChart({ rows }: { rows: AnalyticsRoleLoad[] }) {
       <ComposedChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 18, left: 12 }}>
         <CartesianGrid horizontal={false} stroke="var(--color-border-soft)" />
         <XAxis type="number" hide />
-        <YAxis type="category" dataKey="role" width={112} tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
+        <YAxis type="category" dataKey="role" width={112} tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="assigned" name="Assigned tasks" stackId="load" fill="var(--color-primary)" radius={[0, 0, 0, 0]} />
         <Bar dataKey="review" name="Review items" stackId="load" fill="var(--color-accent)" radius={[0, 0, 0, 0]} />
@@ -612,7 +616,7 @@ function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 620, height: 220 }}>
       <ComposedChart data={telemetry.treatment.throughput} margin={{ top: 16, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="fractions" name="Fractions" fill="var(--color-primary)" radius={[7, 7, 2, 2]} />
@@ -629,7 +633,7 @@ function LifecycleChart({ data }: { data: AnalyticsDistributionDatum[] }) {
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={170} initialDimension={{ width: 480, height: 210 }}>
       <ComposedChart data={data} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="value" name="Documents" radius={[8, 8, 2, 2]}>
@@ -645,7 +649,7 @@ function SignatureAgingChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={170} initialDimension={{ width: 480, height: 210 }}>
       <ComposedChart data={telemetry.documents.signatureAging} margin={{ top: 10, right: 14, bottom: 22, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-        <XAxis dataKey="bucket" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
+        <XAxis dataKey="bucket" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Bar dataKey="count" name="Documents" fill="var(--color-accent)" radius={[8, 8, 2, 2]} />
@@ -692,7 +696,7 @@ function CapacityChart({ telemetry }: { telemetry: AnalyticsTelemetry }) {
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={180} initialDimension={{ width: 560, height: 220 }}>
       <ComposedChart data={telemetry.staffing.capacityBands} margin={{ top: 10, right: 14, bottom: 20, left: -18 }}>
         <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 11, fontWeight: 700 }} />
+        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
         <YAxis hide />
         <Tooltip contentStyle={tooltipStyle()} />
         <Area type="monotone" dataKey="treatment" name="Treatment" fill="var(--color-primary)" fillOpacity={0.16} stroke="var(--color-primary)" />

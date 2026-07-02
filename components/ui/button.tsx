@@ -15,15 +15,15 @@ const variantClasses = {
 };
 
 const sizeClasses = {
-  default: 'h-[var(--height-btn)] px-4 text-sm',
-  sm: 'h-[var(--height-btn-sm)] px-3 text-xs',
+  default: 'h-[var(--height-btn)] px-4',
+  sm: 'h-[var(--height-btn-sm)] px-3',
 };
 
 export function Button({ variant = 'primary', size = 'default', className, children, ...props }: ButtonProps) {
   return (
     <button
       className={cn(
-        'clinical-focus inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] font-semibold transition',
+        'clinical-focus type-button inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] transition active:translate-y-px',
         'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
         variantClasses[variant],
         sizeClasses[size],

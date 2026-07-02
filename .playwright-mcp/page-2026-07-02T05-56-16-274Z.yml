@@ -1,0 +1,505 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - banner [ref=f11e3]:
+      - generic [ref=f11e4]:
+        - link "CureRays dashboard" [ref=f11e5] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=f11e229]: CureRays
+        - navigation "Primary navigation" [ref=f11e6]:
+          - link "Dashboard" [ref=f11e7] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=f11e8]
+            - generic [ref=f11e13]: Dashboard
+          - link "Patients" [ref=f11e14] [cursor=pointer]:
+            - /url: /patients
+            - img [ref=f11e15]
+            - generic [ref=f11e17]: Patients
+          - link "Today" [ref=f11e18] [cursor=pointer]:
+            - /url: /today
+            - img [ref=f11e19]
+            - generic [ref=f11e23]: Today
+          - link "Schedule" [ref=f11e24] [cursor=pointer]:
+            - /url: /schedule
+            - img [ref=f11e25]
+            - generic [ref=f11e27]: Schedule
+          - link "Analytics" [ref=f11e28] [cursor=pointer]:
+            - /url: /analytics
+            - img [ref=f11e29]
+            - generic [ref=f11e32]: Analytics
+          - link "Settings" [ref=f11e33] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=f11e34]
+            - generic [ref=f11e37]: Settings
+        - generic [ref=f11e38]:
+          - button "Search patient records" [ref=f11e39] [cursor=pointer]:
+            - img [ref=f11e40]
+            - generic [ref=f11e43]: Search patient, MRN, course, or action
+            - generic [ref=f11e230]:
+              - img [ref=f11e231]
+              - text: K
+          - generic [ref=f11e44]:
+            - button "Course notifications" [ref=f11e233] [cursor=pointer]:
+              - img [ref=f11e234]
+            - button "Switch to dark mode" [ref=f11e237] [cursor=pointer]:
+              - img [ref=f11e238]
+            - generic "Signed in as Dr. Sarah Johnson" [ref=f11e45]:
+              - generic [ref=f11e46]: SJ
+              - generic:
+                - generic: Dr. Sarah Johnson
+                - generic: Physician
+    - main [ref=f11e48]:
+      - generic [ref=f11e67]:
+        - complementary "Patient and active course context" [ref=f11e240]:
+          - link "Patients" [ref=f11e241] [cursor=pointer]:
+            - /url: /patients
+            - img [ref=f11e242]
+            - text: Patients
+          - generic [ref=f11e244]:
+            - heading "Amelia Grant" [level=1] [ref=f11e245]
+            - generic [ref=f11e246]:
+              - generic [ref=f11e247]: Active
+              - generic [ref=f11e248]: Protected record
+            - generic [ref=f11e250]:
+              - term [ref=f11e251]: External MRN
+              - definition [ref=f11e252]: MRN-700241
+          - generic [ref=f11e253]:
+            - paragraph [ref=f11e254]: Active course
+            - paragraph [ref=f11e255]: Course 2401
+            - paragraph [ref=f11e256]: Skin Cancer IGSRT · Basal cell carcinoma, right cheek
+            - generic [ref=f11e257]:
+              - generic [ref=f11e258]: Course gate
+              - generic [ref=f11e259]: Blocked
+            - generic [ref=f11e260]:
+              - generic [ref=f11e261]:
+                - term [ref=f11e262]: Phase
+                - definition [ref=f11e263]: On Treatment
+              - generic [ref=f11e264]:
+                - term [ref=f11e265]: Logged
+                - definition [ref=f11e266]: 6/20 fractions
+          - navigation "Patient workspace" [ref=f11e267]:
+            - tablist "Patient workspace sections" [ref=f11e268]:
+              - tab "Overview Alt 1" [ref=f11e269] [cursor=pointer]:
+                - img [ref=f11e270]
+                - generic [ref=f11e272]: Overview
+                - generic [ref=f11e273]: Alt 1
+              - tab "Prepare Alt 2" [ref=f11e274] [cursor=pointer]:
+                - img [ref=f11e275]
+                - generic [ref=f11e279]: Prepare
+                - generic [ref=f11e280]: Alt 2
+              - tab "Treatment Alt 3" [selected] [ref=f11e281] [cursor=pointer]:
+                - img [ref=f11e282]
+                - generic [ref=f11e286]: Treatment
+                - generic [ref=f11e287]: Alt 3
+              - tab "Record & Closeout Alt 4" [ref=f11e288] [cursor=pointer]:
+                - img [ref=f11e289]
+                - generic [ref=f11e293]: Record & Closeout
+                - generic [ref=f11e294]: Alt 4
+          - generic [ref=f11e295]:
+            - button "Signals 13" [ref=f11e296] [cursor=pointer]:
+              - img [ref=f11e297]
+              - text: Signals
+              - generic [ref=f11e300]: "13"
+            - button "Patient details" [ref=f11e301] [cursor=pointer]
+        - main [ref=f11e68]:
+          - tabpanel "Treatment workspace" [ref=f11e302]:
+            - generic [ref=f11e131]:
+              - region "Course blocked" [ref=f11e132]:
+                - generic [ref=f11e133]:
+                  - generic [ref=f11e134]:
+                    - img [ref=f11e135]
+                    - heading "Course blocked" [level=2] [ref=f11e138]
+                  - paragraph [ref=f11e139]: Workflow mapping must be reviewed before final closeout
+                  - paragraph [ref=f11e140]: Complete the listed requirement, then the course gate refreshes automatically.
+                  - paragraph [ref=f11e141]: Last evaluated Jul 2
+                - button "Review treatment requirements" [ref=f11e303] [cursor=pointer]:
+                  - img [ref=f11e144]
+                  - text: Review treatment requirements
+              - generic [ref=f11e308]:
+                - generic [ref=f11e310]:
+                  - generic [ref=f11e312]:
+                    - heading "Fraction Worksheet History" [level=3] [ref=f11e313]
+                    - paragraph [ref=f11e314]: 2 need review | 4/6 approved
+                  - generic [ref=f11e315]:
+                    - img
+                    - textbox "Search fraction history..." [ref=f11e316]
+                  - combobox "Status" [ref=f11e318]:
+                    - option "All Status" [selected]
+                    - option "APPROVED"
+                    - option "NEEDS REVIEW"
+                  - generic [ref=f11e319]:
+                    - button "Reference" [ref=f11e320] [cursor=pointer]:
+                      - img [ref=f11e321]
+                      - text: Reference
+                    - button "Billing" [ref=f11e323] [cursor=pointer]:
+                      - img [ref=f11e324]
+                      - text: Billing
+                    - button "Record Next Fraction" [ref=f11e327] [cursor=pointer]:
+                      - img [ref=f11e328]
+                      - text: Record Next Fraction
+                - table [ref=f11e333]:
+                  - rowgroup [ref=f11e334]:
+                    - row "Fraction Date Phase Dose Target depth (DOT) Isodose Cumulative target dose Review Status Actions" [ref=f11e335]:
+                      - columnheader "Fraction" [ref=f11e336]
+                      - columnheader "Date" [ref=f11e337]
+                      - columnheader "Phase" [ref=f11e338]
+                      - columnheader "Dose" [ref=f11e339]
+                      - columnheader "Target depth (DOT)" [ref=f11e340]
+                      - columnheader "Isodose" [ref=f11e341]
+                      - columnheader "Cumulative target dose" [ref=f11e342]
+                      - columnheader "Review" [ref=f11e343]
+                      - columnheader "Status" [ref=f11e344]
+                      - columnheader "Actions" [ref=f11e345]
+                  - rowgroup [ref=f11e346]:
+                    - row "Open fraction 1 details" [ref=f11e347] [cursor=pointer]:
+                      - cell "Fraction 1" [ref=f11e348]:
+                        - generic [ref=f11e350]: Fraction 1
+                      - cell "Jun 2" [ref=f11e351]:
+                        - generic [ref=f11e352]: Jun 2
+                      - cell "Phase I" [ref=f11e353]:
+                        - generic [ref=f11e354]: Phase I
+                      - cell "200 cGy" [ref=f11e355]:
+                        - generic [ref=f11e356]: 200 cGy
+                      - cell "5 mm" [ref=f11e357]:
+                        - generic [ref=f11e358]: 5 mm
+                      - cell "90%" [ref=f11e359]:
+                        - generic [ref=f11e360]: 90%
+                      - cell "180 cGy" [ref=f11e361]:
+                        - generic [ref=f11e362]: 180 cGy
+                      - cell "Target depth approved Physician approved" [ref=f11e363]:
+                        - generic [ref=f11e365]:
+                          - generic [ref=f11e366]: Target depth approved
+                          - generic [ref=f11e367]: Physician approved
+                      - cell "APPROVED" [ref=f11e368]:
+                        - generic [ref=f11e370]: APPROVED
+                      - cell "Details" [ref=f11e371]:
+                        - button "Details" [ref=f11e374]:
+                          - img [ref=f11e375]
+                          - text: Details
+                    - row "Open fraction 2 details" [ref=f11e378] [cursor=pointer]:
+                      - cell "Fraction 2" [ref=f11e379]:
+                        - generic [ref=f11e381]: Fraction 2
+                      - cell "Jun 3" [ref=f11e382]:
+                        - generic [ref=f11e383]: Jun 3
+                      - cell "Phase I" [ref=f11e384]:
+                        - generic [ref=f11e385]: Phase I
+                      - cell "200 cGy" [ref=f11e386]:
+                        - generic [ref=f11e387]: 200 cGy
+                      - cell "5 mm" [ref=f11e388]:
+                        - generic [ref=f11e389]: 5 mm
+                      - cell "90%" [ref=f11e390]:
+                        - generic [ref=f11e391]: 90%
+                      - cell "360 cGy" [ref=f11e392]:
+                        - generic [ref=f11e393]: 360 cGy
+                      - cell "Target depth approved Physician approved" [ref=f11e394]:
+                        - generic [ref=f11e396]:
+                          - generic [ref=f11e397]: Target depth approved
+                          - generic [ref=f11e398]: Physician approved
+                      - cell "APPROVED" [ref=f11e399]:
+                        - generic [ref=f11e401]: APPROVED
+                      - cell "Details" [ref=f11e402]:
+                        - button "Details" [ref=f11e405]:
+                          - img [ref=f11e406]
+                          - text: Details
+                    - row "Open fraction 3 details" [ref=f11e409] [cursor=pointer]:
+                      - cell "Fraction 3" [ref=f11e410]:
+                        - generic [ref=f11e412]: Fraction 3
+                      - cell "Jun 4" [ref=f11e413]:
+                        - generic [ref=f11e414]: Jun 4
+                      - cell "Phase I" [ref=f11e415]:
+                        - generic [ref=f11e416]: Phase I
+                      - cell "200 cGy" [ref=f11e417]:
+                        - generic [ref=f11e418]: 200 cGy
+                      - cell "5 mm" [ref=f11e419]:
+                        - generic [ref=f11e420]: 5 mm
+                      - cell "90%" [ref=f11e421]:
+                        - generic [ref=f11e422]: 90%
+                      - cell "540 cGy" [ref=f11e423]:
+                        - generic [ref=f11e424]: 540 cGy
+                      - cell "Target depth approved Physician approved" [ref=f11e425]:
+                        - generic [ref=f11e427]:
+                          - generic [ref=f11e428]: Target depth approved
+                          - generic [ref=f11e429]: Physician approved
+                      - cell "APPROVED" [ref=f11e430]:
+                        - generic [ref=f11e432]: APPROVED
+                      - cell "Details" [ref=f11e433]:
+                        - button "Details" [ref=f11e436]:
+                          - img [ref=f11e437]
+                          - text: Details
+                    - row "Open fraction 4 details" [ref=f11e440] [cursor=pointer]:
+                      - cell "Fraction 4" [ref=f11e441]:
+                        - generic [ref=f11e443]: Fraction 4
+                      - cell "Jun 5" [ref=f11e444]:
+                        - generic [ref=f11e445]: Jun 5
+                      - cell "Phase I" [ref=f11e446]:
+                        - generic [ref=f11e447]: Phase I
+                      - cell "200 cGy" [ref=f11e448]:
+                        - generic [ref=f11e449]: 200 cGy
+                      - cell "5 mm" [ref=f11e450]:
+                        - generic [ref=f11e451]: 5 mm
+                      - cell "90%" [ref=f11e452]:
+                        - generic [ref=f11e453]: 90%
+                      - cell "720 cGy" [ref=f11e454]:
+                        - generic [ref=f11e455]: 720 cGy
+                      - cell "Target depth approved Physician approved" [ref=f11e456]:
+                        - generic [ref=f11e458]:
+                          - generic [ref=f11e459]: Target depth approved
+                          - generic [ref=f11e460]: Physician approved
+                      - cell "APPROVED" [ref=f11e461]:
+                        - generic [ref=f11e463]: APPROVED
+                      - cell "Details" [ref=f11e464]:
+                        - button "Details" [ref=f11e467]:
+                          - img [ref=f11e468]
+                          - text: Details
+                    - row "Open fraction 5 details" [ref=f11e471] [cursor=pointer]:
+                      - cell "Fraction 5" [ref=f11e472]:
+                        - generic [ref=f11e474]: Fraction 5
+                      - cell "Jun 6" [ref=f11e475]:
+                        - generic [ref=f11e476]: Jun 6
+                      - cell "Phase I" [ref=f11e477]:
+                        - generic [ref=f11e478]: Phase I
+                      - cell "200 cGy" [ref=f11e479]:
+                        - generic [ref=f11e480]: 200 cGy
+                      - cell "5 mm" [ref=f11e481]:
+                        - generic [ref=f11e482]: 5 mm
+                      - cell "90%" [ref=f11e483]:
+                        - generic [ref=f11e484]: 90%
+                      - cell "900 cGy" [ref=f11e485]:
+                        - generic [ref=f11e486]: 900 cGy
+                      - cell "Target depth pending Physician approved" [ref=f11e487]:
+                        - generic [ref=f11e489]:
+                          - generic [ref=f11e490]: Target depth pending
+                          - generic [ref=f11e491]: Physician approved
+                      - cell "NEEDS REVIEW" [ref=f11e492]:
+                        - generic [ref=f11e494]: NEEDS REVIEW
+                      - cell "Details" [ref=f11e495]:
+                        - button "Details" [ref=f11e498]:
+                          - img [ref=f11e499]
+                          - text: Details
+                    - row "Open fraction 6 details" [ref=f11e502] [cursor=pointer]:
+                      - cell "Fraction 6" [ref=f11e503]:
+                        - generic [ref=f11e505]: Fraction 6
+                      - cell "Jun 7" [ref=f11e506]:
+                        - generic [ref=f11e507]: Jun 7
+                      - cell "Phase I" [ref=f11e508]:
+                        - generic [ref=f11e509]: Phase I
+                      - cell "200 cGy" [ref=f11e510]:
+                        - generic [ref=f11e511]: 200 cGy
+                      - cell "5 mm" [ref=f11e512]:
+                        - generic [ref=f11e513]: 5 mm
+                      - cell "90%" [ref=f11e514]:
+                        - generic [ref=f11e515]: 90%
+                      - cell "1,080 cGy" [ref=f11e516]:
+                        - generic [ref=f11e517]: 1,080 cGy
+                      - cell "Target depth pending Physician pending" [ref=f11e518]:
+                        - generic [ref=f11e520]:
+                          - generic [ref=f11e521]: Target depth pending
+                          - generic [ref=f11e522]: Physician pending
+                      - cell "NEEDS REVIEW" [ref=f11e523]:
+                        - generic [ref=f11e525]: NEEDS REVIEW
+                      - cell "Details" [ref=f11e526]:
+                        - button "Details" [ref=f11e529]:
+                          - img [ref=f11e530]
+                          - text: Details
+              - generic [ref=f11e533]:
+                - heading "Treatment status" [level=2] [ref=f11e535]
+                - generic [ref=f11e536]:
+                  - generic [ref=f11e537]:
+                    - term [ref=f11e538]: Upcoming scheduled
+                    - definition [ref=f11e539]: "0"
+                  - generic [ref=f11e540]:
+                    - term [ref=f11e541]: Logged dose
+                    - definition [ref=f11e542]: 1200 cGy
+                  - generic [ref=f11e543]:
+                    - term [ref=f11e544]: Imaging
+                    - definition [ref=f11e545]: Clear
+                  - generic [ref=f11e546]:
+                    - term [ref=f11e547]: On-treatment visit
+                    - definition [ref=f11e548]: Clear
+                  - generic [ref=f11e549]:
+                    - term [ref=f11e550]: Physics
+                    - definition [ref=f11e551]: Clear
+                  - generic [ref=f11e552]:
+                    - term [ref=f11e553]: Plan
+                    - definition [ref=f11e554]: Open
+              - group [ref=f11e555]:
+                - generic "Plan and Phase 6 Readiness Reference IGSRT-FX-REF-2026-06-11-PROTOTYPE Clinical Validation Required" [ref=f11e556] [cursor=pointer]:
+                  - generic [ref=f11e557]:
+                    - generic [ref=f11e558]: Plan and Phase 6 Readiness
+                    - generic [ref=f11e559]: Reference IGSRT-FX-REF-2026-06-11-PROTOTYPE
+                  - generic [ref=f11e560]: Clinical Validation Required
+                - generic [ref=f11e561]:
+                  - generic [ref=f11e562]:
+                    - generic [ref=f11e563]:
+                      - term [ref=f11e564]: Site
+                      - definition [ref=f11e565]: Nasal bridge
+                    - generic [ref=f11e566]:
+                      - term [ref=f11e567]: Energy
+                      - definition [ref=f11e568]: 50 kV
+                    - generic [ref=f11e569]:
+                      - term [ref=f11e570]: Applicator
+                      - definition [ref=f11e571]: 3 cm cone
+                    - generic [ref=f11e572]:
+                      - term [ref=f11e573]: Dose per fraction
+                      - definition [ref=f11e574]: 2.5 Gy
+                    - generic [ref=f11e575]:
+                      - term [ref=f11e576]: Target depth
+                      - definition [ref=f11e577]: 4 mm
+                    - generic [ref=f11e578]:
+                      - term [ref=f11e579]: Coverage
+                      - definition [ref=f11e580]: 90%
+                  - generic [ref=f11e581]:
+                    - heading "Clinical Sign-Off Gate" [level=3] [ref=f11e582]
+                    - generic [ref=f11e583]: REQUIRED
+                  - generic [ref=f11e584]:
+                    - generic [ref=f11e585]:
+                      - generic [ref=f11e586]:
+                        - paragraph [ref=f11e587]: Reference curves verified against approved worksheet source
+                        - paragraph [ref=f11e588]: Physicist evidence required
+                      - generic [ref=f11e589]: REQUIRED
+                    - generic [ref=f11e590]:
+                      - generic [ref=f11e591]:
+                        - paragraph [ref=f11e592]: Rounding and manual override policy clinically approved
+                        - paragraph [ref=f11e593]: Rad Onc evidence required
+                      - generic [ref=f11e594]: REQUIRED
+                    - generic [ref=f11e595]:
+                      - generic [ref=f11e596]:
+                        - paragraph [ref=f11e597]: Cumulative dose correction behavior validated
+                        - paragraph [ref=f11e598]: Physicist evidence required
+                      - generic [ref=f11e599]: REQUIRED
+                    - generic [ref=f11e600]:
+                      - generic [ref=f11e601]:
+                        - paragraph [ref=f11e602]: Generated isodose note language approved
+                        - paragraph [ref=f11e603]: Rad Onc evidence required
+                      - generic [ref=f11e604]: REQUIRED
+              - generic [ref=f11e606]:
+                - generic [ref=f11e608]:
+                  - generic [ref=f11e610]:
+                    - paragraph [ref=f11e611]: Imaging Evidence
+                    - paragraph [ref=f11e612]: 0 missing image gate(s)
+                  - generic [ref=f11e613]:
+                    - img
+                    - textbox "Search imaging evidence..." [ref=f11e614]
+                  - button "Attach image" [ref=f11e616] [cursor=pointer]:
+                    - img [ref=f11e617]
+                    - text: Attach image
+                - table [ref=f11e621]:
+                  - rowgroup [ref=f11e622]:
+                    - row "Image / Evidence Phase Uploaded Uploaded By Notes" [ref=f11e623]:
+                      - columnheader "Image / Evidence" [ref=f11e624]
+                      - columnheader "Phase" [ref=f11e625]
+                      - columnheader "Uploaded" [ref=f11e626]
+                      - columnheader "Uploaded By" [ref=f11e627]
+                      - columnheader "Notes" [ref=f11e628]
+                  - rowgroup [ref=f11e629]:
+                    - row "Lesion without ink Simulation Apr 26 MA Placeholder image record. Actual upload will route through fileStorageService." [ref=f11e630]:
+                      - cell "Lesion without ink" [ref=f11e631]:
+                        - generic [ref=f11e632]: Lesion without ink
+                      - cell "Simulation" [ref=f11e633]:
+                        - generic [ref=f11e635]: Simulation
+                      - cell "Apr 26" [ref=f11e636]:
+                        - generic [ref=f11e637]: Apr 26
+                      - cell "MA" [ref=f11e638]:
+                        - generic [ref=f11e639]: MA
+                      - cell "Placeholder image record. Actual upload will route through fileStorageService." [ref=f11e640]:
+                        - generic [ref=f11e642]: Placeholder image record. Actual upload will route through fileStorageService.
+  - button "Open Next.js Dev Tools" [ref=f11e61] [cursor=pointer]:
+    - img [ref=f11e62]
+  - alert [ref=f11e65]
+  - dialog "Record Next Fraction" [active] [ref=f11e644]:
+    - generic [ref=f11e645]:
+      - heading "Record Next Fraction" [level=2] [ref=f11e646]
+      - button "Close dialog" [ref=f11e647] [cursor=pointer]:
+        - img [ref=f11e648]
+    - generic [ref=f11e651]:
+      - generic [ref=f11e653]:
+        - generic [ref=f11e654]:
+          - paragraph [ref=f11e655]: Record Next Fraction
+          - heading "Fraction 7" [level=3] [ref=f11e656]
+          - paragraph [ref=f11e657]: Confirm the course, enter treatment values, and review the live calculation before recording.
+        - generic [ref=f11e658]: Needs attention
+      - generic [ref=f11e660]:
+        - generic [ref=f11e661]:
+          - heading "Confirm course and fraction" [level=4] [ref=f11e662]
+          - generic [ref=f11e663]:
+            - generic [ref=f11e664]: Fraction number
+            - spinbutton "Fraction number" [ref=f11e665]: "7"
+          - generic [ref=f11e666]:
+            - generic [ref=f11e667]: Treatment date
+            - textbox "Treatment date" [ref=f11e668]: 2026-04-23
+          - generic [ref=f11e669]:
+            - generic [ref=f11e670]: Treatment phase
+            - combobox "Treatment phase" [ref=f11e671]:
+              - option "Phase I" [selected]
+              - option "Phase II"
+              - option "Phase III"
+              - option "Phase IV"
+          - generic [ref=f11e672]:
+            - generic [ref=f11e673]:
+              - paragraph [ref=f11e674]: Course
+              - paragraph [ref=f11e675]: C2401
+            - generic [ref=f11e676]:
+              - paragraph [ref=f11e677]: Protocol
+              - paragraph [ref=f11e678]: Skin Cancer IGSRT
+            - generic [ref=f11e679]:
+              - paragraph [ref=f11e680]: Logged
+              - paragraph [ref=f11e681]: 6/20
+        - generic [ref=f11e682]:
+          - heading "Enter treatment values" [level=4] [ref=f11e683]
+          - generic [ref=f11e684]:
+            - generic [ref=f11e685]:
+              - generic [ref=f11e686]: Energy (kV)
+              - combobox "Energy (kV)" [ref=f11e687]:
+                - option "50 kV" [selected]
+                - option "70 kV"
+                - option "100 kV"
+            - generic [ref=f11e688]:
+              - generic [ref=f11e689]: Applicator / field size
+              - combobox "Applicator / field size" [ref=f11e690]:
+                - option "1.5 cm"
+                - option "2.0 cm"
+                - option "2.5 cm"
+                - option "3.0 cm" [selected]
+                - option "4.0 cm"
+                - option "5.0 cm"
+                - option "10 cm"
+                - option "8x18 cm"
+            - generic [ref=f11e691]:
+              - generic [ref=f11e692]: Dose per fraction (cGy)
+              - spinbutton "Dose per fraction (cGy)" [ref=f11e693]: "250"
+            - generic [ref=f11e694]:
+              - generic [ref=f11e695]: Depth of target (DOT, mm)
+              - spinbutton "Depth of target (DOT, mm)" [ref=f11e696]: "5"
+            - generic [ref=f11e697]:
+              - generic [ref=f11e698]: Source-to-surface distance (SSD, cm)
+              - spinbutton "Source-to-surface distance (SSD, cm)" [ref=f11e699]: "15"
+            - generic [ref=f11e700]:
+              - generic [ref=f11e701]: Technician initials
+              - textbox "Technician initials" [ref=f11e702]: NR
+            - generic [ref=f11e703]:
+              - generic [ref=f11e704]: Treatment time (minutes)
+              - spinbutton "Treatment time (minutes)" [ref=f11e705]: "4"
+            - generic [ref=f11e706]:
+              - generic [ref=f11e707]: Setup Comments
+              - textbox "Setup Comments" [ref=f11e708]
+            - generic [ref=f11e709]:
+              - generic [ref=f11e710]: Notes
+              - textbox "Notes" [ref=f11e711]: Structured fraction entry from CureRays CRMS.
+        - generic [ref=f11e712]:
+          - generic [ref=f11e713]:
+            - heading "Review calculated dose" [level=4] [ref=f11e714]
+            - generic [ref=f11e715]: pending
+          - paragraph [ref=f11e717]: Live Calculation
+          - generic [ref=f11e718]: Missing isodose lookup requires a manual isodose percent and override reason.
+          - generic [ref=f11e719]:
+            - generic [ref=f11e720]:
+              - generic [ref=f11e721]: Manual isodose override (%)
+              - spinbutton "Manual isodose override (%)" [ref=f11e722]
+            - generic [ref=f11e723]:
+              - generic [ref=f11e724]: Override reason
+              - textbox "Override reason" [ref=f11e725]
+      - generic [ref=f11e726]:
+        - button "Cancel" [ref=f11e727] [cursor=pointer]
+        - generic [ref=f11e728]:
+          - button "Record Fraction" [disabled]:
+            - img
+            - text: Record Fraction

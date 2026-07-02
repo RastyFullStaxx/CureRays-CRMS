@@ -91,7 +91,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
   const toolbarPrefix = (
     <div className="min-w-[240px]">
       <p className="clinical-label">{mode === 'security' ? 'Security Review' : 'Audit Review'}</p>
-      <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+      <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
         {reviewedIds.length} event(s) reviewed in this demo session
       </p>
     </div>
@@ -126,7 +126,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
           className="min-h-[740px] min-w-0"
           columns={[
             { key: 'timestamp', label: 'Timestamp', render: (row) => formatDateTime(row.timestamp) },
-            { key: 'userName', label: 'User', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.userName}</span> },
+            { key: 'userName', label: 'User', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.userName}</span> },
             { key: 'patientRef', label: 'Patient / Course' },
             { key: 'action', label: 'Action', render: (row) => <Badge variant={severityFor(row)}>{row.action}</Badge> },
             { key: 'domain', label: 'Domain', render: (row) => domainFor(row) },
@@ -163,8 +163,8 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="clinical-label">Selected Event</p>
-                  <h2 className="mt-1 truncate font-heading text-lg font-bold text-[var(--color-text)]">{selected.action}</h2>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{formatDateTime(selected.timestamp)}</p>
+                  <h2 className="mt-1 truncate type-heading text-[var(--color-text)]">{selected.action}</h2>
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{formatDateTime(selected.timestamp)}</p>
                 </div>
                 <Badge variant={severityFor(selected)}>{domainFor(selected)}</Badge>
               </div>
@@ -178,7 +178,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
                 ].map(([label, value]) => (
                   <div key={label} className="clinical-muted-surface p-3">
                     <p className="clinical-label">{label}</p>
-                    <p className="mt-2 break-words text-sm font-bold text-[var(--color-text)]">{value}</p>
+                    <p className="mt-2 break-words type-body text-[var(--color-text)]">{value}</p>
                   </div>
                 ))}
               </div>
@@ -188,15 +188,15 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
                   <p className="clinical-label">Redaction Preview</p>
                   <Badge variant={selected.redacted ? 'success' : 'default'}>{selected.redacted ? 'PHI Redacted' : 'No PHI Delta'}</Badge>
                 </div>
-                <div className="grid gap-2 text-sm font-semibold text-[var(--color-text)]">
+                <div className="grid gap-2 type-body text-[var(--color-text)]">
                   <div className="grid gap-1">
-                    <span className="text-xs font-bold uppercase text-[var(--color-text-muted)]">Previous</span>
+                    <span className="type-supporting uppercase text-[var(--color-text-muted)]">Previous</span>
                     <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.previousValue === 'PHI_REDACTED' ? 'text-[var(--color-success)]' : '')}>
                       {selected.previousValue}
                     </span>
                   </div>
                   <div className="grid gap-1">
-                    <span className="text-xs font-bold uppercase text-[var(--color-text-muted)]">New</span>
+                    <span className="type-supporting uppercase text-[var(--color-text-muted)]">New</span>
                     <span className={cn('rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] p-2', selected.newValue === 'PHI_REDACTED' ? 'text-[var(--color-success)]' : '')}>
                       {selected.newValue}
                     </span>
@@ -221,13 +221,13 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
 
               <div className="min-w-0 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                 <p className="clinical-label">Reviewed Events</p>
-                <p className="mt-2 break-words text-sm font-bold text-[var(--color-text)]">
+                <p className="mt-2 break-words type-body text-[var(--color-text)]">
                   {reviewedIds.length ? reviewedIds.join(', ') : 'No events reviewed yet.'}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="text-sm font-semibold text-[var(--color-text-muted)]">No audit event is selected.</div>
+            <div className="type-body text-[var(--color-text-muted)]">No audit event is selected.</div>
           )}
         </Card>
       </div>
@@ -236,7 +236,7 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="clinical-label">Export Boundary</p>
-            <p className="mt-1 text-sm font-bold text-[var(--color-text)]">
+            <p className="mt-1 type-body text-[var(--color-text)]">
               Audit exports are staged with tokenized patient/course references and redacted value deltas.
             </p>
           </div>

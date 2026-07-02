@@ -37,13 +37,13 @@ export function SummaryMetricCard({
     <Card compact>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+          <p className="type-label truncate text-[var(--color-text-muted)]">
             {label}
           </p>
-          <p className="mt-2 font-heading font-bold" style={{ fontSize: 21, lineHeight: 1.1, color: 'var(--color-text)' }}>
+          <p className="type-title mt-2 text-[var(--color-text)]">
             {value}
           </p>
-          <p className="mt-2 truncate" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}>
+          <p className="type-supporting mt-2 truncate text-[var(--color-text-muted)]">
             {detail}
           </p>
         </div>
@@ -72,8 +72,8 @@ export function ActionToolbar({
       <label className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-card)] px-3">
         <Search size={16} className="shrink-0 text-[var(--color-primary)]" />
         <input
-          className="min-w-0 flex-1 bg-transparent outline-none"
-          style={{ height: 'var(--height-input)', fontSize: 'var(--font-size-body)', fontFamily: 'var(--font-body)', color: 'var(--color-text)' }}
+          className="type-body min-w-0 flex-1 bg-transparent text-[var(--color-text)] outline-none"
+          style={{ height: 'var(--height-input)' }}
           placeholder={searchPlaceholder}
           aria-label={searchPlaceholder}
         />
@@ -83,8 +83,8 @@ export function ActionToolbar({
           <button
             key={filter}
             type="button"
-            className="min-w-fit rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 text-xs font-semibold"
-            style={{ height: 'var(--height-btn-sm)', color: 'var(--color-text)', fontFamily: 'var(--font-body)' }}
+            className="type-button min-w-fit rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] px-3 text-[var(--color-text)]"
+            style={{ height: 'var(--height-btn-sm)' }}
           >
             {filter}
           </button>
@@ -103,12 +103,12 @@ export function ViewTabs({ tabs, active = 0 }: { tabs: string[]; active?: number
           key={tab}
           type="button"
           className={cn(
-            'min-w-fit rounded-[var(--radius-md)] px-3 text-sm font-semibold transition-colors duration-0',
+            'type-button min-w-fit rounded-[var(--radius-md)] px-3 transition-colors duration-0',
             index === active
               ? 'bg-[var(--color-primary)] text-[var(--color-primary-foreground)]'
               : 'text-[var(--color-text-muted)] hover:bg-[var(--color-hover)]'
           )}
-          style={{ height: 'var(--height-btn-sm)', fontFamily: 'var(--font-body)' }}
+          style={{ height: 'var(--height-btn-sm)' }}
         >
           {tab}
         </button>
@@ -121,8 +121,8 @@ export function PrimaryAction({ children }: { children: ReactNode }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-primary-foreground)] transition-colors hover:bg-[var(--color-primary-dark)]"
-      style={{ height: 'var(--height-btn)', fontFamily: 'var(--font-body)' }}
+      className="type-button inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-[var(--color-primary-foreground)] transition-colors hover:bg-[var(--color-primary-dark)]"
+      style={{ height: 'var(--height-btn)' }}
     >
       {children}
     </button>
@@ -133,8 +133,8 @@ export function SecondaryAction({ children }: { children: ReactNode }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-hover)]"
-      style={{ height: 'var(--height-btn)', fontFamily: 'var(--font-body)' }}
+      className="type-button inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-[var(--color-primary)] transition-colors hover:bg-[var(--color-hover)]"
+      style={{ height: 'var(--height-btn)' }}
     >
       {children}
     </button>
@@ -150,12 +150,14 @@ export function FieldList({ items }: { items: Array<{ label: string; value: Reac
           className="flex items-start justify-between gap-3 pb-3 last:border-0 last:pb-0"
           style={{ borderBottom: '1px solid var(--color-border-soft)' }}
         >
-          <dt style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0, color: 'var(--color-text-muted)' }}>
+          <dt className="type-label uppercase text-[var(--color-text-muted)]">
             {item.label}
           </dt>
           <dd
-            className={cn('text-right font-semibold', item.tone === 'warning' && 'text-[var(--color-accent)]')}
-            style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', color: item.tone === 'warning' ? 'var(--color-accent)' : 'var(--color-text)' }}
+            className={cn(
+              'type-body text-right text-[var(--color-text)]',
+              item.tone === 'warning' && 'text-[var(--color-accent)]',
+            )}
           >
             {item.value}
           </dd>

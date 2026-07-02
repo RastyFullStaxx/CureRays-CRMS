@@ -24,6 +24,8 @@ export type WorkspaceAction = {
   due?: string;
   blocking: boolean;
   destination: PatientWorkspaceTab;
+  targetKind?: 'step' | 'fraction' | 'document' | 'audit';
+  targetId?: string;
 };
 
 export type CourseGate = {
@@ -71,10 +73,11 @@ function latestTimestamp(values: Array<string | undefined>): string {
 }
 
 function taskActionLabel(task: Task): string {
-  if (task.status === 'BLOCKED') return `Resolve ${task.title}`;
-  if (task.type === 'SIGN_DOCUMENT') return `Review & sign ${task.title}`;
-  if (task.type === 'LAUNCH_DOCUMENT') return `Generate ${task.title}`;
-  if (task.type === 'UPLOAD_IMAGE') return `Attach evidence for ${task.title}`;
+  const subject = task.title.replace(/\s+(sign|review)$/i, '').trim();
+  if (task.status === 'BLOCKED') return `Resolve blocker: ${subject}`;
+  if (task.type === 'SIGN_DOCUMENT') return `Review and sign ${subject}`;
+  if (task.type === 'LAUNCH_DOCUMENT') return `Generate ${subject}`;
+  if (task.type === 'UPLOAD_IMAGE') return `Attach evidence for ${subject}`;
   return task.title;
 }
 
@@ -120,11 +123,15 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
   const actions: WorkspaceAction[] = [
     ...blockedSteps.map((step) => ({
       id: `step-${step.id}`,
-      label: `Resolve ${step.stepName}`,
+      label: step.requiresSignature && !step.signedAt
+        ? `Review and sign ${step.stepName.replace(/\s+sign$/i, '').trim()}`
+        : `Resolve blocker: ${step.stepName}`,
       owner: step.assignedUserId ?? responsiblePartyLabels[step.responsibleRole],
       due: step.dueDate,
       blocking: true,
       destination: 'prepare' as const,
+      targetKind: 'step' as const,
+      targetId: step.id,
     })),
     ...urgentTasks.map((task) => ({
       id: `task-${task.id}`,
@@ -133,6 +140,8 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
       due: task.dueDate,
       blocking: task.status === 'BLOCKED' || task.priority === 'URGENT',
       destination: task.type === 'COMPLETE_TREATMENT_FRACTION' ? 'treatment' as const : 'prepare' as const,
+      targetKind: task.workflowStepId ? 'step' as const : undefined,
+      targetId: task.workflowStepId,
     })),
     ...revisionFractions.map(({ entry }) => ({
       id: `fraction-${entry.id}`,
@@ -141,21 +150,27 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
       due: entry.date,
       blocking: true,
       destination: 'treatment' as const,
+      targetKind: 'fraction' as const,
+      targetId: entry.id,
     })),
     ...reviewFractions.map(({ entry }) => ({
       id: `fraction-${entry.id}`,
       label: `Review fraction ${entry.fractionNumber}`,
-      owner: !entry.dotApproval ? 'DOT reviewer' : 'Medical reviewer',
+      owner: !entry.dotApproval ? 'Target depth reviewer' : 'Physician reviewer',
       due: entry.date,
       blocking: false,
       destination: 'treatment' as const,
+      targetKind: 'fraction' as const,
+      targetId: entry.id,
     })),
     ...unsignedDocuments.map((document) => ({
       id: `document-${document.id}`,
-      label: `Review & sign ${document.title}`,
+      label: `Review and sign ${document.title}`,
       owner: document.signedByUserId ?? 'Document reviewer',
       blocking: false,
       destination: 'record-closeout' as const,
+      targetKind: 'document' as const,
+      targetId: document.id,
     })),
     ...openAuditChecks.map((check) => ({
       id: `audit-${check.id}`,
@@ -163,6 +178,8 @@ export function derivePatientWorkspaceState(input: PatientWorkspaceStateInput) {
       owner: check.completedByUserId ?? 'Audit reviewer',
       blocking: false,
       destination: 'record-closeout' as const,
+      targetKind: 'audit' as const,
+      targetId: check.id,
     })),
   ];
 

@@ -74,7 +74,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
         className="min-h-[720px]"
         columns={[
           { key: 'doc', label: 'Document', render: (row) => (
-            <span className="block truncate font-bold text-[var(--color-primary)]">{row.title}</span>
+            <span className="block truncate type-medium text-[var(--color-primary)]">{row.title}</span>
           )},
           { key: 'patientCourse', label: 'Patient / Course', render: (row) => (
             <span className="block truncate">{row.patientToken} / {row.courseToken}</span>
@@ -90,7 +90,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
           )},
           { key: 'version', label: 'Output', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
-              <span className="font-bold">{`v${row.version}`}</span>
+              <span className="type-medium">{`v${row.version}`}</span>
               <Badge variant={row.latestOutputStatus ? statusTone(row.latestOutputStatus) : 'default'}>
                 {row.latestOutputStatus ?? 'Pending'}
               </Badge>
@@ -99,7 +99,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
           { key: 'storage', label: 'Storage', render: (row) => (
             <span className="flex min-w-0 flex-col gap-1">
               <Badge variant={row.storageProvider === 'APP_STORAGE' ? 'primary' : 'default'}>{row.storageProvider}</Badge>
-              <span className="truncate text-xs font-semibold text-[var(--color-text-muted)]">{row.storageKey ?? 'Pending'}</span>
+              <span className="truncate type-supporting text-[var(--color-text-muted)]">{row.storageKey ?? 'Pending'}</span>
             </span>
           )},
           { key: 'updated', label: 'Updated', render: (row) => row.renderedAt ?? row.generatedAt ?? 'Pending' },
@@ -108,7 +108,7 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
               <Badge variant={row.lockedAt ? 'success' : row.manualEditExceptionAt || row.voidedAt ? 'warning' : 'default'}>
                 {row.lifecycle}
               </Badge>
-              <span className="truncate text-xs font-semibold text-[var(--color-text-muted)]">
+              <span className="truncate type-supporting text-[var(--color-text-muted)]">
                 {row.ecwUploadReference ?? row.manualEditReason ?? row.voidReason ?? 'App-owned state'}
               </span>
             </span>

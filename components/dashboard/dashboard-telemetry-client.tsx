@@ -42,6 +42,7 @@ import type {
 import { DashboardEChart } from '@/components/dashboard/dashboard-echart';
 import { NeuronSignalField } from '@/components/shared/neuron-signal-field';
 import type { NeuronSignalLink, NeuronSignalNode } from '@/components/shared/neuron-signal-field';
+import { resolveUiFontFamily, uiTypography } from '@/lib/ui-typography';
 
 type DashboardTelemetryClientProps = {
   telemetry: DashboardTelemetry;
@@ -308,7 +309,11 @@ function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardP
       renderMode: 'richText',
       borderColor: palette.border,
       backgroundColor: palette.card,
-      textStyle: { color: palette.text, fontFamily: 'Inter' },
+      textStyle: {
+        color: palette.text,
+        fontFamily: resolveUiFontFamily(),
+        fontSize: uiTypography.size.body,
+      },
     },
     series: [
       {
@@ -323,8 +328,8 @@ function carepathSankeyOption(telemetry: DashboardTelemetry, palette: DashboardP
           },
           label: {
             color: palette.text,
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: uiTypography.size.label,
+            fontWeight: uiTypography.weight.semibold,
           },
         })),
         links: telemetry.carepath.sankey.links.map((link) => ({
@@ -641,7 +646,7 @@ function WeeklyThroughput({ telemetry }: { telemetry: DashboardTelemetry }) {
       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={126} initialDimension={{ width: 460, height: 150 }}>
         <ComposedChart data={telemetry.throughput} margin={{ top: 18, right: 4, bottom: 0, left: -28 }}>
           <CartesianGrid vertical={false} stroke="var(--color-border-soft)" />
-          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
+          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
           <YAxis hide />
           <Tooltip
             cursor={{ fill: 'var(--color-hover)' }}
@@ -677,7 +682,7 @@ function CapacityMatrix({ telemetry }: { telemetry: DashboardTelemetry }) {
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={150} initialDimension={{ width: 380, height: 170 }}>
           <ComposedChart data={capacityTrend} margin={{ top: 8, right: 6, bottom: -4, left: -28 }}>
             <CartesianGrid stroke="var(--color-border-soft)" strokeDasharray="3 3" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: 'var(--color-text-muted)', fontSize: uiTypography.size.label, fontWeight: uiTypography.weight.semibold }} />
             <YAxis hide domain={[0, 'dataMax + 2']} />
             <Tooltip
               cursor={{ stroke: 'var(--color-border)', strokeDasharray: '3 3' }}

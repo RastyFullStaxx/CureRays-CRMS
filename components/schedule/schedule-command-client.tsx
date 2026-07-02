@@ -110,7 +110,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
 
       <Card compact>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex min-w-[180px] items-center gap-2 text-xs font-bold uppercase text-[var(--color-text-muted)]">
+          <div className="flex min-w-[180px] items-center gap-2 type-supporting uppercase text-[var(--color-text-muted)]">
             <Filter className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
             Schedule Controls
           </div>
@@ -144,8 +144,8 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
         <Card className="min-h-[280px]">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-heading text-base font-bold text-[var(--color-text)]">Upcoming Appointments</h2>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+              <h2 className=" type-heading text-[var(--color-text)]">Upcoming Appointments</h2>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                 {filteredAppointments.length} visible after filters
               </p>
             </div>
@@ -154,7 +154,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
           <ScrollArea axis="x" className="-mx-1 px-1 pb-1">
             <div className="flex min-w-max gap-3">
               {filteredAppointments.length === 0 ? (
-                <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+                <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 type-body text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
                   No appointments match the active filters.
                 </div>
               ) : filteredAppointments.map((appointment) => (
@@ -168,9 +168,9 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                     background: appointment.id === selectedAppointment?.id ? 'var(--color-primary-soft)' : 'var(--color-hover)',
                   }}
                 >
-                  <p className="text-[11px] font-bold text-[var(--color-primary)]">{appointment.time}</p>
-                  <p className="mt-2 truncate text-sm font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
-                  <p className="truncate text-xs font-semibold text-[var(--color-text-muted)]">{appointment.title}</p>
+                  <p className="type-supporting text-[var(--color-primary)]">{appointment.time}</p>
+                  <p className="mt-2 truncate type-body text-[var(--color-text)]">{appointment.displayLabel}</p>
+                  <p className="truncate type-supporting text-[var(--color-text-muted)]">{appointment.title}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     <Badge variant={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
                     <Badge variant="default">{appointmentTypeLabel(appointment.appointmentType)}</Badge>
@@ -185,7 +185,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Visit</p>
-              <h2 className="mt-1 truncate font-heading text-lg font-bold text-[var(--color-text)]">
+              <h2 className="mt-1 truncate type-heading text-[var(--color-text)]">
                 {selectedAppointment?.title ?? 'No appointment selected'}
               </h2>
             </div>
@@ -207,7 +207,7 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                     </span>
                     <span className="min-w-0">
                       <span className="clinical-label block">{item.label}</span>
-                      <span className="mt-1 block truncate text-sm font-bold text-[var(--color-text)]">{item.value}</span>
+                      <span className="mt-1 block truncate type-body text-[var(--color-text)]">{item.value}</span>
                     </span>
                   </div>
                 );
@@ -222,29 +222,29 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
               />
             </div>
           ) : (
-            <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">Select a visible appointment to review details.</p>
+            <p className="mt-4 type-body text-[var(--color-text-muted)]">Select a visible appointment to review details.</p>
           )}
         </Card>
       </div>
 
       <Card className="min-h-[720px] min-w-0 overflow-hidden" style={{ padding: '0' }}>
         <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-          <h2 className="font-heading text-base font-bold text-[var(--color-text)]">May 4 - May 10, 2026</h2>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
+          <h2 className=" type-heading text-[var(--color-text)]">May 4 - May 10, 2026</h2>
+          <p className="mt-1 type-body text-[var(--color-text-muted)]">
             Filtered weekly calendar with workflow-linked appointment blocks.
           </p>
         </div>
         <ScrollArea axis="both" className="max-h-[calc(100dvh-96px)]">
           <div className="grid min-w-[1080px] grid-cols-[64px_repeat(7,minmax(144px,1fr))] border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
-            <div className="p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
+            <div className="p-2 type-supporting text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
             {gridDays.map((day) => (
-              <div key={day.key} className="border-l p-2 text-center text-xs font-bold text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+              <div key={day.key} className="border-l p-2 text-center type-supporting text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
                 {day.label}
               </div>
             ))}
             {hours.map((hour, row) => (
               <div key={hour} className="contents">
-                <div className="border-t p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
+                <div className="border-t p-2 type-supporting text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
                 {gridDays.map((day) => {
                   const dayAppointments = filteredAppointments.filter((appointment) => appointment.scheduleDay === day.key && hourIndex(appointment.time) === row);
                   return (
@@ -263,9 +263,9 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                               borderColor: appointment.id === selectedAppointment?.id ? 'var(--color-primary)' : 'var(--color-border-soft)',
                             }}
                           >
-                            <p className="truncate text-xs font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
-                            <p className="mt-1 truncate text-[11px] font-bold text-[var(--color-primary)]">{appointment.title}</p>
-                            <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{appointment.time}</p>
+                            <p className="truncate type-supporting text-[var(--color-text)]">{appointment.displayLabel}</p>
+                            <p className="mt-1 truncate type-supporting text-[var(--color-primary)]">{appointment.title}</p>
+                            <p className="mt-1 truncate type-supporting text-[var(--color-text-muted)]">{appointment.time}</p>
                           </button>
                         ))}
                       </div>

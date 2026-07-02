@@ -24,22 +24,13 @@ export function PageHeader({ title, subtitle, actions, breadcrumb = [], classNam
     >
       <div className="min-w-0">
         {breadcrumb.length > 0 && (
-          <div
-            className="flex flex-wrap items-center"
-            style={{ gap: '4px', marginBottom: '6px', fontSize: 'var(--font-size-small)', color: 'var(--color-text-muted)' }}
-          >
+          <div className="type-supporting mb-1.5 flex flex-wrap items-center gap-1 text-[var(--color-text-muted)]">
             {breadcrumb.map((crumb, i) => (
               <span key={i} className="flex items-center" style={{ gap: '4px' }}>
                 {i > 0 && <ChevronRight size={13} style={{ color: 'var(--color-border)', flexShrink: 0 }} />}
                 <a
                   href={crumb.href}
-                  style={{
-                    color: 'var(--color-primary)',
-                    fontSize: 'var(--font-size-small)',
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                    lineHeight: 1.4,
-                  }}
+                  className="type-medium text-[var(--color-primary)] no-underline"
                   onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
                   onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                 >
@@ -51,18 +42,12 @@ export function PageHeader({ title, subtitle, actions, breadcrumb = [], classNam
           </div>
         )}
 
-        <h1
-          className="truncate font-heading font-bold text-[var(--color-text)]"
-          style={{ fontSize: 'var(--font-size-heading)', lineHeight: 'var(--line-height-tight)', margin: 0 }}
-        >
+        <h1 className="type-title truncate text-[var(--color-text)]">
           {title}
         </h1>
 
         {subtitle && (
-          <p
-            className="text-[var(--color-text-muted)]"
-            style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--font-size-small)', marginTop: 3, maxWidth: 920 }}
-          >
+          <p className="type-supporting mt-1 max-w-[920px] text-[var(--color-text-muted)]">
             {subtitle}
           </p>
         )}

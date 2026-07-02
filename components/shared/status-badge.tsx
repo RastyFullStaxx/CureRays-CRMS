@@ -20,7 +20,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'clinical-pill whitespace-nowrap px-2 py-0.5 text-xs',
+        'clinical-pill whitespace-nowrap px-2 py-0.5 type-supporting',
         style,
         className
       )}

@@ -1,0 +1,45 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - banner [ref=f12e3]:
+      - generic [ref=f12e4]:
+        - link "CureRays dashboard" [ref=f12e5] [cursor=pointer]:
+          - /url: /dashboard
+        - navigation "Primary navigation" [ref=f12e6]:
+          - link "Dashboard" [ref=f12e7] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=f12e8]
+            - generic [ref=f12e13]: Dashboard
+          - link "Patients" [ref=f12e14] [cursor=pointer]:
+            - /url: /patients
+            - img [ref=f12e15]
+            - generic [ref=f12e17]: Patients
+          - link "Today" [ref=f12e18] [cursor=pointer]:
+            - /url: /today
+            - img [ref=f12e19]
+            - generic [ref=f12e23]: Today
+          - link "Schedule" [ref=f12e24] [cursor=pointer]:
+            - /url: /schedule
+            - img [ref=f12e25]
+            - generic [ref=f12e27]: Schedule
+          - link "Analytics" [ref=f12e28] [cursor=pointer]:
+            - /url: /analytics
+            - img [ref=f12e29]
+            - generic [ref=f12e32]: Analytics
+          - link "Settings" [ref=f12e33] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=f12e34]
+            - generic [ref=f12e37]: Settings
+        - generic [ref=f12e38]:
+          - button "Search patient records" [ref=f12e39] [cursor=pointer]:
+            - img [ref=f12e40]
+            - generic [ref=f12e43]: Search patient, MRN, course, or action
+          - generic "Signed in as Dr. Sarah Johnson" [ref=f12e45]:
+            - generic [ref=f12e46]: SJ
+    - main [ref=f12e48]:
+      - generic [ref=f12e53]:
+        - paragraph [ref=f12e54]: Loading workspace
+        - paragraph [ref=f12e55]: Preparing operational data.
+  - text: › › › ›
+  - button "Open Next.js Dev Tools" [ref=f12e61] [cursor=pointer]:
+    - img [ref=f12e62]
+  - alert [ref=f12e65]

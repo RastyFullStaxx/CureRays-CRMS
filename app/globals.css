@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -46,30 +45,20 @@
   --color-info-foreground: #07111F;
 
   /* --- Typography --- */
-  --font-heading:       'Manrope', sans-serif;
-  --font-body:          'Inter', sans-serif;
-  --font-size-heading:  22px;
-  --font-size-body:     14px;
-  --font-size-small:    13px;
-  --font-size-label:    12px;
-  --font-size-caption:  12px;
-  --type-page-title-size: 1.25rem;
-  --type-page-title-line: 1.75rem;
-  --type-section-title-size: 1rem;
-  --type-section-title-line: 1.5rem;
-  --type-item-title-size: 0.875rem;
-  --type-item-title-line: 1.25rem;
+  --font-ui:            var(--font-inter), Arial, sans-serif;
+  --type-title-size:    1.25rem;
+  --type-title-line:    1.75rem;
+  --type-heading-size:  1rem;
+  --type-heading-line:  1.5rem;
   --type-body-size: 0.875rem;
   --type-body-line: 1.3125rem;
-  --type-meta-size: 0.8125rem;
-  --type-meta-line: 1.125rem;
   --type-label-size: 0.75rem;
   --type-label-line: 1rem;
-  --font-weight-normal:   400;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-weight-bold:     800;
-  --line-height-tight:    1.2;
-  --line-height-body:     1.45;
+  --font-weight-bold: 700;
+  --z-modal: 1000;
 
   /* --- Spacing (8px grid) --- */
   --space-1: 8px;
@@ -235,9 +224,9 @@
 }
 
 html {
-  font-family: var(--font-body);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-body);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: var(--type-body-line);
   font-weight: var(--font-weight-normal);
   color: var(--color-text);
   background-color: var(--color-bg);
@@ -253,16 +242,24 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-heading);
-  line-height: var(--line-height-tight);
+  font: inherit;
   color: var(--color-text);
+  text-wrap: balance;
+}
+
+strong, b {
+  font-weight: var(--font-weight-medium);
 }
 
 button, input, select, textarea {
   font: inherit;
-  line-height: var(--line-height-body);
+  line-height: var(--type-body-line);
+}
+
+button {
+  font-size: var(--type-body-size) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  line-height: var(--type-body-line) !important;
 }
 
 ::selection {
@@ -286,30 +283,70 @@ button, input, select, textarea {
 
 .clinical-label {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0;
-  line-height: 1.2;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   text-transform: uppercase;
 }
 
-.type-page-title,
-.type-section-title {
-  color: var(--color-text);
-  font-family: var(--font-heading);
+.type-medium {
+  font-weight: var(--font-weight-medium);
 }
 
-.type-page-title { font-size: var(--type-page-title-size); font-weight: var(--font-weight-bold); line-height: var(--type-page-title-line); }
-.type-section-title { font-size: var(--type-section-title-size); font-weight: 700; line-height: var(--type-section-title-line); }
+.type-title,
+.type-page-title {
+  color: var(--color-text);
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
+}
+
+.type-heading,
+.type-section-title {
+  color: var(--color-text);
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
+}
+
 .type-item-title,
 .type-body,
+.type-body-strong,
+.type-button {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.type-item-title,
+.type-body-strong,
+.type-button {
+  font-weight: var(--font-weight-semibold);
+}
+
+.type-body {
+  font-weight: var(--font-weight-normal);
+}
+
+.type-supporting,
 .type-meta,
-.type-label { font-family: var(--font-body); }
-.type-item-title { font-size: var(--type-item-title-size); font-weight: var(--font-weight-semibold); line-height: var(--type-item-title-line); }
-.type-body { font-size: var(--type-body-size); font-weight: var(--font-weight-normal); line-height: var(--type-body-line); }
-.type-meta { color: var(--color-text-muted); font-size: var(--type-meta-size); font-weight: 500; line-height: var(--type-meta-line); }
-.type-label { color: var(--color-text-muted); font-size: var(--type-label-size); font-weight: var(--font-weight-semibold); line-height: var(--type-label-line); }
+.type-label {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+}
+
+.type-meta {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.type-label {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+.type-supporting {
+  font-weight: var(--font-weight-normal);
+}
 
 .clinical-focus {
   outline: none;
@@ -369,8 +406,8 @@ button, input, select, textarea {
   color: var(--color-primary-foreground);
   cursor: pointer;
   display: inline-flex;
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   gap: 6px;
   min-height: calc(var(--height-input) - 12px);
   padding: 0 12px;
@@ -383,7 +420,7 @@ button, input, select, textarea {
 
 .clinical-file-picker-name {
   color: var(--color-text);
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   min-width: 0;
   overflow: hidden;
@@ -402,9 +439,9 @@ button, input, select, textarea {
   border-radius: var(--radius-pill);
   color: var(--pill-fg);
   display: inline-flex;
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.15;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   max-width: 100%;
   white-space: nowrap;
 }
@@ -514,8 +551,9 @@ button, input, select, textarea {
 }
 
 .dashboard-command-header h1 {
-  font-size: clamp(18px, 1.8vw, 24px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
   margin-top: 3px;
 }
 
@@ -537,9 +575,8 @@ button, input, select, textarea {
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 30px;
   padding: 0 10px;
 }
@@ -739,16 +776,15 @@ button, input, select, textarea {
 
 .dashboard-card-title h2 {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(14px, 1vw, 17px);
-  line-height: 1.05;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
   margin: 0;
 }
 
 .dashboard-card-title p {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: 11px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   margin-top: 2px;
   overflow: hidden;
@@ -842,10 +878,9 @@ button, input, select, textarea {
 .clinical-matrix-column-label,
 .clinical-matrix-row-label {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: 9px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.12;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
 }
 
 .clinical-matrix-column-label {
@@ -885,12 +920,11 @@ button, input, select, textarea {
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 34%, transparent);
   color: var(--matrix-cell-fg);
   display: inline-flex;
-  font-family: var(--font-heading);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   justify-content: center;
   justify-self: center;
-  line-height: 1;
+  line-height: var(--type-label-line);
   min-width: 28px;
   width: min(100%, 38px);
 }
@@ -1011,17 +1045,17 @@ button, input, select, textarea {
 .dashboard-phi-assurance span,
 .dashboard-phi-assurance em {
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--type-label-size);
   font-style: normal;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
 }
 
 .dashboard-kpi-chip strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(20px, 1.7vw, 28px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
 }
 
 .dashboard-runway-list,
@@ -1108,9 +1142,8 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: var(--color-text);
   display: inline-flex;
-  font-family: var(--font-heading);
-  font-size: 15px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   height: 30px;
   justify-content: center;
   width: 30px;
@@ -1131,9 +1164,8 @@ button, input, select, textarea {
 .dashboard-intervention-list strong,
 .dashboard-phi-assurance strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 13px;
-  line-height: 1.05;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1166,8 +1198,8 @@ button, input, select, textarea {
   border-radius: 999px;
   color: var(--color-text);
   display: inline-flex;
-  font-size: 9px;
-  line-height: 1;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
   padding: 5px 7px;
 }
 
@@ -1239,15 +1271,15 @@ button, input, select, textarea {
 
 .dashboard-audit-ribbon strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 18px;
-  line-height: 1;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
 }
 
 .dashboard-audit-ribbon span {
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1303,15 +1335,15 @@ button, input, select, textarea {
 
 .dashboard-safety-ring strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(34px, 3.4vw, 48px);
-  line-height: 0.9;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
 }
 
 .dashboard-safety-ring span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
 }
 
@@ -1329,9 +1361,9 @@ button, input, select, textarea {
 
 .dashboard-safety-components strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 16px;
-  line-height: 1;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
 }
 
 .dashboard-risk-domain-card {
@@ -1415,16 +1447,15 @@ button, input, select, textarea {
 
 .dashboard-risk-domain-load strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 13px;
-  line-height: 1.1;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
 }
 
 .dashboard-risk-domain-load span {
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.25;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
 }
 
 .dashboard-risk-domain-load em {
@@ -1463,9 +1494,9 @@ button, input, select, textarea {
 .dashboard-risk-domain-load b {
   align-self: start;
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 18px;
-  line-height: 1;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
   text-align: right;
 }
 
@@ -1508,9 +1539,9 @@ button, input, select, textarea {
 
 .dashboard-intervention-main p {
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.35;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   margin: 0;
   overflow: visible;
   white-space: normal;
@@ -1528,9 +1559,9 @@ button, input, select, textarea {
 .dashboard-intervention-meta span,
 .dashboard-intervention-meta b {
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.15;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -1589,7 +1620,7 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(250px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 0.5fr) minmax(0, 1fr);
   min-height: 94px;
   padding: 8px;
 }
@@ -1601,7 +1632,7 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   box-shadow: 0 14px 34px color-mix(in srgb, var(--color-primary) 8%, transparent);
   display: grid;
-  gap: 12px;
+  gap: 8px;
   grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
   padding: 11px 12px;
@@ -1618,9 +1649,9 @@ button, input, select, textarea {
 .dashboard-signal-load-value span,
 .dashboard-signal-summary-chips span {
   color: var(--color-text-muted);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.25;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
 }
 
 .dashboard-signal-load-value span {
@@ -1631,9 +1662,9 @@ button, input, select, textarea {
 .dashboard-signal-load-value strong {
   color: var(--color-text);
   display: block;
-  font-family: var(--font-heading);
-  font-size: clamp(34px, 3vw, 46px);
-  line-height: 0.9;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
   white-space: nowrap;
 }
 
@@ -1685,10 +1716,10 @@ button, input, select, textarea {
 .dashboard-signal-stage-card span,
 .dashboard-signal-stage-card em {
   color: var(--color-text-muted);
-  font-size: 9px;
+  font-size: var(--type-label-size);
   font-style: normal;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.05;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1704,10 +1735,10 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: var(--color-text);
   display: inline-flex;
-  font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
   justify-content: center;
-  line-height: 1;
+  line-height: var(--type-heading-line);
   min-width: 34px;
   padding: 6px 7px;
   width: fit-content;
@@ -1736,8 +1767,8 @@ button, input, select, textarea {
 .dashboard-metric-copy p,
 .dashboard-metric-copy span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1746,9 +1777,9 @@ button, input, select, textarea {
 .dashboard-metric-copy strong {
   color: var(--color-text);
   display: block;
-  font-family: var(--font-heading);
-  font-size: clamp(18px, 1.6vw, 24px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
   margin: 3px 0;
 }
 
@@ -1782,10 +1813,10 @@ button, input, select, textarea {
 .dashboard-carepath-lane em {
   color: var(--color-text-muted);
   display: block;
-  font-size: 10px;
+  font-size: var(--type-label-size);
   font-style: normal;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1794,9 +1825,9 @@ button, input, select, textarea {
 .dashboard-carepath-lane-head strong {
   color: var(--color-text);
   display: block;
-  font-family: var(--font-heading);
-  font-size: 20px;
-  line-height: 1;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
   margin-top: 3px;
 }
 
@@ -1847,9 +1878,9 @@ button, input, select, textarea {
 
 .dashboard-carepath-token b {
   color: var(--color-text);
-  font-size: 9px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   overflow: hidden;
   text-overflow: ellipsis;
   text-shadow: 0 1px 0 var(--color-card);
@@ -1915,16 +1946,16 @@ button, input, select, textarea {
 
 .dashboard-donut-center strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(20px, 2vw, 30px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
 }
 
 .dashboard-donut-center span,
 .dashboard-donut-legend span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
 }
 
 .dashboard-donut-legend {
@@ -1974,7 +2005,7 @@ button, input, select, textarea {
 
 .dashboard-attention-row span {
   color: var(--color-text);
-  font-size: 12px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   min-width: 0;
   overflow: hidden;
@@ -1983,9 +2014,9 @@ button, input, select, textarea {
 }
 
 .dashboard-attention-row strong {
-  font-family: var(--font-heading);
-  font-size: 17px;
-  line-height: 1;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
 }
 
 .dashboard-capacity {
@@ -2013,15 +2044,15 @@ button, input, select, textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  line-height: 1;
+  line-height: var(--type-label-line);
 }
 
 .dashboard-capacity-legend span {
   align-items: center;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: 9px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   gap: 4px;
 }
 
@@ -2047,8 +2078,8 @@ button, input, select, textarea {
 .dashboard-provider-load span,
 .dashboard-provider-load strong {
   color: var(--color-text);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
 }
 
 .dashboard-provider-load {
@@ -2060,9 +2091,9 @@ button, input, select, textarea {
 
 .dashboard-provider-load-title {
   color: var(--color-text-muted);
-  font-size: 9px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   text-transform: uppercase;
 }
 
@@ -2134,9 +2165,8 @@ button, input, select, textarea {
 
 .dashboard-phi-link-label {
   fill: var(--color-text-muted);
-  font-family: var(--font-body);
   font-size: 2.7px;
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   text-anchor: middle;
 }
 
@@ -2183,9 +2213,8 @@ button, input, select, textarea {
 
 .dashboard-phi-node text {
   fill: var(--color-text);
-  font-family: var(--font-body);
   font-size: 3.2px;
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
 }
 
 @keyframes dashboard-phi-breathe {
@@ -2361,7 +2390,8 @@ button, input, select, textarea {
   }
 
   .dashboard-signal-load-value strong {
-    font-size: clamp(32px, 10vw, 42px);
+    font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
   }
 
   .dashboard-signal-summary-chips {
@@ -2595,9 +2625,9 @@ button, input, select, textarea {
 
 .patient-workspace-identifiers dd {
   color: var(--color-text);
-  font-size: var(--type-meta-size);
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--type-meta-line);
+  line-height: var(--type-label-line);
 }
 
 .patient-workspace-header-actions {
@@ -2626,7 +2656,7 @@ button, input, select, textarea {
 
 .patient-workspace-course-facts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   min-width: 0;
 }
 
@@ -2636,11 +2666,16 @@ button, input, select, textarea {
   padding-left: 14px;
 }
 
+.patient-workspace-course-facts div:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
 .patient-workspace-course-facts dd {
   color: var(--color-text);
-  font-size: var(--type-item-title-size);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--type-item-title-line);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--type-body-line);
   margin-top: 2px;
 }
 
@@ -2678,9 +2713,9 @@ button, input, select, textarea {
 .patient-workspace-sidebar-identity dd,
 .patient-workspace-sidebar-facts dd {
   color: var(--color-text);
-  font-size: var(--type-item-title-size);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--type-item-title-line);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--type-body-line);
   margin-top: 2px;
   overflow-wrap: anywhere;
 }
@@ -2738,7 +2773,25 @@ button, input, select, textarea {
   }
 
   .patient-workspace-sidebar-section {
-    padding-block: 8px;
+    padding-block: 6px;
+  }
+
+  .patient-workspace-sidebar-identity dl > div {
+    align-items: baseline;
+    display: flex;
+    gap: 6px;
+  }
+
+  .patient-workspace-sidebar-identity dd {
+    margin-top: 0;
+  }
+
+  .patient-workspace-sidebar-course > .type-label {
+    display: none;
+  }
+
+  .patient-workspace-sidebar-course > .type-item-title {
+    margin-top: 0;
   }
 
   .patient-workspace-sidebar-diagnosis {
@@ -2747,12 +2800,8 @@ button, input, select, textarea {
 
   .patient-workspace-sidebar-actions {
     gap: 4px;
-    padding-top: 8px;
-  }
-
-  .patient-workspace-nav-item,
-  .patient-workspace-sidebar-actions button {
-    min-height: 40px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-top: 6px;
   }
 }
 
@@ -2779,15 +2828,15 @@ button, input, select, textarea {
 .patient-context-facts dt,
 .workspace-snapshot-grid dt {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   text-transform: uppercase;
 }
 
 .patient-context-details dd {
   color: var(--color-text);
-  font-size: 12px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   margin-top: 2px;
   overflow-wrap: anywhere;
@@ -2807,8 +2856,7 @@ button, input, select, textarea {
 .patient-context-phase strong {
   color: var(--color-text);
   display: block;
-  font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: var(--type-body-size);
   margin-top: 4px;
 }
 
@@ -2837,9 +2885,8 @@ button, input, select, textarea {
 
 .patient-context-facts dd {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 14px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   margin-top: 4px;
   white-space: nowrap;
 }
@@ -2892,6 +2939,10 @@ button, input, select, textarea {
   color: var(--color-text);
 }
 
+.patient-workspace-nav-item:active {
+  transform: translateY(1px);
+}
+
 .patient-workspace-nav-item-selected {
   background: var(--color-primary);
   color: var(--color-primary-foreground);
@@ -2901,11 +2952,23 @@ button, input, select, textarea {
   width: 100%;
 }
 
+.patient-workspace-nav-shortcut {
+  color: inherit;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  margin-left: auto;
+  opacity: 0.68;
+}
+
+.patient-workspace-nav-short-label {
+  display: none;
+}
+
 .patient-workspace-canvas {
   min-height: 0;
   min-width: 0;
   overflow: visible;
-  padding: 12px;
+  padding: 0 2px 12px 0;
 }
 
 .workspace-snapshot-grid {
@@ -2930,8 +2993,8 @@ button, input, select, textarea {
 
 .workspace-snapshot-grid dd {
   color: var(--color-text);
-  font-size: 14px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   margin-top: 5px;
 }
 
@@ -2979,6 +3042,12 @@ button, input, select, textarea {
   border-color: color-mix(in srgb, var(--color-success) 36%, var(--color-border));
 }
 
+.workspace-gate-reasons summary {
+  align-items: center;
+  display: inline-flex;
+  min-height: 32px;
+}
+
 .prepare-workbench-layout {
   display: grid;
   gap: 16px;
@@ -2997,6 +3066,11 @@ button, input, select, textarea {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.workspace-phase-scroll {
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .workspace-phase-tracker li {
@@ -3063,7 +3137,7 @@ button, input, select, textarea {
   display: flex;
   flex: 0 0 28px;
   font-size: var(--type-label-size);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
   height: 28px;
   justify-content: center;
 }
@@ -3076,9 +3150,61 @@ button, input, select, textarea {
 }
 .closure-readiness-grid div { background: var(--color-bg-elevated); padding: 12px; }
 .closure-readiness-grid dt { color: var(--color-text-muted); font-size: var(--type-label-size); font-weight: var(--font-weight-semibold); }
-.closure-readiness-grid dd { color: var(--color-text); font-size: var(--type-item-title-size); font-weight: var(--font-weight-semibold); margin-top: 4px; }
+.closure-readiness-grid dd { color: var(--color-text); font-size: var(--type-body-size); font-weight: var(--font-weight-medium); margin-top: 4px; }
+
+.attention-groups > details + details {
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.attention-group-summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 48px;
+  padding: 10px 14px;
+}
+
+.attention-group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.attention-group-summary::before {
+  color: var(--color-text-muted);
+  content: '›';
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
+  transform: rotate(0deg);
+  transition: transform 150ms ease;
+}
+
+.attention-groups details[open] > .attention-group-summary::before {
+  transform: rotate(90deg);
+}
+
+.attention-group-summary .type-item-title {
+  margin-right: auto;
+}
 
 @media (max-width: 640px) {
+  .patient-workspace-compact {
+    display: contents;
+    overflow: visible;
+    position: static;
+  }
+
+  .patient-workspace-header {
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
   .patient-workspace-header-primary {
     padding: 12px;
   }
@@ -3101,24 +3227,41 @@ button, input, select, textarea {
   }
 
   .patient-workspace-course-summary .type-meta {
-    flex-basis: 100%;
+    display: none;
   }
 
   .patient-workspace-course-facts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .patient-workspace-course-facts div:nth-child(odd) {
-    border-left: 0;
-    padding-left: 0;
+  .patient-workspace-navigation-horizontal {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    gap: 2px;
+    margin-bottom: 10px;
+    padding: 4px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-item {
+    gap: 4px;
+    min-height: 44px;
+    padding-inline: 6px;
+  }
+
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-label:has(+ .patient-workspace-nav-short-label) {
+    display: none;
+  }
+
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-short-label {
+    display: inline;
   }
 
   .workspace-gate { align-items: stretch; flex-direction: column; }
   .workspace-gate button { width: 100%; }
-  .workspace-phase-tracker { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 16px; }
-  .workspace-phase-tracker li:nth-child(4n)::before { right: 50%; }
-  .workspace-phase-tracker li:nth-child(4n + 1)::before { left: 50%; }
+  .workspace-phase-tracker { min-width: 720px; }
   .closure-readiness-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .workspace-snapshot-grid {
@@ -3137,6 +3280,18 @@ button, input, select, textarea {
 
   .workspace-snapshot-grid div:nth-child(-n + 2) {
     border-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-item {
+    flex: 1 0 auto;
+    justify-content: center;
+    min-width: max-content;
+  }
+
+  .patient-workspace-navigation-horizontal .patient-workspace-nav-item > svg {
+    display: none;
   }
 }
 
@@ -3200,10 +3355,9 @@ button, input, select, textarea {
 }
 
 .mac-brand-name {
-  font-family: var(--font-heading);
-  font-size: 14px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--type-body-line);
   white-space: nowrap;
 }
 
@@ -3253,8 +3407,8 @@ button, input, select, textarea {
 }
 
 .mac-command-nav-item span {
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
@@ -3291,8 +3445,8 @@ button, input, select, textarea {
 }
 
 .mac-spotlight-label {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3305,8 +3459,8 @@ button, input, select, textarea {
   border-radius: 999px;
   color: var(--color-text-muted);
   display: inline-flex;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   gap: 3px;
   height: 24px;
   padding: 0 8px;
@@ -3360,8 +3514,8 @@ button, input, select, textarea {
   color: var(--color-primary-foreground);
   display: inline-flex;
   flex: 0 0 30px;
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 30px;
   justify-content: center;
   width: 30px;
@@ -3375,7 +3529,7 @@ button, input, select, textarea {
 
 .mac-account-name,
 .mac-account-role {
-  line-height: 1.1;
+  line-height: var(--type-label-line);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3383,17 +3537,17 @@ button, input, select, textarea {
 
 .mac-account-name {
   color: var(--color-text);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
 }
 
 .mac-account-role {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
   .mac-command-inner {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
@@ -3404,6 +3558,10 @@ button, input, select, textarea {
 
   .mac-command-nav-item span {
     display: none;
+  }
+
+  .mac-command-nav-item.is-active span {
+    display: inline;
   }
 
   .mac-command-nav-item {
@@ -3559,9 +3717,8 @@ button, input, select, textarea {
 
 .sidebar-brand-name {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   margin-left: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3624,12 +3781,10 @@ button, input, select, textarea {
 
 .sidebar-section-label {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: var(--font-size-label);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 20px;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
+  line-height: var(--type-label-line);
   max-width: 160px;
   overflow: hidden;
   padding: 0 10px 6px;
@@ -3661,8 +3816,7 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: var(--color-text);
   display: flex;
-  font-family: var(--font-body);
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-normal);
   height: 34px;
   min-width: 0;
@@ -3744,8 +3898,8 @@ button, input, select, textarea {
   color: var(--color-primary-foreground);
   display: flex;
   flex: 0 0 28px;
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 28px;
   justify-content: center;
   width: 28px;
@@ -3773,15 +3927,13 @@ button, input, select, textarea {
 
 .sidebar-account-name {
   color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
 }
 
 .sidebar-account-role {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: var(--font-size-caption);
+  font-size: var(--type-label-size);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3800,10 +3952,9 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
   color: var(--color-card);
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   padding: 6px 9px;
   pointer-events: none;
   position: fixed;
@@ -3906,25 +4057,24 @@ button, input, select, textarea {
 .neuron-signal-tooltip span,
 .neuron-signal-tooltip em {
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--type-label-size);
   font-style: normal;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   text-transform: uppercase;
 }
 
 .neuron-signal-tooltip strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 13px;
-  line-height: 1.15;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
 }
 
 .neuron-signal-tooltip p {
   color: var(--color-text-soft);
-  font-size: 12px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
-  line-height: 1.25;
+  line-height: var(--type-label-line);
 }
 
 .landing-page::before,
@@ -4019,19 +4169,18 @@ button, input, select, textarea {
 
 .landing-title {
   color: var(--color-text);
-  font-size: clamp(2.8rem, 5.6vw, 4.9rem);
+  font-size: var(--type-title-size);
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0;
-  line-height: 0.98;
+  line-height: var(--type-title-line);
   margin: 0;
   text-wrap: balance;
 }
 
 .landing-description {
   color: color-mix(in srgb, var(--color-text) 64%, var(--color-text-muted));
-  font-size: clamp(1rem, 1.25vw, 1.125rem);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.72;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--type-body-line);
   margin: clamp(1.25rem, 2vw, 1.75rem) 0 0;
   max-width: 38rem;
 }
@@ -4051,8 +4200,8 @@ button, input, select, textarea {
   border-radius: 999px;
   color: var(--color-text);
   display: inline-flex;
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   gap: 0.5rem;
   min-height: 36px;
   padding: 0.5rem 0.75rem;
@@ -4112,18 +4261,17 @@ button, input, select, textarea {
 
 .landing-login-card h2 {
   color: var(--color-text);
-  font-size: clamp(2rem, 3vw, 2.65rem);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0;
-  line-height: 1.05;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
   margin: 0;
 }
 
 .landing-login-subtitle {
   color: color-mix(in srgb, var(--color-text) 60%, var(--color-text-muted));
-  font-size: 1rem;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.64;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--type-body-line);
   margin: 0.9rem 0 0;
 }
 
@@ -4136,8 +4284,8 @@ button, input, select, textarea {
 .landing-field-label {
   color: var(--color-text);
   display: grid;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   gap: 0.5rem;
 }
 
@@ -4167,8 +4315,8 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-card) 88%, transparent);
   color: var(--color-text);
-  font-size: 1rem;
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-normal);
   min-height: var(--height-landing-control);
   padding: 0.75rem 1rem 0.75rem 3rem;
   width: 100%;
@@ -4215,8 +4363,8 @@ button, input, select, textarea {
 }
 
 .landing-submit {
-  font-size: 1rem;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   height: var(--height-landing-control);
   margin-top: 2rem;
   min-height: var(--height-landing-control);
@@ -4227,8 +4375,8 @@ button, input, select, textarea {
   align-items: center;
   color: var(--color-text-muted);
   display: grid;
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   gap: 1rem;
   grid-template-columns: 1fr auto 1fr;
   margin: 2rem 0;
@@ -4252,11 +4400,11 @@ button, input, select, textarea {
   align-items: center;
   color: var(--color-text-muted);
   display: flex;
-  font-size: 0.875rem;
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
   gap: 0.75rem;
   justify-content: center;
-  line-height: 1.5;
+  line-height: var(--type-body-line);
   margin: 2rem 0 0;
   text-align: center;
 }
@@ -4300,7 +4448,8 @@ button, input, select, textarea {
   }
 
   .landing-title {
-    font-size: clamp(2.5rem, 5vw, 4.1rem);
+    font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
   }
 
   .landing-login-fields {
@@ -4337,7 +4486,8 @@ button, input, select, textarea {
   }
 
   .landing-title {
-    font-size: clamp(2.4rem, 11vw, 4.25rem);
+    font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
     max-width: 11ch;
   }
 
@@ -4435,16 +4585,16 @@ button, input, select, textarea {
 
 .analytics-command-header h1 {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(18px, 1.8vw, 24px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
   margin-top: 3px;
 }
 
 .analytics-command-header > div:first-child > span {
   color: var(--color-text-muted);
   display: block;
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   margin-top: 4px;
   max-width: 840px;
@@ -4537,9 +4687,8 @@ button, input, select, textarea {
   color: var(--color-text-muted);
   cursor: pointer;
   flex: 0 0 auto;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 30px;
   padding: 0 10px;
   white-space: nowrap;
@@ -4565,9 +4714,8 @@ button, input, select, textarea {
 
 .analytics-range-filter span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -4582,11 +4730,10 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: var(--color-text);
   cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 28px;
-  line-height: 1;
+  line-height: var(--type-label-line);
   min-width: 92px;
   padding: 0 24px 0 9px;
 }
@@ -4712,22 +4859,24 @@ button, input, select, textarea {
 .analytics-card-title h2,
 .analytics-insight-head h2 {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(14px, 1vw, 17px);
-  line-height: 1.12;
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-heading-line);
   margin: 0;
+}
+
+.analytics-card-title > div,
+.analytics-insight-head > div {
+  min-width: 0;
 }
 
 .analytics-card-title p,
 .analytics-insight-head p {
   color: var(--color-text-muted);
-  font-family: var(--font-body);
-  font-size: 11px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
   margin-top: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-wrap: pretty;
 }
 
 .analytics-card-icon {
@@ -4769,17 +4918,16 @@ button, input, select, textarea {
 
 .analytics-chart-legend span {
   color: var(--color-text-muted);
-  font-size: 11px;
+  font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
-  line-height: 1.4;
+  line-height: var(--type-label-line);
   min-width: 0;
 }
 
 .analytics-chart-legend b {
   color: var(--color-text);
   display: block;
-  font-size: 10px;
-  letter-spacing: 0;
+  font-size: var(--type-label-size);
   text-transform: uppercase;
 }
 
@@ -4851,26 +4999,25 @@ button, input, select, textarea {
 .analytics-phi-signal span,
 .analytics-template-row span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
 }
 
 .analytics-kpi strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: clamp(24px, 2.6vw, 34px);
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
 }
 
 .analytics-kpi p,
 .analytics-kpi em {
   color: var(--color-text-muted);
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-style: normal;
   font-weight: var(--font-weight-semibold);
-  line-height: 1.35;
+  line-height: var(--type-label-line);
 }
 
 .analytics-forecast-card {
@@ -4938,9 +5085,9 @@ button, input, select, textarea {
   border-radius: var(--radius-pill);
   color: var(--pill-fg, var(--color-primary-foreground));
   display: inline-flex;
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.15;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--type-label-line);
   padding: 3px 7px;
 }
 
@@ -4952,15 +5099,14 @@ button, input, select, textarea {
 .analytics-phi-signal strong,
 .analytics-billing-chip strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 14px;
-  line-height: 1.1;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
 }
 
 .analytics-insight .analytics-insight-title {
   display: block;
-  font-size: 15px;
-  line-height: 1.22;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
 }
 
 .analytics-insight p,
@@ -4976,10 +5122,10 @@ button, input, select, textarea {
 .analytics-phi-signal p,
 .analytics-billing-chip em {
   color: var(--color-text-muted);
-  font-size: var(--font-size-small);
+  font-size: var(--type-label-size);
   font-style: normal;
   font-weight: var(--font-weight-semibold);
-  line-height: 1.35;
+  line-height: var(--type-label-line);
 }
 
 .analytics-insight b {
@@ -5056,16 +5202,16 @@ button, input, select, textarea {
 
 .analytics-donut-center strong {
   color: var(--color-text);
-  font-family: var(--font-heading);
-  font-size: 24px;
-  line-height: 1;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--type-title-line);
 }
 
 .analytics-donut-center span,
 .analytics-donut-legend span {
   color: var(--color-text-muted);
-  font-size: 11px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
 }
 
@@ -5148,8 +5294,8 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: var(--color-primary);
   display: inline-flex;
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-semibold);
   height: 30px;
   justify-content: center;
   width: 30px;
@@ -5181,7 +5327,7 @@ button, input, select, textarea {
 
 .analytics-queue-state b {
   color: var(--color-text);
-  font-size: 11px;
+  font-size: var(--type-label-size);
 }
 
 .analytics-treatment-card {
@@ -5327,11 +5473,11 @@ button, input, select, textarea {
 
 .analytics-provider-row span {
   display: block;
-  line-height: 1.2;
+  line-height: var(--type-body-line);
 }
 
 .analytics-provider-row strong {
-  font-size: 15px;
+  font-size: var(--type-body-size);
 }
 
 .analytics-risk-card {
@@ -5419,7 +5565,8 @@ button, input, select, textarea {
 }
 
 .analytics-phi-signal strong {
-  font-size: 20px;
+  font-size: var(--type-title-size);
+  font-weight: var(--font-weight-bold);
 }
 
 @media (max-width: 1180px) {

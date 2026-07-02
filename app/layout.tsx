@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "CureRays CWS",
@@ -31,7 +38,7 @@ export default async function RootLayout({
   await hydrateClinicalStoreFromDatabase();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

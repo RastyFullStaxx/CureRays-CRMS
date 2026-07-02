@@ -115,7 +115,7 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
         <Card className="min-w-0 self-start">
           <div className="mb-4">
             <p className="clinical-label">Configuration Areas</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">
               Review before changing settings
             </h2>
           </div>
@@ -145,8 +145,8 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-[var(--color-text)]">{category.title}</span>
-                    <span className="mt-1 block line-clamp-2 text-xs font-semibold text-[var(--color-text-muted)]">{category.description}</span>
+                    <span className="block truncate type-body text-[var(--color-text)]">{category.title}</span>
+                    <span className="mt-1 block line-clamp-2 type-supporting text-[var(--color-text-muted)]">{category.description}</span>
                   </span>
                   <Badge variant={active ? 'primary' : 'default'}>{categoryMode(category.title)}</Badge>
                 </button>
@@ -159,8 +159,8 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Setting</p>
-              <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{selected.title}</h2>
-              <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">{selected.description}</p>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">{selected.title}</h2>
+              <p className="mt-1 type-body text-[var(--color-text-muted)]">{selected.description}</p>
             </div>
             <Badge variant={requiresApproval ? 'warning' : 'info'}>
               {requiresApproval ? 'Admin review' : 'Prototype local'}
@@ -197,15 +197,15 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
                   className="mt-1 h-4 w-4 accent-[var(--color-primary)]"
                 />
                 <span>
-                  <span className="block text-sm font-bold text-[var(--color-text)]">Require admin approval</span>
-                  <span className="mt-1 block text-xs font-semibold text-[var(--color-text-muted)]">
+                  <span className="block type-body text-[var(--color-text)]">Require admin approval</span>
+                  <span className="mt-1 block type-supporting text-[var(--color-text-muted)]">
                     Keeps security, integration, and workflow-impacting changes visible for demo review.
                   </span>
                 </span>
               </label>
               <div className="clinical-muted-surface p-3">
                 <p className="clinical-label">Current Summary</p>
-                <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selected.summary}</p>
+                <p className="mt-2 type-body text-[var(--color-text)]">{selected.summary}</p>
               </div>
             </div>
 
@@ -216,8 +216,8 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
 
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
               <p className="clinical-label">Staged Preview</p>
-              <p className="mt-2 text-sm font-bold leading-6 text-[var(--color-text)]">{preview}</p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-[var(--color-text-muted)]">{notes}</p>
+              <p className="mt-2 type-body text-[var(--color-text)]">{preview}</p>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{notes}</p>
             </div>
 
             <div className="flex flex-wrap justify-end gap-2">
@@ -237,22 +237,22 @@ export function SettingsCommandClient({ categories }: SettingsCommandClientProps
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="clinical-label">Demo Change Ledger</p>
-            <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">Local staged configuration changes</h2>
+            <h2 className="mt-1 type-heading text-[var(--color-text)]">Local staged configuration changes</h2>
           </div>
           <Badge variant="info">No external writes</Badge>
         </div>
         <div className="grid gap-2">
           {changes.length ? changes.map((change) => (
             <div key={change.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_minmax(0,1fr)_140px]">
-              <span className="text-xs font-bold text-[var(--color-primary)]">{change.id}</span>
+              <span className="type-supporting text-[var(--color-primary)]">{change.id}</span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-bold text-[var(--color-text)]">{change.category}</span>
-                <span className="mt-1 block truncate text-xs font-semibold text-[var(--color-text-muted)]">{change.summary}</span>
+                <span className="block truncate type-body text-[var(--color-text)]">{change.category}</span>
+                <span className="mt-1 block truncate type-supporting text-[var(--color-text-muted)]">{change.summary}</span>
               </span>
               <Badge variant="success">{change.mode}</Badge>
             </div>
           )) : (
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 text-sm font-semibold text-[var(--color-text-muted)]">
+            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-4 type-body text-[var(--color-text-muted)]">
               No settings changes have been staged in this demo session.
             </div>
           )}
