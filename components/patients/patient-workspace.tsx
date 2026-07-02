@@ -835,7 +835,7 @@ export function PatientWorkspace({
               <div><dt>Treatment Completion</dt><dd>{currentFraction}/{course.totalFractions} logged</dd></div>
               <div><dt>Audit Checks</dt><dd>{openChecks.length ? `${openChecks.length} open` : 'Clear'}</dd></div>
               <div><dt>Billing Evidence</dt><dd>{documents.some((document) => document.category === 'BILLING') ? 'Recorded' : 'Review Required'}</dd></div>
-              <div><dt>AVS & follow-up</dt><dd>{workflowSteps.some((step) => step.phase === 'POST_TX' && ['COMPLETED', 'SIGNED'].includes(step.status)) ? 'Recorded' : 'Pending'}</dd></div>
+              <div><dt>AVS & Follow-Up</dt><dd>{workflowSteps.some((step) => step.phase === 'POST_TX' && ['COMPLETED', 'SIGNED'].includes(step.status)) ? 'Recorded' : 'Pending'}</dd></div>
             </dl>
           </section>
           <DataTable
