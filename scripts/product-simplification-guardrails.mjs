@@ -31,7 +31,7 @@ const envExample = read(".env.example");
 const expectedPrimaryHrefs = [
   "/dashboard",
   "/patients",
-  "/today",
+  "/tasks",
   "/schedule",
   "/analytics",
   "/settings",
@@ -40,7 +40,7 @@ const expectedPrimaryHrefs = [
 const demotedHrefs = [
   "/courses",
   "/workflow",
-  "/tasks",
+  "/today",
   "/treatment-delivery",
   "/clinical-forms",
   "/treatment-planning",
@@ -132,13 +132,14 @@ for (const label of removedWorkspaceLabels) {
   assert.doesNotMatch(workspace, new RegExp(`label: ['"]${escapeRegExp(label)}['"]`), `Patient workspace must not expose legacy tab ${label}`);
 }
 
-assert.ok(existsSync(routeFile("/today")), "Today route must exist");
+assert.ok(existsSync(routeFile("/tasks")), "Tasks route must exist");
+assert.ok(existsSync(routeFile("/today")), "Today compatibility route must exist");
 
 const redirectedRoutes = [
   "/courses",
   "/records",
   "/workflow",
-  "/tasks",
+  "/today",
   "/clinical-forms",
   "/treatment-planning",
   "/imaging",

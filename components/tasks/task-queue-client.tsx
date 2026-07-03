@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { statusTone } from '@/lib/status-utils';
 import { formatUiLabel } from '@/lib/ui-copy';
+import { responsiblePartyLabels } from '@/lib/workflow';
 import type {
   OperationalTask,
+  ResponsibleParty,
   TaskDueBucket,
   WorkflowQueueName,
   WorkflowQueueSnapshot,
@@ -41,6 +43,14 @@ const queueLabels: Partial<Record<WorkflowQueueName, string>> = {
 const queueOptions = Object.keys(queueLabels) as WorkflowQueueName[];
 const buckets = Object.keys(bucketLabels) as TaskDueBucket[];
 
+function taskOwner(task: OperationalTask) {
+  if (!task.assignedUser) return 'Unassigned';
+  if (task.assignedUser === task.responsibleParty) {
+    return `${responsiblePartyLabels[task.responsibleParty as ResponsibleParty]} Queue`;
+  }
+  return task.assignedUser;
+}
+
 const emptyCopy: Record<TaskDueBucket, { title: string; description: string }> = {
   OVERDUE: {
     title: 'No overdue tasks',
@@ -61,6 +71,7 @@ const emptyCopy: Record<TaskDueBucket, { title: string; description: string }> =
 };
 
 function formatDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'No Due Date';
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -176,7 +187,7 @@ export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
           {
             key: 'action',
             label: 'Action',
-            width: '31%',
+            width: '29%',
             render: (task) => (
               <div className="min-w-0">
                 <p className="truncate type-body-strong text-[var(--color-text)]">{task.actionLabel}</p>
@@ -189,7 +200,7 @@ export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
           {
             key: 'patient',
             label: 'Patient / Course',
-            width: '18%',
+            width: '17%',
             render: (task) => (
               <div className="min-w-0">
                 <p className="truncate type-body text-[var(--color-text)]">{task.displayLabel}</p>
@@ -200,11 +211,11 @@ export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
           {
             key: 'owner',
             label: 'Owner',
-            width: '15%',
+            width: '14%',
             render: (task) => (
               <div className="min-w-0">
-                <p className="truncate type-body text-[var(--color-text)]">{task.assignedUser || 'Unassigned'}</p>
-                <p className="truncate type-supporting text-[var(--color-text-muted)]">{formatUiLabel(task.responsibleParty)}</p>
+                <p className="truncate type-body text-[var(--color-text)]">{taskOwner(task)}</p>
+                <p className="truncate type-supporting text-[var(--color-text-muted)]">{responsiblePartyLabels[task.responsibleParty as ResponsibleParty]}</p>
               </div>
             ),
           },
@@ -234,13 +245,14 @@ export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
           },
           {
             key: 'open',
-            label: '',
-            width: '10%',
+            label: 'Open Action',
+            width: '14%',
             render: (task) => (
               <Button
                 type="button"
                 size="sm"
                 variant="secondary"
+                className="whitespace-nowrap"
                 onClick={(event: MouseEvent<HTMLButtonElement>) => {
                   event.stopPropagation();
                   openTask(task);

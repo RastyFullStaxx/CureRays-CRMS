@@ -19,7 +19,7 @@ The four patient-workspace tabs are the correct long-term structure. The primary
 | Four-tab patient workspace | Implemented for prototype | Overview, Prepare, Treatment, Record & Closeout | Keep tabs stable; deepen workbenches |
 | Course gate and next action | Implemented from in-memory/domain state | Shared patient workspace derivation | Persist and test every gate source |
 | Registration and DOCX prefill | Partial | Server-owned AVS/Intake extraction and review flow | Durable transactional persistence and auth |
-| Workflow steps/tasks | Partial | In-memory command repository and mutation routes | Fully Prisma-native repository |
+| Workflow steps/tasks | Partial | Canonical task worklist, PHI-safe workspace deep links, in-memory command repository, and mutation routes | Fully Prisma-native repository and identity-bound assignment |
 | Template registry | Implemented as metadata | 31 source records, 25 requirements, 25 field maps | Clinical/administrative validation and workspace rendering |
 | Prepare structured forms | Not implemented end to end | Workspace shows steps/evidence, not complete field maps | Render, validate, save, version, review |
 | Preauthorization | Deferred/missing | Skin preauth sources mapping-in-progress; billing mapping missing | First-class authorization lifecycle |

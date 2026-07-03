@@ -121,6 +121,22 @@ function safeText(value: string | null | undefined) {
   return String(value ?? "").trim();
 }
 
+function taskDueDate(value: string | undefined) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value ?? "") ? value : undefined;
+}
+
+function workspaceTabForStep(step: WorkflowStep) {
+  if (step.phase === "ON_TREATMENT") {
+    return "treatment" as const;
+  }
+
+  if (["POST_TX", "AUDIT", "CLOSED"].includes(step.phase)) {
+    return "record-closeout" as const;
+  }
+
+  return "prepare" as const;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -224,7 +240,10 @@ function toOperationalTask(task: CarepathTask, asOf?: string): OperationalTask {
   const linkedAppointment = targetStep
     ? appointments.find((appointment) => appointment.courseId === courseId && appointment.linkedWorkflowStepId === targetStep.id)
     : undefined;
-  const subject = task.title.replace(/\s+(sign|review)$/i, "").trim();
+  const subject = task.title
+    .replace(/^(complete|prepare|reconcile|review)\s+/i, "")
+    .replace(/\s+(sign|review)$/i, "")
+    .trim();
   const actionLabel = task.status === "BLOCKED"
     ? `Resolve Blocker: ${subject}`
     : task.title.toLowerCase().includes("sign") || task.auditSteps.some((step) => step.toLowerCase().includes("signature"))
@@ -237,13 +256,14 @@ function toOperationalTask(task: CarepathTask, asOf?: string): OperationalTask {
 
   return {
     ...safeTask,
+    dueDate: taskDueDate(task.dueDate),
     status: taskStatusWithOverdue(task, asOf),
     patientRef: patientRefForCourse(courseId),
     courseRef: courseRef(courseId),
     displayLabel: displayLabelForCourse(courseId),
     actionLabel,
     workspaceTarget: targetStep ? {
-      tab: "prepare",
+      tab: workspaceTabForStep(targetStep),
       targetKind: "step",
       targetId: targetStep.id,
     } : undefined,
@@ -302,23 +322,28 @@ function taskInQueue(task: OperationalTask, queue: WorkflowQueueName, role?: Pro
   return completedTaskStatuses.includes(task.status);
 }
 
-function taskInDueBucket(task: OperationalTask, bucket: TaskDueBucket, operationalDate: string) {
+export function taskMatchesDueBucket(
+  task: Pick<OperationalTask, "status" | "dueDate">,
+  bucket: TaskDueBucket,
+  operationalDate = PROTOTYPE_OPERATIONAL_DATE,
+) {
   if (completedTaskStatuses.includes(task.status)) {
     return false;
   }
   if (bucket === "ALL_OPEN") {
     return true;
   }
-  if (!task.dueDate) {
+  const dueDate = taskDueDate(task.dueDate);
+  if (!dueDate) {
     return false;
   }
   if (bucket === "OVERDUE") {
-    return task.dueDate < operationalDate;
+    return dueDate < operationalDate;
   }
   if (bucket === "TODAY") {
-    return task.dueDate === operationalDate;
+    return dueDate === operationalDate;
   }
-  return task.dueDate > operationalDate;
+  return dueDate > operationalDate;
 }
 
 function queueSnapshot(
@@ -343,7 +368,7 @@ function queueSnapshot(
   });
   const scopedTasks = tasks.filter((task) => taskInQueue(task, queue, role));
   const bucketCounts = taskDueBuckets.reduce<Record<TaskDueBucket, number>>((current, bucket) => {
-    current[bucket] = scopedTasks.filter((task) => taskInDueBucket(task, bucket, PROTOTYPE_OPERATIONAL_DATE)).length;
+    current[bucket] = scopedTasks.filter((task) => taskMatchesDueBucket(task, bucket)).length;
     return current;
   }, {
     OVERDUE: 0,
@@ -357,7 +382,7 @@ function queueSnapshot(
     queue,
     bucket,
     role,
-    tasks: scopedTasks.filter((task) => taskInDueBucket(task, bucket, PROTOTYPE_OPERATIONAL_DATE)),
+    tasks: scopedTasks.filter((task) => taskMatchesDueBucket(task, bucket)),
     counts,
     bucketCounts,
     generatedAt: asOf,

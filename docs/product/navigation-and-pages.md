@@ -7,7 +7,7 @@
 The Mac-style command bar exposes:
 
 - Patients
-- Today
+- Tasks
 - Schedule
 - Dashboard
 - Analytics
@@ -21,9 +21,9 @@ Persistent search supports patient, MRN, course, and action lookup within the PH
 
 The authoritative patient registry for finding, creating, opening, and maintaining patient records. It is the normal entry point into a specific course.
 
-### Today
+### Tasks
 
-Cross-patient work requiring attention now: blocked work, assigned work, overdue items, reviews/signatures, authorization follow-up, and treatment exceptions. Rows deep-link to the exact patient-workspace target.
+The canonical cross-patient worklist for overdue, today, upcoming, assigned, blocked, review, signature, authorization, and treatment-exception work. Rows deep-link to the exact patient-workspace target; clinical completion remains inside the patient record.
 
 ### Schedule
 
@@ -54,7 +54,7 @@ See [patient workspace](patient-workspace.md).
 
 ## Legacy Routes
 
-Legacy pages for Courses, Workflow, Tasks, Clinical Forms, Treatment Planning, Imaging, Treatment Delivery, Documents, Billing, Audit, Records, Upcoming, On Treatment, and Post may remain for:
+Legacy pages for Courses, Workflow, Today, Clinical Forms, Treatment Planning, Imaging, Treatment Delivery, Documents, Billing, Audit, Records, Upcoming, On Treatment, and Post may remain for:
 
 - redirects;
 - compatibility links;

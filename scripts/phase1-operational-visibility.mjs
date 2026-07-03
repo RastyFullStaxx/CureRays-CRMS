@@ -11,7 +11,7 @@ const prototypeActionExpectations = {
   "components/templates/templates-command-client.tsx": ["Upload Template", "Create Template"],
   "components/users/users-roles-command-client.tsx": ["Invite User"],
   "components/audit/audit-log-command-client.tsx": ["Export Logs"],
-  "components/schedule/schedule-command-client.tsx": ["Today", "May 6, 2026", "New Appointment"],
+  "components/schedule/schedule-command-client.tsx": ["New Appointment"],
   "components/reports/reports-command-client.tsx": ["Export Report"]
 };
 
@@ -20,8 +20,8 @@ const redirectedRouteExpectations = {
   "app/clinical-forms/page.tsx": "/patients",
   "app/imaging/page.tsx": "/patients",
   "app/treatment-delivery/page.tsx": "/patients",
-  "app/workflow/page.tsx": "/today",
-  "app/tasks/page.tsx": "/today"
+  "app/workflow/page.tsx": "/tasks",
+  "app/today/page.tsx": "/tasks"
 };
 
 const settingsRouteExpectations = {
@@ -109,6 +109,11 @@ for (const [file, labels] of Object.entries(prototypeActionExpectations)) {
   for (const label of labels) {
     assert.ok(source.includes(`label="${label}"`), `${file} must expose prototype action "${label}"`);
   }
+}
+
+const scheduleSource = readFileSync(join(root, "components/schedule/schedule-command-client.tsx"), "utf8");
+for (const label of ["Go to Today", "Schedule Date", "Open Linked Work"]) {
+  assert.ok(scheduleSource.includes(label), `Schedule must expose functional ${label}`);
 }
 
 assert.equal(

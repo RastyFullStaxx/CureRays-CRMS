@@ -559,12 +559,11 @@ export function PatientWorkspace({
     cumulativeDose,
     readiness,
   } = workspaceState;
-  const [selectedCarepathStepId, setSelectedCarepathStepId] = useState(workspaceState.workflowSteps[0]?.id ?? '');
+  const [selectedCarepathStepId, setSelectedCarepathStepId] = useState(
+    initialTarget?.targetKind === 'step' ? initialTarget.targetId : workspaceState.workflowSteps[0]?.id ?? '',
+  );
   useEffect(() => {
     if (!initialTarget) return;
-    if (initialTarget.targetKind === 'step') {
-      setSelectedCarepathStepId(initialTarget.targetId);
-    }
 
     let frame = 0;
     let attempts = 0;
@@ -861,6 +860,32 @@ export function PatientWorkspace({
               </Button>
             )}
           />
+          <section className="clinical-surface overflow-hidden" aria-labelledby="closeout-workflow-heading">
+            <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
+              <h2 id="closeout-workflow-heading" className="type-section-title">Closeout Workflow</h2>
+              <p className="type-meta mt-1">Post-treatment, audit, and course-closure actions.</p>
+            </div>
+            <div className="grid gap-1.5 p-3">
+              {workflowSteps.filter((step) => ['POST_TX', 'AUDIT', 'CLOSED'].includes(step.phase)).map((step) => (
+                <div
+                  key={step.id}
+                  id={`workspace-target-step-${step.id}`}
+                  tabIndex={-1}
+                  className="clinical-muted-surface clinical-focus flex min-w-0 items-center gap-3 p-3"
+                >
+                  <span className="prepare-step-index">{step.stepNumber}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="type-item-title block truncate">{step.stepName}</span>
+                    <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
+                  </span>
+                  <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
+                </div>
+              ))}
+              {workflowSteps.every((step) => !['POST_TX', 'AUDIT', 'CLOSED'].includes(step.phase)) ? (
+                <div className="p-2 type-body text-[var(--color-text-muted)]">No closeout workflow steps are configured.</div>
+              ) : null}
+            </div>
+          </section>
           <section id="closure-readiness" className="clinical-surface scroll-mt-3 p-4" aria-labelledby="closure-readiness-heading">
             <SectionTitle id="closure-readiness-heading" title="Closure Readiness" />
             <dl className="closure-readiness-grid">
@@ -1022,6 +1047,32 @@ export function PatientWorkspace({
               </Button>
             )}
           />
+          <section className="clinical-surface overflow-hidden" aria-labelledby="treatment-workflow-heading">
+            <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
+              <h2 id="treatment-workflow-heading" className="type-section-title">Treatment Workflow</h2>
+              <p className="type-meta mt-1">On-treatment actions linked from the Tasks worklist.</p>
+            </div>
+            <div className="grid gap-1.5 p-3">
+              {workflowSteps.filter((step) => step.phase === 'ON_TREATMENT').map((step) => (
+                <div
+                  key={step.id}
+                  id={`workspace-target-step-${step.id}`}
+                  tabIndex={-1}
+                  className="clinical-muted-surface clinical-focus flex min-w-0 items-center gap-3 p-3"
+                >
+                  <span className="prepare-step-index">{step.stepNumber}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="type-item-title block truncate">{step.stepName}</span>
+                    <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
+                  </span>
+                  <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
+                </div>
+              ))}
+              {workflowSteps.every((step) => step.phase !== 'ON_TREATMENT') ? (
+                <div className="p-2 type-body text-[var(--color-text-muted)]">No on-treatment workflow steps are configured.</div>
+              ) : null}
+            </div>
+          </section>
           <div id="fraction-workflow" className="min-w-0 scroll-mt-3">
             <FractionWorksheetPanel
               initialEntries={fractionEntries}

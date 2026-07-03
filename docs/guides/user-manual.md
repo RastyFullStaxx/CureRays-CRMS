@@ -16,9 +16,9 @@ Use only mock, synthetic, or approved de-identified data.
 
 Find, create, and open patient records. Patient work should normally begin here.
 
-### Today
+### Tasks
 
-Review work that needs attention across patients. Open an item to continue at the relevant patient-workspace tab.
+Review overdue, today, upcoming, or all open work across patients. Use assignment and workflow filters to narrow the worklist, then open the exact action in the patient workspace.
 
 ### Schedule
 
@@ -192,7 +192,7 @@ The course passed closure gates. Production reopening must be authorized and aud
 
 ### Start the day
 
-1. Open Today.
+1. Open Tasks.
 2. Address blocking and overdue items first.
 3. Open the patient target.
 4. Confirm patient/course context.
@@ -209,7 +209,7 @@ The course passed closure gates. Production reopening must be authorized and aud
 
 ### Treat a scheduled fraction
 
-1. Open the patient from Today or Schedule.
+1. Open the patient from Tasks or Schedule.
 2. Review treatment blockers.
 3. Confirm prescription/plan and required evidence.
 4. Record the fraction.

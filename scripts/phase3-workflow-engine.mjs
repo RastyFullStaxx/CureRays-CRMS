@@ -101,8 +101,8 @@ for (const expected of ["workflow:mutate", "task:mutate"]) {
 }
 
 for (const expected of [
-  "removedCarepathSteps",
-  "optionalCarepathSteps",
+  "removedCarepathReason",
+  "optionalCarepathReason",
   "calculateWorkflowDueDate",
   "ensureCourseWorkflowSteps",
   "requirementIdsForStep",
@@ -171,6 +171,22 @@ assert.ok(removedStep?.naReason, "Removed Carepath steps should carry a system N
 
 assert.equal(workflowService.workflowDueDateIsOverdue("2026-01-01", "2026-06-12T00:00:00.000Z"), true, "Past due date should derive overdue");
 assert.equal(workflowService.workflowDueDateIsOverdue("2027-01-01", "2026-06-12T00:00:00.000Z"), false, "Future due date should not derive overdue");
+
+const overdueQueue = await workflowService.getTaskQueueSnapshot("ALL", "OVERDUE");
+const todayQueue = await workflowService.getTaskQueueSnapshot("ALL", "TODAY");
+const upcomingQueue = await workflowService.getTaskQueueSnapshot("ALL", "UPCOMING");
+const allOpenQueue = await workflowService.getTaskQueueSnapshot("ALL", "ALL_OPEN");
+assert.ok(overdueQueue.tasks.length > 0, "Task worklist should expose overdue fixtures");
+assert.ok(todayQueue.tasks.length > 0, "Task worklist should expose today fixtures");
+assert.ok(upcomingQueue.tasks.length > 0, "Task worklist should expose upcoming fixtures");
+assert.equal(workflowService.taskMatchesDueBucket({ status: "PENDING" }, "ALL_OPEN"), true, "All Open should retain tasks without a due date");
+assert.equal(workflowService.taskMatchesDueBucket({ status: "PENDING" }, "TODAY"), false, "Undated tasks should not appear in a dated bucket");
+assert.equal(workflowService.taskMatchesDueBucket({ status: "PENDING", dueDate: "Before treatment start" }, "UPCOMING"), false, "Policy timing text must not be treated as a date");
+assert.equal(allOpenQueue.tasks.some((task) => ["COMPLETED", "SIGNED", "CLOSED", "NOT_APPLICABLE"].includes(task.status)), false, "All Open must exclude completed work");
+assert.ok(allOpenQueue.tasks.every((task) => task.workspaceTarget?.targetId), "Every seeded worklist task should resolve an exact workspace target");
+assert.equal(allOpenQueue.tasks.find((task) => task.workspaceTarget?.targetId === "WF-COURSE-2401-8")?.workspaceTarget?.tab, "treatment", "On-treatment work should open the Treatment workspace");
+assert.equal(allOpenQueue.tasks.find((task) => task.workspaceTarget?.targetId === "WF-COURSE-2405-13")?.workspaceTarget?.tab, "record-closeout", "Post-treatment work should open the Record and Closeout workspace");
+assert.equal(overdueQueue.bucketCounts.ALL_OPEN, allOpenQueue.tasks.length, "Bucket counts should reconcile with All Open");
 
 const createContext = patientService.patientMutationContextFromRequest(
   { headers: { get: (name) => name.toLowerCase() === "x-curerays-role" ? "RAD_ONC" : null } },

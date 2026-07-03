@@ -119,8 +119,13 @@ export function ScheduleCommandClient({ appointments, workflowSteps }: ScheduleC
 
   const openLinkedWork = () => {
     if (!selectedAppointment?.linkedWorkflowStepId) return;
+    const workspaceTab = selectedWorkflowStep?.phase === 'ON_TREATMENT'
+      ? 'treatment'
+      : selectedWorkflowStep && ['POST_TX', 'AUDIT', 'CLOSED'].includes(selectedWorkflowStep.phase)
+        ? 'record-closeout'
+        : 'prepare';
     const params = new URLSearchParams({
-      tab: 'prepare',
+      tab: workspaceTab,
       targetKind: 'step',
       targetId: selectedAppointment.linkedWorkflowStepId,
     });

@@ -67,6 +67,8 @@ npm run test:hipaa   # HIPAA guardrails validation
 | `/dashboard` | Page | Command center / main dashboard |
 | `/patients` | Page | Patient registry |
 | `/patients/[id]/*` | Pages | Patient workspace, carepath, documents, fraction log |
+| `/tasks` | Page | Canonical cross-patient task worklist |
+| `/today` | Redirect | Compatibility redirect to `/tasks` |
 | `/schedule` | Page | Schedule view |
 | `/courses` | Page | Courses overview |
 | `/analytics`, `/reports` | Pages | Analytics and reporting |
@@ -79,7 +81,6 @@ npm run test:hipaa   # HIPAA guardrails validation
 | `/treatment-delivery` | Page | Treatment delivery |
 | `/workflow/*` | Pages | Workflow engine (IGSRT, templates) |
 | `/templates` | Pages | Template management |
-| `/tasks` | Page | Task management |
 | `/audit`, `/audit-logs`, `/security-logs` | Pages | Audit and security logs |
 | `/settings/*` | Pages | Settings (users, templates) |
 | `/users-roles` | Page | User and role management |
