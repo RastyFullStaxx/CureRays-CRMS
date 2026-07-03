@@ -19,11 +19,11 @@ export function EmptyState({ title = 'No records found.', description, icon: Ico
           <Icon size={20} />
         </div>
       )}
-      <p className="font-heading font-bold text-[var(--color-text)]" style={{ fontSize: 15 }}>
+      <p className="type-heading text-[var(--color-text)]">
         {title}
       </p>
       {description && (
-        <p className="mt-1 text-[var(--font-size-small)] text-[var(--color-text-muted)]">
+        <p className="type-supporting mt-1 text-[var(--color-text-muted)]">
           {description}
         </p>
       )}

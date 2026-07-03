@@ -50,7 +50,7 @@ export function Phase6PlanningActions({ courseId, disabled = false }: Phase6Plan
         <CalendarPlus className="h-3.5 w-3.5" aria-hidden="true" />
         {pending ? "Generating" : "Generate Schedule"}
       </Button>
-      {message ? <span className="text-xs font-bold text-[var(--color-text-muted)]">{message}</span> : null}
+      {message ? <span className="type-supporting text-[var(--color-text-muted)]">{message}</span> : null}
     </div>
   );
 }

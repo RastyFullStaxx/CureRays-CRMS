@@ -1,22 +1,23 @@
 'use client';
 
-import { useMemo, useState, type FormEvent, type MouseEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { AlertTriangle, CheckCircle2, ClipboardCheck, ListChecks, PenLine, RefreshCcw, UsersRound } from 'lucide-react';
-import { PageStack } from '@/components/shared/page-stack';
-import { PageHeader } from '@/components/shared/page-header';
-import { StatGrid } from '@/components/shared/stat-grid';
-import { StatCard } from '@/components/shared/stat-card';
+import { useMemo, useState, useTransition, type MouseEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowUpRight, CalendarDays, RotateCcw, Search } from 'lucide-react';
 import { DataTable } from '@/components/shared/data-table';
+import { FilterField, FilterStrip } from '@/components/shared/filter-strip';
+import { PageHeader } from '@/components/shared/page-header';
+import { PageStack } from '@/components/shared/page-stack';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Modal } from '@/components/ui/modal';
 import { Select } from '@/components/ui/select';
-import { mapTone } from '@/lib/status-utils';
+import { statusTone } from '@/lib/status-utils';
+import { formatUiLabel } from '@/lib/ui-copy';
+import { responsiblePartyLabels } from '@/lib/workflow';
 import type {
-  CarepathTaskStatus,
   OperationalTask,
+  ResponsibleParty,
+  TaskDueBucket,
   WorkflowQueueName,
   WorkflowQueueSnapshot,
 } from '@/lib/types';
@@ -25,334 +26,300 @@ type TaskQueueClientProps = {
   snapshot: WorkflowQueueSnapshot;
 };
 
-type TaskForm = {
-  status: CarepathTaskStatus;
-  assignedUser: string;
-  dueDate: string;
-  blockedReason: string;
-  naReason: string;
-  reopenReason: string;
-  changeReason: string;
+const bucketLabels: Record<TaskDueBucket, string> = {
+  OVERDUE: 'Overdue',
+  TODAY: 'Today',
+  UPCOMING: 'Upcoming',
+  ALL_OPEN: 'All Open',
 };
 
-const queueLabels: Record<WorkflowQueueName, string> = {
+const queueLabels: Partial<Record<WorkflowQueueName, string>> = {
   ALL: 'All Tasks',
   MY_TASKS: 'My Tasks',
   TEAM_TASKS: 'Role Queue',
   UNASSIGNED: 'Unassigned',
-  SIGNATURES: 'Signatures',
-  OVERDUE: 'Overdue',
-  BLOCKED: 'Blocked',
-  COMPLETED: 'Completed',
 };
 
 const queueOptions = Object.keys(queueLabels) as WorkflowQueueName[];
+const buckets = Object.keys(bucketLabels) as TaskDueBucket[];
 
-const taskStatuses: CarepathTaskStatus[] = [
-  'NOT_STARTED',
-  'PENDING',
-  'IN_PROGRESS',
-  'NEEDS_REVIEW',
-  'READY_FOR_REVIEW',
-  'SIGNED',
-  'UPLOADED',
-  'COMPLETED',
-  'BLOCKED',
-  'OVERDUE',
-  'CLOSED',
-  'NOT_APPLICABLE',
-];
-
-function label(value: string) {
-  return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+function taskOwner(task: OperationalTask) {
+  if (!task.assignedUser) return 'Unassigned';
+  if (task.assignedUser === task.responsibleParty) {
+    return `${responsiblePartyLabels[task.responsibleParty as ResponsibleParty]} Queue`;
+  }
+  return task.assignedUser;
 }
 
-function tone(status: string) {
-  if (['COMPLETED', 'SIGNED', 'UPLOADED', 'CLOSED'].includes(status)) return 'green';
-  if (['BLOCKED', 'OVERDUE'].includes(status)) return 'red';
-  if (['PENDING', 'NEEDS_REVIEW', 'NOT_STARTED'].includes(status)) return 'orange';
-  if (['READY_FOR_REVIEW', 'IN_PROGRESS'].includes(status)) return 'blue';
-  if (status === 'NOT_APPLICABLE') return 'purple';
-  return 'slate';
+const emptyCopy: Record<TaskDueBucket, { title: string; description: string }> = {
+  OVERDUE: {
+    title: 'No overdue tasks',
+    description: 'No open work in this assignment scope is past its due date.',
+  },
+  TODAY: {
+    title: 'No tasks due today',
+    description: 'Review Upcoming for later work or All Open for tasks without a due date.',
+  },
+  UPCOMING: {
+    title: 'No upcoming tasks',
+    description: 'No open work in this assignment scope is due after today.',
+  },
+  ALL_OPEN: {
+    title: 'No open tasks',
+    description: 'Completed work remains available in the patient record and audit history.',
+  },
+};
+
+function formatDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'No Due Date';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T12:00:00Z`));
 }
 
-function formFromTask(task: OperationalTask): TaskForm {
-  return {
-    status: task.status,
-    assignedUser: task.assignedUser,
-    dueDate: task.dueDate ?? '',
-    blockedReason: task.blockedReason ?? '',
-    naReason: task.naReason ?? '',
-    reopenReason: '',
-    changeReason: 'Phase 3 task queue command update.',
-  };
+function formatAppointment(dateTime: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/Los_Angeles',
+  }).format(new Date(dateTime));
 }
 
-export function TaskQueueClient({ snapshot: initialSnapshot }: TaskQueueClientProps) {
+function taskHref(task: OperationalTask) {
+  const params = new URLSearchParams();
+  if (task.workspaceTarget) {
+    params.set('tab', task.workspaceTarget.tab);
+    params.set('targetKind', task.workspaceTarget.targetKind);
+    params.set('targetId', task.workspaceTarget.targetId);
+  }
+  const query = params.toString();
+  return `/patients/${encodeURIComponent(task.patientRef)}${query ? `?${query}` : ''}`;
+}
+
+export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
   const router = useRouter();
-  const [snapshot, setSnapshot] = useState(initialSnapshot);
-  const [queue, setQueue] = useState<WorkflowQueueName>(initialSnapshot.queue);
-  const [selectedTask, setSelectedTask] = useState<OperationalTask | null>(null);
-  const [form, setForm] = useState<TaskForm | null>(null);
-  const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [blockers, setBlockers] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState('');
+  const [pending, startTransition] = useTransition();
+  const activeStatus = searchParams.get('status') ?? 'ALL';
+  const activePhase = searchParams.get('phase') ?? 'ALL';
 
-  const metrics = useMemo(() => ({
-    all: snapshot.counts.ALL,
-    mine: snapshot.counts.MY_TASKS,
-    signatures: snapshot.counts.SIGNATURES,
-    overdue: snapshot.counts.OVERDUE,
-    blocked: snapshot.counts.BLOCKED,
-    completed: snapshot.counts.COMPLETED,
-  }), [snapshot]);
-
-  const updateForm = <K extends keyof TaskForm>(key: K, value: TaskForm[K]) => {
-    setForm((current) => current ? { ...current, [key]: value } : current);
-  };
-
-  const closeModal = () => {
-    if (pending) return;
-    setSelectedTask(null);
-    setForm(null);
-  };
-
-  const openTask = (task: OperationalTask) => {
-    setSelectedTask(task);
-    setForm(formFromTask(task));
-    setError(null);
-    setBlockers([]);
-  };
-
-  const loadQueue = async (nextQueue: WorkflowQueueName) => {
-    setPending(true);
-    setError(null);
-    setMessage(null);
-    setBlockers([]);
-
-    try {
-      const response = await fetch(`/api/tasks?queue=${nextQueue}`);
-      const result = (await response.json()) as WorkflowQueueSnapshot & { message?: string };
-      if (!response.ok || !result.tasks) {
-        throw new Error(result.message ?? 'Task queue could not be loaded.');
+  const navigateWith = (updates: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === 'ALL') {
+        params.delete(key);
+      } else {
+        params.set(key, value);
       }
-
-      setQueue(nextQueue);
-      setSnapshot(result);
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Task queue could not be loaded.');
-    } finally {
-      setPending(false);
-    }
+    });
+    startTransition(() => router.replace(`/tasks${params.size ? `?${params.toString()}` : ''}`));
   };
 
-  const submitTask = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!selectedTask || !form) return;
+  const filteredTasks = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return snapshot.tasks.filter((task) => {
+      const statusMatches = activeStatus === 'ALL' || task.status === activeStatus;
+      const phaseMatches = activePhase === 'ALL' || task.workflowPhase === activePhase;
+      const searchMatches = !normalizedQuery || [
+        task.actionLabel,
+        task.title,
+        task.documentName,
+        task.displayLabel,
+        task.patientRef,
+        task.courseRef,
+        task.assignedUser,
+        task.responsibleParty,
+        task.status,
+      ].join(' ').toLowerCase().includes(normalizedQuery);
+      return statusMatches && phaseMatches && searchMatches;
+    });
+  }, [activePhase, activeStatus, query, snapshot.tasks]);
 
-    setPending(true);
-    setError(null);
-    setBlockers([]);
-
-    try {
-      const response = await fetch(`/api/tasks/${selectedTask.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: form.status,
-          assignedUser: form.assignedUser,
-          dueDate: form.dueDate || undefined,
-          blockedReason: form.blockedReason || undefined,
-          naReason: form.naReason || undefined,
-          reopenReason: form.reopenReason || undefined,
-          expectedLastUpdatedAt: selectedTask.lastUpdatedAt,
-          changeReason: form.changeReason,
-        }),
-      });
-      const result = (await response.json()) as {
-        message?: string;
-        blockers?: string[];
-        task?: OperationalTask;
-      };
-
-      if (!response.ok || !result.task) {
-        setBlockers(result.blockers ?? []);
-        throw new Error(result.message ?? 'Task could not be updated.');
-      }
-
-      setSnapshot((current) => ({
-        ...current,
-        tasks: current.tasks.map((task) => task.id === result.task?.id ? result.task : task),
-      }));
-      setMessage('Task updated with redacted audit evidence.');
-      closeModal();
-      router.refresh();
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Task could not be updated.');
-    } finally {
-      setPending(false);
-    }
+  const clearFilters = () => {
+    setQuery('');
+    startTransition(() => router.replace(`/tasks?bucket=${snapshot.bucket}`));
   };
+
+  const openTask = (task: OperationalTask) => router.push(taskHref(task));
 
   return (
-    <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
+    <PageStack>
       <PageHeader
         title="Tasks"
-        subtitle="Role-aware Carepath queues with guarded assignment, status, blocked, N/A, and reopen commands."
-        actions={
-          <>
-            <Select
-              value={queue}
-              onChange={(event) => void loadQueue(event.target.value as WorkflowQueueName)}
-              disabled={pending}
-              className="min-w-[190px]"
-            >
-              {queueOptions.map((item) => (
-                <option key={item} value={item}>{queueLabels[item]}</option>
-              ))}
-            </Select>
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => void loadQueue(queue)}>
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
-            </Button>
-          </>
-        }
+        subtitle="Prioritized clinical and administrative work. Open an action to complete it in the patient record."
       />
 
-      {message ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-success)]">
-          {message}
+      <nav className="task-bucket-strip" aria-label="Task Due Date Buckets">
+        <div role="tablist" aria-label="Task Due Date Buckets" className="task-bucket-list">
+          {buckets.map((bucket) => {
+            const active = snapshot.bucket === bucket;
+            return (
+              <button
+                key={bucket}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`clinical-focus task-bucket-button${active ? ' is-active' : ''}${bucket === 'OVERDUE' && snapshot.bucketCounts[bucket] > 0 ? ' has-risk' : ''}`}
+                onClick={() => navigateWith({ bucket })}
+                disabled={pending}
+              >
+                <span>{bucketLabels[bucket]}</span>
+                <span className="task-bucket-count">{snapshot.bucketCounts[bucket]}</span>
+              </button>
+            );
+          })}
         </div>
-      ) : null}
-      {error ? (
-        <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-card)] px-3 py-2 text-sm font-semibold text-[var(--color-error)]">
-          {error}
-        </div>
-      ) : null}
-
-      <StatGrid>
-        <StatCard icon={ClipboardCheck} label="All Tasks" value={metrics.all} sub="Stored queue items" />
-        <StatCard icon={UsersRound} label="My Role" value={metrics.mine} sub="Session role lane" tone="primary" />
-        <StatCard icon={PenLine} label="Signatures" value={metrics.signatures} sub="Review path" tone="info" />
-        <StatCard icon={AlertTriangle} label="Overdue" value={metrics.overdue} sub="Date-derived" tone="error" />
-        <StatCard icon={ListChecks} label="Blocked" value={metrics.blocked} sub="Reason required" tone="warning" />
-        <StatCard icon={CheckCircle2} label="Completed" value={metrics.completed} sub="Closed work" tone="success" />
-      </StatGrid>
+      </nav>
 
       <DataTable
         keyField="id"
         className="min-h-[560px]"
+        minTableWidth="960px"
+        loading={pending}
+        loadingLabel="Updating task worklist..."
         columns={[
-          { key: 'task', label: 'Task', render: (row) => (
-            <div className="min-w-0">
-              <p className="truncate font-bold text-[var(--color-text)]">{row.title}</p>
-              <p className="truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{row.documentName}</p>
-            </div>
-          ) },
-          { key: 'course', label: 'Patient / Course', render: (row) => (
-            <span className="block truncate">{row.displayLabel} / {row.courseRef}</span>
-          ) },
-          { key: 'phase', label: 'Phase', render: (row) => <Badge variant="info">{label(row.workflowPhase)}</Badge> },
-          { key: 'role', label: 'Role', render: (row) => label(row.responsibleParty) },
-          { key: 'assigned', label: 'Assigned', render: (row) => row.assignedUser },
-          { key: 'dueDate', label: 'Due', render: (row) => row.dueDate ?? '—' },
-          { key: 'status', label: 'Status', render: (row) => <Badge variant={mapTone(tone(row.status))}>{label(row.status)}</Badge> },
-          { key: 'reason', label: 'Reason', render: (row) => row.blockedReason ?? row.naReason ?? row.reopenReason ?? '—' },
-          { key: 'action', label: '', render: (row) => (
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              disabled={pending}
-              onClick={(event: MouseEvent<HTMLButtonElement>) => {
-                event.stopPropagation();
-                openTask(row);
-              }}
-            >
-              <PenLine className="h-3.5 w-3.5" />
-              Update
+          {
+            key: 'action',
+            label: 'Action',
+            width: '29%',
+            render: (task) => (
+              <div className="min-w-0">
+                <p className="truncate type-body-strong text-[var(--color-text)]">{task.actionLabel}</p>
+                <p className="truncate type-supporting text-[var(--color-text-muted)]">
+                  {formatUiLabel(task.workflowPhase)} · {task.documentName}
+                </p>
+              </div>
+            ),
+          },
+          {
+            key: 'patient',
+            label: 'Patient / Course',
+            width: '17%',
+            render: (task) => (
+              <div className="min-w-0">
+                <p className="truncate type-body text-[var(--color-text)]">{task.displayLabel}</p>
+                <p className="truncate type-supporting text-[var(--color-text-muted)]">{task.courseRef}</p>
+              </div>
+            ),
+          },
+          {
+            key: 'owner',
+            label: 'Owner',
+            width: '14%',
+            render: (task) => (
+              <div className="min-w-0">
+                <p className="truncate type-body text-[var(--color-text)]">{taskOwner(task)}</p>
+                <p className="truncate type-supporting text-[var(--color-text-muted)]">{responsiblePartyLabels[task.responsibleParty as ResponsibleParty]}</p>
+              </div>
+            ),
+          },
+          {
+            key: 'due',
+            label: 'Due',
+            width: '15%',
+            render: (task) => (
+              <div className="min-w-0">
+                <p className={`type-body ${snapshot.bucket === 'OVERDUE' ? 'text-[var(--status-negative-text)]' : 'text-[var(--color-text)]'}`}>
+                  {task.dueDate ? formatDate(task.dueDate) : 'No Due Date'}
+                </p>
+                {task.linkedAppointment ? (
+                  <p className="truncate type-supporting text-[var(--color-text-muted)]">
+                    <CalendarDays className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />
+                    {formatAppointment(task.linkedAppointment.dateTime)}
+                  </p>
+                ) : null}
+              </div>
+            ),
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            width: '11%',
+            render: (task) => <Badge variant={statusTone(task.status)}>{formatUiLabel(task.status)}</Badge>,
+          },
+          {
+            key: 'open',
+            label: 'Open Action',
+            width: '14%',
+            render: (task) => (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="whitespace-nowrap"
+                onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                  event.stopPropagation();
+                  openTask(task);
+                }}
+              >
+                Open Action
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            ),
+          },
+        ]}
+        rows={filteredTasks}
+        onRowClick={openTask}
+        getRowLabel={(task) => `Open ${task.actionLabel} for ${task.displayLabel}`}
+        toolbar={(
+          <FilterStrip>
+            <FilterField grow>
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]" aria-hidden="true" />
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search action, patient token, course, owner, or document..."
+                  aria-label="Search Tasks"
+                  className="pl-9"
+                />
+              </label>
+            </FilterField>
+            <FilterField width={170}>
+              <Select
+                value={snapshot.queue}
+                onChange={(event) => navigateWith({ queue: event.target.value })}
+                aria-label="Assignment Scope"
+                disabled={pending}
+              >
+                {queueOptions.map((queue) => <option key={queue} value={queue}>{queueLabels[queue]}</option>)}
+              </Select>
+            </FilterField>
+            <FilterField width={170}>
+              <Select value={activePhase} onChange={(event) => navigateWith({ phase: event.target.value })} aria-label="Workflow Context">
+                <option value="ALL">All Workflow Context</option>
+                {Array.from(new Set(snapshot.tasks.map((task) => task.workflowPhase))).map((phase) => (
+                  <option key={phase} value={phase}>{formatUiLabel(phase)}</option>
+                ))}
+              </Select>
+            </FilterField>
+            <FilterField width={160}>
+              <Select value={activeStatus} onChange={(event) => navigateWith({ status: event.target.value })} aria-label="Task Status">
+                <option value="ALL">All Status</option>
+                {Array.from(new Set(snapshot.tasks.map((task) => task.status))).map((status) => (
+                  <option key={status} value={status}>{formatUiLabel(status)}</option>
+                ))}
+              </Select>
+            </FilterField>
+            <Button type="button" variant="ghost" onClick={clearFilters} disabled={pending && !query}>
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Clear Filters
             </Button>
-          ) },
-        ]}
-        rows={snapshot.tasks}
-        pageSize={10}
-        search={{
-          placeholder: 'Search task, token, course, owner, document, status, or reason...',
-          getText: (row) => [
-            row.title,
-            row.documentName,
-            row.displayLabel,
-            row.courseRef,
-            row.workflowPhase,
-            row.status,
-            row.responsibleParty,
-            row.assignedUser,
-            row.blockedReason,
-            row.naReason,
-          ].join(' '),
-        }}
-        filters={[
-          { id: 'status', label: 'Status', getValue: (row) => label(row.status) },
-          { id: 'role', label: 'Role', getValue: (row) => label(row.responsibleParty) },
-          { id: 'assigned', label: 'Assigned', getValue: (row) => row.assignedUser },
-        ]}
-        empty="No tasks are available for this queue."
-        emptyDescription="Try another queue or create a patient-course bundle to generate tasks."
+          </FilterStrip>
+        )}
+        empty={emptyCopy[snapshot.bucket].title}
+        emptyDescription={emptyCopy[snapshot.bucket].description}
       />
 
-      <Modal open={Boolean(selectedTask && form)} onClose={closeModal} title="Update Task" width={620}>
-        {selectedTask && form ? (
-          <form className="grid gap-3" onSubmit={submitTask}>
-            <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3 text-xs font-semibold text-[var(--color-text-muted)]">
-              {selectedTask.title} / {selectedTask.courseRef}
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                Status
-                <Select value={form.status} onChange={(event) => updateForm('status', event.target.value as CarepathTaskStatus)}>
-                  {taskStatuses.map((status) => (
-                    <option key={status} value={status}>{label(status)}</option>
-                  ))}
-                </Select>
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                Due date
-                <Input type="date" value={form.dueDate} onChange={(event) => updateForm('dueDate', event.target.value)} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                Assigned user
-                <Input value={form.assignedUser} onChange={(event) => updateForm('assignedUser', event.target.value)} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                Blocked reason
-                <Input value={form.blockedReason} onChange={(event) => updateForm('blockedReason', event.target.value)} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                N/A reason
-                <Input value={form.naReason} onChange={(event) => updateForm('naReason', event.target.value)} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
-                Reopen reason
-                <Input value={form.reopenReason} onChange={(event) => updateForm('reopenReason', event.target.value)} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)] sm:col-span-2">
-                Change reason
-                <Input value={form.changeReason} onChange={(event) => updateForm('changeReason', event.target.value)} required />
-              </label>
-            </div>
-            {blockers.length > 0 ? (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-bg)] p-3 text-xs font-semibold text-[var(--color-error)]">
-                {blockers.map((item) => <p key={item}>{item}</p>)}
-              </div>
-            ) : null}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" disabled={pending} onClick={closeModal}>Cancel</Button>
-              <Button type="submit" disabled={pending}>{pending ? 'Saving' : 'Save'}</Button>
-            </div>
-          </form>
-        ) : null}
-      </Modal>
+      <p className="sr-only" aria-live="polite">
+        {pending ? 'Updating task worklist.' : `${filteredTasks.length} tasks shown in ${bucketLabels[snapshot.bucket]}.`}
+      </p>
     </PageStack>
   );
 }

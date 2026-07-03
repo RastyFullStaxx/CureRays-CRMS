@@ -19,7 +19,7 @@ export function LoginCard() {
   return (
     <form onSubmit={handleSubmit} className="landing-login-card">
       <div className="landing-login-copy">
-        <h2>Welcome back</h2>
+        <h2>Welcome Back</h2>
         <p className="landing-login-subtitle">
           Sign in to access the CureRays Admin Dashboard
         </p>

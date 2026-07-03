@@ -1,54 +1,70 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CalendarDays, CheckCircle2, Clock3, Filter, MapPin, UserRound, UsersRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowUpRight, CalendarDays, CheckCircle2, Clock3, Filter, Link2, MapPin, UserRound, UsersRound } from 'lucide-react';
 import { PageStack } from '@/components/shared/page-stack';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { mapTone } from '@/lib/status-utils';
-import type { OperationalAppointment } from '@/lib/types';
+import { PROTOTYPE_OPERATIONAL_DATE } from '@/lib/operational-date';
+import { statusTone } from '@/lib/status-utils';
+import type { OperationalAppointment, WorkflowStep } from '@/lib/types';
+import { formatUiLabel } from '@/lib/ui-copy';
 
 type ScheduleCommandClientProps = {
   appointments: OperationalAppointment[];
+  workflowSteps: WorkflowStep[];
 };
 
-const days = [
-  { key: 'all', label: 'All week' },
-  { key: 'mon', label: 'Mon 5/4' },
-  { key: 'tue', label: 'Tue 5/5' },
-  { key: 'wed', label: 'Wed 5/6' },
-  { key: 'thu', label: 'Thu 5/7' },
-  { key: 'fri', label: 'Fri 5/8' },
-  { key: 'sat', label: 'Sat 5/9' },
-  { key: 'sun', label: 'Sun 5/10' },
-];
-
-const gridDays = days.slice(1);
 const hours = ['7 AM', '9 AM', '11 AM', '1 PM', '3 PM', '5 PM'];
 
-function statusLabel(value: string | undefined) {
-  return value ? value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Scheduled';
+function parseDate(date: string) {
+  return new Date(`${date}T12:00:00Z`);
 }
 
-function appointmentTypeLabel(value: string | undefined) {
-  return value ? value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) : 'Carepath visit';
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
 }
 
-function statusTone(value: string | undefined) {
-  if (value === 'COMPLETED') return 'green';
-  if (value === 'MISSED' || value === 'CANCELLED') return 'red';
-  if (value === 'RESCHEDULED') return 'orange';
-  return 'blue';
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
 }
 
-function dayForIndex(index: number) {
-  return gridDays[index % gridDays.length]?.key ?? 'mon';
+function startOfWeek(date: string) {
+  const parsed = parseDate(date);
+  const day = parsed.getUTCDay();
+  return addDays(parsed, day === 0 ? -6 : 1 - day);
+}
+
+function dayLabel(date: Date, includeYear = false) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'numeric',
+    day: 'numeric',
+    ...(includeYear ? { year: 'numeric' } : {}),
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+function rangeLabel(start: Date) {
+  const end = addDays(start, 6);
+  const startLabel = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(start);
+  const endLabel = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(end);
+  return `${startLabel} - ${endLabel}`;
+}
+
+function appointmentDate(appointment: OperationalAppointment) {
+  return appointment.dateTime?.slice(0, 10) ?? PROTOTYPE_OPERATIONAL_DATE;
 }
 
 function hourIndex(time: string) {
@@ -61,87 +77,118 @@ function hourIndex(time: string) {
   return 5;
 }
 
-export function ScheduleCommandClient({ appointments }: ScheduleCommandClientProps) {
+export function ScheduleCommandClient({ appointments, workflowSteps }: ScheduleCommandClientProps) {
+  const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState(PROTOTYPE_OPERATIONAL_DATE);
   const [selectedDay, setSelectedDay] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(appointments[0]?.id ?? '');
 
-  const appointmentRows = useMemo(
-    () => appointments.map((appointment, index) => ({ ...appointment, scheduleDay: dayForIndex(index) })),
-    [appointments],
-  );
+  const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
+  const gridDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(weekStart, index);
+    return { key: dateKey(date), label: dayLabel(date) };
+  }), [weekStart]);
+  const weekEnd = gridDays.at(-1)?.key ?? selectedDate;
+  const appointmentRows = useMemo(() => appointments.map((appointment) => ({
+    ...appointment,
+    scheduleDay: appointmentDate(appointment),
+  })), [appointments]);
+  const weekAppointments = useMemo(() => appointmentRows.filter((appointment) => (
+    appointment.scheduleDay >= gridDays[0].key && appointment.scheduleDay <= weekEnd
+  )), [appointmentRows, gridDays, weekEnd]);
+  const typeOptions = useMemo(() => Array.from(new Set(weekAppointments.map((appointment) => appointment.appointmentType ?? 'CONSULT'))).sort(), [weekAppointments]);
+  const locationOptions = useMemo(() => Array.from(new Set(weekAppointments.map((appointment) => appointment.location))).sort(), [weekAppointments]);
+  const filteredAppointments = useMemo(() => weekAppointments.filter((appointment) => {
+    const dayMatches = selectedDay === 'all' || appointment.scheduleDay === selectedDay;
+    const typeMatches = selectedType === 'all' || (appointment.appointmentType ?? 'CONSULT') === selectedType;
+    const locationMatches = selectedLocation === 'all' || appointment.location === selectedLocation;
+    return dayMatches && typeMatches && locationMatches;
+  }), [selectedDay, selectedLocation, selectedType, weekAppointments]);
+  const selectedAppointment = filteredAppointments.find((appointment) => appointment.id === selectedAppointmentId) ?? filteredAppointments[0];
+  const selectedWorkflowStep = workflowSteps.find((step) => step.id === selectedAppointment?.linkedWorkflowStepId);
+  const treatments = weekAppointments.filter((appointment) => appointment.appointmentType === 'TREATMENT_FRACTION').length;
+  const simulations = weekAppointments.filter((appointment) => appointment.appointmentType === 'SIMULATION' || appointment.appointmentType === 'MAPPING').length;
+  const providers = new Set(weekAppointments.map((appointment) => appointment.staff)).size;
 
-  const typeOptions = useMemo(() => {
-    return Array.from(new Set(appointmentRows.map((appointment) => appointment.appointmentType ?? 'CAREPATH_VISIT'))).sort();
-  }, [appointmentRows]);
+  const selectOperationalToday = () => {
+    setSelectedDate(PROTOTYPE_OPERATIONAL_DATE);
+    setSelectedDay(PROTOTYPE_OPERATIONAL_DATE);
+  };
 
-  const locationOptions = useMemo(() => {
-    return Array.from(new Set(appointmentRows.map((appointment) => appointment.location))).sort();
-  }, [appointmentRows]);
-
-  const filteredAppointments = useMemo(() => {
-    return appointmentRows.filter((appointment) => {
-      const dayMatches = selectedDay === 'all' || appointment.scheduleDay === selectedDay;
-      const typeMatches = selectedType === 'all' || (appointment.appointmentType ?? 'CAREPATH_VISIT') === selectedType;
-      const locationMatches = selectedLocation === 'all' || appointment.location === selectedLocation;
-      return dayMatches && typeMatches && locationMatches;
+  const openLinkedWork = () => {
+    if (!selectedAppointment?.linkedWorkflowStepId) return;
+    const workspaceTab = selectedWorkflowStep?.phase === 'ON_TREATMENT'
+      ? 'treatment'
+      : selectedWorkflowStep && ['POST_TX', 'AUDIT', 'CLOSED'].includes(selectedWorkflowStep.phase)
+        ? 'record-closeout'
+        : 'prepare';
+    const params = new URLSearchParams({
+      tab: workspaceTab,
+      targetKind: 'step',
+      targetId: selectedAppointment.linkedWorkflowStepId,
     });
-  }, [appointmentRows, selectedDay, selectedLocation, selectedType]);
-
-  const selectedAppointment = appointmentRows.find((appointment) => appointment.id === selectedAppointmentId) ?? filteredAppointments[0] ?? appointmentRows[0];
-  const treatments = appointmentRows.filter((appointment) => appointment.appointmentType === 'TREATMENT_FRACTION').length;
-  const simulations = appointmentRows.filter((appointment) => appointment.appointmentType === 'SIMULATION' || appointment.appointmentType === 'MAPPING').length;
-  const providers = new Set(appointmentRows.map((appointment) => appointment.staff)).size;
+    router.push(`/patients/${encodeURIComponent(selectedAppointment.patientRef)}?${params.toString()}`);
+  };
 
   return (
     <PageStack className="scrollbar-soft overflow-y-auto pb-1 pr-1">
       <PageHeader
         title="Schedule"
-        subtitle="Appointment calendar, staff lanes, and workflow-linked timing"
-        actions={
+        subtitle="Appointments, staff lanes, and workflow-linked timing"
+        actions={(
           <>
-            <PrototypeActionButton label="Today" icon="calendar" kind="schedule" description="Jump the demo schedule back to the current clinical day." />
-            <PrototypeActionButton label="May 6, 2026" icon="calendar" kind="schedule" description="Review or stage the visible schedule date." />
+            <Button type="button" variant="secondary" onClick={selectOperationalToday}>
+              <CalendarDays className="h-4 w-4" aria-hidden="true" />
+              Go to Today
+            </Button>
+            <label className="min-w-[150px]">
+              <span className="sr-only">Schedule Date</span>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => {
+                  setSelectedDate(event.target.value || PROTOTYPE_OPERATIONAL_DATE);
+                  setSelectedDay('all');
+                }}
+                aria-label="Schedule Date"
+              />
+            </label>
             <PrototypeActionButton label="New Appointment" icon="plus" kind="schedule" variant="primary" description="Stage an appointment linked to workflow timing." />
           </>
-        }
+        )}
       />
 
       <StatGrid>
-        <StatCard icon={CalendarDays} label="Total" value={appointmentRows.length} sub="Appointments" />
-        <StatCard icon={CheckCircle2} label="Treatments" value={treatments} sub="Fractions" tone="success" />
-        <StatCard icon={Clock3} label="Simulations" value={simulations} sub="Mapping/sim" tone="warning" />
-        <StatCard icon={UsersRound} label="Providers" value={providers} sub="On schedule" tone="primary" />
+        <StatCard icon={CalendarDays} label="Total" value={weekAppointments.length} sub="Appointments" />
+        <StatCard icon={CheckCircle2} label="Treatments" value={treatments} sub="Fractions" tone="neutral" />
+        <StatCard icon={Clock3} label="Simulations" value={simulations} sub="Mapping/sim" tone="neutral" />
+        <StatCard icon={UsersRound} label="Providers" value={providers} sub="On schedule" tone="neutral" />
       </StatGrid>
 
       <Card compact>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex min-w-[180px] items-center gap-2 text-xs font-bold uppercase text-[var(--color-text-muted)]">
+          <div className="flex min-w-[180px] items-center gap-2 type-label text-[var(--color-text-muted)]">
             <Filter className="h-4 w-4 text-[var(--color-primary)]" aria-hidden="true" />
             Schedule Controls
           </div>
           <div className="min-w-[150px] flex-1">
-            <Select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Schedule day">
-              {days.map((day) => (
-                <option key={day.key} value={day.key}>{day.label}</option>
-              ))}
+            <Select value={selectedDay} onChange={(event) => setSelectedDay(event.target.value)} aria-label="Schedule Day">
+              <option value="all">All Week</option>
+              {gridDays.map((day) => <option key={day.key} value={day.key}>{day.label}</option>)}
             </Select>
           </div>
           <div className="min-w-[180px] flex-1">
-            <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} aria-label="Appointment type">
-              <option value="all">All visit types</option>
-              {typeOptions.map((type) => (
-                <option key={type} value={type}>{appointmentTypeLabel(type)}</option>
-              ))}
+            <Select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} aria-label="Appointment Type">
+              <option value="all">All Visit Types</option>
+              {typeOptions.map((type) => <option key={type} value={type}>{formatUiLabel(type)}</option>)}
             </Select>
           </div>
           <div className="min-w-[180px] flex-1">
             <Select value={selectedLocation} onChange={(event) => setSelectedLocation(event.target.value)} aria-label="Location">
-              <option value="all">All locations</option>
-              {locationOptions.map((location) => (
-                <option key={location} value={location}>{location}</option>
-              ))}
+              <option value="all">All Locations</option>
+              {locationOptions.map((location) => <option key={location} value={location}>{location}</option>)}
             </Select>
           </div>
         </div>
@@ -151,18 +198,16 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
         <Card className="min-h-[280px]">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-heading text-base font-bold text-[var(--color-text)]">Upcoming Appointments</h2>
-              <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
-                {filteredAppointments.length} visible after filters
-              </p>
+              <h2 className="type-heading text-[var(--color-text)]">Upcoming Appointments</h2>
+              <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{filteredAppointments.length} visible after filters</p>
             </div>
-            <Badge variant="primary">Next 7 days</Badge>
+            <Badge variant="neutral">Visible Week</Badge>
           </div>
           <ScrollArea axis="x" className="-mx-1 px-1 pb-1">
             <div className="flex min-w-max gap-3">
               {filteredAppointments.length === 0 ? (
-                <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 text-sm font-semibold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
-                  No appointments match the active filters.
+                <div className="min-w-[260px] rounded-[var(--radius-md)] border p-4 type-body text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+                  No appointments match the active week and filters.
                 </div>
               ) : filteredAppointments.map((appointment) => (
                 <button
@@ -175,12 +220,12 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                     background: appointment.id === selectedAppointment?.id ? 'var(--color-primary-soft)' : 'var(--color-hover)',
                   }}
                 >
-                  <p className="text-[11px] font-bold text-[var(--color-primary)]">{appointment.time}</p>
-                  <p className="mt-2 truncate text-sm font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
-                  <p className="truncate text-xs font-semibold text-[var(--color-text-muted)]">{appointment.title}</p>
+                  <p className="type-supporting text-[var(--color-primary)]">{dayLabel(parseDate(appointment.scheduleDay))} · {appointment.time}</p>
+                  <p className="mt-2 truncate type-body text-[var(--color-text)]">{appointment.displayLabel}</p>
+                  <p className="truncate type-supporting text-[var(--color-text-muted)]">{appointment.title}</p>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    <Badge variant={mapTone(statusTone(appointment.status))}>{statusLabel(appointment.status)}</Badge>
-                    <Badge variant="default">{appointmentTypeLabel(appointment.appointmentType)}</Badge>
+                    <Badge variant={statusTone(appointment.status ?? 'SCHEDULED')}>{formatUiLabel(appointment.status ?? 'SCHEDULED')}</Badge>
+                    <Badge variant="neutral">{formatUiLabel(appointment.appointmentType ?? 'CONSULT')}</Badge>
                   </div>
                 </button>
               ))}
@@ -192,17 +237,15 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="clinical-label">Selected Visit</p>
-              <h2 className="mt-1 truncate font-heading text-lg font-bold text-[var(--color-text)]">
-                {selectedAppointment?.title ?? 'No appointment selected'}
-              </h2>
+              <h2 className="mt-1 truncate type-heading text-[var(--color-text)]">{selectedAppointment?.title ?? 'No appointment selected'}</h2>
             </div>
-            {selectedAppointment ? <Badge variant={mapTone(statusTone(selectedAppointment.status))}>{statusLabel(selectedAppointment.status)}</Badge> : null}
+            {selectedAppointment ? <Badge variant={statusTone(selectedAppointment.status ?? 'SCHEDULED')}>{formatUiLabel(selectedAppointment.status ?? 'SCHEDULED')}</Badge> : null}
           </div>
           {selectedAppointment ? (
             <div className="mt-4 grid gap-3">
               {[
-                { icon: UserRound, label: 'Patient / course', value: selectedAppointment.displayLabel },
-                { icon: CalendarDays, label: 'Time', value: selectedAppointment.time },
+                { icon: UserRound, label: 'Patient / Course', value: `${selectedAppointment.displayLabel}${selectedAppointment.courseId ? ` / ${selectedAppointment.courseId}` : ''}` },
+                { icon: CalendarDays, label: 'Date and Time', value: `${dayLabel(parseDate(selectedAppointment.scheduleDay), true)} at ${selectedAppointment.time}` },
                 { icon: MapPin, label: 'Location', value: selectedAppointment.location },
                 { icon: UsersRound, label: 'Staff', value: selectedAppointment.staff },
               ].map((item) => {
@@ -214,44 +257,54 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                     </span>
                     <span className="min-w-0">
                       <span className="clinical-label block">{item.label}</span>
-                      <span className="mt-1 block truncate text-sm font-bold text-[var(--color-text)]">{item.value}</span>
+                      <span className="mt-1 block truncate type-body text-[var(--color-text)]">{item.value}</span>
                     </span>
                   </div>
                 );
               })}
-              <PrototypeActionButton
-                label="Update Visit"
-                icon="pen"
-                kind="schedule"
-                variant="primary"
-                description="Stage a visit update, reschedule reason, or workflow timing note."
-                context={`${selectedAppointment.displayLabel} / ${selectedAppointment.time}`}
-              />
+              {selectedWorkflowStep ? (
+                <div className="clinical-muted-surface flex items-center justify-between gap-3 p-3">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-card)] text-[var(--color-primary)]">
+                      <Link2 className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="clinical-label block">Linked Work</span>
+                      <span className="mt-1 block truncate type-body text-[var(--color-text)]">{selectedWorkflowStep.stepName}</span>
+                    </span>
+                  </span>
+                  <Badge variant={statusTone(selectedWorkflowStep.status)}>{formatUiLabel(selectedWorkflowStep.status)}</Badge>
+                </div>
+              ) : null}
+              {selectedWorkflowStep ? (
+                <Button type="button" variant="primary" onClick={openLinkedWork}>
+                  Open Linked Work
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              ) : null}
             </div>
           ) : (
-            <p className="mt-4 text-sm font-semibold text-[var(--color-text-muted)]">Select a visible appointment to review details.</p>
+            <p className="mt-4 type-body text-[var(--color-text-muted)]">Select a visible appointment to review details.</p>
           )}
         </Card>
       </div>
 
       <Card className="min-h-[720px] min-w-0 overflow-hidden" style={{ padding: '0' }}>
         <div className="p-4" style={{ borderBottom: '1px solid var(--color-border-soft)' }}>
-          <h2 className="font-heading text-base font-bold text-[var(--color-text)]">May 4 - May 10, 2026</h2>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-text-muted)]">
-            Filtered weekly calendar with workflow-linked appointment blocks.
-          </p>
+          <h2 className="type-heading text-[var(--color-text)]">{rangeLabel(weekStart)}</h2>
+          <p className="mt-1 type-body text-[var(--color-text-muted)]">Weekly calendar with workflow-linked appointment blocks.</p>
         </div>
         <ScrollArea axis="both" className="max-h-[calc(100dvh-96px)]">
           <div className="grid min-w-[1080px] grid-cols-[64px_repeat(7,minmax(144px,1fr))] border-t" style={{ borderColor: 'var(--color-border-soft)' }}>
-            <div className="p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
+            <div className="p-2 type-supporting text-[var(--color-text-muted)]" style={{ background: 'var(--color-hover)' }}>PDT</div>
             {gridDays.map((day) => (
-              <div key={day.key} className="border-l p-2 text-center text-xs font-bold text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
+              <div key={day.key} className="border-l p-2 text-center type-supporting text-[var(--color-text)]" style={{ borderColor: 'var(--color-border-soft)', background: 'var(--color-hover)' }}>
                 {day.label}
               </div>
             ))}
             {hours.map((hour, row) => (
               <div key={hour} className="contents">
-                <div className="border-t p-2 text-xs font-bold text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
+                <div className="border-t p-2 type-supporting text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-soft)' }}>{hour}</div>
                 {gridDays.map((day) => {
                   const dayAppointments = filteredAppointments.filter((appointment) => appointment.scheduleDay === day.key && hourIndex(appointment.time) === row);
                   return (
@@ -264,15 +317,13 @@ export function ScheduleCommandClient({ appointments }: ScheduleCommandClientPro
                             onClick={() => setSelectedAppointmentId(appointment.id)}
                             className="clinical-focus rounded-[var(--radius-md)] border p-2 text-left"
                             style={{
-                              background: appointment.appointmentType === 'TREATMENT_FRACTION'
-                                ? 'color-mix(in srgb, var(--color-success) 8%, var(--color-card))'
-                                : 'color-mix(in srgb, var(--color-info) 8%, var(--color-card))',
+                              background: appointment.appointmentType === 'TREATMENT_FRACTION' ? 'var(--status-positive-surface)' : 'var(--status-neutral-surface)',
                               borderColor: appointment.id === selectedAppointment?.id ? 'var(--color-primary)' : 'var(--color-border-soft)',
                             }}
                           >
-                            <p className="truncate text-xs font-bold text-[var(--color-text)]">{appointment.displayLabel}</p>
-                            <p className="mt-1 truncate text-[11px] font-bold text-[var(--color-primary)]">{appointment.title}</p>
-                            <p className="mt-1 truncate text-[11px] font-semibold text-[var(--color-text-muted)]">{appointment.time}</p>
+                            <p className="truncate type-supporting text-[var(--color-text)]">{appointment.displayLabel}</p>
+                            <p className="mt-1 truncate type-supporting text-[var(--color-primary)]">{appointment.title}</p>
+                            <p className="mt-1 truncate type-supporting text-[var(--color-text-muted)]">{appointment.time}</p>
                           </button>
                         ))}
                       </div>

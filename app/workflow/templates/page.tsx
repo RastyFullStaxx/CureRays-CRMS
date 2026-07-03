@@ -11,11 +11,8 @@ import {
   templateSources,
   workflowDefinitions,
 } from '@/lib/services/operational-page-service';
+import { formatUiLabel } from '@/lib/ui-copy';
 import { carepathPhaseLabels } from '@/lib/workflow';
-
-function label(value: string | undefined) {
-  return value ? value.replace(/_/g, ' ') : 'Not set';
-}
 
 function sourceCoverageLabel(requirements: WorkflowTemplateRequirementRow[]) {
   const missing = requirements.filter((requirement) => requirement.sourceStatus === 'Missing source').length;
@@ -39,12 +36,12 @@ export default function WorkflowTemplatesPage() {
         .map((workflow) => workflow.id),
       requirement: requirement.name,
       phase: carepathPhaseLabels[requirement.workflowPhase],
-      owner: label(requirement.responsibleParty),
-      reviewer: label(requirement.reviewerRole),
+      owner: formatUiLabel(requirement.responsibleParty),
+      reviewer: requirement.reviewerRole ? formatUiLabel(requirement.reviewerRole) : 'Not Set',
       source: source?.name ?? 'No mapped source',
-      sourceStatus: source ? label(source.status) : 'Missing source',
-      fieldMap: fieldMap ? label(fieldMap.status) : 'Missing field map',
-      readiness: readiness.readyForPilot ? 'Pilot ready' : label(requirement.generationReadiness ?? requirement.pilotScope),
+      sourceStatus: source ? formatUiLabel(source.status) : 'Missing Source',
+      fieldMap: fieldMap ? formatUiLabel(fieldMap.status) : 'Missing Field Map',
+      readiness: readiness.readyForPilot ? 'Pilot Ready' : formatUiLabel(requirement.generationReadiness ?? requirement.pilotScope),
       action: requirement.requiredAction,
       outputs: requirement.outputFormats.join(', '),
       cpt: requirement.cptCode ?? 'Not CPT linked',
@@ -59,9 +56,9 @@ export default function WorkflowTemplatesPage() {
     return {
       id: workflow.id,
       name: workflow.name,
-      diagnosis: label(workflow.diagnosis),
+      diagnosis: formatUiLabel(workflow.diagnosis),
       protocol: workflow.protocol,
-      status: label(workflow.status),
+      status: formatUiLabel(workflow.status),
       phases: workflow.phases.map((phase) => carepathPhaseLabels[phase]),
       totalRequirements: linkedRequirements.length,
       pilotReady: linkedRequirements.filter((requirement) => requirement.readiness === 'Pilot ready').length,

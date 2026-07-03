@@ -69,13 +69,12 @@ type IgsrtCommandClientProps = {
   gates: IgsrtGateRow[];
 };
 
-function toneFor(value: string): 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary' {
+function toneFor(value: string) {
   const normalized = value.toLowerCase();
-  if (normalized.includes('clear') || normalized.includes('signed') || normalized.includes('ready') || normalized.includes('complete') || normalized.includes('yes')) return 'success';
-  if (normalized.includes('due') || normalized.includes('required') || normalized.includes('review') || normalized.includes('pending') || normalized.includes('missing')) return 'warning';
-  if (normalized.includes('blocked') || normalized.includes('void') || normalized.includes('no')) return 'error';
-  if (normalized.includes('scheduled') || normalized.includes('active')) return 'primary';
-  return 'default';
+  if (normalized.includes('clear') || normalized.includes('signed') || normalized.includes('ready') || normalized.includes('complete') || normalized.includes('yes')) return 'positive' as const;
+  if (normalized.includes('due') || normalized.includes('required') || normalized.includes('review') || normalized.includes('pending')) return 'intermediate' as const;
+  if (normalized.includes('blocked') || normalized.includes('void') || normalized.includes('missing') || normalized.includes('no')) return 'negative' as const;
+  return 'neutral' as const;
 }
 
 export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandClientProps) {
@@ -121,8 +120,8 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         <StatCard icon={ClipboardCheck} label="Simulation" value={summary.simulationStatus} sub={summary.simulationSigned} tone={toneFor(summary.simulationStatus)} />
         <StatCard icon={ShieldCheck} label="Prescription" value={summary.prescriptionStatus} sub={summary.prescriptionSigned} tone={toneFor(summary.prescriptionStatus)} />
         <StatCard icon={CalendarDays} label="Schedule" value={`${summary.scheduledFractions}/${summary.plannedFractions}`} sub={summary.scheduleStatus} tone={toneFor(summary.scheduleStatus)} />
-        <StatCard icon={FileText} label="Documents" value={`${readyDocuments}/${documents.length}`} sub="Audit ready" tone={readyDocuments === documents.length ? 'success' : 'warning'} />
-        <StatCard icon={CheckCircle2} label="Gates" value={blockedGates ? `${blockedGates} open` : 'Clear'} sub={summary.clinicalValidationStatus} tone={blockedGates ? 'warning' : 'success'} />
+        <StatCard icon={FileText} label="Documents" value={`${readyDocuments}/${documents.length}`} sub="Audit ready" tone={readyDocuments === documents.length ? 'positive' : 'intermediate'} />
+        <StatCard icon={CheckCircle2} label="Gates" value={blockedGates ? `${blockedGates} open` : 'Clear'} sub={summary.clinicalValidationStatus} tone={blockedGates ? 'negative' : 'positive'} />
       </StatGrid>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
@@ -130,8 +129,8 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Selected Course</p>
-              <h2 className="mt-1 font-heading text-lg font-bold text-[var(--color-text)]">{summary.patientRef} / {summary.courseRef}</h2>
-              <p className="mt-2 text-sm font-semibold text-[var(--color-text-muted)]">
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">{summary.patientRef} / {summary.courseRef}</h2>
+              <p className="mt-2 type-body text-[var(--color-text-muted)]">
                 {summary.diagnosis} / {summary.site} / {summary.laterality}
               </p>
             </div>
@@ -149,7 +148,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             </div>
             <div className="clinical-muted-surface p-3">
               <p className="clinical-label">Recorded Fractions</p>
-              <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{summary.recordedFractions}</p>
+              <p className="mt-2 type-body text-[var(--color-text)]">{summary.recordedFractions}</p>
             </div>
             <div className="clinical-muted-surface p-3">
               <p className="clinical-label">Clinical Validation</p>
@@ -161,9 +160,9 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             <p className="clinical-label">Missing Inputs</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {summary.missingInputs.length ? summary.missingInputs.map((input) => (
-                <Badge key={input} variant="warning">{input}</Badge>
+                <Badge key={input} variant="intermediate">{input}</Badge>
               )) : (
-                <Badge variant="success">Core inputs present</Badge>
+                <Badge variant="positive">Core inputs present</Badge>
               )}
             </div>
           </div>
@@ -173,9 +172,9 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Review Staging</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">IGSRT readiness decision</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">IGSRT Readiness Decision</h2>
             </div>
-            <Badge variant="info">Prototype only</Badge>
+            <Badge variant="neutral">Prototype Only</Badge>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-[220px_minmax(0,1fr)_auto]">
             <label className="grid gap-1">
@@ -201,12 +200,12 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="mt-4 grid gap-2">
             {ledger.length ? ledger.map((record) => (
               <div key={record.id} className="grid gap-2 rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 md:grid-cols-[150px_190px_minmax(0,1fr)]">
-                <span className="text-xs font-bold text-[var(--color-primary)]">{record.id}</span>
+                <span className="type-supporting text-[var(--color-text-muted)]">{record.id}</span>
                 <Badge variant={toneFor(record.disposition)}>{record.disposition}</Badge>
-                <span className="truncate text-sm font-semibold text-[var(--color-text-muted)]">{record.note}</span>
+                <span className="truncate type-body text-[var(--color-text-muted)]">{record.note}</span>
               </div>
             )) : (
-              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 text-sm font-semibold text-[var(--color-text-muted)]">
+              <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3 type-body text-[var(--color-text-muted)]">
                 No IGSRT review decisions have been staged in this demo session.
               </div>
             )}
@@ -219,7 +218,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="clinical-label">Selected Gate</p>
-              <h2 className="mt-1 font-heading text-base font-bold text-[var(--color-text)]">{selectedGate?.gate ?? 'No gate selected'}</h2>
+              <h2 className="mt-1 type-heading text-[var(--color-text)]">{selectedGate?.gate ?? 'No gate selected'}</h2>
             </div>
             {selectedGate ? <Badge variant={toneFor(selectedGate.status)}>{selectedGate.status}</Badge> : null}
           </div>
@@ -227,21 +226,21 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             <div className="grid gap-3">
               <div className="clinical-muted-surface p-3">
                 <p className="clinical-label">Detail</p>
-                <p className="mt-2 text-sm font-semibold leading-5 text-[var(--color-text)]">{selectedGate.detail}</p>
+                <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.detail}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                   <p className="clinical-label">Due Fractions</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selectedGate.dueFractions}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.dueFractions}</p>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg)] p-3">
                   <p className="clinical-label">Evidence</p>
-                  <p className="mt-2 text-sm font-bold text-[var(--color-text)]">{selectedGate.evidence}</p>
+                  <p className="mt-2 type-body text-[var(--color-text)]">{selectedGate.evidence}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm font-semibold text-[var(--color-text-muted)]">No gate information is available.</p>
+            <p className="type-body text-[var(--color-text-muted)]">No gate information is available.</p>
           )}
         </Card>
 
@@ -249,7 +248,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
           keyField="id"
           className="min-h-[380px]"
           columns={[
-            { key: 'gate', label: 'Gate', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.gate}</span> },
+            { key: 'gate', label: 'Gate', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.gate}</span> },
             { key: 'status', label: 'Status', render: (row) => <Badge variant={toneFor(row.status)}>{row.status}</Badge> },
             { key: 'detail', label: 'Detail' },
             { key: 'dueFractions', label: 'Due Fx' },
@@ -272,7 +271,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         keyField="id"
         className="min-h-[430px]"
         columns={[
-          { key: 'name', label: 'Generated Document', render: (row) => <span className="font-bold text-[var(--color-text)]">{row.name}</span> },
+          { key: 'name', label: 'Generated Document', render: (row) => <span className="type-medium text-[var(--color-text)]">{row.name}</span> },
           { key: 'phase', label: 'Phase' },
           { key: 'owner', label: 'Owner' },
           { key: 'status', label: 'Status', render: (row) => <Badge variant={toneFor(row.status)}>{row.status}</Badge> },
@@ -286,7 +285,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         toolbarPrefix={
           <div className="min-w-[240px]">
             <p className="clinical-label">IGSRT Document Evidence</p>
-            <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">Simulation, prescription, fraction log, treatment summary, and audit note readiness.</p>
+            <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Simulation, prescription, fraction log, treatment summary, and audit note readiness.</p>
           </div>
         }
         toolbarActions={<PrototypeActionButton label="Render Missing Docs" icon="refresh" kind="document" size="sm" description="Stage simulated rendering for documents that still need output." />}

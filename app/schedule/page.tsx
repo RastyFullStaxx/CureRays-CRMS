@@ -4,5 +4,10 @@ import { ScheduleCommandClient } from '@/components/schedule/schedule-command-cl
 import { moduleSnapshot } from '@/lib/services/operational-page-service';
 
 export default function SchedulePage() {
-  return <ScheduleCommandClient appointments={moduleSnapshot.appointments} />;
+  return (
+    <ScheduleCommandClient
+      appointments={moduleSnapshot.appointments}
+      workflowSteps={moduleSnapshot.workflowSteps}
+    />
+  );
 }

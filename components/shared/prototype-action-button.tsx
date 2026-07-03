@@ -54,6 +54,9 @@ type PrototypeActionButtonProps = {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'default' | 'sm';
   className?: string;
+  onComplete?: (details: { notes: string }) => Promise<void> | void;
+  requireNotes?: boolean;
+  successMessage?: string;
 };
 
 const icons = {
@@ -116,24 +119,43 @@ export function PrototypeActionButton({
   variant = 'secondary',
   size = 'default',
   className,
+  onComplete,
+  requireNotes = false,
+  successMessage,
 }: PrototypeActionButtonProps) {
   const [open, setOpen] = useState(false);
   const [complete, setComplete] = useState(false);
-  const [fileName, setFileName] = useState('');
   const [reference, setReference] = useState('');
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const Icon = icons[icon];
   const copy = kindCopy[kind];
   const actionTitle = title ?? defaultTitle(label);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setComplete(true);
+    if (requireNotes && !notes.trim()) {
+      setError('Add a reason before completing this action.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      await onComplete?.({ notes: notes.trim() });
+      setComplete(true);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'The action could not be completed.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function close() {
     setOpen(false);
     setComplete(false);
-    setFileName('');
+    setNotes('');
+    setError('');
   }
 
   function openAction() {
@@ -149,15 +171,15 @@ export function PrototypeActionButton({
       </Button>
       <Modal open={open} onClose={close} title={actionTitle} width={680}>
         {complete ? (
-          <div className="grid gap-4">
+          <div className="grid gap-4" role="status" aria-live="polite">
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-4">
               <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--color-success-soft)] text-[var(--color-success)]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-md)] bg-[var(--status-positive-surface)] text-[var(--status-positive-text)]">
                   <CheckCircle2 className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-[var(--color-text)]">{copy.complete}</p>
-                  <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">
+                  <p className="type-body text-[var(--color-text)]">{successMessage ?? copy.complete}</p>
+                  <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
                     Reference {reference}. This prototype action does not persist PHI or write external files.
                   </p>
                 </div>
@@ -170,16 +192,16 @@ export function PrototypeActionButton({
         ) : (
           <form className="grid gap-4" onSubmit={submit}>
             <div className="rounded-[var(--radius-md)] border border-[var(--color-border-soft)] bg-[var(--color-bg-elevated)] p-3">
-              <p className="text-sm font-bold text-[var(--color-text)]">{description ?? 'Complete this demo workflow with locally staged prototype state.'}</p>
+              <p className="type-body text-[var(--color-text)]">{description ?? 'Complete this demo workflow with locally staged prototype state.'}</p>
               {context ? (
-                <p className="mt-1 text-xs font-semibold text-[var(--color-text-muted)]">{context}</p>
+                <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{context}</p>
               ) : null}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               {kind === 'export' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Export format
                     <Select defaultValue="PDF summary">
                       <option>PDF summary</option>
@@ -187,7 +209,7 @@ export function PrototypeActionButton({
                       <option>Audit evidence packet</option>
                     </Select>
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Redaction profile
                     <Select defaultValue="Tokenized operational export">
                       <option>Tokenized operational export</option>
@@ -200,11 +222,11 @@ export function PrototypeActionButton({
 
               {kind === 'upload' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     File
-                    <Input type="file" onChange={(event) => setFileName(event.target.files?.[0]?.name ?? '')} />
+                    <Input type="file" />
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Category
                     <Select defaultValue="Course evidence">
                       <option>Course evidence</option>
@@ -218,11 +240,11 @@ export function PrototypeActionButton({
 
               {kind === 'schedule' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Date
                     <Input type="date" defaultValue="2026-05-06" />
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Appointment type
                     <Select defaultValue="Treatment fraction">
                       <option>Treatment fraction</option>
@@ -236,7 +258,7 @@ export function PrototypeActionButton({
 
               {kind === 'document' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Template family
                     <Select defaultValue="Carepath / Preauth / Audit">
                       <option>Carepath / Preauth / Audit</option>
@@ -246,7 +268,7 @@ export function PrototypeActionButton({
                       <option>Treatment summary</option>
                     </Select>
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Next state
                     <Select defaultValue="Ready for review">
                       <option>Ready for review</option>
@@ -260,7 +282,7 @@ export function PrototypeActionButton({
 
               {kind === 'review' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Review status
                     <Select defaultValue="Ready for review">
                       <option>Ready for review</option>
@@ -269,7 +291,7 @@ export function PrototypeActionButton({
                       <option>Not applicable</option>
                     </Select>
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Owner
                     <Select defaultValue="Rad Onc">
                       <option>Rad Onc</option>
@@ -284,11 +306,11 @@ export function PrototypeActionButton({
 
               {kind === 'create' || kind === 'settings' ? (
                 <>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Name
                     <Input defaultValue={actionTitle} />
                   </label>
-                  <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)]">
+                  <label className="grid gap-1 type-supporting text-[var(--color-text-muted)]">
                     Owner
                     <Select defaultValue="Admin">
                       <option>Admin</option>
@@ -301,19 +323,22 @@ export function PrototypeActionButton({
                 </>
               ) : null}
 
-              <label className="grid gap-1 text-xs font-bold text-[var(--color-text-muted)] sm:col-span-2">
-                Notes
+              <label className="grid gap-1 type-supporting text-[var(--color-text-muted)] sm:col-span-2">
+                {requireNotes ? 'Reason (required)' : 'Notes'}
                 <Textarea
                   rows={3}
-                  defaultValue={fileName ? `Selected file: ${fileName}` : ''}
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
                   placeholder="Add PHI-safe demo notes for this action."
                 />
               </label>
             </div>
 
+            {error ? <p role="alert" className="type-meta text-[var(--status-negative-text)]">{error}</p> : null}
+
             <div className="flex flex-wrap justify-end gap-2">
               <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
-              <Button type="submit">{copy.primary}</Button>
+              <Button type="submit" disabled={submitting}>{submitting ? 'Saving…' : copy.primary}</Button>
             </div>
           </form>
         )}

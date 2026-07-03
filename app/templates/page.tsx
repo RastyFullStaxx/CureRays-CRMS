@@ -15,11 +15,8 @@ import {
   templateSources,
 } from '@/lib/services/operational-page-service';
 import { verifyTemplateSourceHashes } from '@/lib/server/template-registry-verification';
+import { formatUiLabel } from '@/lib/ui-copy';
 import { carepathPhaseLabels, responsiblePartyLabels } from '@/lib/workflow';
-
-function label(value: string | undefined) {
-  return value ? value.replaceAll('_', ' ') : 'Pending';
-}
 
 export default function TemplatesPage() {
   const hashVerification = verifyTemplateSourceHashes();
@@ -47,12 +44,12 @@ export default function TemplatesPage() {
       id: source.id,
       name: source.name,
       fileType: source.mimeType,
-      registryStatus: label(source.status),
-      approval: label(source.approvalStatus),
-      hash: label(hash?.status),
+      registryStatus: formatUiLabel(source.status),
+      approval: formatUiLabel(source.approvalStatus),
+      hash: hash?.status ? formatUiLabel(hash.status) : 'Pending',
       requirements: `${linkedRequirements.length}`,
       fieldMaps: `${linkedFieldMaps.length}`,
-      disposition: placeholder ? label(placeholder.disposition) : source.approvedForPilot ? 'Pilot approved' : 'Mapping review',
+      disposition: placeholder ? formatUiLabel(placeholder.disposition) : source.approvedForPilot ? 'Pilot Approved' : 'Mapping Review',
       sourcePath: source.sourceFileName,
     };
   });
@@ -61,10 +58,10 @@ export default function TemplatesPage() {
     const readiness = readinessForRequirement(requirement);
     const fieldMap = fieldMapForRequirement(requirement);
     const applicability = [
-      label(requirement.applicability.diagnosis),
+      formatUiLabel(requirement.applicability.diagnosis),
       requirement.applicability.protocol,
       requirement.applicability.bodyRegion,
-      requirement.applicability.laterality ? `Laterality ${label(requirement.applicability.laterality)}` : undefined,
+      requirement.applicability.laterality ? `Laterality ${formatUiLabel(requirement.applicability.laterality)}` : undefined,
     ].filter(Boolean).join(' / ');
 
     return {
@@ -75,16 +72,16 @@ export default function TemplatesPage() {
       responsible: responsiblePartyLabels[requirement.responsibleParty],
       reviewer: requirement.reviewerRole ? responsiblePartyLabels[requirement.reviewerRole] : 'Pending',
       applicability,
-      cpt: requirement.cptCode ?? label(requirement.cptRelevance),
-      fieldMap: fieldMap ? label(fieldMap.status) : 'Missing',
-      readiness: readiness.readyForPilot ? 'Ready for pilot' : label(readiness.generationReadiness),
+      cpt: requirement.cptCode ?? formatUiLabel(requirement.cptRelevance),
+      fieldMap: fieldMap ? formatUiLabel(fieldMap.status) : 'Missing',
+      readiness: readiness.readyForPilot ? 'Ready for Pilot' : formatUiLabel(readiness.generationReadiness),
     };
   });
 
   const placeholders: TemplatePlaceholderRow[] = templateRegistryPlaceholders.map((placeholder) => ({
     id: placeholder.id,
-    kind: label(placeholder.kind),
-    disposition: label(placeholder.disposition),
+    kind: formatUiLabel(placeholder.kind),
+    disposition: formatUiLabel(placeholder.disposition),
     notes: placeholder.notes,
   }));
 

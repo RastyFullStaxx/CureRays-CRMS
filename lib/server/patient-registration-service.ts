@@ -121,6 +121,16 @@ class PatientPersistenceWriteError extends Error {
   }
 }
 
+class PatientMutationStateError extends Error {
+  public readonly reasons: string[];
+
+  constructor(message: string, reasons: string[]) {
+    super(message);
+    this.name = "PatientMutationStateError";
+    this.reasons = reasons;
+  }
+}
+
 function safeText(value: string | null | undefined) {
   return String(value ?? "").trim();
 }
@@ -786,8 +796,7 @@ async function persistMutationResult(result: PatientCourseMutationResult) {
   } catch {
     throw new PatientPersistenceWriteError();
   } finally {
-    await ops.$disconnect();
-    await phi.$disconnect();
+    await Promise.allSettled([ops.$disconnect(), phi.$disconnect()]);
   }
 }
 
@@ -932,6 +941,14 @@ function safeFailure<T>(error: unknown): PatientServiceResponse<T> {
     ]);
   }
 
+  if (error instanceof PatientMutationStateError) {
+    return failure(500, "Patient workflow bundle could not be validated.", error.reasons);
+  }
+
+  if (error instanceof Error) {
+    return failure(500, "Patient request could not be completed safely.", [error.message]);
+  }
+
   return failure(500, "Patient request could not be completed safely.");
 }
 
@@ -940,19 +957,45 @@ function assertPhiAction(context: PatientMutationContext) {
 }
 
 function assertCreatePostConditions(result: PatientCourseMutationResult) {
-  if (
-    !result.course ||
-    !result.auditEvent.redacted ||
-    !result.auditEvent.patientRef ||
-    !result.bundle ||
-    result.bundle.workflowStepCount < 1 ||
-    result.bundle.taskCount < 1 ||
-    result.bundle.documentCount < 1 ||
-    result.bundle.auditCheckCount < 1 ||
-    result.bundle.folderPlaceholderCount < 1 ||
-    result.bundle.historyEntryCount < 1
-  ) {
-    throw new Error("Patient registration post-condition failed.");
+  const reasons: string[] = [];
+
+  if (!result.course) {
+    reasons.push("Course record was not created.");
+  }
+
+  if (!result.auditEvent.redacted) {
+    reasons.push("Audit event redaction marker was not set.");
+  }
+
+  if (!result.auditEvent.patientRef) {
+    reasons.push("Audit event patient reference was not established.");
+  }
+
+  if (!result.bundle) {
+    reasons.push("Workflow bundle payload was not generated.");
+  } else {
+    if (result.bundle.workflowStepCount < 1) {
+      reasons.push("Workflow steps were not generated.");
+    }
+    if (result.bundle.taskCount < 1) {
+      reasons.push("Carepath tasks were not generated.");
+    }
+    if (result.bundle.documentCount < 1) {
+      reasons.push("Required documents were not generated.");
+    }
+    if (result.bundle.auditCheckCount < 1) {
+      reasons.push("Audit checks were not generated.");
+    }
+    if (result.bundle.folderPlaceholderCount < 1) {
+      reasons.push("Folder placeholders were not generated.");
+    }
+    if (result.bundle.historyEntryCount < 1) {
+      reasons.push("Record history was not initialized.");
+    }
+  }
+
+  if (reasons.length > 0) {
+    throw new PatientMutationStateError("Patient registration post-condition failed.", reasons);
   }
 }
 

@@ -21,6 +21,8 @@ import {
 import type { CarepathWorkflowPhase, ResponsibleParty, TemplateSource, WorkflowItemStatus } from "@/lib/types";
 import { roleMatrix } from "@/lib/rbac";
 import { carepathPhaseLabels, responsiblePartyLabels } from "@/lib/workflow";
+import { statusTone as sharedStatusTone, type StatusTone } from "@/lib/status-utils";
+import { formatUiLabel } from "@/lib/ui-copy";
 
 export function patientById(id: string) {
   return operationalPatients().find(
@@ -46,20 +48,15 @@ export function courseById(id: string) {
 }
 
 export function phaseLabel(phase: CarepathWorkflowPhase | string) {
-  return carepathPhaseLabels[phase as CarepathWorkflowPhase] ?? phase.replaceAll("_", " ");
+  return carepathPhaseLabels[phase as CarepathWorkflowPhase] ?? formatUiLabel(phase);
 }
 
 export function statusLabel(status: string) {
-  return status.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return formatUiLabel(status);
 }
 
-export function statusTone(status: string): "blue" | "green" | "orange" | "amber" | "purple" | "slate" | "red" {
-  if (["COMPLETED", "SIGNED", "UPLOADED", "ACTIVE", "READY"].includes(status)) return "green";
-  if (["BLOCKED", "OVERDUE", "MISSING_FIELDS"].includes(status)) return "red";
-  if (["PENDING", "NEEDS_REVIEW"].includes(status)) return "orange";
-  if (["READY_FOR_REVIEW", "IN_PROGRESS", "SCHEDULED"].includes(status)) return "blue";
-  if (["NOT_APPLICABLE", "POST_TX"].includes(status)) return "purple";
-  return "slate";
+export function statusTone(status: string): StatusTone {
+  return sharedStatusTone(status);
 }
 
 export const moduleSnapshot = {

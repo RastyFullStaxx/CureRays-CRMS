@@ -7,7 +7,7 @@ import { DataTable, type DataTableFilter } from '@/components/shared/data-table'
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/workflow';
-import { mapTone } from '@/lib/status-utils';
+import { mapTone, type StatusTone } from '@/lib/status-utils';
 
 type SerializableCell = string | number | boolean | null | undefined | string[];
 export type SerializedTableRow = Record<string, SerializableCell> & { id: string };
@@ -30,7 +30,7 @@ export type SerializedColumn = {
   kind?: 'actions' | 'badge' | 'date' | 'flag' | 'icon' | 'longText' | 'muted' | 'primary' | 'progress' | 'status' | 'text';
   subKey?: string;
   toneKey?: string;
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'primary';
+  variant?: StatusTone;
   width?: string;
   suffix?: string;
   actions?: SerializedAction[];
@@ -84,8 +84,8 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
                 key={action.label}
                 href={href}
                 className={cn(
-                  'clinical-focus inline-flex items-center justify-center rounded-[var(--radius-md)] border font-semibold transition',
-                  action.size === 'default' ? 'h-[var(--height-btn)] px-4 text-sm' : 'h-[var(--height-btn-sm)] px-3 text-xs',
+                  'clinical-focus inline-flex items-center justify-center rounded-[var(--radius-md)] border type-medium transition',
+                  action.size === 'default' ? 'h-[var(--height-btn)] px-4 type-body' : 'h-[var(--height-btn-sm)] px-3 type-supporting',
                   action.variant === 'primary'
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-[var(--color-primary-foreground)] hover:bg-[var(--color-primary-dark)]'
                     : 'border-[var(--color-border)] bg-[var(--color-card)] text-[var(--color-primary)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary-soft)]',
@@ -113,7 +113,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   }
 
   if (column.kind === 'badge') {
-    return <Badge variant={column.variant ?? 'default'}>{text}</Badge>;
+    return <Badge variant={column.variant ?? 'neutral'}>{text}</Badge>;
   }
 
   if (column.kind === 'status') {
@@ -123,8 +123,8 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   if (column.kind === 'primary') {
     return (
       <span className="flex min-w-0 flex-col">
-        <span className="truncate font-bold text-[var(--color-primary)]">{text}</span>
-        {column.subKey ? <span className="truncate text-[11px] text-[var(--color-text-muted)]">{cellText(row[column.subKey])}</span> : null}
+        <span className="truncate type-medium text-[var(--color-primary)]">{text}</span>
+        {column.subKey ? <span className="truncate type-supporting text-[var(--color-text-muted)]">{cellText(row[column.subKey])}</span> : null}
       </span>
     );
   }
@@ -142,7 +142,7 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
   }
 
   if (column.kind === 'flag') {
-    return value ? <Flag className="h-4 w-4 text-[var(--color-error)]" aria-hidden="true" /> : <span className="text-[var(--color-text-muted)]">—</span>;
+    return value ? <Flag className="h-4 w-4 text-[var(--status-negative-text)]" aria-hidden="true" /> : <span className="text-[var(--color-text-muted)]">—</span>;
   }
 
   if (column.kind === 'icon') {
@@ -163,11 +163,11 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
             className="h-full rounded-full"
             style={{
               width: `${clamped}%`,
-              background: clamped > 85 ? 'var(--color-success)' : clamped > 70 ? 'var(--color-warning)' : 'var(--color-error)',
+              background: clamped > 85 ? 'var(--status-positive-solid)' : clamped > 70 ? 'var(--status-intermediate-solid)' : 'var(--status-negative-solid)',
             }}
           />
         </div>
-        <span className="text-xs font-semibold text-[var(--color-text-muted)]">{clamped}%</span>
+        <span className="type-supporting text-[var(--color-text-muted)]">{clamped}%</span>
       </div>
     );
   }

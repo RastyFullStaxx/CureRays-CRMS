@@ -52,8 +52,28 @@ export function requirePhiAction(context: PhiAccessContext | null, action: Param
 
 export function findPatientPhi(patientRefOrId: string, context: PhiAccessContext | null): Patient | null {
   requirePhiAccess(context);
-  const normalized = patientRefOrId.replace(/^PREF-CR/i, "CR-");
-  return patients.find((patient) => patient.id === normalized || phiRecordId(patient.id) === patientRefOrId) ?? null;
+  const normalizedInput = patientRefOrId.trim();
+  const normalizedLegacy = normalizedInput.replace(/^PREF-CR/i, "CR-");
+  const canonicalInput = normalizedInput.replace(/[^a-zA-Z0-9]/g, "");
+
+  return (
+    patients.find((patient) => {
+      const patientRefValue = `PREF-${patient.id.replace(/[^a-zA-Z0-9]/g, "")}`;
+      const canonicalPatientId = patient.id.replace(/[^a-zA-Z0-9]/g, "");
+      const canonicalPatientRef = patientRefValue.replace(/[^a-zA-Z0-9]/g, "");
+      const canonicalPatientPhi = phiRecordId(patient.id).replace(/[^a-zA-Z0-9]/g, "");
+
+      return (
+        patient.id === normalizedLegacy ||
+        patient.id === normalizedInput ||
+        patientRefValue === normalizedInput ||
+        phiRecordId(patient.id) === normalizedInput ||
+        canonicalPatientId === canonicalInput ||
+        canonicalPatientRef === canonicalInput ||
+        canonicalPatientPhi === canonicalInput
+      );
+    }) ?? null
+  );
 }
 
 export function getPatientPhiBundle(patientRefOrId: string, context: PhiAccessContext | null) {

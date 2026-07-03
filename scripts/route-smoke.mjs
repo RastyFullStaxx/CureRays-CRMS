@@ -5,12 +5,21 @@ import { join } from "node:path";
 const root = process.cwd();
 
 const sidebarRoutes = [
-  "/dashboard",
   "/patients",
+  "/today",
+  "/schedule",
+  "/dashboard",
+  "/analytics",
+  "/settings"
+];
+
+const secondaryRoutes = [
   "/courses",
+  "/records",
+  "/reports",
+  "/audit-logs",
   "/workflow",
   "/tasks",
-  "/schedule",
   "/treatment-delivery",
   "/clinical-forms",
   "/treatment-planning",
@@ -18,17 +27,9 @@ const sidebarRoutes = [
   "/documents",
   "/billing",
   "/audit",
-  "/analytics",
   "/users-roles",
   "/templates",
-  "/settings",
-  "/security-logs"
-];
-
-const secondaryRoutes = [
-  "/records",
-  "/reports",
-  "/audit-logs",
+  "/security-logs",
   "/upcoming",
   "/on-treatment",
   "/post",

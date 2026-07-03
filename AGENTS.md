@@ -21,6 +21,10 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Testing
 
+- We are still in implementation phase. Therefore tests should not be done because they are logically not efficient since tests are only done once we finished polishing the UI and are now testing the features, functions, security and such
+- **Development-phase verification policy**: The project remains in active development until the user explicitly declares that release preparation has started. During active development, default to `npm run verify` or the smallest equivalent code-quality check (`typecheck`, lint, or a narrowly relevant test). Do not run `npm run build`, `npm run test:full`, the full guardrail suite, broad browser matrices, exhaustive route sweeps, or other long checks unless the user explicitly requests a specific one.
+- **Release-phase verification policy**: Run production builds, full guardrails, browser/responsive matrices, route sweeps, and full suites only after the user explicitly says the project is near release or has entered release preparation.
+- Keep testing proportional to the change. Prefer one targeted check that directly covers the edited behavior; do not spend more time or tokens on unrelated validation than on the feature itself.
 - No formal test framework is configured yet. Phase guardrail scripts in `scripts/` validate feature completeness for each phase.
 - `npm run verify` is intentionally lightweight for prototype feature work and only runs `typecheck + lint`.
 - `npm run test:guardrails` runs the phase scripts plus HIPAA boundaries. `npm run test:full` runs `verify + build + all guardrails`.
@@ -34,12 +38,24 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
-- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/curerays-ui-engineering-rules.md`.
+- Never mind mobile responsiveness for now. Leave it be and let's just focus on a desktop view and laptop views such as a macbook
+- **Documentation entrypoint**: Start with `docs/README.md`. Treat `docs/status/current-state.md` as the only prose source for current implementation status and `docs/roadmap/implementation-roadmap.md` as the active gap-closure plan. Files under `docs/archive/` are historical and non-authoritative.
+- **Must-read UI rules**: Before designing UI or writing UI code, read `docs/design/ui-engineering.md`, `docs/design/typography.md`, and `docs/design/color-system.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
 - **TypeScript**: Strict mode enabled in `tsconfig.json`. Prefer explicit types over inference. No `any`.
 - **Prettier**: No config yet. Use consistent formatting (2 spaces, single quotes, trailing commas).
 - **EditorConfig**: Use 2 spaces, UTF-8, LF line endings.
 - **Naming**: Components `PascalCase`, files `kebab-case`, CSS tokens `--kebab-case`, named exports (except pages).
+
+## Codex Tools and Skills
+
+- Use Ponytail as the default implementation discipline: understand the affected flow first, reuse existing code and platform capabilities, avoid unrequested abstractions and dependencies, and make the smallest safe change. Never simplify away validation, security, accessibility, error handling that prevents data loss, or HIPAA controls.
+- For UI work, use the smallest relevant design skill set. Start with `design-taste-frontend` for audit and direction, then use `frontend-design`, `ui-ux-pro-max`, `impeccable`, or `design-motion-principles` in any case their specialty is needed. Project rules and `docs/design/ui-engineering.md` override generic skill guidance.
+- Use the shadcn MCP to search and inspect registry components. Treat registry output as source material, not automatically approved project code. Reuse or adapt existing `components/ui/` primitives first; do not overwrite them or bypass CSS tokens, accessibility, naming, and shared-component rules.
+- Use Context7 MCP for current framework and library documentation when repository code and installed package types do not answer the question. Prefer primary documentation and verify examples against the versions in `package.json`.
+- Use the bundled browser or `agent-browser` for lightweight UI inspection. Use Playwright MCP for repeatable interaction, responsive-layout, keyboard-navigation, modal, table-overflow, and route smoke checks.
+- Browser and Playwright sessions must use mock data only. Do not enter, capture, log, screenshot, or transmit real PHI, credentials, session tokens, or production data.
+- Do not invoke every skill for every task. Select the minimum set that materially helps, and preserve existing architecture over generic tool recommendations.
 
 ## Architecture
 
@@ -51,6 +67,8 @@ npm run test:hipaa   # HIPAA guardrails validation
 | `/dashboard` | Page | Command center / main dashboard |
 | `/patients` | Page | Patient registry |
 | `/patients/[id]/*` | Pages | Patient workspace, carepath, documents, fraction log |
+| `/tasks` | Page | Canonical cross-patient task worklist |
+| `/today` | Redirect | Compatibility redirect to `/tasks` |
 | `/schedule` | Page | Schedule view |
 | `/courses` | Page | Courses overview |
 | `/analytics`, `/reports` | Pages | Analytics and reporting |
@@ -63,7 +81,6 @@ npm run test:hipaa   # HIPAA guardrails validation
 | `/treatment-delivery` | Page | Treatment delivery |
 | `/workflow/*` | Pages | Workflow engine (IGSRT, templates) |
 | `/templates` | Pages | Template management |
-| `/tasks` | Page | Task management |
 | `/audit`, `/audit-logs`, `/security-logs` | Pages | Audit and security logs |
 | `/settings/*` | Pages | Settings (users, templates) |
 | `/users-roles` | Page | User and role management |
@@ -123,8 +140,8 @@ components/
 4. **FilterStrip lives inside DataTable's toolbar slot** — not a separate floating bar
 5. **StatCard + StatGrid** for all KPI/metric displays — consistent across all pages
 6. **No right rail** — all content is full-width
-7. **Sidebar is collapsible** — 240px ↔ 64px, persisted in localStorage
-8. **No separate topbar** — user actions live in sidebar's pinned account row
+7. **Mac-style shell navigation** — primary navigation lives in a glass top command bar with persistent patient/MRN/course/action search, account, and theme controls
+8. **Command-bar-safe content** — long pages must preserve top spacing and internal scrolling so the command bar never covers tables, modals, or patient action controls
 9. **Clinical modals use the largest appropriate shared modal token** — avoid unnecessary scrolling by grouping fields into balanced sections before adding another internal scroll area
 10. **Every scrollable UI uses the shared styled scrollbar** — apply `scrollbar-soft` or a shared class that maps to the same scrollbar tokens
 11. **Status text uses shared pill primitives** — no ad hoc translucent rounded pills; use `Badge`, `StatusBadge`, or `clinical-pill` tone classes
@@ -197,15 +214,18 @@ Never hardcode hex values in components. Always reference tokens:
 | `--color-warning` | `#F59E0B` | Warning states |
 | `--color-error` | `#EF4444` | Error states |
 | `--color-info` | `#3B82F6` | Info states |
-| `--font-heading` | `Manrope` | All headings, stat values |
-| `--font-body` | `Inter` | All body text, labels, inputs |
+| `--font-ui` | `Inter` | Every UI surface, control, chart, and label |
+| `--type-title-size` | `18px` | Page titles, patient identity, critical KPI values |
+| `--type-heading-size` | `14px` | Section, modal, and card headings |
+| `--type-body-size` | `13px` | Body, form values, and table cells |
+| `--type-label-size` | `12px` | Navigation, controls, labels, statuses, and chart text |
 | `--space-page` | `clamp(16px, 1.7vw, 28px)` | Outer page gutter |
 | `--space-card` | `20px` | Card internal padding |
 | `--space-section` | `16px` | Vertical gap between sections |
 | `--radius-md` | `8px` | Buttons, inputs, nav items |
 | `--radius-lg` | `8px` | Cards, modals |
-| `--width-sidebar` | `240px` | Expanded sidebar |
-| `--width-sidebar-collapsed` | `64px` | Collapsed sidebar |
+| `--height-mac-menubar` | `64px` | Fixed top Mac-style command bar |
+| `--height-mac-dock` | `0px` | Retired Dock safe area kept as a compatibility token |
 | `--height-header` | `56px` | Header/account row height |
 | `--height-table-row` | `44px` | DataTable row height |
 | `--height-table-header` | `40px` | DataTable header height |
@@ -213,11 +233,21 @@ Never hardcode hex values in components. Always reference tokens:
 
 ## Typography
 
-- **Headings**: Manrope, font-weight 800 (via `--font-weight-bold`)
-- **Body**: Inter, font-weight 400-600
-- **Stat values**: Manrope, 21px, bold
-- **Labels**: Inter, 11px, uppercase, bold
-- **Small text**: Inter, 13px
+- Read and follow `docs/design/typography.md`.
+- Use Inter exclusively through the global `--font-ui` token.
+- Use only the 18px title, 14px heading, 13px body, and 12px supporting/control roles.
+- Buttons remain 12px/600 in every size variant.
+- Use 700 only for page titles, patient identity, and critical KPI values. Ordinary records and metadata must not be bold.
+- Do not add local font sizes, families, weights, line heights, tracking utilities, or text below 12px.
+- Use source-level Title Case for structural UI copy. Do not use visual casing transforms or alter dynamic clinical content.
+
+## Color
+
+- Read and follow `docs/design/color-system.md`.
+- Use primary blue only for interaction and non-valenced single-series charts. CureRays orange is reserved for brand artwork.
+- Status APIs use only positive, intermediate, negative, and neutral.
+- Phases, diagnoses, roles, disciplines, modalities, categories, and record types are neutral.
+- Do not add hardcoded colors, page-local palettes, duplicate tone maps, or color-only status indicators.
 
 ## Naming Conventions
 
@@ -267,3 +297,5 @@ Never hardcode hex values in components. Always reference tokens:
 - Don't expose PHI in client component props, state, or rendered HTML
 - Don't forget to update `lib/types.ts` when adding new mock data shapes
 - Don't delete code that "looks unused" without verifying references through imports, route usage, and component usage
+
+- I want everything as clean as possible. as consistent and uniform as possible that's why I love to set things as global css

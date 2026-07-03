@@ -22,16 +22,26 @@ import {
 } from '@/lib/services/operational-page-service';
 import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
+import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
+import { normalizePatientWorkspaceTab } from '@/lib/services/patient-workspace-service';
 
 export default async function PatientProfilePage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ tab?: string }>;
+  searchParams?: Promise<{ tab?: string; targetKind?: string; targetId?: string }>;
 }) {
   const { id } = await params;
   const query = await searchParams;
+  const persistenceMode = (process.env.CURERAYS_PATIENT_REPOSITORY ?? process.env.CURERAYS_PERSISTENCE_MODE ?? "")
+    .trim()
+    .toLowerCase();
+  const usePrismaStore = persistenceMode === "prisma" || persistenceMode === "prisma-ready";
+
+  await hydrateClinicalStoreFromDatabase({
+    force: usePrismaStore
+  });
   const patient = findPatientPhi(id, systemPhiAccess('Render patient workspace page'));
 
   if (!patient) {
@@ -46,12 +56,21 @@ export default async function PatientProfilePage({
 
   const domainCourse = getCourses().find((item) => item.id === course.id);
   const prescription = prescriptions.find((item) => item.courseId === course.id);
+  const initialTab = normalizePatientWorkspaceTab(query?.tab);
+  const allowedTargetKinds = new Set(['step', 'fraction', 'document', 'audit']);
+  const initialTarget = query?.targetKind && query.targetId && allowedTargetKinds.has(query.targetKind) && /^[A-Za-z0-9_-]+$/.test(query.targetId)
+    ? {
+        targetKind: query.targetKind as 'step' | 'fraction' | 'document' | 'audit',
+        targetId: query.targetId,
+      }
+    : undefined;
 
   return (
     <PatientWorkspace
       patient={patient}
       course={course}
-      initialTab={query?.tab === 'fractions' ? 'fractions' : undefined}
+      initialTab={initialTab}
+      initialTarget={initialTarget}
       domainCourse={domainCourse}
       carepathTasks={courseTasks(course.id, carepathTasks)}
       generatedDocuments={courseDocuments(course.id, generatedDocuments)}

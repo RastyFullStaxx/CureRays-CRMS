@@ -32,7 +32,7 @@ import type {
   WorkflowItemStatus,
   WorkflowStep
 } from "@/lib/types";
-import { carepathPhaseLabels, courseDocuments } from "@/lib/workflow";
+import { carepathPhaseLabels, carepathStepApplicability, courseDocuments } from "@/lib/workflow";
 
 const timestamp = "2026-04-26T10:00:00+08:00";
 
@@ -115,7 +115,8 @@ export const canonicalWorkflowSteps: WorkflowStep[] = carepathStepNames.map((ste
   stepNumber,
   stepName,
   phase: stepPhase[stepNumber],
-  status: "PENDING",
+  status: carepathStepApplicability(stepNumber) === "REMOVED" ? "NOT_APPLICABLE" : "PENDING",
+  applicability: carepathStepApplicability(stepNumber),
   responsibleRole: stepRole[stepNumber],
   triggerEvent:
     stepNumber === 0
@@ -128,6 +129,8 @@ export const canonicalWorkflowSteps: WorkflowStep[] = carepathStepNames.map((ste
   dueDate: stepNumber < 8 ? "Before treatment start" : stepNumber === 14 ? "Before course closeout" : "During treatment",
   requiresSignature: [0, 1, 2, 5, 6, 7, 11, 13, 14].includes(stepNumber),
   linkedDocumentId: undefined,
+  naReason: carepathStepApplicability(stepNumber) === "REMOVED" ? "Removed from the CureRays 2026 Carepath model." : undefined,
+  systemReason: carepathStepApplicability(stepNumber) === "REMOVED" ? "Removed from the CureRays 2026 Carepath model." : undefined,
   blockers: stepNumber === 14 ? ["Treatment summary, billing, follow-up, signatures, and images must be complete"] : [],
   auditChecklist: ["Status documented", "Responsible role assigned", "Linked evidence tracked"],
   createdAt: timestamp,
@@ -203,7 +206,7 @@ export function getWorkflowSteps(courseId?: string): WorkflowStep[] {
   const courseDocs = courseDocuments(course.id, generatedDocuments);
   return canonicalWorkflowSteps.map((step) => {
     const linkedDocument = courseDocs.find((document) => document.name.includes(step.stepName.split(" ")[0]));
-    const status = statusForStep(step.stepNumber, course.currentFraction);
+    const status = step.applicability === "REMOVED" ? "NOT_APPLICABLE" : statusForStep(step.stepNumber, course.currentFraction);
     return {
       ...step,
       id: `WF-${course.id}-${step.stepNumber}`,

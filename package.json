@@ -36,6 +36,7 @@
     "clean:generated": "node scripts/clean-generated-cache.mjs",
     "build": "next build",
     "start": "next start",
+    "screenshot": "node scripts/playwright-screenshot.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "prisma:generate:ops": "prisma generate --schema prisma/ops-schema.prisma",
@@ -54,10 +55,14 @@
     "test:fraction-worksheet": "node scripts/fraction-worksheet-fixtures.mjs",
     "test:phase6": "node scripts/phase6-treatment-planning.mjs",
     "test:later-phases": "node scripts/later-phase-grounding.mjs",
+    "test:simplification": "node scripts/product-simplification-guardrails.mjs",
+    "test:typography": "node scripts/typography-guardrails.mjs",
+    "test:ui-copy": "node scripts/ui-copy-guardrails.mjs",
+    "test:colors": "node scripts/color-system-guardrails.mjs",
     "test:hipaa": "node scripts/hipaa-guardrails.mjs",
-    "test:guardrails": "npm run test:phase0 && npm run test:hipaa && npm run test:fraction-worksheet && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run test:later-phases && npm run test:routes && npm run test:phase1 && npm run test:phase2 && npm run test:phase3",
+    "test:guardrails": "npm run test:phase0 && npm run test:simplification && npm run test:hipaa && npm run test:fraction-worksheet && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run test:later-phases && npm run test:routes && npm run test:phase1 && npm run test:phase2 && npm run test:phase3",
     "test:full": "npm run verify && npm run build && npm run test:guardrails",
-    "verify": "npm run typecheck && npm run lint"
+    "verify": "npm run typecheck && npm run lint && npm run test:typography && npm run test:ui-copy && npm run test:colors"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -69,9 +74,11 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "recharts": "^3.8.1",
+    "skillfish": "^1.0.38",
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

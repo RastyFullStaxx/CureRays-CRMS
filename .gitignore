@@ -1,6 +1,9 @@
 # dependencies
 node_modules
 .tools
+.playwright-libs
+.playwright-mcp
+/curerays-*.png
 
 # next.js
 .next

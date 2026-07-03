@@ -4,10 +4,10 @@ import { ReportsCommandClient, type ReportKpiRow, type ReportPackRow } from '@/c
 import { getAnalyticsTelemetry } from '@/lib/services/analytics-telemetry-service';
 
 function toneForReport(tone: string): ReportKpiRow['tone'] {
-  if (tone === 'success' || tone === 'warning' || tone === 'error' || tone === 'info' || tone === 'primary') {
+  if (tone === 'positive' || tone === 'intermediate' || tone === 'negative' || tone === 'neutral') {
     return tone;
   }
-  return 'default';
+  return 'neutral';
 }
 
 export default async function ReportsPage() {

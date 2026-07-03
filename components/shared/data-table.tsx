@@ -42,12 +42,15 @@ type DataTableProps<T extends object> = {
   emptyDescription?: string;
   pageSize?: number;
   keyField?: string;
+  getRowId?: (row: T) => string;
+  getRowLabel?: (row: T) => string;
   onRowClick?: (row: T) => void;
   toolbar?: ReactNode;
   toolbarPrefix?: ReactNode;
   toolbarActions?: ReactNode;
   search?: DataTableSearch<T>;
   filters?: Array<DataTableFilter<T>>;
+  minTableWidth?: string;
   className?: string;
 };
 
@@ -119,12 +122,15 @@ export function DataTable<T extends object>({
   emptyDescription,
   pageSize = 20,
   keyField = 'id',
+  getRowId,
+  getRowLabel,
   onRowClick,
   toolbar,
   toolbarPrefix,
   toolbarActions,
   search,
   filters = [],
+  minTableWidth,
   className = '',
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
@@ -168,6 +174,12 @@ export function DataTable<T extends object>({
   const tableViewportHeight = viewportRows
     ? `calc(var(--height-table-header) + (${viewportRows} * var(--height-table-row)))`
     : undefined;
+  const tableMinWidth = minTableWidth ?? (
+    columns.length >= 9 ? '1280px' :
+    columns.length >= 7 ? '1120px' :
+    columns.length >= 5 ? '960px' :
+    '720px'
+  );
 
   const clearFilters = () => {
     setQuery('');
@@ -192,14 +204,14 @@ export function DataTable<T extends object>({
             }}
           >
             {toolbar ?? (
-              <div className="flex min-w-0 flex-nowrap items-center overflow-hidden" style={{ gap: 'var(--space-1)' }}>
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {toolbarPrefix ? (
-                  <div className="min-w-0 flex-[0_1_150px] [&>*]:!min-w-0">
+                  <div className="min-w-[180px] flex-[1_1_220px] [&>*]:!min-w-0">
                     {toolbarPrefix}
                   </div>
                 ) : null}
                 {search && (
-                  <label className="relative min-w-[180px] flex-[2_1_220px]">
+                  <label className="relative min-w-[220px] flex-[2_1_280px]">
                     <Search
                       aria-hidden="true"
                       className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-text-muted)]"
@@ -214,7 +226,7 @@ export function DataTable<T extends object>({
                   </label>
                 )}
                 {filters.map((filter) => (
-                  <div key={filter.id} className="min-w-[112px] flex-[1_1_128px]">
+                  <div key={filter.id} className="min-w-[140px] flex-[1_1_160px]">
                     <Select
                       value={filterValues[filter.id] ?? ''}
                       onChange={(event) => setFilterValues((current) => ({ ...current, [filter.id]: event.target.value }))}
@@ -233,12 +245,12 @@ export function DataTable<T extends object>({
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="clinical-focus h-[var(--height-input)] rounded-[var(--radius-md)] px-3 text-xs font-bold text-[var(--color-primary)] transition hover:bg-[var(--color-hover)]"
+                    className="clinical-focus h-[var(--height-input)] rounded-[var(--radius-md)] px-3 type-supporting text-[var(--color-primary)] transition hover:bg-[var(--color-hover)]"
                   >
                     Reset
                   </button>
                 )}
-                {toolbarActions ? <div className="ml-auto flex min-w-0 shrink-[1] grow-0 basis-auto flex-nowrap items-center gap-2 overflow-hidden">{toolbarActions}</div> : null}
+                {toolbarActions ? <div className="ml-auto flex min-w-0 shrink-0 grow-0 basis-auto flex-wrap items-center justify-end gap-2">{toolbarActions}</div> : null}
               </div>
             )}
           </div>
@@ -255,7 +267,7 @@ export function DataTable<T extends object>({
             maxHeight: tableViewportHeight,
           }}
         >
-          <table className="w-full border-collapse" style={{ flexShrink: 0 }}>
+          <table className="w-full border-collapse" style={{ flexShrink: 0, minWidth: tableMinWidth }}>
             <thead className="sticky top-0 z-10" style={{ background: 'var(--color-table-header-bg)' }}>
               <tr
                 style={{
@@ -266,16 +278,12 @@ export function DataTable<T extends object>({
                 {columns.map((col) => (
                   <th
                     key={col.key}
-                    className="text-left font-semibold whitespace-nowrap"
+                    className="type-label whitespace-nowrap text-left"
                     style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
                       paddingLeft: '14px',
                       paddingRight: '14px',
                       width: col.width,
                       color: 'var(--color-text-muted)',
-                      textTransform: 'uppercase',
-                      letterSpacing: 0,
                     }}
                   >
                     {col.label}
@@ -289,7 +297,15 @@ export function DataTable<T extends object>({
                 {filteredRows.map((row) => (
                   <tr
                     key={rowKey(row, keyField)}
+                    id={getRowId?.(row)}
+                    tabIndex={onRowClick ? 0 : getRowId ? -1 : undefined}
+                    aria-label={onRowClick ? getRowLabel?.(row) : undefined}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    onKeyDown={onRowClick ? (event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
+                      event.preventDefault();
+                      onRowClick(row);
+                    } : undefined}
                     className={[
                       'last:border-b-0',
                       'transition-colors duration-100',
@@ -298,20 +314,16 @@ export function DataTable<T extends object>({
                     style={{
                       height: 'var(--height-table-row)',
                       borderBottom: '1px solid var(--color-border-soft)',
-                      fontFamily: 'var(--font-body)',
                       color: 'var(--color-text)',
                     }}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        style={{
-                          fontSize: 'var(--font-size-small)',
-                          paddingLeft: '14px',
-                          paddingRight: '14px',
-                        }}
+                        className="type-body"
+                        style={{ paddingLeft: '14px', paddingRight: '14px' }}
                         >
-                        <div className="min-w-0 overflow-hidden">
+                        <div className="min-w-0 break-words">
                           {col.render ? col.render(row) : displayCell((row as Record<string, unknown>)[col.key])}
                         </div>
                       </td>
@@ -336,11 +348,11 @@ export function DataTable<T extends object>({
               {hasError ? (
                 <EmptyState
                   icon={AlertTriangle}
-                  title="Unable to load this table."
+                  title="Unable to Load This Table"
                   description={error}
                 />
               ) : loading ? (
-                <div className="flex flex-col items-center gap-3 text-sm font-semibold text-[var(--color-text-muted)]">
+                <div className="flex flex-col items-center gap-3 type-body text-[var(--color-text-muted)]">
                   <LoadingSpinner size="md" />
                   <span>{loadingLabel}</span>
                 </div>
