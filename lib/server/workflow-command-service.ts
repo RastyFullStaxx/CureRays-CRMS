@@ -3,6 +3,7 @@ import "server-only";
 import type { NextRequest } from "next/server";
 import {
   carepathTasks,
+  appointments,
   generatedDocuments,
   operationalAuditEvents,
   operationalPatients,
@@ -13,6 +14,7 @@ import {
   treatmentCourses
 } from "@/lib/clinical-store";
 import { PHI_REDACTED, courseRef, patientRef } from "@/lib/hipaa";
+import { PROTOTYPE_OPERATIONAL_AS_OF, PROTOTYPE_OPERATIONAL_DATE } from "@/lib/operational-date";
 import { PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
 import { prototypeSessionFromRequest, type PrototypeSessionClaims } from "@/lib/server/prototype-session";
 import { completedDocumentStatuses, completedTaskStatuses, orderedCarepathPhases } from "@/lib/workflow";
@@ -26,6 +28,7 @@ import type {
   OperationalWorkflowStep,
   PrototypeAccessRole,
   TaskMutationInput,
+  TaskDueBucket,
   TreatmentCourse,
   WorkflowAdvanceInput,
   WorkflowCommandMutationResult,
@@ -62,7 +65,7 @@ export type WorkflowTaskRepository = {
   mode: WorkflowRepositoryMode;
   listWorkflowSteps(asOf?: string): MaybePromise<OperationalWorkflowStep[]>;
   listTasks(asOf?: string): MaybePromise<OperationalTask[]>;
-  listQueue(queue: WorkflowQueueName, role?: PrototypeAccessRole, asOf?: string): MaybePromise<WorkflowQueueSnapshot>;
+  listQueue(queue: WorkflowQueueName, role?: PrototypeAccessRole, asOf?: string, bucket?: TaskDueBucket): MaybePromise<WorkflowQueueSnapshot>;
   evaluateCourseAdvance(courseIdOrRef: string, asOf?: string): MaybePromise<WorkflowCommandResult>;
   advanceCourse(
     courseIdOrRef: string,
@@ -109,6 +112,8 @@ const queueNames: WorkflowQueueName[] = [
   "BLOCKED",
   "COMPLETED"
 ];
+
+const taskDueBuckets: TaskDueBucket[] = ["OVERDUE", "TODAY", "UPCOMING", "ALL_OPEN"];
 
 const roleCodes = new Set(["VA", "MA", "RTT", "NP_PA", "PCP", "RAD_ONC", "PHYSICIST", "BILLING", "ADMIN"]);
 
@@ -185,7 +190,7 @@ function stepStatusWithOverdue(step: WorkflowStep, asOf?: string): WorkflowItemS
 }
 
 function taskStatusWithOverdue(task: CarepathTask, asOf?: string): CarepathTaskStatus {
-  if (completedTaskStatuses.includes(task.status)) {
+  if (completedTaskStatuses.includes(task.status) || task.status === "BLOCKED") {
     return task.status;
   }
 
@@ -212,13 +217,42 @@ function toOperationalStep(step: WorkflowStep, asOf?: string): OperationalWorkfl
 
 function toOperationalTask(task: CarepathTask, asOf?: string): OperationalTask {
   const { courseId, ...safeTask } = task;
+  const stepNumber = Number(task.taskNumber.match(/\d+$/)?.[0]);
+  const targetStep = Number.isFinite(stepNumber)
+    ? patientCourseWorkflowSteps.find((step) => step.courseId === courseId && step.stepNumber === stepNumber)
+    : undefined;
+  const linkedAppointment = targetStep
+    ? appointments.find((appointment) => appointment.courseId === courseId && appointment.linkedWorkflowStepId === targetStep.id)
+    : undefined;
+  const subject = task.title.replace(/\s+(sign|review)$/i, "").trim();
+  const actionLabel = task.status === "BLOCKED"
+    ? `Resolve Blocker: ${subject}`
+    : task.title.toLowerCase().includes("sign") || task.auditSteps.some((step) => step.toLowerCase().includes("signature"))
+      ? `Review and Sign ${subject}`
+      : task.noteAction.toLowerCase().includes("image") || task.noteAction.toLowerCase().includes("evidence")
+        ? `Attach Evidence: ${subject}`
+        : task.title.toLowerCase().includes("review") || task.status === "NEEDS_REVIEW" || task.status === "READY_FOR_REVIEW"
+          ? `Review ${subject}`
+          : `Complete ${subject}`;
 
   return {
     ...safeTask,
     status: taskStatusWithOverdue(task, asOf),
     patientRef: patientRefForCourse(courseId),
     courseRef: courseRef(courseId),
-    displayLabel: displayLabelForCourse(courseId)
+    displayLabel: displayLabelForCourse(courseId),
+    actionLabel,
+    workspaceTarget: targetStep ? {
+      tab: "prepare",
+      targetKind: "step",
+      targetId: targetStep.id,
+    } : undefined,
+    linkedAppointment: linkedAppointment?.dateTime ? {
+      id: linkedAppointment.id,
+      dateTime: linkedAppointment.dateTime,
+      title: linkedAppointment.title,
+      status: linkedAppointment.status ?? "SCHEDULED",
+    } : undefined,
   };
 }
 
@@ -268,7 +302,31 @@ function taskInQueue(task: OperationalTask, queue: WorkflowQueueName, role?: Pro
   return completedTaskStatuses.includes(task.status);
 }
 
-function queueSnapshot(queue: WorkflowQueueName, role?: PrototypeAccessRole, asOf?: string): WorkflowQueueSnapshot {
+function taskInDueBucket(task: OperationalTask, bucket: TaskDueBucket, operationalDate: string) {
+  if (completedTaskStatuses.includes(task.status)) {
+    return false;
+  }
+  if (bucket === "ALL_OPEN") {
+    return true;
+  }
+  if (!task.dueDate) {
+    return false;
+  }
+  if (bucket === "OVERDUE") {
+    return task.dueDate < operationalDate;
+  }
+  if (bucket === "TODAY") {
+    return task.dueDate === operationalDate;
+  }
+  return task.dueDate > operationalDate;
+}
+
+function queueSnapshot(
+  queue: WorkflowQueueName,
+  role?: PrototypeAccessRole,
+  asOf = PROTOTYPE_OPERATIONAL_AS_OF,
+  requestedBucket?: TaskDueBucket,
+): WorkflowQueueSnapshot {
   const tasks = listOperationalTasks(asOf);
   const counts = queueNames.reduce<Record<WorkflowQueueName, number>>((current, name) => {
     current[name] = tasks.filter((task) => taskInQueue(task, name, role)).length;
@@ -283,13 +341,26 @@ function queueSnapshot(queue: WorkflowQueueName, role?: PrototypeAccessRole, asO
     BLOCKED: 0,
     COMPLETED: 0
   });
+  const scopedTasks = tasks.filter((task) => taskInQueue(task, queue, role));
+  const bucketCounts = taskDueBuckets.reduce<Record<TaskDueBucket, number>>((current, bucket) => {
+    current[bucket] = scopedTasks.filter((task) => taskInDueBucket(task, bucket, PROTOTYPE_OPERATIONAL_DATE)).length;
+    return current;
+  }, {
+    OVERDUE: 0,
+    TODAY: 0,
+    UPCOMING: 0,
+    ALL_OPEN: 0,
+  });
+  const bucket = requestedBucket ?? (bucketCounts.OVERDUE > 0 ? "OVERDUE" : "TODAY");
 
   return {
     queue,
+    bucket,
     role,
-    tasks: tasks.filter((task) => taskInQueue(task, queue, role)),
+    tasks: scopedTasks.filter((task) => taskInDueBucket(task, bucket, PROTOTYPE_OPERATIONAL_DATE)),
     counts,
-    generatedAt: asOf ?? nowIso()
+    bucketCounts,
+    generatedAt: asOf,
   };
 }
 
@@ -797,8 +868,8 @@ export const inMemoryWorkflowTaskRepository: WorkflowTaskRepository = {
   listTasks(asOf) {
     return listOperationalTasks(asOf);
   },
-  listQueue(queue, role, asOf) {
-    return queueSnapshot(queue, role, asOf);
+  listQueue(queue, role, asOf, bucket) {
+    return queueSnapshot(queue, role, asOf, bucket);
   },
   evaluateCourseAdvance(courseIdOrRef, asOf) {
     return evaluateCourseAdvance(courseIdOrRef, asOf);
@@ -886,6 +957,24 @@ function queueFromRequest(value: string | null): WorkflowQueueName {
   return queueNames.includes(normalized as WorkflowQueueName) ? normalized as WorkflowQueueName : "ALL";
 }
 
+export function taskDueBucketFromValue(value: string | null | undefined): TaskDueBucket | undefined {
+  const normalized = safeText(value).toUpperCase();
+  return taskDueBuckets.includes(normalized as TaskDueBucket) ? normalized as TaskDueBucket : undefined;
+}
+
+export function taskQueueFromValue(value: string | null | undefined): WorkflowQueueName {
+  return queueFromRequest(value ?? null);
+}
+
+export async function getTaskQueueSnapshot(
+  queue: WorkflowQueueName = "ALL",
+  bucket?: TaskDueBucket,
+  role: PrototypeAccessRole = "RAD_ONC",
+  asOf = PROTOTYPE_OPERATIONAL_AS_OF,
+) {
+  return selectWorkflowTaskRepository().listQueue(queue, role, asOf, bucket);
+}
+
 export function workflowReadContextFromRequest(request: NextRequest): PrototypeSessionClaims | null {
   return prototypeSessionFromRequest(request);
 }
@@ -917,7 +1006,7 @@ export async function listWorkflowCommandSnapshot(asOf?: string) {
       treatmentCourses: operationalTreatmentCourses(),
       workflowSteps: await repository.listWorkflowSteps(asOf),
       tasks: await repository.listTasks(asOf),
-      queue: await repository.listQueue("ALL", role, asOf),
+      queue: await repository.listQueue("ALL", role, asOf ?? PROTOTYPE_OPERATIONAL_AS_OF),
       auditEvents: operationalAuditEvents(),
       phiBoundary: {
         roleHeader: PROTOTYPE_ROLE_HEADER,
@@ -936,7 +1025,7 @@ export async function listWorkflowCommandSnapshot(asOf?: string) {
     treatmentCourses: operationalTreatmentCourses(),
     workflowSteps: await inMemoryWorkflowTaskRepository.listWorkflowSteps(asOf),
     tasks: await inMemoryWorkflowTaskRepository.listTasks(asOf),
-    queue: await inMemoryWorkflowTaskRepository.listQueue("ALL", role, asOf),
+    queue: await inMemoryWorkflowTaskRepository.listQueue("ALL", role, asOf ?? PROTOTYPE_OPERATIONAL_AS_OF),
     auditEvents: operationalAuditEvents(),
     phiBoundary: {
       roleHeader: PROTOTYPE_ROLE_HEADER,
@@ -954,8 +1043,14 @@ export async function listTaskQueue(
     const context = workflowReadContextFromRequest(request);
     const repository = selectWorkflowTaskRepository();
     const queue = queueFromRequest(request.nextUrl.searchParams.get("queue"));
+    const bucket = taskDueBucketFromValue(request.nextUrl.searchParams.get("bucket"));
 
-    return success(200, await repository.listQueue(queue, context?.role, asOf));
+    return success(200, await repository.listQueue(
+      queue,
+      context?.role,
+      asOf ?? PROTOTYPE_OPERATIONAL_AS_OF,
+      bucket,
+    ));
   } catch (error) {
     return safeFailure(error);
   }

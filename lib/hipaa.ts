@@ -96,7 +96,13 @@ export function toOperationalAppointment(appointment: Appointment): OperationalA
     time: appointment.time,
     location: appointment.location,
     staff: appointment.staff,
-    chartRoundsPhase: appointment.chartRoundsPhase
+    chartRoundsPhase: appointment.chartRoundsPhase,
+    courseId: appointment.courseId,
+    appointmentType: appointment.appointmentType,
+    dateTime: appointment.dateTime,
+    status: appointment.status,
+    assignedProviderId: appointment.assignedProviderId,
+    linkedWorkflowStepId: appointment.linkedWorkflowStepId,
   };
 }
 

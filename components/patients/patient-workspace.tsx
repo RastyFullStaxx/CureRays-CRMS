@@ -60,6 +60,10 @@ type PatientWorkspaceProps = {
   patient: Patient;
   course: TreatmentCourse;
   initialTab?: PatientWorkspaceTab;
+  initialTarget?: {
+    targetKind: 'step' | 'fraction' | 'document' | 'audit';
+    targetId: string;
+  };
   domainCourse?: Course;
   carepathTasks: CarepathTask[];
   generatedDocuments: GeneratedDocument[];
@@ -461,6 +465,7 @@ export function PatientWorkspace({
   patient,
   course,
   initialTab = 'overview',
+  initialTarget,
   domainCourse,
   carepathTasks,
   generatedDocuments,
@@ -480,6 +485,7 @@ export function PatientWorkspace({
   const [activeTab, setActiveTab] = useState<PatientWorkspaceTab>(initialTab);
   const [signalsOpen, setSignalsOpen] = useState(false);
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
+  const [targetNotice, setTargetNotice] = useState<string | null>(null);
   const [workflowStepState, setWorkflowStepState] = useState(allWorkflowSteps);
   const selectTab = useCallback((tab: PatientWorkspaceTab) => {
     setActiveTab(tab);
@@ -554,6 +560,34 @@ export function PatientWorkspace({
     readiness,
   } = workspaceState;
   const [selectedCarepathStepId, setSelectedCarepathStepId] = useState(workspaceState.workflowSteps[0]?.id ?? '');
+  useEffect(() => {
+    if (!initialTarget) return;
+    if (initialTarget.targetKind === 'step') {
+      setSelectedCarepathStepId(initialTarget.targetId);
+    }
+
+    let frame = 0;
+    let attempts = 0;
+    const focusTarget = () => {
+      const target = document.getElementById(`workspace-target-${initialTarget.targetKind}-${initialTarget.targetId}`);
+      if (target) {
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        target.focus({ preventScroll: true });
+        if (initialTarget.targetKind === 'fraction') target.click();
+        setTargetNotice(null);
+        return;
+      }
+      attempts += 1;
+      if (attempts < 5) {
+        frame = window.requestAnimationFrame(focusTarget);
+        return;
+      }
+      setTargetNotice('The linked action is no longer available. Review the current work in this section.');
+    };
+
+    frame = window.requestAnimationFrame(focusTarget);
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialTarget]);
   const currentPlan = treatmentPlans[0];
   const carepath = carepathProgress(carepathTasks);
   const clinicalValidationChecklist = planningReadiness.clinicalValidationChecklist;
@@ -1254,6 +1288,12 @@ export function PatientWorkspace({
             />
             <PatientWorkspaceNavigation activeTab={activeTab} orientation="horizontal" onTabChange={selectTab} />
           </div>
+
+          {targetNotice ? (
+            <div className="rounded-[var(--radius-md)] border border-[var(--status-intermediate-border)] bg-[var(--status-intermediate-surface)] px-3 py-2 type-body text-[var(--status-intermediate-text)]" role="status">
+              {targetNotice}
+            </div>
+          ) : null}
 
           <section
             id={`patient-panel-${activeTab}`}

@@ -682,6 +682,8 @@ export type WorkflowQueueName =
   | "BLOCKED"
   | "COMPLETED";
 
+export type TaskDueBucket = "OVERDUE" | "TODAY" | "UPCOMING" | "ALL_OPEN";
+
 export type WorkflowAdvanceInput = {
   expectedCoursePhase?: CarepathWorkflowPhase;
   changeReason: string;
@@ -724,13 +726,27 @@ export type OperationalTask = Omit<CarepathTask, "courseId"> & {
   patientRef: string;
   courseRef: string;
   displayLabel: string;
+  actionLabel: string;
+  workspaceTarget?: {
+    tab: "prepare" | "treatment" | "record-closeout";
+    targetKind: "step" | "fraction" | "document" | "audit";
+    targetId: string;
+  };
+  linkedAppointment?: {
+    id: string;
+    dateTime: string;
+    title: string;
+    status: "SCHEDULED" | "COMPLETED" | "MISSED" | "RESCHEDULED" | "CANCELLED";
+  };
 };
 
 export type WorkflowQueueSnapshot = {
   queue: WorkflowQueueName;
+  bucket: TaskDueBucket;
   role?: PrototypeAccessRole;
   tasks: OperationalTask[];
   counts: Record<WorkflowQueueName, number>;
+  bucketCounts: Record<TaskDueBucket, number>;
   generatedAt: string;
 };
 

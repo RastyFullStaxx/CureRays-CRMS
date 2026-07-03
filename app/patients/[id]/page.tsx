@@ -30,7 +30,7 @@ export default async function PatientProfilePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ tab?: string }>;
+  searchParams?: Promise<{ tab?: string; targetKind?: string; targetId?: string }>;
 }) {
   const { id } = await params;
   const query = await searchParams;
@@ -57,12 +57,20 @@ export default async function PatientProfilePage({
   const domainCourse = getCourses().find((item) => item.id === course.id);
   const prescription = prescriptions.find((item) => item.courseId === course.id);
   const initialTab = normalizePatientWorkspaceTab(query?.tab);
+  const allowedTargetKinds = new Set(['step', 'fraction', 'document', 'audit']);
+  const initialTarget = query?.targetKind && query.targetId && allowedTargetKinds.has(query.targetKind) && /^[A-Za-z0-9_-]+$/.test(query.targetId)
+    ? {
+        targetKind: query.targetKind as 'step' | 'fraction' | 'document' | 'audit',
+        targetId: query.targetId,
+      }
+    : undefined;
 
   return (
     <PatientWorkspace
       patient={patient}
       course={course}
       initialTab={initialTab}
+      initialTarget={initialTarget}
       domainCourse={domainCourse}
       carepathTasks={courseTasks(course.id, carepathTasks)}
       generatedDocuments={courseDocuments(course.id, generatedDocuments)}

@@ -23,7 +23,7 @@ const NAV_SECTIONS = [
     label: 'Daily Work',
     items: [
       { key: 'patients', href: '/patients', icon: TableProperties, label: 'Patients' },
-      { key: 'today', href: '/today', icon: ClipboardCheck, label: 'Today' },
+      { key: 'tasks', href: '/tasks', icon: ClipboardCheck, label: 'Tasks' },
       { key: 'schedule', href: '/schedule', icon: CalendarDays, label: 'Schedule' },
     ],
   },

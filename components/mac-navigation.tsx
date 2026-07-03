@@ -22,7 +22,7 @@ import { cn } from '@/lib/workflow';
 const commandItems = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { key: 'patients', href: '/patients', icon: TableProperties, label: 'Patients' },
-  { key: 'today', href: '/today', icon: ClipboardCheck, label: 'Today' },
+  { key: 'tasks', href: '/tasks', icon: ClipboardCheck, label: 'Tasks' },
   { key: 'schedule', href: '/schedule', icon: CalendarDays, label: 'Schedule' },
   { key: 'analytics', href: '/analytics', icon: LineChart, label: 'Analytics' },
   { key: 'settings', href: '/settings', icon: Settings, label: 'Settings' },
@@ -96,7 +96,7 @@ export function MacNavigation() {
         ],
       },
       {
-        duration: 360,
+        duration: 2000,
         easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
         pseudoElement: '::view-transition-new(root)',
       },

@@ -421,7 +421,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77300"],
     auditSteps: ["Physics review", "Rad Onc signature"],
     auditReady: false,
-    dueDate: "2026-04-26",
+    dueDate: "2026-05-05",
     lastUpdatedAt: "2026-04-26T08:48:00+08:00",
     assignedUser: "Dr. V. Singh"
   },
@@ -439,7 +439,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77427"],
     auditSteps: ["Provider note", "Signature"],
     auditReady: false,
-    dueDate: "2026-04-27",
+    dueDate: "2026-05-06",
     lastUpdatedAt: "2026-04-26T07:48:00+08:00",
     assignedUser: "Dr. Helena Cruz"
   },
@@ -457,7 +457,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["N/A"],
     auditSteps: ["Mapping fields complete", "Provider review"],
     auditReady: false,
-    dueDate: "2026-04-26",
+    dueDate: "2026-05-06",
     lastUpdatedAt: "2026-04-26T09:20:00+08:00",
     assignedUser: "Iris Lim"
   },
@@ -494,7 +494,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77300"],
     auditSteps: ["Physics consult", "Rad Onc approval", "Hold release"],
     auditReady: false,
-    dueDate: "2026-04-26",
+    dueDate: "2026-05-05",
     lastUpdatedAt: "2026-04-26T10:05:00+08:00",
     assignedUser: "Dr. V. Singh"
   },
@@ -512,7 +512,6 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77427"],
     auditSteps: ["Billing review", "Audit sign-off"],
     auditReady: false,
-    dueDate: "2026-04-27",
     lastUpdatedAt: "2026-04-25T16:40:00+08:00",
     assignedUser: "Billing Queue"
   },
@@ -530,7 +529,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77280"],
     auditSteps: ["Order complete", "Signature"],
     auditReady: false,
-    dueDate: "2026-04-28",
+    dueDate: "2026-05-08",
     lastUpdatedAt: "2026-04-24T11:35:00+08:00",
     assignedUser: "Dr. Priya Nair"
   }
@@ -756,7 +755,13 @@ export const appointments: Appointment[] = [
     time: "09:30",
     location: "Main Campus",
     staff: "Mika Alvarez",
-    chartRoundsPhase: "ON_TREATMENT"
+    chartRoundsPhase: "ON_TREATMENT",
+    courseId: "COURSE-2401",
+    appointmentType: "OTV",
+    dateTime: "2026-05-06T09:30:00-07:00",
+    status: "SCHEDULED",
+    assignedProviderId: "USR-RTT-01",
+    linkedWorkflowStepId: "WF-COURSE-2401-8"
   },
   {
     id: "APT-102",
@@ -766,7 +771,13 @@ export const appointments: Appointment[] = [
     time: "11:00",
     location: "North Suite",
     staff: "Iris Lim",
-    chartRoundsPhase: "UPCOMING"
+    chartRoundsPhase: "UPCOMING",
+    courseId: "COURSE-2402",
+    appointmentType: "MAPPING",
+    dateTime: "2026-05-07T11:00:00-07:00",
+    status: "SCHEDULED",
+    assignedProviderId: "USR-MA-01",
+    linkedWorkflowStepId: "WF-COURSE-2402-2"
   },
   {
     id: "APT-103",
@@ -776,7 +787,13 @@ export const appointments: Appointment[] = [
     time: "14:15",
     location: "East Wing",
     staff: "Dr. Helena Cruz",
-    chartRoundsPhase: "ON_TREATMENT"
+    chartRoundsPhase: "ON_TREATMENT",
+    courseId: "COURSE-2404",
+    appointmentType: "PHYSICS_CHECK",
+    dateTime: "2026-05-08T14:15:00-07:00",
+    status: "SCHEDULED",
+    assignedProviderId: "USR-PHYS-01",
+    linkedWorkflowStepId: "WF-COURSE-2404-6"
   }
 ];
 

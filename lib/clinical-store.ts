@@ -671,7 +671,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77261", "77300"],
     auditSteps: ["Prescription review", "Rad Onc signature"],
     auditReady: false,
-    dueDate: "2026-04-27",
+    dueDate: "2026-05-06",
     lastUpdatedAt: "2026-04-26T08:48:00+08:00",
     assignedUser: "Dr. Helena Cruz"
   },
@@ -689,7 +689,7 @@ export const carepathTasks: CarepathTask[] = [
     cptCodes: ["77436", "77437", "77439"],
     auditSteps: ["Daily treatment log", "MD approval", "DOT approval"],
     auditReady: false,
-    dueDate: "2026-04-27",
+    dueDate: "2026-05-07",
     lastUpdatedAt: "2026-04-26T08:48:00+08:00",
     assignedUser: "Noel Rivera"
   }
