@@ -52,15 +52,43 @@ The authoritative single-course work surface with four tabs:
 
 See [patient workspace](patient-workspace.md).
 
-## Legacy Routes
+## Route Inventory
 
-Legacy pages for Courses, Workflow, Today, Clinical Forms, Treatment Planning, Imaging, Treatment Delivery, Documents, Billing, Audit, Records, Upcoming, On Treatment, and Post may remain for:
+This is the canonical route decision record. Other documents point here instead of maintaining their own route tables.
 
-- redirects;
-- compatibility links;
-- specialized cross-patient administrative queues that answer a distinct question.
+### Canonical pages
 
-They must not maintain competing patient-course state or present themselves as the preferred place to complete work that belongs in the patient workspace.
+| Route | Responsibility |
+|---|---|
+| `/patients` | Patient registry (entry point) |
+| `/patients/[id]` | Patient workspace, four tabs |
+| `/tasks` | Canonical cross-patient worklist |
+| `/schedule` | Schedule |
+| `/dashboard` | Operational oversight |
+| `/analytics` | Aggregate PHI-minimized reporting |
+| `/settings`, `/settings/users`, `/settings/templates` | Administration |
+| `/templates` | Template registry administration |
+| `/audit-logs` | The single audit surface |
+| `/users-roles` | User and role management |
+| `/treatment-delivery/fraction-logs` | Cross-patient fraction-log review queue — kept because it answers a distinct clinic-wide question, subject to the deep-link contract |
+| `/login`, `/error`, `/not-found` | Shell pages |
+
+### Retired routes (redirects)
+
+The following legacy routes redirect and must stay that way — no legacy page may maintain competing patient-course state:
+
+- To `/patients`: `/courses`, `/clinical-forms`, `/imaging`, `/treatment-planning`, `/treatment-delivery`, `/documents`, `/billing`, `/audit`, `/records`, `/upcoming`, `/on-treatment`, `/post`
+- To `/tasks`: `/workflow`, `/today`
+- Patient deep-links: `/patients/[id]/carepath` → Prepare tab, `/patients/[id]/documents` → Record & Closeout tab
+
+### Decided retirements (to be converted to redirects)
+
+| Route | Decision | Reason |
+|---|---|---|
+| `/workflow/igsrt` | Redirect to `/patients` | Duplicates the workspace Treatment tab; cross-patient fraction review belongs in `/tasks` and `/treatment-delivery/fraction-logs` |
+| `/workflow/templates` | Redirect to `/templates` | Duplicates the template registry page |
+| `/reports` | Redirect to `/analytics` | Same telemetry as Analytics |
+| `/security-logs` | Redirect to `/audit-logs` | Renders the same component over the same data; `/audit-logs` is the single audit surface |
 
 ## Deep-Link Contract
 

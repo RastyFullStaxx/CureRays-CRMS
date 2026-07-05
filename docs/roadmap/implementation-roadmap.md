@@ -1,200 +1,109 @@
 # Implementation Roadmap
 
-- **Goal:** Close the documented workflow and production gaps without changing the stable four-tab patient-first product model.
+- **Goal:** Ship the staff pilot defined in [pilot readiness](../requirements/pilot-readiness.md) without changing the stable four-tab patient-first product model, then close the remaining production gaps.
 - **Status source:** [`../status/current-state.md`](../status/current-state.md)
-- **Requirements:** [clinical workflow](../requirements/clinical-workflow.md) and [production readiness](../requirements/production-readiness.md)
+- **Requirements:** [pilot readiness](../requirements/pilot-readiness.md), [clinical workflow](../requirements/clinical-workflow.md), and [production readiness](../requirements/production-readiness.md)
 
 ## Delivery Rule
 
 Work is complete only when the behavior, persistence, security boundary, user recovery, and proportionate verification are complete. A screen, status field, interface, placeholder repository, or mocked adapter is not completion.
 
-## Workstream 1: Structured Preparation Workbench
+During the pilot phase, "proportionate verification" follows the AGENTS.md development-phase policy: a targeted guardrail script or manual browser check plus `npm run verify`, not the production test pyramid. The production evidence lists live with the deferred workstreams below.
 
-- **Priority:** Immediate
-**Outcome:** Staff complete the real intake/mapping/simulation/prescription work inside Prepare.
+## Pilot North Star
 
-### Scope
+One synthetic patient per protocol goes intake → closeout entirely in-app, with durable data and real generated documents. The core loop is **fill structured form → durable save → generate real document → download**. When prioritizing, ask: does this ship the loop?
 
-- Resolve each workflow step to an applicable `DocumentRequirement` and `TemplateFieldMap`.
-- Render field-map sections using shared form primitives.
-- Persist typed values and evidence references.
-- Enforce required fields, units, allowed options, and conditional applicability.
-- Support draft, submit for review, return for correction, sign, N/A, reopen, and version history.
-- Display missing/deferred/draft mappings as blockers rather than editable ready work.
-- Cover repeated anatomy observations for Arthritis and Dupuytren’s mapping.
+## Pilot Milestones (Active Plan)
 
-### Acceptance evidence
+### P0. Durable persistence (write-through)
 
-- Service and repository behavior tests.
-- API integration tests for draft/review/sign/reopen.
-- Browser test for one Skin Cancer, Arthritis, and Dupuytren’s preparation flow.
-- Clinical owner approval of field mapping and completion gates.
+- **Outcome:** every pilot mutation survives an application restart (pilot gate G1).
 
-## Workstream 2: Preauthorization and Billing Administration
+Scope:
 
-- **Priority:** Immediate
-**Outcome:** Authorization and billing readiness are structured, traceable, and tied to evidence.
+- Keep the in-memory clinical store as the domain engine; add write-through to PostgreSQL after each successful mutation using the inverse of the existing hydration mappers, per the [pilot persistence mode](../architecture/data-and-phi-boundaries.md).
+- Cover the mutation paths for workflow steps/tasks, fraction entries, patient registration/update, and document lifecycle actions.
+- Consolidate the two persistence environment flags into one.
+- Do **not** reimplement business rules inside Prisma repositories — that refactor stays deferred (see below).
 
-### Scope
+Acceptance: restart-survival check per entity type; `npm run verify` green.
 
-- Complete 20fx/30fx Skin Cancer carepath/preauth mapping.
-- Obtain and map the missing billing-preauthorization source/SOP.
-- Implement payer/requested-services/evidence/submission/decision/effective-date states.
-- Add denial, appeal/reconsideration, partial approval, expiration, and N/A handling.
-- Tie authorization policy to treatment readiness.
-- Reconcile planned, authorized, completed, and billable quantities.
-- Version codes/modifiers and medical-necessity language by effective date.
+### P1. Prepare structured forms (Dupuytren's first)
 
-### Acceptance evidence
+- **Outcome:** staff complete real intake/mapping/order/prescription work inside Prepare (pilot gate G2).
 
-- Authorization state-transition tests.
-- Quantity/evidence reconciliation tests.
-- Billing/authorization stakeholder sign-off.
-- Exception and appeal workflow demonstration.
+Scope:
 
-## Workstream 3: Durable Data and Repository Completion
+- Resolve each preparation step to its applicable document requirement and field map per the [course site model](../architecture/workflow-and-automation.md).
+- Render field-map sections with shared form primitives; validate required fields, units, and options; save and resume drafts; support the existing status vocabulary through draft/submit/review/sign.
+- Start with Dupuytren's — the smallest complete workflow that exercises every form archetype, including repeated per-region anatomy observations — then Arthritis (per-joint observations), then Skin Cancer.
+- Display missing/deferred/draft mappings as blockers, not editable work.
 
-- **Priority:** Immediate and cross-cutting
-**Outcome:** Every production path uses durable OPS/PHI persistence with no memory fallback.
+Acceptance: each Dupuytren's form completed end to end in a browser; drafts survive restart (depends on P0).
 
-### Scope
+### P2. Real document generation and download
 
-- Inventory every read/mutation path and assign OPS or PHI ownership.
-- Implement Prisma repositories for workflow, tasks, clinical responses, documents, fractions, billing, audit, and closeout.
-- Add transactions for patient/course bundles and multi-record workflow transitions.
-- Add constraints, optimistic concurrency, rollback, and idempotency.
-- Remove production fallback to shared mutable arrays.
-- Add tracked migrations, seed fixtures, and backup/restore procedures.
+- **Outcome:** structured data produces the clinic's own documents (pilot gate G3).
 
-### Acceptance evidence
+Scope: the [pilot generation profile](../architecture/document-lifecycle.md) — tagged template copies in `templates/pilot/`, docxtemplater DOCX generation, exceljs fraction-log XLSX, versioned `GeneratedDocumentOutput` records, opaque-key local storage, role-checked download. Isodose PPTX re-scoped to static reference attachments. No PDF.
 
-- Repository contract tests against PostgreSQL.
-- API integration tests proving persistence across process restart.
-- Transaction rollback and concurrency tests.
-- Data-boundary review and migration evidence.
+Acceptance: golden output check per enabled template; download works from Record & Closeout.
 
-## Workstream 4: Authentication, RBAC, and Immutable Audit
+### P3. Fraction closeout
 
-- **Priority:** Required before real PHI
-**Outcome:** Every sensitive action has a real actor, enforced authorization, and immutable trace.
+- **Outcome:** the treatment loop closes cleanly (pilot gate G4).
 
-### Scope
+Scope: XLSX fraction-log export, approval queue polish on the Treatment tab, treatment summary form. Fraction durability itself lands in P0; correction semantics follow [workflow and automation](../architecture/workflow-and-automation.md).
 
-- Integrate an approved identity provider, MFA, sessions, timeout, and revocation.
-- Replace prototype role headers and synthetic actors.
-- Define permissions by role, action, and PHI sensitivity.
-- Enforce access in server services/routes, not client UI.
-- Implement append-only audit storage for reads, writes, signatures, exports, permissions, and denials.
-- Add access review, break-glass, alerting, and audit retention.
+Acceptance: record → correct → approve → export cycle on a synthetic course.
 
-### Acceptance evidence
+### P4. Preauthorization-lite
 
-- Authorization matrix and negative tests.
-- Cross-patient/facility isolation tests where applicable.
-- Audit immutability and completeness tests.
-- Security/compliance approval.
+- **Outcome:** authorization is structured state, not a document checkbox (pilot gate G5).
 
-## Workstream 5: Real Document and Evidence Lifecycle
+Scope:
 
-- **Priority:** After structured source data and durable storage
-**Outcome:** Approved templates generate authoritative, reviewable, signed, versioned files.
+- Minimal preauthorization record with the state machine from [clinical workflow](../requirements/clinical-workflow.md) section 4; no payer integration.
+- Gates only the Planning → On Treatment advance for protocols that require it, per the [preauthorization dependency](../architecture/workflow-and-automation.md).
+- Data prerequisite: complete the two deferred Skin Cancer carepath/preauth template mappings.
 
-### Scope
+Acceptance: state transitions demonstrated; gate blocks and unblocks treatment readiness correctly.
 
-- Build deterministic DOCX/PDF/XLSX/PPTX generation adapters.
-- Snapshot structured source data and template checksum per version.
-- Store generated files in approved encrypted storage.
-- Implement render QA, review, correction, void, and manual-edit exception behavior.
-- Implement evidence/image upload with validation, metadata, checksum, and access control.
-- Implement identity-bound signatures and immutable signed versions.
+## Deferred Production Workstreams
 
-### Acceptance evidence
+These carry the full production scope and acceptance evidence previously listed as Workstreams 1–8. They are deferred, not deleted: any real PHI/ePHI use requires them per [production readiness](../requirements/production-readiness.md).
 
-- Golden generated-output fixtures for each enabled template family.
-- Render/visual QA and field-completeness tests.
-- Signature content-hash and lock tests.
-- Storage access, retention, and recovery tests.
+| Deferred workstream | Former | Relationship to pilot milestones |
+|---|---|---|
+| Structured preparation completion (all protocols, clinical owner approval of field maps and completion gates) | WS1 | P1 delivers the pilot subset |
+| Preauthorization and billing administration (payer evidence, denial/appeal, quantity reconciliation, versioned coding language, missing billing-preauth source/SOP) | WS2 | P4 delivers the state machine; the administrative lifecycle remains |
+| Durable data and repository completion (Prisma-native repositories, transactions, optimistic concurrency, no memory engine) | WS3 | P0 delivers write-through; the repository refactor remains |
+| Authentication, RBAC, and immutable audit (IdP, MFA, server-enforced permissions, append-only audit storage) | WS4 | Fully deferred; pilot uses named local users (gate G6) |
+| Real document and evidence lifecycle (all formats, render QA, identity-bound signatures, encrypted storage, evidence upload hardening) | WS5 | P2 delivers the pilot generation profile; the rest remains |
+| eCW, Drive, and external reconciliation (approved adapters, idempotent sync, reconciliation reports) | WS6 | Fully deferred |
+| Clinical calculation and treatment validation (approved references, golden clinical cases, physicist/Rad Onc sign-off) | WS7 | Fully deferred; prototype calculations stay production-blocked |
+| Closeout, operations, and release (interruption policy, retention/legal hold, monitoring, migration, go-live gates) | WS8 | Fully deferred; pilot exit criteria feed its scoping |
 
-## Workstream 6: eCW, Drive, and External Reconciliation
-
-- **Priority:** After lifecycle state is durable
-**Outcome:** External state is confirmed by adapters, not manually asserted toggles.
-
-### Scope
-
-- Define approved eCW and storage/Drive integration contracts.
-- Implement idempotent upload/sync operations, retries, and failure queues.
-- Store external IDs, timestamps, result payload metadata, and reconciliation state.
-- Provide user-visible retry/recovery without duplicating records.
-- Define downtime/manual procedures and later reconciliation.
-
-### Acceptance evidence
-
-- Sandbox/approved-environment integration tests.
-- Duplicate/retry/failure recovery tests.
-- Reconciliation reports and operational runbooks.
-- Vendor/security/BAA approval where ePHI is processed.
-
-## Workstream 7: Clinical Calculation and Treatment Validation
-
-- **Priority:** Required before clinical production use
-**Outcome:** Treatment planning and fraction calculations are validated, versioned, and safe.
-
-### Scope
-
-- Approve source isodose/depth-dose tables and checksums.
-- Specify lookup/interpolation, units, rounding, and boundary behavior.
-- Validate phase totals, cumulative surface dose, dose-to-depth, and correction recalculation.
-- Define image/DOT, physician, OTV, and physics gates by protocol.
-- Create golden clinical cases and independent expected results.
-- Record sign-off and change-control requirements.
-
-### Acceptance evidence
-
-- Physicist/Rad Onc-approved validation protocol.
-- Golden-case automated tests.
-- Boundary/override/correction tests.
-- Production reference-version approval.
-
-## Workstream 8: Closeout, Operations, and Release
-
-- **Priority:** Final integration and pilot preparation
-**Outcome:** A complete patient course can be operated, audited, closed, reopened, and supported.
-
-### Scope
-
-- Complete AVS/follow-up, billing, external upload, audit, and final closure gates.
-- Add scheduling interruption, cancellation, no-show, and resumption policy.
-- Add correction/amendment, retention, legal hold, and downtime procedures.
-- Complete accessibility and critical-path browser testing.
-- Define monitoring, backup/recovery, incident response, training, cutover, and support.
-- Migrate/reconcile legacy worksheet and Drive records using approved procedures.
-
-### Acceptance evidence
-
-- End-to-end synthetic patient scenarios for every enabled protocol.
-- UAT sign-off from each operational role.
-- Security/HIPAA risk assessment.
-- Restore, rollback, downtime, and support drills.
-- Formal go-live approval.
+The detailed production scope and acceptance evidence for each deferred workstream are preserved in [`../archive/production-workstreams-2026.md`](../archive/production-workstreams-2026.md).
 
 ## Dependency Order
 
-1. Confirm requirements and clinical ownership.
-2. Build structured preparation and preauthorization records.
-3. Complete durable repositories.
-4. Add real identity, RBAC, and immutable audit.
-5. Generate/store/sign real documents and evidence.
-6. Integrate and reconcile external systems.
-7. Complete clinical validation.
-8. Run operational UAT and release gates.
+1. P0 durable persistence.
+2. P1 structured preparation (Dupuytren's → Arthritis → Skin Cancer).
+3. P2 document generation (depends on P1 saved data).
+4. P3 fraction closeout.
+5. P4 preauthorization-lite (mapping prerequisite may proceed in parallel).
+6. Staff pilot; exit assessment per [pilot readiness](../requirements/pilot-readiness.md).
+7. Deferred production workstreams, re-ordered by pilot findings.
 
-Workstreams may overlap, but no later workstream may bypass an unmet data, authorization, audit, or clinical-validation dependency.
+Milestones may overlap, but no milestone may bypass an unmet persistence or data dependency, and nothing in the pilot path relaxes a production gate.
 
 ## Explicitly Out of Scope Until Approved
 
 - Real patient PHI/ePHI.
 - Production clinical calculation or treatment guidance.
-- Automated payer submission or claim submission without approved integration requirements.
-- Live eCW/Drive writes using prototype credentials or status toggles.
+- Automated payer or claim submission.
+- Live eCW/Drive writes.
+- PDF/PPTX generation and live/WYSIWYG document editing.
 - Treating archived plans or UI mock behavior as evidence of completion.

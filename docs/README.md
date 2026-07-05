@@ -6,11 +6,12 @@ This directory contains the durable product, clinical workflow, architecture, de
 
 Future development sessions should read only the documents relevant to the task. Start with:
 
-1. [`../AGENTS.md`](../AGENTS.md) for repository operating rules.
-2. [`../PRODUCT.md`](../PRODUCT.md) for stable product intent and boundaries.
-3. [`status/current-state.md`](status/current-state.md) for what is actually implemented today.
-4. [`roadmap/implementation-roadmap.md`](roadmap/implementation-roadmap.md) for the next incomplete work.
-5. The domain-specific document listed below.
+1. [`../CLAUDE.md`](../CLAUDE.md) for the current direction, priorities, and recorded decisions.
+2. [`../AGENTS.md`](../AGENTS.md) for repository operating rules.
+3. [`../PRODUCT.md`](../PRODUCT.md) for stable product intent and boundaries.
+4. [`status/current-state.md`](status/current-state.md) for what is actually implemented today.
+5. [`roadmap/implementation-roadmap.md`](roadmap/implementation-roadmap.md) for the next incomplete work.
+6. The domain-specific document listed below.
 
 Do not infer implementation status from a requirement, architecture document, user guide, or archived plan. Current implementation status is recorded only in `status/current-state.md` and verified in code/tests.
 
@@ -24,6 +25,7 @@ Do not infer implementation status from a requirement, architecture document, us
 ### Requirements
 
 - [`requirements/clinical-workflow.md`](requirements/clinical-workflow.md): end-to-end patient and administrative workflow requirements derived from the 2026 templates.
+- [`requirements/pilot-readiness.md`](requirements/pilot-readiness.md): gates, boundaries, and non-goals for the staff pilot.
 - [`requirements/production-readiness.md`](requirements/production-readiness.md): authentication, persistence, audit, integration, clinical validation, and deployment gates.
 
 ### Architecture

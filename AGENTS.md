@@ -3,7 +3,7 @@
 ## Project
 
 Next.js 16 App Router + React 19 + TypeScript + Tailwind CSS 3.
-A patient-course centered clinical operations system for CureRays Radiation Medicine. Mock-data-driven frontend prototype designed to replace manual Google Drive-based workflows.
+A patient-course centered clinical operations system for CureRays Radiation Medicine, replacing manual Google Drive-based workflows. The operating entrypoint (current direction, priorities, recorded decisions) is [CLAUDE.md](CLAUDE.md) — read it first.
 
 ## Quick Commands
 
@@ -26,10 +26,10 @@ npm run test:hipaa   # HIPAA guardrails validation
 - **Release-phase verification policy**: Run production builds, full guardrails, browser/responsive matrices, route sweeps, and full suites only after the user explicitly says the project is near release or has entered release preparation.
 - Keep testing proportional to the change. Prefer one targeted check that directly covers the edited behavior; do not spend more time or tokens on unrelated validation than on the feature itself.
 - No formal test framework is configured yet. Phase guardrail scripts in `scripts/` validate feature completeness for each phase.
-- `npm run verify` is intentionally lightweight for prototype feature work and only runs `typecheck + lint`.
+- `npm run verify` is intentionally lightweight for prototype feature work: it runs `typecheck + lint` plus the typography, ui-copy, and color guardrail scripts.
 - `npm run test:guardrails` runs the phase scripts plus HIPAA boundaries. `npm run test:full` runs `verify + build + all guardrails`.
 - Mock data in `lib/mock-data.ts` should be validated against TypeScript types in `lib/types.ts`.
-- Prisma schemas exist but are not queried by the UI — all data is in-memory mock data.
+- Persistence reality: the server hydrates the in-memory clinical store from PostgreSQL at boot when persistence mode is enabled (`lib/server/database-hydration.ts`); mutations are memory-only until roadmap milestone P0 lands. Memory-only mode remains the zero-setup default for local dev.
 - When adding a testing framework (Jest, Vitest, Playwright):
   - Service functions in `lib/services/` should have unit tests
   - Store mutations in `lib/clinical-store.ts` should have behavior tests
@@ -61,34 +61,9 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ### Routes (App Router)
 
-| Path | Type | Purpose |
-|------|------|---------|
-| `/` | Page | Landing/login page |
-| `/dashboard` | Page | Command center / main dashboard |
-| `/patients` | Page | Patient registry |
-| `/patients/[id]/*` | Pages | Patient workspace, carepath, documents, fraction log |
-| `/tasks` | Page | Canonical cross-patient task worklist |
-| `/today` | Redirect | Compatibility redirect to `/tasks` |
-| `/schedule` | Page | Schedule view |
-| `/courses` | Page | Courses overview |
-| `/analytics`, `/reports` | Pages | Analytics and reporting |
-| `/billing` | Page | Billing/coding |
-| `/clinical-forms` | Page | Clinical forms |
-| `/documents` | Page | Document management |
-| `/imaging` | Page | Imaging |
-| `/on-treatment`, `/post` | Pages | Treatment status views |
-| `/treatment-planning` | Page | Treatment planning |
-| `/treatment-delivery` | Page | Treatment delivery |
-| `/workflow/*` | Pages | Workflow engine (IGSRT, templates) |
-| `/templates` | Pages | Template management |
-| `/audit`, `/audit-logs`, `/security-logs` | Pages | Audit and security logs |
-| `/settings/*` | Pages | Settings (users, templates) |
-| `/users-roles` | Page | User and role management |
-| `/api/workflow` | Route | Workflow API |
-| `/api/igsrt` | Route | IGSRT API |
-| `/api/patients` | Route | Patients list API |
-| `/api/patients/[id]` | Route | Single patient API |
-| `/api/generated-documents/[id]` | Route | Document API |
+The route table of record — canonical pages, retired redirects, and pending retirement decisions — is [docs/product/navigation-and-pages.md](docs/product/navigation-and-pages.md). Do not maintain a duplicate table here.
+
+Primary API routes: `/api/workflow` (+ `/api/workflow/steps/[stepId]`, `/api/workflow/courses/[courseId]/advance`), `/api/igsrt` (fraction actions), `/api/patients` (+ `[id]`, `[id]/history`, `[id]/lifecycle`, `prefill`), `/api/tasks/[taskId]`, `/api/generated-documents/[id]`.
 
 ### Data Architecture (Two-Database)
 
@@ -97,7 +72,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 | **OPS** | `prisma/ops-schema.prisma` | Tokenized operational data — no patient identifiers |
 | **PHI** | `prisma/phi-schema.prisma` | Protected health information — patient identifiers |
 
-- The UI currently uses **mock data** from `lib/mock-data.ts`, not Prisma queries.
+- Reads hydrate from PostgreSQL at boot when persistence mode is enabled; mutations remain in-memory until milestone P0. See the [pilot persistence mode](docs/architecture/data-and-phi-boundaries.md).
 - The `lib/hipaa.ts` utility provides PHI redaction functions.
 - Run `npm run test:hipaa` or `npm run test:guardrails` to validate PHI boundaries. These checks are preserved but are not part of the daily lightweight `verify` gate.
 
@@ -260,8 +235,8 @@ Never hardcode hex values in components. Always reference tokens:
 
 - Built with `npm run build` (Next.js static generation + server components).
 - Environment variables are documented in `.env.example`:
-  - `DATABASE_URL_OPS` — OPS PostgreSQL connection string
-  - `DATABASE_URL_PHI` — PHI PostgreSQL connection string
+  - `OPS_DATABASE_URL` — OPS PostgreSQL connection string
+  - `PHI_DATABASE_URL` — PHI PostgreSQL connection string
 - Prisma migrations should be run with `npx prisma migrate deploy` in production.
 - HIPAA guardrails must pass before deployment.
 
@@ -278,8 +253,8 @@ Never hardcode hex values in components. Always reference tokens:
 ## Environment
 
 - Node.js 20.19+ required by the current Next.js/ESLint stack. Use the repo Node version files when available. npm 9+.
-- No database required for local development — all data is in-memory mock data.
-- PostgreSQL required only when connecting Prisma to real databases.
+- No database required for local development — memory-only mode serves mock data.
+- PostgreSQL required only when enabling persistence mode (boot hydration and, after P0, write-through).
 - `.env.example` has all keys — copy to `.env` and fill for local work if needed.
 
 ## Common Pitfalls

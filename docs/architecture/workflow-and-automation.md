@@ -85,6 +85,33 @@ Workflow selection and requirement applicability use:
 
 Missing applicability information produces a review/blocking state. It must not silently fall back to a clinically specific workflow.
 
+## Course Site Model
+
+**One treatment course covers one anatomical site: a single body region and laterality pair.** A patient treated for Arthritis in the right hand and the left foot has two courses, not one course with two sites.
+
+Rationale: courses, prescriptions, orders, mappings, and fraction logs are all per-site in both the data model and the source templates. Requirement applicability filters against the single course body region.
+
+A requirement instantiates for a course when all of the following match:
+
+1. diagnosis category;
+2. protocol;
+3. body region — no filter, or the filter matches the course body region;
+4. laterality applicability.
+
+Field-map selection needs no separate rule: each document requirement references exactly one field map, so requirement selection is field-map selection.
+
+Creating a course whose diagnosis carries body-region-filtered requirements without a course body region fails validation at creation. It must not silently instantiate an unfiltered requirement set.
+
+**Known limitation:** the workspace drives one active course at a time. Concurrent courses (for example, hand and foot in parallel) are valid data, but staff work them by switching the active course. Whether per-course switching is sufficient is a staff-pilot validation item, not a settled decision.
+
+## Preauthorization Dependency
+
+Preauthorization (carepath Step 0) does **not** block Prepare work. Intake, mapping, simulation orders, and prescription preparation proceed in parallel with the authorization case.
+
+Preauthorization gates exactly one transition: **Planning → On Treatment**, and only for protocols whose workflow definition requires authorization. The course gate surfaces an unapproved authorization as a blocker at that boundary and nowhere earlier.
+
+The preauthorization record uses the state machine in [clinical workflow](../requirements/clinical-workflow.md) section 4 (not started → information required → submitted → payer pending → approved / partially approved / denied / appeal in progress / expired / not required with reason).
+
 ## Authoritative Course Gate
 
 One derived gate supplies the patient header/sidebar, Overview, Treatment, and Closeout.
@@ -127,6 +154,30 @@ Every actionable item has:
 - required reason for exceptional transitions.
 
 Preferred verbs are Complete, Generate, Review, Sign, Upload, Approve, Correct, Void, Resolve, Schedule, or Mark Not Applicable.
+
+## Next-Action Selection
+
+The workspace surfaces **one** authoritative next action. Selection is deterministic: the same course state always produces the same next action.
+
+**Scope:** the active course only. Exclude removed steps, Not Applicable items, and completed/signed/closed statuses. Evaluate against the operational date.
+
+**Category precedence** — the first non-empty category supplies the next action:
+
+1. **Blocking** — blocked steps/tasks, fractions needing revision, planning-readiness blockers: anything contributing `BLOCKED` to the course gate.
+2. **Overdue** — open items with a due date before the operational date.
+3. **Due today.**
+4. **Review/signature-ready** — items ready for or needing review, unsigned completed documents, fractions awaiting DOT or MD approval.
+5. **Workflow-order next** — the first incomplete required step at or before the current phase, ordered by phase index then step number.
+6. **Closeout** — open required audit checks.
+
+**Tiebreakers within a category**, applied in order: earlier due date (absent due dates sort last) → lower carepath phase index → lower step/task number → ascending record ID.
+
+**Role-scoped variant:** "my next action" first filters candidates to the session role's owned items, then applies the same precedence. If the filter empties the list, fall back to the global next action labeled with its owner.
+
+**Invariants:**
+
+- The next action and the course gate derive from one evaluation pass; no surface computes a competing value.
+- Stored free-text next-action fields never override the derived action and are scheduled for removal.
 
 ## Automation Rules
 
@@ -183,6 +234,22 @@ Preferred verbs are Complete, Generate, Review, Sign, Upload, Approve, Correct, 
 - Completed/signed records open read-only.
 - Reopening requires a reason and clears or supersedes affected approval/lock state.
 - Corrections preserve the prior version and recalculate dependent state.
+
+### Correction Semantics by Record Type
+
+The governing rule is **mutable until signed, superseded after signed**:
+
+- **Workflow steps and tasks** reopen in place with a mandatory reason. Reopening clears the affected signature/approval state on the step itself; no parallel copy is created.
+- **Fractions** are never edited in place once approved. A correction creates a superseding entry carrying the correction reason and void lineage, and downstream cumulative values recalculate.
+- **Generated documents** are never edited. A change regenerates a new linked output version; signed versions are immutable; voiding requires a reason. See [document lifecycle](document-lifecycle.md).
+
+## Evidence Attachment (Pilot Profile)
+
+Evidence attaches at the level where it proves work: a workflow step, a fraction, or an audit check.
+
+Each attachment records category, description, uploader, timestamp, and checksum. Pilot storage is a local opaque-key store — no PHI in storage keys, listing and download only, no inline viewer.
+
+File inputs that discard their bytes are not evidence uploads. Any such prototype input is removed or visibly disabled; it must not remain interactive while labeled "simulated".
 
 ## Failure and Concurrency Behavior
 

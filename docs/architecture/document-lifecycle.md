@@ -158,6 +158,39 @@ Drive is a template/storage integration boundary, not workflow state. Sync must:
 - Storage/link failure cannot produce a false Uploaded/Complete state.
 - Reconciliation detects app/external disagreement.
 
+## Pilot Generation Profile
+
+This section defines how generation works for the staff pilot ([pilot readiness](../requirements/pilot-readiness.md)). The target architecture above remains the production goal; the profile below is the approved pilot subset.
+
+### Formats and libraries
+
+- **DOCX:** `docxtemplater` (with `pizzip`) fills tagged copies of the clinic's own templates, so the generated output is the clinic's familiar form.
+- **XLSX:** `exceljs` renders fraction-log workbooks from fraction entries, mirroring the source workbook's columns.
+- **PDF:** not generated in the pilot. Staff print from Word/Excel.
+- **PPTX:** never generated. Isodose/planning references are re-scoped from generated outputs to **static reference attachments** on the applicable step.
+
+These two libraries are a recorded exception to the no-new-dependencies guardrail, justified here.
+
+### Tagged template copies
+
+- The originals in `docs/2026_TEMPLATES` stay pristine as evidence per the [normalization manifest](../templates/normalization-manifest.md).
+- Each in-scope template gets a tagged copy in `templates/pilot/`, with `{placeholder}` tags aligned one-to-one with its `TemplateFieldMap` field IDs.
+- Tagged copies follow the source file naming convention so the generation adapter can resolve them from the template source record.
+- A tagged copy is a template version: changing it follows the template source lifecycle above.
+
+### Output records
+
+Each generation creates a new `GeneratedDocumentOutput` version:
+
+- format `DOCX` or `XLSX`, incremented version number;
+- status lifecycle `Draft → Ready → Locked on sign`;
+- storage provider `APP_STORAGE`, storage key = opaque output ID (no PHI in keys);
+- bytes on local disk under a gitignored `storage/` directory;
+- `contentPreview` still populated for the existing preview UI;
+- download served by output ID through a role-checked route.
+
+Once this profile is implemented, an output whose only artifact is a `contentPreview` no longer satisfies any generation requirement.
+
 ## Current Prototype Boundary
 
 Current generated-document behavior may create a text preview and `app-storage://` metadata while recording local lifecycle states. These are adapter seams for development, not real files or external proof. User-facing copy and status documents must continue to identify that limitation until replaced and verified.

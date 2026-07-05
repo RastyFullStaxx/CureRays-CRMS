@@ -137,6 +137,19 @@ Files are outside the relational database unless a specific approved design says
 
 See [document lifecycle](document-lifecycle.md).
 
+## Pilot Persistence Mode
+
+The staff pilot uses **hydrate-on-boot plus write-through-on-mutation**:
+
+- At boot, the server hydrates the in-memory clinical store from the OPS and PHI databases (evidence: `lib/server/database-hydration.ts`, invoked from `app/layout.tsx`; status in [current state](../status/current-state.md)).
+- The in-memory store remains the domain engine: validation, gate derivation, and business rules continue to run against it.
+- After each successful mutation, the changed rows are written through to their owning database using the inverse of the hydration mappers. A failed write-through surfaces as a failed save; it must not leave a silent memory-only success.
+- One environment flag selects the persistence mode. The current split between separate hydration and repository flags is consolidated; memory-only mode remains available for development and demos.
+- Write ownership follows the existing seed/hydration split: workflow steps, tasks, template metadata, document lifecycle metadata, and operational audit events write to OPS; patients, courses, fractions, clinical responses, and generated-output records write to PHI.
+- The pilot assumes a **single application instance**. Write-through from one process is safe under that assumption and only that assumption.
+
+The full repository refactor — Prisma-native repositories owning reads, writes, transactions, and concurrency with no in-memory engine — remains the production requirement and is tracked as a deferred workstream in the [implementation roadmap](../roadmap/implementation-roadmap.md).
+
 ## Current Transitional State
 
 The repository contains separate Prisma schemas, generated clients, local SQL/seed support, and server hydration. Several command repositories and UI flows still use shared in-memory state or simulated persistence. This is acceptable only for synthetic/de-identified development and must remain visible as a production blocker in [current state](../status/current-state.md).
