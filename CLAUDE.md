@@ -58,6 +58,7 @@ Each decision lives in exactly one place:
 - **Ponytail is the default implementation discipline**: understand the affected flow end to end first, then make the smallest safe change; reuse existing seams, helpers, and primitives; no unrequested abstractions, scaffolding, or dependencies. Never simplify away validation, security, accessibility, error handling that prevents data loss, or HIPAA controls.
 - For UI work, start with `design-taste-frontend` for audit/direction; bring in `frontend-design`, `ui-ux-pro-max`, `impeccable`, or `design-motion-principles` only when their specialty is needed. Project rules and `docs/design/*.md` override generic skill guidance.
 - Select the minimum skill set that materially helps; do not invoke every skill for every task.
+- Basically don't work alone, use our .agents skills
 
 ## Guardrails
 
