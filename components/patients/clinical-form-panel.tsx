@@ -12,11 +12,16 @@ import { formatUiLabel } from '@/lib/ui-copy';
 import type {
   ClinicalFormResponse,
   FormTemplateField,
+  FormTemplateGridColumn,
   TemplateFieldMap,
   WorkflowItemStatus,
 } from '@/lib/types';
 
 type FieldValue = string | number | boolean | null;
+
+function gridCellKey(gridId: string, rowId: string, columnId: string): string {
+  return `${gridId}__${rowId}__${columnId}`;
+}
 
 type ClinicalFormPanelProps = {
   courseId: string;
@@ -175,6 +180,14 @@ export function ClinicalFormPanel({
           ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             {section.fields.map((field) => {
+              if (field.kind === 'grid') {
+                return (
+                  <div key={field.id} className="grid gap-1.5 sm:col-span-2">
+                    <span className="clinical-label">{field.label}</span>
+                    <ClinicalGrid field={field} values={values} disabled={readOnly} onChange={setValue} />
+                  </div>
+                );
+              }
               const value = values[field.id];
               const showError = attemptedSubmit && field.required && isEmpty(value);
               return (
@@ -292,5 +305,99 @@ function ClinicalField({
         onChange(field.kind === 'number' ? (event.target.value === '' ? null : Number(event.target.value)) : event.target.value)
       }
     />
+  );
+}
+
+function GridCell({
+  column,
+  value,
+  disabled,
+  onChange,
+}: {
+  column: FormTemplateGridColumn;
+  value: FieldValue | undefined;
+  disabled: boolean;
+  onChange: (value: FieldValue) => void;
+}) {
+  if (column.kind === 'select') {
+    return (
+      <Select
+        className="h-8"
+        disabled={disabled}
+        value={typeof value === 'string' ? value : ''}
+        onChange={(event) => onChange(event.target.value || null)}
+      >
+        <option value="">—</option>
+        {(column.options ?? []).map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </Select>
+    );
+  }
+  return (
+    <Input
+      className="h-8"
+      type={column.kind === 'number' ? 'number' : 'text'}
+      disabled={disabled}
+      value={value === null || value === undefined ? '' : String(value)}
+      onChange={(event) =>
+        onChange(column.kind === 'number' ? (event.target.value === '' ? null : Number(event.target.value)) : event.target.value)
+      }
+    />
+  );
+}
+
+function ClinicalGrid({
+  field,
+  values,
+  disabled,
+  onChange,
+}: {
+  field: FormTemplateField;
+  values: Record<string, FieldValue>;
+  disabled: boolean;
+  onChange: (key: string, value: FieldValue) => void;
+}) {
+  const rows = field.rows ?? [];
+  const columns = field.columns ?? [];
+  return (
+    <div className="scrollbar-soft overflow-x-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-[var(--color-bg)]">
+            <th className="clinical-label sticky left-0 z-[1] bg-[var(--color-bg)] px-3 py-2 text-left">Zone</th>
+            {columns.map((column) => (
+              <th key={column.id} className="clinical-label whitespace-nowrap px-2 py-2 text-left">
+                {column.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id} className="border-t border-[var(--color-border-soft)]">
+              <td className="type-label sticky left-0 z-[1] bg-[var(--color-card)] px-3 py-1.5 text-[var(--color-text)]">
+                {row.label}
+              </td>
+              {columns.map((column) => {
+                const key = gridCellKey(field.id, row.id, column.id);
+                return (
+                  <td key={column.id} className="px-2 py-1.5 align-middle">
+                    <GridCell
+                      column={column}
+                      value={values[key]}
+                      disabled={disabled}
+                      onChange={(next) => onChange(key, next)}
+                    />
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

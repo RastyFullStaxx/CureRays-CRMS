@@ -2675,39 +2675,217 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "lesion",
+          "title": "Lesion & Setup",
           "fields": [
             {
               "id": "location",
               "label": "Location",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand (palm)"
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "fieldDesign",
-              "label": "Field Design",
-              "kind": "textarea",
+              "id": "icdDiagnosis",
+              "label": "ICD code / diagnosis",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. M72.0 Palmar fascial fibromatosis"
+            },
+            {
+              "id": "deepestDepthMm",
+              "label": "Deepest depth of target (mm)",
+              "kind": "number",
               "required": true
             },
             {
-              "id": "setupDetails",
-              "label": "Setup Details",
+              "id": "finalFieldDesign",
+              "label": "Final field design",
               "kind": "textarea",
+              "required": false,
+              "placeholder": "Field design description"
+            }
+          ]
+        },
+        {
+          "id": "prescription",
+          "title": "Prescription (Phase I)",
+          "fields": [
+            {
+              "id": "anticipatedEnergy",
+              "label": "Anticipated energy",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose (Gy)",
+              "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction (Gy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions per phase",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "weeklySchedule",
+              "label": "Weekly fractionation schedule",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. M–F"
+            }
+          ]
+        },
+        {
+          "id": "setup",
+          "title": "Setup & Imaging",
+          "fields": [
+            {
+              "id": "chairSetup",
+              "label": "Chair setup",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Supine with hand in box",
+                "Palm up",
+                "Seated treatment chair"
+              ]
+            },
+            {
+              "id": "position",
+              "label": "Position",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sitting upright",
+                "Sitting reclined",
+                "Supine"
+              ]
+            },
+            {
+              "id": "usFrequencies",
+              "label": "Ultrasound imaging",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "12 MHz",
+                "20 MHz",
+                "50 MHz"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "title": "Physics Requirements",
+          "fields": [
+            {
+              "id": "specialPhysics",
+              "label": "Special physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "specialPhysicsReason",
+              "label": "Special physics reason",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "weeklyPhysics",
+              "label": "Weekly physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "weeklyPhysicsReason",
+              "label": "Weekly physics reason",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "inVivoDosimetry",
+              "label": "In-vivo dosimetry",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "inVivoReason",
+              "label": "In-vivo dosimetry reason",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ctp",
+          "title": "Clinical Treatment Plan",
+          "fields": [
+            {
+              "id": "cptCode",
+              "label": "CPT code",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "77261: Simple",
+                "77262: Intermediate",
+                "77263: Complex"
+              ]
+            },
+            {
+              "id": "medicalNecessity",
+              "label": "Medical necessity rationale",
+              "kind": "textarea",
+              "required": false,
+              "placeholder": "Justification for planning complexity"
+            },
+            {
+              "id": "radiationOncologist",
+              "label": "Radiation oncologist",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "dateCompleted",
+              "label": "Date completed",
+              "kind": "date",
+              "required": false
             }
           ]
         }
@@ -2724,15 +2902,9 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "mapping-summary",
+          "title": "Ultrasound Mapping",
           "fields": [
-            {
-              "id": "handSite",
-              "label": "Hand Site",
-              "kind": "text",
-              "required": true
-            },
             {
               "id": "laterality",
               "label": "Laterality",
@@ -2741,29 +2913,205 @@
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "cordNoduleMapping",
-              "label": "Cord/Nodule Mapping",
-              "kind": "textarea",
-              "required": true,
-              "placeholder": "Describe cords/nodules by region (palm, MCP, PIP, wrist)"
+              "id": "performedBy",
+              "label": "Performed by",
+              "kind": "text",
+              "required": false,
+              "placeholder": "Clinician / sonographer"
             },
             {
-              "id": "fieldLimits",
-              "label": "Field Limits",
+              "id": "interpretationDate",
+              "label": "Interpretation date",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "usFrequency",
+              "label": "US frequency",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "12 MHz",
+                "20 MHz",
+                "50 MHz"
+              ]
+            },
+            {
+              "id": "zoneAssessments",
+              "label": "Zone assessment — record each treated zone. Exclude a zone only if there is BOTH a distinct fascial plane over the tendon AND no palpable disease.",
+              "kind": "grid",
+              "required": false,
+              "rows": [
+                {
+                  "id": "A",
+                  "label": "A · Distal 1st digit"
+                },
+                {
+                  "id": "B",
+                  "label": "B · Proximal 1st digit"
+                },
+                {
+                  "id": "C",
+                  "label": "C · Digit 1–2 webbing"
+                },
+                {
+                  "id": "D",
+                  "label": "D · Thenar"
+                },
+                {
+                  "id": "E",
+                  "label": "E · Distal 2nd digit"
+                },
+                {
+                  "id": "F",
+                  "label": "F · IP 2nd digit"
+                },
+                {
+                  "id": "G",
+                  "label": "G · Proximal 2nd digit"
+                },
+                {
+                  "id": "H",
+                  "label": "H · 2nd MCP"
+                },
+                {
+                  "id": "I",
+                  "label": "I · Palm 2nd digit"
+                },
+                {
+                  "id": "J",
+                  "label": "J · Distal 3rd digit"
+                },
+                {
+                  "id": "K",
+                  "label": "K · IP 3rd digit"
+                },
+                {
+                  "id": "L",
+                  "label": "L · Proximal 3rd digit"
+                },
+                {
+                  "id": "M",
+                  "label": "M · 3rd MCP"
+                },
+                {
+                  "id": "N",
+                  "label": "N · Palm 3rd digit"
+                },
+                {
+                  "id": "O",
+                  "label": "O · Distal 4th digit"
+                },
+                {
+                  "id": "P",
+                  "label": "P · IP 4th digit"
+                },
+                {
+                  "id": "Q",
+                  "label": "Q · Proximal 4th digit"
+                },
+                {
+                  "id": "R",
+                  "label": "R · 4th MCP"
+                },
+                {
+                  "id": "S",
+                  "label": "S · Palm 4th digit"
+                },
+                {
+                  "id": "T",
+                  "label": "T · Distal 5th digit"
+                },
+                {
+                  "id": "U",
+                  "label": "U · IP 5th digit"
+                },
+                {
+                  "id": "V",
+                  "label": "V · Proximal 5th digit"
+                },
+                {
+                  "id": "W",
+                  "label": "W · 5th MCP"
+                },
+                {
+                  "id": "X",
+                  "label": "X · Palm 5th digit"
+                },
+                {
+                  "id": "Y",
+                  "label": "Y · Proximal Palm"
+                },
+                {
+                  "id": "Z",
+                  "label": "Z · Distal Wrist"
+                }
+              ],
+              "columns": [
+                {
+                  "id": "fascialPlane",
+                  "label": "Distinct fascial plane?",
+                  "kind": "select",
+                  "options": [
+                    "Yes",
+                    "No",
+                    "Not assessed"
+                  ]
+                },
+                {
+                  "id": "depthMm",
+                  "label": "Depth to target (mm)",
+                  "kind": "number"
+                },
+                {
+                  "id": "palpation",
+                  "label": "Palpation",
+                  "kind": "select",
+                  "options": [
+                    "Palpable",
+                    "Not palpable"
+                  ]
+                },
+                {
+                  "id": "usImage",
+                  "label": "US image",
+                  "kind": "select",
+                  "options": [
+                    "Obtained",
+                    "Not obtained"
+                  ]
+                },
+                {
+                  "id": "fieldDesign",
+                  "label": "Field design",
+                  "kind": "select",
+                  "options": [
+                    "Include",
+                    "Exclude"
+                  ]
+                },
+                {
+                  "id": "mdNotes",
+                  "label": "MD notes",
+                  "kind": "text"
+                }
+              ]
+            },
+            {
+              "id": "fieldDesignRationale",
+              "label": "Overall field design rationale",
               "kind": "textarea",
-              "required": true,
-              "placeholder": "Proximal and distal field boundaries and margins"
+              "required": false,
+              "placeholder": "Included/excluded regions and reasoning"
             }
           ]
         }
       ],
-      "completenessNotes": "Required fields are mapped for Phase 4 pilot registry readiness. Merge/output automation remains Phase 5."
+      "completenessNotes": "26-zone (A–Z) ultrasound mapping grid per the clinic template: distinct fascial plane, depth to target, palpation, US image, include/exclude field design, MD notes per zone."
     },
     {
       "id": "MAP-DUPUYTRENS-RX",
@@ -2775,45 +3123,258 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "identity",
+          "title": "Prescription",
           "fields": [
             {
-              "id": "location",
-              "label": "Location",
+              "id": "site",
+              "label": "Site",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand (palm)"
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "dose",
-              "label": "Dose",
+              "id": "verifiedInSensus",
+              "label": "Verified Rx in Sensus EMR",
+              "kind": "checkbox",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "phase1",
+          "title": "Phase I Parameters",
+          "fields": [
+            {
+              "id": "cumulativeDoseGy",
+              "label": "Cumulative dose (Gy)",
               "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerPhaseGy",
+              "label": "Dose per phase (Gy)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction (cGy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "timeMinutes",
+              "label": "Time (minutes)",
+              "kind": "number",
+              "required": false
             },
             {
               "id": "energy",
               "label": "Energy",
-              "kind": "number",
-              "required": true
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
             },
             {
-              "id": "applicator",
-              "label": "Applicator",
+              "id": "ssdCm",
+              "label": "SSD (cm)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "handThicknessCm",
+              "label": "Hand thickness — measured (cm)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "applicatorSize",
+              "label": "Applicator size",
               "kind": "text",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "margin",
+              "label": "Margin",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. Custom / 0 mm"
+            },
+            {
+              "id": "technique",
+              "label": "Technique",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "DEEP (Depth Enabled)",
+                "Standard orthovoltage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shielding",
+          "title": "Beam & Shielding",
+          "fields": [
+            {
+              "id": "beamArrangement",
+              "label": "Beam arrangement",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. En face kilovoltage photons"
+            },
+            {
+              "id": "shieldingDesign",
+              "label": "Shielding design",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. Custom"
+            },
+            {
+              "id": "thyroidShield",
+              "label": "Thyroid shield",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "leadApron",
+              "label": "Lead apron",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schedule",
+          "title": "Schedule & Imaging",
+          "fields": [
+            {
+              "id": "fractionsPerDay",
+              "label": "Fractions per day",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "fractionsPerWeek",
+              "label": "Fractions per week",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "phaseDesign",
+              "label": "Single or multi phase",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Single Phase",
+                "Multi Phase"
+              ]
+            },
+            {
+              "id": "sequencing",
+              "label": "Synchronous vs sequential",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sequential",
+                "Synchronous"
+              ]
+            },
+            {
+              "id": "imagingGuidance",
+              "label": "Imaging (77439 US)",
+              "kind": "text",
+              "required": false,
+              "placeholder": "e.g. 20 MHz daily; 12 MHz weekly"
+            },
+            {
+              "id": "dotUltrasoundMm",
+              "label": "Depth of target — US (mm)",
+              "kind": "number",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "flags",
+          "title": "Review & Authorization",
+          "fields": [
+            {
+              "id": "customBlock",
+              "label": "Custom block",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "complexShielding",
+              "label": "Complex shielding (77263)",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "inVivoDosimetry",
+              "label": "In-vivo dosimetry / film",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "concurrentTherapy",
+              "label": "Concurrent therapy",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "preAuthorized",
+              "label": "Pre-authorized",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No",
+                "N/A"
+              ]
             }
           ]
         }

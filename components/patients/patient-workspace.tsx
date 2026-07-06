@@ -775,7 +775,7 @@ export function PatientWorkspace({
                       {selectedCarepathAction?.detail ?? selectedCarepathStep.notes ?? selectedCarepathStep.triggerEvent}
                     </p>
                     {selectedCarepathAction ? (
-                      <div className="mt-3">
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
                         <PrototypeActionButton
                           label={selectedCarepathAction.label}
                           icon={selectedCarepathAction.icon}
@@ -792,7 +792,6 @@ export function PatientWorkspace({
                             icon="refresh"
                             kind="review"
                             variant="secondary"
-                            className="mt-2"
                             description="Reopen this completed step only when a documented correction is required."
                             context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
                             onComplete={reopenSelectedCarepathStep}

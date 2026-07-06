@@ -815,7 +815,19 @@ export type GeneratedDocument = {
   auditReady: boolean;
 };
 
-export type FormFieldKind = "text" | "number" | "date" | "select" | "checkbox" | "textarea";
+export type FormFieldKind = "text" | "number" | "date" | "select" | "checkbox" | "textarea" | "grid";
+
+export type FormTemplateGridColumn = {
+  id: string;
+  label: string;
+  kind: "text" | "number" | "select";
+  options?: string[];
+};
+
+export type FormTemplateGridRow = {
+  id: string;
+  label: string;
+};
 
 export type FormTemplateField = {
   id: string;
@@ -824,6 +836,9 @@ export type FormTemplateField = {
   required: boolean;
   placeholder?: string;
   options?: string[];
+  // Present only when kind === "grid": a fixed-row table (rows × columns).
+  rows?: FormTemplateGridRow[];
+  columns?: FormTemplateGridColumn[];
 };
 
 export type FormTemplateSection = {
