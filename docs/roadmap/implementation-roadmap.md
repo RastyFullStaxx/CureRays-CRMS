@@ -42,7 +42,7 @@ Scope:
 
 Acceptance: each Dupuytren's form completed end to end in a browser; drafts survive restart (depends on P0).
 
-**Status:** Dupuytren's done and verified — maps enriched to the real templates (US mapping = 26-zone grid via a new `grid` field type; Sim = 23 fields; Rx = 29 fields). **Remaining:** enrich Arthritis (per-joint mapping, reusing the `grid` type) and Skin Cancer field maps to their real templates, and obtain clinical-owner sign-off on the mapped fields. Deferred by user decision; do after P2–P4.
+**Status:** Done and verified across all three carepaths. Maps enriched to the real clinic templates: Dupuytren's US mapping = 26-zone grid (new `grid` field type), Sim (23 fields), Rx (29 fields); Arthritis HAND/FOOT mapping = Kellgren-Lawrence per-joint grids (16 / 23 joints) reusing the `grid` type, plus Arthritis+Skin Sim/Rx enriched to their templates. Verified render + save in-browser for a patient in each protocol. **Remaining:** clinical-owner sign-off on the mapped fields before production (the field content is a faithful read of the templates, but the clinic is the domain authority).
 
 ### P2. Real document generation and download
 

@@ -1800,13 +1800,14 @@
       "sections": [
         {
           "id": "lesion",
-          "title": "Lesion and setup",
+          "title": "Site & Setup",
           "fields": [
             {
-              "id": "lesionLocation",
-              "label": "Lesion location",
+              "id": "site",
+              "label": "Site / region",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand, foot, knee"
             },
             {
               "id": "laterality",
@@ -1816,86 +1817,117 @@
               "options": [
                 "Left",
                 "Right",
-                "Midline",
                 "Bilateral"
               ]
             },
             {
-              "id": "phaseIMarginInstruction",
-              "label": "Phase I margin instruction",
+              "id": "targetJoints",
+              "label": "Targeted joints / regions",
               "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "finalFieldDesign",
+              "label": "Final field design",
+              "kind": "textarea",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "rx",
+          "title": "Prescription (Phase I)",
+          "fields": [
+            {
+              "id": "anticipatedEnergy",
+              "label": "Anticipated energy",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose (Gy)",
+              "kind": "number",
               "required": true
             },
             {
-              "id": "chairSetup",
-              "label": "Chair setup",
-              "kind": "select",
-              "required": true,
-              "options": [
-                "Face the wall",
-                "Facing the cabinet",
-                "Standard room setup"
-              ]
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction (Gy)",
+              "kind": "number",
+              "required": true
             },
             {
-              "id": "position",
-              "label": "Position",
-              "kind": "select",
-              "required": true,
-              "options": [
-                "Upright",
-                "Sitting reclined",
-                "Supine",
-                "Prone"
-              ]
+              "id": "totalFractions",
+              "label": "Total fractions per phase",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "weeklySchedule",
+              "label": "Weekly schedule",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "setup",
+          "title": "Setup & Imaging",
+          "fields": [
+            {
+              "id": "chairSetup",
+              "label": "Setup / positioning",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "imaging",
+              "label": "Image guidance",
+              "kind": "text",
+              "required": false
             }
           ]
         },
         {
           "id": "physics",
-          "title": "Physics and imaging",
+          "title": "Physics Requirements",
           "fields": [
             {
-              "id": "ultrasoundFrequencies",
-              "label": "Ultrasound frequencies",
-              "kind": "text",
-              "required": true
+              "id": "specialPhysics",
+              "label": "Special physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
             },
             {
-              "id": "weeklyPhysicsReason",
-              "label": "Weekly physics reason",
-              "kind": "textarea",
-              "required": true
+              "id": "weeklyPhysics",
+              "label": "Weekly physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "radiationOncologist",
+              "label": "Radiation oncologist",
+              "kind": "text",
+              "required": false
             },
             {
               "id": "dateCompleted",
               "label": "Date completed",
               "kind": "date",
-              "required": true
-            }
-          ]
-        },
-        {
-          "id": "registry-coverage",
-          "title": "Registry coverage",
-          "fields": [
-            {
-              "id": "marginInstruction",
-              "label": "Margin Instruction",
-              "kind": "textarea",
-              "required": true
-            },
-            {
-              "id": "setupPhotos",
-              "label": "Setup Photos",
-              "kind": "textarea",
-              "required": true
-            },
-            {
-              "id": "physicsRequirements",
-              "label": "Physics Requirements",
-              "kind": "textarea",
-              "required": true
+              "required": false
             }
           ]
         }
@@ -1912,50 +1944,8 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "phase",
-          "title": "Phase prescription",
-          "fields": [
-            {
-              "id": "energyKv",
-              "label": "Energy kV",
-              "kind": "number",
-              "required": true
-            },
-            {
-              "id": "phaseTotalDoseGy",
-              "label": "Phase total dose Gy",
-              "kind": "number",
-              "required": true
-            },
-            {
-              "id": "dosePerFractionGy",
-              "label": "Dose per fraction Gy",
-              "kind": "number",
-              "required": true
-            },
-            {
-              "id": "totalFractions",
-              "label": "Total fractions",
-              "kind": "number",
-              "required": true
-            },
-            {
-              "id": "ssdCm",
-              "label": "SSD cm",
-              "kind": "number",
-              "required": true
-            },
-            {
-              "id": "depthOfTargetMm",
-              "label": "Depth of target mm",
-              "kind": "number",
-              "required": true
-            }
-          ]
-        },
-        {
-          "id": "registry-coverage",
-          "title": "Registry coverage",
+          "id": "identity",
+          "title": "Prescription",
           "fields": [
             {
               "id": "site",
@@ -1966,39 +1956,233 @@
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "phaseDose",
-              "label": "Phase Dose",
+              "id": "verifiedInSensus",
+              "label": "Verified Rx in Sensus EMR",
+              "kind": "checkbox",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "phase1",
+          "title": "Phase I Parameters",
+          "fields": [
+            {
+              "id": "cumulativeDoseGy",
+              "label": "Cumulative dose (Gy)",
               "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction (cGy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "timeMinutes",
+              "label": "Time (minutes)",
+              "kind": "number",
+              "required": false
             },
             {
               "id": "energy",
               "label": "Energy",
-              "kind": "number",
-              "required": true
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
             },
             {
-              "id": "ssd",
-              "label": "SSD",
+              "id": "ssdCm",
+              "label": "SSD (cm)",
               "kind": "number",
-              "required": true
+              "required": false
             },
             {
-              "id": "dot",
-              "label": "DOT",
+              "id": "applicatorSize",
+              "label": "Applicator size",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "margin",
+              "label": "Margin",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "technique",
+              "label": "Technique",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "shielding",
+          "title": "Beam & Shielding",
+          "fields": [
+            {
+              "id": "beamArrangement",
+              "label": "Beam arrangement",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "shieldingDesign",
+              "label": "Shielding design",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "thyroidShield",
+              "label": "Thyroid shield",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "leadApron",
+              "label": "Lead apron",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schedule",
+          "title": "Schedule & Imaging",
+          "fields": [
+            {
+              "id": "fractionsPerDay",
+              "label": "Fractions per day",
               "kind": "number",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "fractionsPerWeek",
+              "label": "Fractions per week",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "phaseDesign",
+              "label": "Single or multi phase",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Single Phase",
+                "Multi Phase"
+              ]
+            },
+            {
+              "id": "fractionation",
+              "label": "Standard vs hypofractionation",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Standard",
+                "Hypofractionation"
+              ]
+            },
+            {
+              "id": "sequencing",
+              "label": "Synchronous vs sequential",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sequential",
+                "Synchronous"
+              ]
+            },
+            {
+              "id": "imagingGuidance",
+              "label": "Imaging (77439 US)",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "flags",
+          "title": "Review & Authorization",
+          "fields": [
+            {
+              "id": "customBlock",
+              "label": "Custom block",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "complexShielding",
+              "label": "Complex shielding (77263)",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "priorRT",
+              "label": "Prior RT",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "concurrentTherapy",
+              "label": "Concurrent therapy",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "preAuthorized",
+              "label": "Pre-authorized",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No",
+                "N/A"
+              ]
             }
           ]
         }
@@ -2135,56 +2319,167 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "mapping",
+          "title": "Joint Mapping",
           "fields": [
             {
-              "id": "jointSpaceNarrowing",
-              "label": "Joint Space Narrowing",
-              "kind": "text",
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "select",
               "required": true,
               "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
+                "Left",
+                "Right",
+                "Bilateral"
               ]
             },
             {
-              "id": "osteophyte",
-              "label": "Osteophyte",
+              "id": "performedBy",
+              "label": "Performed by",
               "kind": "text",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
+              "required": false
+            },
+            {
+              "id": "interpretationDate",
+              "label": "Interpretation date",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "jointAssessments",
+              "label": "Joint assessment (Modified Kellgren-Lawrence). Include a joint per field-design decision.",
+              "kind": "grid",
+              "required": false,
+              "rows": [
+                {
+                  "id": "d1IP",
+                  "label": "1st digit · IP"
+                },
+                {
+                  "id": "d1MTP",
+                  "label": "1st digit · MTP"
+                },
+                {
+                  "id": "d1CMC",
+                  "label": "1st digit · CMC"
+                },
+                {
+                  "id": "d2DIP",
+                  "label": "2nd digit · DIP"
+                },
+                {
+                  "id": "d2PIP",
+                  "label": "2nd digit · PIP"
+                },
+                {
+                  "id": "d2MCP",
+                  "label": "2nd digit · MCP"
+                },
+                {
+                  "id": "d3DIP",
+                  "label": "3rd digit · DIP"
+                },
+                {
+                  "id": "d3PIP",
+                  "label": "3rd digit · PIP"
+                },
+                {
+                  "id": "d3MCP",
+                  "label": "3rd digit · MCP"
+                },
+                {
+                  "id": "d4DIP",
+                  "label": "4th digit · DIP"
+                },
+                {
+                  "id": "d4PIP",
+                  "label": "4th digit · PIP"
+                },
+                {
+                  "id": "d4MCP",
+                  "label": "4th digit · MCP"
+                },
+                {
+                  "id": "d5DIP",
+                  "label": "5th digit · DIP"
+                },
+                {
+                  "id": "d5PIP",
+                  "label": "5th digit · PIP"
+                },
+                {
+                  "id": "d5MCP",
+                  "label": "5th digit · MCP"
+                }
+              ],
+              "columns": [
+                {
+                  "id": "jsNarrowing",
+                  "label": "JS narrowing",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Doubtful",
+                    "2: Possible",
+                    "3: Definite",
+                    "4: Marked"
+                  ]
+                },
+                {
+                  "id": "osteophytes",
+                  "label": "Osteophytes",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Possible lipping",
+                    "2: Definite",
+                    "3: Moderate multiple",
+                    "4: Large multiple"
+                  ]
+                },
+                {
+                  "id": "sclerosis",
+                  "label": "Sclerosis",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Mild",
+                    "2: Moderate"
+                  ]
+                },
+                {
+                  "id": "grade",
+                  "label": "KL grade",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ]
+                },
+                {
+                  "id": "fieldDesign",
+                  "label": "Field design",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "Include",
+                    "Exclude"
+                  ]
+                }
               ]
             },
             {
-              "id": "sclerosis",
-              "label": "Sclerosis",
-              "kind": "text",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
-              ]
-            },
-            {
-              "id": "overallGrade",
-              "label": "Overall Grade",
-              "kind": "number",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
-              ]
+              "id": "impression",
+              "label": "Impression / comments",
+              "kind": "textarea",
+              "required": false
             }
           ]
         }
@@ -2201,56 +2496,195 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "mapping",
+          "title": "Joint Mapping",
           "fields": [
             {
-              "id": "jointSpaceNarrowing",
-              "label": "Joint Space Narrowing",
-              "kind": "text",
+              "id": "laterality",
+              "label": "Laterality",
+              "kind": "select",
               "required": true,
               "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
+                "Left",
+                "Right",
+                "Bilateral"
               ]
             },
             {
-              "id": "osteophyte",
-              "label": "Osteophyte",
+              "id": "performedBy",
+              "label": "Performed by",
               "kind": "text",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
+              "required": false
+            },
+            {
+              "id": "interpretationDate",
+              "label": "Interpretation date",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "jointAssessments",
+              "label": "Joint assessment (Modified Kellgren-Lawrence). Include a joint per field-design decision.",
+              "kind": "grid",
+              "required": false,
+              "rows": [
+                {
+                  "id": "d1IP",
+                  "label": "1st digit · IP"
+                },
+                {
+                  "id": "d1MTP",
+                  "label": "1st digit · MTP"
+                },
+                {
+                  "id": "d1TMT",
+                  "label": "1st digit · TMT"
+                },
+                {
+                  "id": "d2DIP",
+                  "label": "2nd digit · DIP"
+                },
+                {
+                  "id": "d2PIP",
+                  "label": "2nd digit · PIP"
+                },
+                {
+                  "id": "d2MTP",
+                  "label": "2nd digit · MTP"
+                },
+                {
+                  "id": "d2TMT",
+                  "label": "2nd digit · TMT"
+                },
+                {
+                  "id": "d3DIP",
+                  "label": "3rd digit · DIP"
+                },
+                {
+                  "id": "d3PIP",
+                  "label": "3rd digit · PIP"
+                },
+                {
+                  "id": "d3MTP",
+                  "label": "3rd digit · MTP"
+                },
+                {
+                  "id": "d3TMT",
+                  "label": "3rd digit · TMT"
+                },
+                {
+                  "id": "d4DIP",
+                  "label": "4th digit · DIP"
+                },
+                {
+                  "id": "d4PIP",
+                  "label": "4th digit · PIP"
+                },
+                {
+                  "id": "d4MTP",
+                  "label": "4th digit · MTP"
+                },
+                {
+                  "id": "d4TMT",
+                  "label": "4th digit · TMT"
+                },
+                {
+                  "id": "d5DIP",
+                  "label": "5th digit · DIP"
+                },
+                {
+                  "id": "d5PIP",
+                  "label": "5th digit · PIP"
+                },
+                {
+                  "id": "d5MTP",
+                  "label": "5th digit · MTP"
+                },
+                {
+                  "id": "d5TMT",
+                  "label": "5th digit · TMT"
+                },
+                {
+                  "id": "naviculocuneiform",
+                  "label": "Naviculocuneiform"
+                },
+                {
+                  "id": "talonavicular",
+                  "label": "Talonavicular"
+                },
+                {
+                  "id": "cubonavicular",
+                  "label": "Cubonavicular"
+                }
+              ],
+              "columns": [
+                {
+                  "id": "jsNarrowing",
+                  "label": "JS narrowing",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Doubtful",
+                    "2: Possible",
+                    "3: Definite",
+                    "4: Marked"
+                  ]
+                },
+                {
+                  "id": "osteophytes",
+                  "label": "Osteophytes",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Possible lipping",
+                    "2: Definite",
+                    "3: Moderate multiple",
+                    "4: Large multiple"
+                  ]
+                },
+                {
+                  "id": "sclerosis",
+                  "label": "Sclerosis",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0: None",
+                    "1: Mild",
+                    "2: Moderate"
+                  ]
+                },
+                {
+                  "id": "grade",
+                  "label": "KL grade",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ]
+                },
+                {
+                  "id": "fieldDesign",
+                  "label": "Field design",
+                  "kind": "select",
+                  "required": false,
+                  "options": [
+                    "Include",
+                    "Exclude"
+                  ]
+                }
               ]
             },
             {
-              "id": "sclerosis",
-              "label": "Sclerosis",
-              "kind": "text",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
-              ]
-            },
-            {
-              "id": "overallGrade",
-              "label": "Overall Grade",
-              "kind": "number",
-              "required": true,
-              "options": [
-                "None",
-                "Mild",
-                "Moderate",
-                "Severe"
-              ]
+              "id": "impression",
+              "label": "Impression / comments",
+              "kind": "textarea",
+              "required": false
             }
           ]
         }
@@ -2267,39 +2701,135 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "lesion",
+          "title": "Site & Setup",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site / region",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand, foot, knee"
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "fieldDesign",
-              "label": "Field Design",
+              "id": "targetJoints",
+              "label": "Targeted joints / regions",
               "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "finalFieldDesign",
+              "label": "Final field design",
+              "kind": "textarea",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "rx",
+          "title": "Prescription (Phase I)",
+          "fields": [
+            {
+              "id": "anticipatedEnergy",
+              "label": "Anticipated energy",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose (Gy)",
+              "kind": "number",
               "required": true
             },
             {
-              "id": "setupDetails",
-              "label": "Setup Details",
-              "kind": "textarea",
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction (Gy)",
+              "kind": "number",
               "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions per phase",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "weeklySchedule",
+              "label": "Weekly schedule",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "setup",
+          "title": "Setup & Imaging",
+          "fields": [
+            {
+              "id": "chairSetup",
+              "label": "Setup / positioning",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "imaging",
+              "label": "Image guidance",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "title": "Physics Requirements",
+          "fields": [
+            {
+              "id": "specialPhysics",
+              "label": "Special physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "weeklyPhysics",
+              "label": "Weekly physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "radiationOncologist",
+              "label": "Radiation oncologist",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "dateCompleted",
+              "label": "Date completed",
+              "kind": "date",
+              "required": false
             }
           ]
         }
@@ -2316,39 +2846,135 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "lesion",
+          "title": "Site & Setup",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site / region",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand, foot, knee"
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "fieldDesign",
-              "label": "Field Design",
+              "id": "targetJoints",
+              "label": "Targeted joints / regions",
               "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "finalFieldDesign",
+              "label": "Final field design",
+              "kind": "textarea",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "rx",
+          "title": "Prescription (Phase I)",
+          "fields": [
+            {
+              "id": "anticipatedEnergy",
+              "label": "Anticipated energy",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose (Gy)",
+              "kind": "number",
               "required": true
             },
             {
-              "id": "setupDetails",
-              "label": "Setup Details",
-              "kind": "textarea",
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction (Gy)",
+              "kind": "number",
               "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions per phase",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "weeklySchedule",
+              "label": "Weekly schedule",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "setup",
+          "title": "Setup & Imaging",
+          "fields": [
+            {
+              "id": "chairSetup",
+              "label": "Setup / positioning",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "imaging",
+              "label": "Image guidance",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "title": "Physics Requirements",
+          "fields": [
+            {
+              "id": "specialPhysics",
+              "label": "Special physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "weeklyPhysics",
+              "label": "Weekly physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "radiationOncologist",
+              "label": "Radiation oncologist",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "dateCompleted",
+              "label": "Date completed",
+              "kind": "date",
+              "required": false
             }
           ]
         }
@@ -2365,39 +2991,135 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "lesion",
+          "title": "Site & Setup",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site / region",
               "kind": "text",
-              "required": true
+              "required": true,
+              "placeholder": "e.g. Hand, foot, knee"
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "fieldDesign",
-              "label": "Field Design",
+              "id": "targetJoints",
+              "label": "Targeted joints / regions",
               "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "finalFieldDesign",
+              "label": "Final field design",
+              "kind": "textarea",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "rx",
+          "title": "Prescription (Phase I)",
+          "fields": [
+            {
+              "id": "anticipatedEnergy",
+              "label": "Anticipated energy",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
+            },
+            {
+              "id": "phaseTotalDoseGy",
+              "label": "Phase total dose (Gy)",
+              "kind": "number",
               "required": true
             },
             {
-              "id": "setupDetails",
-              "label": "Setup Details",
-              "kind": "textarea",
+              "id": "dosePerFractionGy",
+              "label": "Dose per fraction (Gy)",
+              "kind": "number",
               "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions per phase",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "weeklySchedule",
+              "label": "Weekly schedule",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "setup",
+          "title": "Setup & Imaging",
+          "fields": [
+            {
+              "id": "chairSetup",
+              "label": "Setup / positioning",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "imaging",
+              "label": "Image guidance",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "physics",
+          "title": "Physics Requirements",
+          "fields": [
+            {
+              "id": "specialPhysics",
+              "label": "Special physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "weeklyPhysics",
+              "label": "Weekly physics",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "radiationOncologist",
+              "label": "Radiation oncologist",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "dateCompleted",
+              "label": "Date completed",
+              "kind": "date",
+              "required": false
             }
           ]
         }
@@ -2414,45 +3136,245 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "identity",
+          "title": "Prescription",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site",
               "kind": "text",
               "required": true
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "dose",
-              "label": "Dose",
+              "id": "verifiedInSensus",
+              "label": "Verified Rx in Sensus EMR",
+              "kind": "checkbox",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "phase1",
+          "title": "Phase I Parameters",
+          "fields": [
+            {
+              "id": "cumulativeDoseGy",
+              "label": "Cumulative dose (Gy)",
               "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction (cGy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "timeMinutes",
+              "label": "Time (minutes)",
+              "kind": "number",
+              "required": false
             },
             {
               "id": "energy",
               "label": "Energy",
-              "kind": "number",
-              "required": true
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
             },
             {
-              "id": "applicator",
-              "label": "Applicator",
+              "id": "ssdCm",
+              "label": "SSD (cm)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "applicatorSize",
+              "label": "Applicator size",
               "kind": "text",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "margin",
+              "label": "Margin",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "technique",
+              "label": "Technique",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "shielding",
+          "title": "Beam & Shielding",
+          "fields": [
+            {
+              "id": "beamArrangement",
+              "label": "Beam arrangement",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "shieldingDesign",
+              "label": "Shielding design",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "thyroidShield",
+              "label": "Thyroid shield",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "leadApron",
+              "label": "Lead apron",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schedule",
+          "title": "Schedule & Imaging",
+          "fields": [
+            {
+              "id": "fractionsPerDay",
+              "label": "Fractions per day",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "fractionsPerWeek",
+              "label": "Fractions per week",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "phaseDesign",
+              "label": "Single or multi phase",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Single Phase",
+                "Multi Phase"
+              ]
+            },
+            {
+              "id": "fractionation",
+              "label": "Standard vs hypofractionation",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Standard",
+                "Hypofractionation"
+              ]
+            },
+            {
+              "id": "sequencing",
+              "label": "Synchronous vs sequential",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sequential",
+                "Synchronous"
+              ]
+            },
+            {
+              "id": "imagingGuidance",
+              "label": "Imaging (77439 US)",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "flags",
+          "title": "Review & Authorization",
+          "fields": [
+            {
+              "id": "customBlock",
+              "label": "Custom block",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "complexShielding",
+              "label": "Complex shielding (77263)",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "priorRT",
+              "label": "Prior RT",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "concurrentTherapy",
+              "label": "Concurrent therapy",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "preAuthorized",
+              "label": "Pre-authorized",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No",
+                "N/A"
+              ]
             }
           ]
         }
@@ -2469,45 +3391,245 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "identity",
+          "title": "Prescription",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site",
               "kind": "text",
               "required": true
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "dose",
-              "label": "Dose",
+              "id": "verifiedInSensus",
+              "label": "Verified Rx in Sensus EMR",
+              "kind": "checkbox",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "phase1",
+          "title": "Phase I Parameters",
+          "fields": [
+            {
+              "id": "cumulativeDoseGy",
+              "label": "Cumulative dose (Gy)",
               "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction (cGy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "timeMinutes",
+              "label": "Time (minutes)",
+              "kind": "number",
+              "required": false
             },
             {
               "id": "energy",
               "label": "Energy",
-              "kind": "number",
-              "required": true
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
             },
             {
-              "id": "applicator",
-              "label": "Applicator",
+              "id": "ssdCm",
+              "label": "SSD (cm)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "applicatorSize",
+              "label": "Applicator size",
               "kind": "text",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "margin",
+              "label": "Margin",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "technique",
+              "label": "Technique",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "shielding",
+          "title": "Beam & Shielding",
+          "fields": [
+            {
+              "id": "beamArrangement",
+              "label": "Beam arrangement",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "shieldingDesign",
+              "label": "Shielding design",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "thyroidShield",
+              "label": "Thyroid shield",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "leadApron",
+              "label": "Lead apron",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schedule",
+          "title": "Schedule & Imaging",
+          "fields": [
+            {
+              "id": "fractionsPerDay",
+              "label": "Fractions per day",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "fractionsPerWeek",
+              "label": "Fractions per week",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "phaseDesign",
+              "label": "Single or multi phase",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Single Phase",
+                "Multi Phase"
+              ]
+            },
+            {
+              "id": "fractionation",
+              "label": "Standard vs hypofractionation",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Standard",
+                "Hypofractionation"
+              ]
+            },
+            {
+              "id": "sequencing",
+              "label": "Synchronous vs sequential",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sequential",
+                "Synchronous"
+              ]
+            },
+            {
+              "id": "imagingGuidance",
+              "label": "Imaging (77439 US)",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "flags",
+          "title": "Review & Authorization",
+          "fields": [
+            {
+              "id": "customBlock",
+              "label": "Custom block",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "complexShielding",
+              "label": "Complex shielding (77263)",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "priorRT",
+              "label": "Prior RT",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "concurrentTherapy",
+              "label": "Concurrent therapy",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "preAuthorized",
+              "label": "Pre-authorized",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No",
+                "N/A"
+              ]
             }
           ]
         }
@@ -2524,45 +3646,245 @@
       "mappedByRole": "RAD_ONC",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "identity",
+          "title": "Prescription",
           "fields": [
             {
-              "id": "jointSite",
-              "label": "Joint Site",
+              "id": "site",
+              "label": "Site",
               "kind": "text",
               "required": true
             },
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
                 "Right",
-                "Midline",
-                "Bilateral",
-                "Not applicable"
+                "Bilateral"
               ]
             },
             {
-              "id": "dose",
-              "label": "Dose",
+              "id": "verifiedInSensus",
+              "label": "Verified Rx in Sensus EMR",
+              "kind": "checkbox",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "phase1",
+          "title": "Phase I Parameters",
+          "fields": [
+            {
+              "id": "cumulativeDoseGy",
+              "label": "Cumulative dose (Gy)",
               "kind": "number",
               "required": true
+            },
+            {
+              "id": "dosePerFractionCgy",
+              "label": "Dose per fraction (cGy)",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "totalFractions",
+              "label": "Total fractions",
+              "kind": "number",
+              "required": true
+            },
+            {
+              "id": "timeMinutes",
+              "label": "Time (minutes)",
+              "kind": "number",
+              "required": false
             },
             {
               "id": "energy",
               "label": "Energy",
-              "kind": "number",
-              "required": true
+              "kind": "select",
+              "required": true,
+              "options": [
+                "50 kV",
+                "70 kV",
+                "100 kV"
+              ]
             },
             {
-              "id": "applicator",
-              "label": "Applicator",
+              "id": "ssdCm",
+              "label": "SSD (cm)",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "applicatorSize",
+              "label": "Applicator size",
               "kind": "text",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "margin",
+              "label": "Margin",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "technique",
+              "label": "Technique",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "shielding",
+          "title": "Beam & Shielding",
+          "fields": [
+            {
+              "id": "beamArrangement",
+              "label": "Beam arrangement",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "shieldingDesign",
+              "label": "Shielding design",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "thyroidShield",
+              "label": "Thyroid shield",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "leadApron",
+              "label": "Lead apron",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "schedule",
+          "title": "Schedule & Imaging",
+          "fields": [
+            {
+              "id": "fractionsPerDay",
+              "label": "Fractions per day",
+              "kind": "number",
+              "required": false
+            },
+            {
+              "id": "fractionsPerWeek",
+              "label": "Fractions per week",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "phaseDesign",
+              "label": "Single or multi phase",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Single Phase",
+                "Multi Phase"
+              ]
+            },
+            {
+              "id": "fractionation",
+              "label": "Standard vs hypofractionation",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Standard",
+                "Hypofractionation"
+              ]
+            },
+            {
+              "id": "sequencing",
+              "label": "Synchronous vs sequential",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Sequential",
+                "Synchronous"
+              ]
+            },
+            {
+              "id": "imagingGuidance",
+              "label": "Imaging (77439 US)",
+              "kind": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "flags",
+          "title": "Review & Authorization",
+          "fields": [
+            {
+              "id": "customBlock",
+              "label": "Custom block",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "complexShielding",
+              "label": "Complex shielding (77263)",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "priorRT",
+              "label": "Prior RT",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "concurrentTherapy",
+              "label": "Concurrent therapy",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No"
+              ]
+            },
+            {
+              "id": "preAuthorized",
+              "label": "Pre-authorized",
+              "kind": "select",
+              "required": false,
+              "options": [
+                "Yes",
+                "No",
+                "N/A"
+              ]
             }
           ]
         }
