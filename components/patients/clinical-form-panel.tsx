@@ -162,6 +162,16 @@ export function ClinicalFormPanel({
     [courseId, missingRequired.length, onStatusChange, toast, required, requirementId, templateId, values],
   );
 
+  const downloadDocument = useCallback(() => {
+    const query = new URLSearchParams({ kind: 'form', courseId, requirementId });
+    const anchor = document.createElement('a');
+    anchor.href = `/api/documents/generate?${query.toString()}`;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  }, [courseId, requirementId]);
+
   if (loading) {
     return <p className="type-supporting text-[var(--color-text-muted)]">Loading form…</p>;
   }
@@ -232,6 +242,15 @@ export function ClinicalFormPanel({
           ) : null}
         </div>
       )}
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-[var(--color-border-soft)] pt-3">
+        <Button variant="ghost" onClick={downloadDocument}>
+          Generate Document (DOCX)
+        </Button>
+        <span className="type-supporting text-[var(--color-text-muted)]">
+          Generates a Word document from the saved fields.
+        </span>
+      </div>
     </div>
   );
 }

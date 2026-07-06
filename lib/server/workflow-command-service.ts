@@ -5,6 +5,7 @@ import {
   carepathTasks,
   appointments,
   generatedDocuments,
+  getClinicalFormResponse,
   operationalAuditEvents,
   operationalPatients,
   operationalTreatmentCourses,
@@ -13,6 +14,7 @@ import {
   recordOperationalAuditEvent,
   treatmentCourses
 } from "@/lib/clinical-store";
+import { documentRequirements, workflowDefinitions } from "@/lib/template-registry";
 import { PHI_REDACTED, courseRef, patientRef } from "@/lib/hipaa";
 import { PROTOTYPE_OPERATIONAL_AS_OF, PROTOTYPE_OPERATIONAL_DATE } from "@/lib/operational-date";
 import { PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
@@ -479,6 +481,28 @@ function auditCheckBlockers(courseId: string) {
     });
 }
 
+const PREAUTH_APPROVED_STATES = new Set(["Approved", "Partially approved", "Not required"]);
+
+// Preauthorization-lite gate: a course whose workflow requires carepath preauthorization
+// cannot advance into ON_TREATMENT until the preauth form's authorization state is resolved.
+function preauthBlockers(course: TreatmentCourse, nextPhase: CarepathWorkflowPhase | undefined): string[] {
+  if (nextPhase !== "ON_TREATMENT") return [];
+  const definition = workflowDefinitions.find((workflow) => workflow.id === course.workflowDefinitionId);
+  const requirementIds = definition?.documentRequirementIds ?? [];
+  const preauthRequirements = documentRequirements.filter(
+    (requirement) => requirementIds.includes(requirement.id) && /preauth/i.test(requirement.id) && /carepath|SKIN/i.test(requirement.id),
+  );
+  if (preauthRequirements.length === 0) return [];
+  // A course uses one preauth plan (e.g. 20fx OR 30fx); an approval on any applicable
+  // carepath preauth form clears the gate.
+  const anyApproved = preauthRequirements.some((requirement) => {
+    const state = getClinicalFormResponse(course.id, requirement.id)?.responseData?.authorizationState;
+    return typeof state === "string" && PREAUTH_APPROVED_STATES.has(state);
+  });
+  if (anyApproved) return [];
+  return ["Preauthorization is not approved. Resolve carepath authorization before starting treatment."];
+}
+
 function evaluateCourseAdvance(courseIdOrRef: string, asOf?: string): WorkflowCommandResult {
   const course = courseByIdOrRef(courseIdOrRef);
 
@@ -491,13 +515,14 @@ function evaluateCourseAdvance(courseIdOrRef: string, asOf?: string): WorkflowCo
     };
   }
 
+  const nextPhase = nextCarepathPhase(course);
   const blockers = [
     ...workflowStepBlockers(course.id, asOf),
     ...taskBlockers(course.id, asOf),
     ...documentBlockers(course.id),
-    ...auditCheckBlockers(course.id)
+    ...auditCheckBlockers(course.id),
+    ...preauthBlockers(course, nextPhase)
   ];
-  const nextPhase = nextCarepathPhase(course);
 
   if (!nextPhase) {
     blockers.push("Course is already at the final workflow phase.");

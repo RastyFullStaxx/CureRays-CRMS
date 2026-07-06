@@ -162,34 +162,28 @@ Drive is a template/storage integration boundary, not workflow state. Sync must:
 
 This section defines how generation works for the staff pilot ([pilot readiness](../requirements/pilot-readiness.md)). The target architecture above remains the production goal; the profile below is the approved pilot subset.
 
-### Formats and libraries
+This profile has two stages. **Stage 1 (implemented)** generates clean, real, downloadable documents from the structured form/fraction data. **Stage 2 (deferred)** upgrades DOCX output to pixel-faithful copies of the clinic's exact forms; it needs hand-authored tagged templates and clinical-owner sign-off, so it follows Stage 1.
 
-- **DOCX:** `docxtemplater` (with `pizzip`) fills tagged copies of the clinic's own templates, so the generated output is the clinic's familiar form.
-- **XLSX:** `exceljs` renders fraction-log workbooks from fraction entries, mirroring the source workbook's columns.
+### Formats and libraries (Stage 1, implemented)
+
+- **DOCX:** the `docx` builder library constructs a structured clinical document directly from the requirement's `TemplateFieldMap` + saved `ClinicalFormResponse` — a header (patient/MRN/course/status), one table per section (label → value), and grid fields rendered as tables (e.g. the 26-zone Dupuytren's mapping). Real, readable, downloadable — but not a pixel-clone of the clinic's Word layout.
+- **XLSX:** `exceljs` renders fraction-log workbooks from fraction entries, mirroring the source workbook's columns (including the corrected cumulative-dose / dose-to-DOT columns).
 - **PDF:** not generated in the pilot. Staff print from Word/Excel.
-- **PPTX:** never generated. Isodose/planning references are re-scoped from generated outputs to **static reference attachments** on the applicable step.
+- **PPTX:** never generated. Isodose/planning references are re-scoped to **static reference attachments** on the applicable step.
 
-These two libraries are a recorded exception to the no-new-dependencies guardrail, justified here.
+`docx` and `exceljs` are the recorded exception to the no-new-dependencies guardrail, justified here. (The originally-planned `docxtemplater`/`pizzip` are deferred to Stage 2.)
 
-### Tagged template copies
+### Delivery (Stage 1)
 
-- The originals in `docs/2026_TEMPLATES` stay pristine as evidence per the [normalization manifest](../templates/normalization-manifest.md).
-- Each in-scope template gets a tagged copy in `templates/pilot/`, with `{placeholder}` tags aligned one-to-one with its `TemplateFieldMap` field IDs.
-- Tagged copies follow the source file naming convention so the generation adapter can resolve them from the template source record.
-- A tagged copy is a template version: changing it follows the template source lifecycle above.
+- Generation is a pure server service ([`lib/services/document-generation-service.ts`](../../lib/services/document-generation-service.ts), `server-only`): `generateClinicalFormDocx(courseId, requirementId)` and `generateFractionLogXlsx(courseId)` each return a buffer + filename + content type.
+- The download route [`app/api/documents/generate`](../../app/api/documents/generate/route.ts) hydrates the store, generates on demand, and streams the file with `Content-Disposition: attachment`. No bytes are persisted to disk in Stage 1 — documents regenerate deterministically from the durable structured source.
+- The "Generate Document (DOCX)" control lives in the Prepare clinical-form panel; the fraction-log XLSX export lands with P3.
 
-### Output records
+### Stage 2 (deferred — pixel-faithful tagged copies)
 
-Each generation creates a new `GeneratedDocumentOutput` version:
-
-- format `DOCX` or `XLSX`, incremented version number;
-- status lifecycle `Draft → Ready → Locked on sign`;
-- storage provider `APP_STORAGE`, storage key = opaque output ID (no PHI in keys);
-- bytes on local disk under a gitignored `storage/` directory;
-- `contentPreview` still populated for the existing preview UI;
-- download served by output ID through a role-checked route.
-
-Once this profile is implemented, an output whose only artifact is a `contentPreview` no longer satisfies any generation requirement.
+- `docxtemplater` + `pizzip` fill tagged copies of the clinic's own templates so output matches their familiar form exactly.
+- Tagged copies live in `templates/pilot/` with `{placeholder}` tags aligned to `TemplateFieldMap` field IDs; the `docs/2026_TEMPLATES` originals stay pristine.
+- Each generation then persists a `GeneratedDocumentOutput` version (format, incremented version, `APP_STORAGE` opaque storage key, bytes under a gitignored `storage/` directory, `contentPreview`), downloadable by output ID through a role-checked route, with `Draft → Ready → Locked on sign` lifecycle. This replaces `contentPreview`-only outputs.
 
 ## Current Prototype Boundary
 

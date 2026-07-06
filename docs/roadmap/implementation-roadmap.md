@@ -42,13 +42,17 @@ Scope:
 
 Acceptance: each Dupuytren's form completed end to end in a browser; drafts survive restart (depends on P0).
 
+**Status:** Dupuytren's done and verified — maps enriched to the real templates (US mapping = 26-zone grid via a new `grid` field type; Sim = 23 fields; Rx = 29 fields). **Remaining:** enrich Arthritis (per-joint mapping, reusing the `grid` type) and Skin Cancer field maps to their real templates, and obtain clinical-owner sign-off on the mapped fields. Deferred by user decision; do after P2–P4.
+
 ### P2. Real document generation and download
 
 - **Outcome:** structured data produces the clinic's own documents (pilot gate G3).
 
-Scope: the [pilot generation profile](../architecture/document-lifecycle.md) — tagged template copies in `templates/pilot/`, docxtemplater DOCX generation, exceljs fraction-log XLSX, versioned `GeneratedDocumentOutput` records, opaque-key local storage, role-checked download. Isodose PPTX re-scoped to static reference attachments. No PDF.
+Scope: the two-stage [pilot generation profile](../architecture/document-lifecycle.md). Isodose PPTX re-scoped to static reference attachments. No PDF.
 
-Acceptance: golden output check per enabled template; download works from Record & Closeout.
+**Status:** Stage 1 done and verified — `docx`/`exceljs` generate real, downloadable DOCX (from field map + `ClinicalFormResponse`, incl. the 26-zone grid) and XLSX fraction logs via `app/api/documents/generate`; "Generate Document (DOCX)" wired in the Prepare form panel. **Remaining:** Stage 2 (pixel-faithful docxtemplater tagged copies + versioned `GeneratedDocumentOutput` disk persistence + download from Record & Closeout), and wiring the fraction-log XLSX export button (lands with P3).
+
+Acceptance: Stage 1 — downloading a valid DOCX and XLSX confirmed. Stage 2 — golden output check per enabled template.
 
 ### P3. Fraction closeout
 
@@ -69,6 +73,8 @@ Scope:
 - Data prerequisite: complete the two deferred Skin Cancer carepath/preauth template mappings.
 
 Acceptance: state transitions demonstrated; gate blocks and unblocks treatment readiness correctly.
+
+**Status:** Done and verified. Preauth-lite reuses the P1 clinical-form stack — the Skin Cancer preauth field maps carry a canonical `authorizationState` select (the full state machine), persisted durably like any form. `preauthBlockers` in `lib/server/workflow-command-service.ts` blocks `PLANNING → ON_TREATMENT` for a course whose workflow requires carepath preauth until any applicable preauth form reaches an approved state (`Approved` / `Partially approved` / `Not required`). Verified: unapproved → advance blocked with "Preauthorization is not approved"; approved → gate clears. No dedicated Prisma entity — form-backed for the pilot; a first-class `AuthorizationCase` with payer evidence/appeals remains the deferred production workstream.
 
 ## Deferred Production Workstreams
 

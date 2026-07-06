@@ -1623,33 +1623,75 @@
       "mappedByRole": "ADMIN",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "authorization",
+          "title": "Preauthorization",
           "fields": [
             {
               "id": "diagnosis",
               "label": "Diagnosis",
               "kind": "text",
-              "required": true
+              "required": false
             },
             {
-              "id": "authorizationOutcome",
-              "label": "Authorization Outcome",
+              "id": "authorizationState",
+              "label": "Authorization state",
               "kind": "select",
               "required": true,
               "options": [
-                "Pending",
+                "Not started",
+                "Information required",
+                "Submitted",
+                "Payer pending",
                 "Approved",
+                "Partially approved",
                 "Denied",
-                "Not required",
-                "Deferred"
+                "Appeal in progress",
+                "Expired",
+                "Not required"
               ]
             },
             {
-              "id": "payerRequirements",
-              "label": "Payer Requirements",
+              "id": "payer",
+              "label": "Payer / plan",
+              "kind": "text",
+              "required": false,
+              "placeholder": "Payer name and plan reference"
+            },
+            {
+              "id": "requestedServices",
+              "label": "Requested services / codes",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "authorizationNumber",
+              "label": "Authorization number",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "effectiveFrom",
+              "label": "Effective from",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "effectiveTo",
+              "label": "Effective to",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "decisionReason",
+              "label": "Decision / denial reason",
               "kind": "textarea",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "responsibleOwner",
+              "label": "Responsible owner",
+              "kind": "text",
+              "required": false
             }
           ]
         }
@@ -1666,39 +1708,81 @@
       "mappedByRole": "ADMIN",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "authorization",
+          "title": "Preauthorization",
           "fields": [
             {
               "id": "diagnosis",
               "label": "Diagnosis",
               "kind": "text",
-              "required": true
-            },
-            {
-              "id": "authorizationOutcome",
-              "label": "Authorization Outcome",
-              "kind": "select",
-              "required": true,
-              "options": [
-                "Pending",
-                "Approved",
-                "Denied",
-                "Not required",
-                "Deferred"
-              ]
-            },
-            {
-              "id": "payerRequirements",
-              "label": "Payer Requirements",
-              "kind": "textarea",
-              "required": true
+              "required": false
             },
             {
               "id": "fractionCount",
-              "label": "Fraction Count",
+              "label": "Fraction count",
               "kind": "number",
-              "required": true
+              "required": false
+            },
+            {
+              "id": "authorizationState",
+              "label": "Authorization state",
+              "kind": "select",
+              "required": true,
+              "options": [
+                "Not started",
+                "Information required",
+                "Submitted",
+                "Payer pending",
+                "Approved",
+                "Partially approved",
+                "Denied",
+                "Appeal in progress",
+                "Expired",
+                "Not required"
+              ]
+            },
+            {
+              "id": "payer",
+              "label": "Payer / plan",
+              "kind": "text",
+              "required": false,
+              "placeholder": "Payer name and plan reference"
+            },
+            {
+              "id": "requestedServices",
+              "label": "Requested services / codes",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "authorizationNumber",
+              "label": "Authorization number",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "effectiveFrom",
+              "label": "Effective from",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "effectiveTo",
+              "label": "Effective to",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "decisionReason",
+              "label": "Decision / denial reason",
+              "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "responsibleOwner",
+              "label": "Responsible owner",
+              "kind": "text",
+              "required": false
             }
           ]
         }
@@ -3493,33 +3577,75 @@
       "mappedByRole": "ADMIN",
       "sections": [
         {
-          "id": "required-fields",
-          "title": "Required fields",
+          "id": "authorization",
+          "title": "Preauthorization",
           "fields": [
             {
-              "id": "payer",
-              "label": "Payer",
-              "kind": "text",
-              "required": true
+              "id": "billingRuleMapping",
+              "label": "Billing rule mapping",
+              "kind": "textarea",
+              "required": false
             },
             {
-              "id": "authorizationStatus",
-              "label": "Authorization Status",
+              "id": "authorizationState",
+              "label": "Authorization state",
               "kind": "select",
               "required": true,
               "options": [
-                "Pending",
+                "Not started",
+                "Information required",
+                "Submitted",
+                "Payer pending",
                 "Approved",
+                "Partially approved",
                 "Denied",
-                "Not required",
-                "Deferred"
+                "Appeal in progress",
+                "Expired",
+                "Not required"
               ]
             },
             {
-              "id": "billingRuleMapping",
-              "label": "Billing Rule Mapping",
+              "id": "payer",
+              "label": "Payer / plan",
               "kind": "text",
-              "required": true
+              "required": false,
+              "placeholder": "Payer name and plan reference"
+            },
+            {
+              "id": "requestedServices",
+              "label": "Requested services / codes",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "authorizationNumber",
+              "label": "Authorization number",
+              "kind": "text",
+              "required": false
+            },
+            {
+              "id": "effectiveFrom",
+              "label": "Effective from",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "effectiveTo",
+              "label": "Effective to",
+              "kind": "date",
+              "required": false
+            },
+            {
+              "id": "decisionReason",
+              "label": "Decision / denial reason",
+              "kind": "textarea",
+              "required": false
+            },
+            {
+              "id": "responsibleOwner",
+              "label": "Responsible owner",
+              "kind": "text",
+              "required": false
             }
           ]
         }

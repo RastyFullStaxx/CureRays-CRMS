@@ -6,6 +6,7 @@ import {
   Calculator,
   CheckCircle2,
   ClipboardList,
+  Download,
   Eye,
   FileText,
   RefreshCw,
@@ -1009,6 +1010,22 @@ export function FractionWorksheetPanel({
           }
           toolbarActions={
             <>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  const anchor = document.createElement("a");
+                  anchor.href = `/api/documents/generate?kind=fraction-log&courseId=${encodeURIComponent(course.id)}`;
+                  anchor.rel = "noopener";
+                  document.body.appendChild(anchor);
+                  anchor.click();
+                  anchor.remove();
+                }}
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                Export Log
+              </Button>
               <Button type="button" size="sm" variant="secondary" onClick={() => setAdvancedPanel("reference")}>
                 <Calculator className="h-3.5 w-3.5" aria-hidden="true" />
                 Reference

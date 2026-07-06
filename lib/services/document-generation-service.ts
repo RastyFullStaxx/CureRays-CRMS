@@ -1,11 +1,260 @@
-import { getDocumentInstances } from "@/lib/module-data";
+import 'server-only';
 
-export const documentGenerationService = {
-  listDocuments() {
-    return getDocumentInstances();
-  },
-  generateFromTemplate(templateId: string, courseId: string) {
-    // TODO: Integrate Google Docs/DOCX/PPTX/PDF generation with template field mapping.
-    return { templateId, courseId, status: "QUEUED_FOR_GENERATION" };
-  }
+import {
+  AlignmentType,
+  Document,
+  HeadingLevel,
+  Packer,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+  WidthType,
+} from 'docx';
+import ExcelJS from 'exceljs';
+import {
+  fractionLogEntries,
+  getClinicalFormResponse,
+  patients,
+  treatmentCourses,
+} from '@/lib/clinical-store';
+import { documentRequirements, fieldMapForRequirement } from '@/lib/template-registry';
+import { courseFractions } from '@/lib/workflow';
+import { isVoidedFractionEntry } from '@/lib/services/fraction-worksheet-service';
+import type {
+  ClinicalFormResponse,
+  FormTemplateField,
+  FractionLogEntry,
+  Patient,
+  TemplateFieldMap,
+  TreatmentCourse,
+} from '@/lib/types';
+
+type FieldValue = string | number | boolean | null;
+
+export type GeneratedDocumentArtifact = {
+  fileName: string;
+  contentType: string;
+  buffer: Buffer;
 };
+
+const DOCX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+function displayValue(value: FieldValue | undefined): string {
+  if (value === undefined || value === null || value === '') return '—';
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  return String(value);
+}
+
+function safeName(value: string): string {
+  return value.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'document';
+}
+
+function labelCell(text: string, opts: { header?: boolean; width?: number } = {}): TableCell {
+  return new TableCell({
+    width: opts.width ? { size: opts.width, type: WidthType.PERCENTAGE } : undefined,
+    children: [
+      new Paragraph({
+        children: [new TextRun({ text, bold: opts.header ?? false, size: 18 })],
+      }),
+    ],
+  });
+}
+
+function gridTable(field: FormTemplateField, values: Record<string, FieldValue>): Table {
+  const columns = field.columns ?? [];
+  const rows = field.rows ?? [];
+  const header = new TableRow({
+    tableHeader: true,
+    children: [
+      labelCell('Zone', { header: true }),
+      ...columns.map((column) => labelCell(column.label, { header: true })),
+    ],
+  });
+  const bodyRows = rows.map(
+    (row) =>
+      new TableRow({
+        children: [
+          labelCell(row.label),
+          ...columns.map((column) => labelCell(displayValue(values[`${field.id}__${row.id}__${column.id}`]))),
+        ],
+      }),
+  );
+  return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [header, ...bodyRows] });
+}
+
+function fieldMapDocx(
+  fieldMap: TemplateFieldMap,
+  response: ClinicalFormResponse | undefined,
+  patient: Patient,
+  course: TreatmentCourse,
+  title: string,
+): Document {
+  const values = (response?.responseData ?? {}) as Record<string, FieldValue>;
+  const children: (Paragraph | Table)[] = [
+    new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: title })] }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: `Patient: ${patient.firstName} ${patient.lastName}   `, size: 20 }),
+        new TextRun({ text: `MRN: ${patient.mrn}`, size: 20 }),
+      ],
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Course: ${course.protocolName} · ${course.diagnosis}${course.laterality ? ` · ${course.laterality}` : ''}`,
+          size: 20,
+        }),
+      ],
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: `Status: ${response?.status ?? 'Draft'}`, size: 18, italics: true })],
+    }),
+    new Paragraph({ text: '' }),
+  ];
+
+  for (const section of fieldMap.sections) {
+    children.push(
+      new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: section.title })] }),
+    );
+    const simpleFields = section.fields.filter((field) => field.kind !== 'grid');
+    if (simpleFields.length > 0) {
+      children.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: simpleFields.map(
+            (field) =>
+              new TableRow({
+                children: [
+                  labelCell(field.label, { header: true, width: 40 }),
+                  labelCell(displayValue(values[field.id]), { width: 60 }),
+                ],
+              }),
+          ),
+        }),
+      );
+    }
+    for (const field of section.fields.filter((f) => f.kind === 'grid')) {
+      children.push(new Paragraph({ text: '' }));
+      children.push(new Paragraph({ children: [new TextRun({ text: field.label, bold: true, size: 18 })] }));
+      children.push(gridTable(field, values));
+    }
+    children.push(new Paragraph({ text: '' }));
+  }
+
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      children: [
+        new TextRun({
+          text: `Generated by CureRays CRMS · ${new Date().toISOString().slice(0, 10)}`,
+          size: 16,
+          italics: true,
+          color: '667085',
+        }),
+      ],
+    }),
+  );
+
+  return new Document({ sections: [{ children }] });
+}
+
+function requirementName(requirementId: string): string {
+  return documentRequirements.find((requirement) => requirement.id === requirementId)?.name ?? 'Clinical Form';
+}
+
+/** Generate a DOCX from a course's structured clinical-form response for a requirement. */
+export async function generateClinicalFormDocx(
+  courseId: string,
+  requirementId: string,
+): Promise<GeneratedDocumentArtifact | null> {
+  const requirement = documentRequirements.find((item) => item.id === requirementId);
+  const fieldMap = requirement ? fieldMapForRequirement(requirement) : undefined;
+  const course = treatmentCourses.find((item) => item.id === courseId);
+  const patient = course ? patients.find((item) => item.id === course.patientId) : undefined;
+  if (!requirement || !fieldMap || !course || !patient) return null;
+
+  const response = getClinicalFormResponse(courseId, requirementId);
+  const title = requirementName(requirementId);
+  const doc = fieldMapDocx(fieldMap, response, patient, course, title);
+  const buffer = await Packer.toBuffer(doc);
+  return {
+    fileName: `${safeName(title)}.${safeName(`${patient.lastName}_${patient.firstName}`)}.docx`,
+    contentType: DOCX_CONTENT_TYPE,
+    buffer: Buffer.from(buffer),
+  };
+}
+
+/** Generate an XLSX fractionation log from a course's fraction entries. */
+export async function generateFractionLogXlsx(courseId: string): Promise<GeneratedDocumentArtifact | null> {
+  const course = treatmentCourses.find((item) => item.id === courseId);
+  const patient = course ? patients.find((item) => item.id === course.patientId) : undefined;
+  if (!course || !patient) return null;
+
+  const entries = courseFractions(courseId, fractionLogEntries)
+    .filter((entry: FractionLogEntry) => !isVoidedFractionEntry(entry))
+    .sort((a: FractionLogEntry, b: FractionLogEntry) => a.fractionNumber - b.fractionNumber);
+
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'CureRays CRMS';
+  const sheet = workbook.addWorksheet('Fractionation Log');
+
+  sheet.addRow([`${patient.lastName}, ${patient.firstName}`, `MRN: ${patient.mrn}`]);
+  sheet.addRow([`${course.protocolName} · ${course.diagnosis}${course.laterality ? ` · ${course.laterality}` : ''}`]);
+  sheet.addRow([]);
+
+  const headers = [
+    'Fx',
+    'Date',
+    'Phase',
+    'Energy',
+    'SSD (cm)',
+    'Time (min)',
+    'Dose/Fx (cGy)',
+    'Cumulative Dose (cGy)',
+    'Skin Dose (cGy)',
+    'Cumulative Skin Dose (cGy)',
+    'DOT (mm)',
+    'Isodose to DOT (%)',
+    'Dose to DOT (cGy)',
+    'Cumulative Dose to DOT (cGy)',
+    'MD Approval',
+    'DOT Approval',
+  ];
+  const headerRow = sheet.addRow(headers);
+  headerRow.font = { bold: true };
+
+  for (const entry of entries) {
+    sheet.addRow([
+      entry.fractionNumber,
+      entry.date,
+      entry.phase,
+      entry.energy,
+      entry.ssdCm ?? entry.ssd,
+      entry.treatmentTimeMinutes ?? '',
+      entry.dosePerFractionCgy ?? entry.dosePerFraction,
+      entry.cumulativeDoseCgy ?? entry.cumulativeDose,
+      entry.skinSurfaceDoseCgy ?? '',
+      entry.cumulativeSkinSurfaceDoseCgy ?? '',
+      entry.depthOfTargetMm ?? '',
+      entry.isodoseToDotPercent ?? '',
+      entry.doseToDotCgy ?? '',
+      entry.cumulativeDoseToDotCgy ?? '',
+      entry.mdApproval ? 'Approved' : (entry.mdApprovalState ?? 'Pending'),
+      entry.dotApproval ? 'Approved' : (entry.dotApprovalState ?? 'Pending'),
+    ]);
+  }
+  sheet.columns.forEach((column) => {
+    column.width = 16;
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  return {
+    fileName: `Fractionation_Log.${safeName(`${patient.lastName}_${patient.firstName}`)}.xlsx`,
+    contentType: XLSX_CONTENT_TYPE,
+    buffer: Buffer.from(buffer),
+  };
+}
