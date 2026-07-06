@@ -50,11 +50,14 @@ import {
 import { patientRef } from '@/lib/hipaa';
 import { phaseTone, priorityTone, statusTone } from '@/lib/status-utils';
 import { formatUiLabel } from '@/lib/ui-copy';
+import { documentRequirements, fieldMapForRequirement } from '@/lib/template-registry';
 import {
   derivePatientWorkspaceState,
   type CourseGate,
   type PatientWorkspaceTab,
 } from '@/lib/services/patient-workspace-service';
+import { ClinicalFormPanel } from './clinical-form-panel';
+import type { DocumentRequirement, TemplateFieldMap, WorkflowItemStatus } from '@/lib/types';
 
 type PatientWorkspaceProps = {
   patient: Patient;
@@ -598,8 +601,29 @@ export function PatientWorkspace({
     () => selectedCarepathStep ? carepathStepAction(selectedCarepathStep) : null,
     [selectedCarepathStep],
   );
+  const selectedStepFieldMaps = useMemo<Array<{ requirement: DocumentRequirement; fieldMap: TemplateFieldMap }>>(() => {
+    if (!selectedCarepathStep?.requirementIds?.length) return [];
+    return selectedCarepathStep.requirementIds
+      .map((requirementId) => documentRequirements.find((requirement) => requirement.id === requirementId))
+      .filter((requirement): requirement is DocumentRequirement => Boolean(requirement))
+      .map((requirement) => ({ requirement, fieldMap: fieldMapForRequirement(requirement) }))
+      .filter((entry): entry is { requirement: DocumentRequirement; fieldMap: TemplateFieldMap } => Boolean(entry.fieldMap));
+  }, [selectedCarepathStep]);
+  const [formStatusByRequirement, setFormStatusByRequirement] = useState<Record<string, WorkflowItemStatus>>({});
+  const setRequirementFormStatus = useCallback((requirementId: string, status: WorkflowItemStatus) => {
+    setFormStatusByRequirement((current) =>
+      current[requirementId] === status ? current : { ...current, [requirementId]: status },
+    );
+  }, []);
   const completeSelectedCarepathStep = useCallback(async ({ notes }: { notes: string }) => {
     if (!selectedCarepathStep) return;
+    const unmetForm = selectedStepFieldMaps.find(({ requirement }) => {
+      const status = formStatusByRequirement[requirement.id];
+      return !status || !['READY_FOR_REVIEW', 'SIGNED', 'COMPLETED', 'CLOSED'].includes(status);
+    });
+    if (unmetForm) {
+      throw new Error('Submit the required structured form before completing this step.');
+    }
     const nextStatus = selectedCarepathStep.requiresSignature ? 'SIGNED' : 'COMPLETED';
     const response = await fetch(`/api/workflow/steps/${encodeURIComponent(selectedCarepathStep.id)}`, {
       method: 'PATCH',
@@ -619,7 +643,7 @@ export function PatientWorkspace({
       signedAt: selectedCarepathStep.requiresSignature ? updatedAt : step.signedAt,
       updatedAt,
     } : step));
-  }, [selectedCarepathAction?.label, selectedCarepathStep]);
+  }, [selectedCarepathAction?.label, selectedCarepathStep, selectedStepFieldMaps, formStatusByRequirement]);
   const reopenSelectedCarepathStep = useCallback(async ({ notes }: { notes: string }) => {
     if (!selectedCarepathStep) return;
     const response = await fetch(`/api/workflow/steps/${encodeURIComponent(selectedCarepathStep.id)}`, {
@@ -779,6 +803,19 @@ export function PatientWorkspace({
                       </div>
                     ) : null}
                   </div>
+
+                  {selectedStepFieldMaps.map(({ requirement, fieldMap }) => (
+                    <div key={requirement.id} className="clinical-muted-surface p-3">
+                      <ClinicalFormPanel
+                        courseId={course.id}
+                        requirementId={requirement.id}
+                        templateId={requirement.templateSourceId ?? requirement.id}
+                        fieldMap={fieldMap}
+                        requiresSignature={selectedCarepathStep.requiresSignature}
+                        onStatusChange={(status) => setRequirementFormStatus(requirement.id, status)}
+                      />
+                    </div>
+                  ))}
 
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                     <div className="clinical-muted-surface p-3">
@@ -1297,6 +1334,8 @@ export function PatientWorkspace({
     selectTab,
     selectedCarepathAction,
     selectedCarepathStep,
+    selectedStepFieldMaps,
+    setRequirementFormStatus,
     treatmentFractions,
     relatedCarepathWorkItems,
     reopenSelectedCarepathStep,

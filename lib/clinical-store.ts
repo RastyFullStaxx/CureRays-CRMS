@@ -18,6 +18,7 @@ import type {
   BillingCode,
   CarepathTask,
   CarepathWorkflowPhase,
+  ClinicalFormResponse,
   CourseFolderPlaceholder,
   DiagnosisCategory,
   FractionApprovalType,
@@ -337,6 +338,11 @@ function requirementIdsForStep(stepNumber: number, workflowDefinition: WorkflowD
   return requirements
     .filter((requirement) => requirement.workflowPhase === workflowStepPhase[stepNumber])
     .map((requirement) => requirement.id);
+}
+
+export function defaultRequirementIdsForStep(stepNumber: number, workflowDefinitionId: string | null | undefined) {
+  const workflowDefinition = workflowDefinitions.find((workflow) => workflow.id === workflowDefinitionId);
+  return workflowDefinition ? requirementIdsForStep(stepNumber, workflowDefinition) : [];
 }
 
 function normalizeInitialCourseInput(
@@ -840,6 +846,7 @@ export const prescriptions: Prescription[] = [
 ];
 
 export const mappingRecords: MappingRecord[] = [];
+export const clinicalFormResponses: ClinicalFormResponse[] = [];
 export const generatedDocumentOutputs: GeneratedDocumentOutput[] = [];
 export const treatmentFractions: TreatmentFraction[] = seedTreatmentFractionsFromEntries();
 
@@ -2010,6 +2017,72 @@ export function updatePrescription(courseId: string, input: Partial<Prescription
     reason: "IGSRT prescription parameters changed in the system of record."
   });
   return { data: getIgsrtWorkspace(courseId), auditEvent };
+}
+
+export function getClinicalFormResponse(courseId: string, requirementId: string) {
+  return clinicalFormResponses.find(
+    (response) => response.courseId === courseId && response.requirementId === requirementId
+  );
+}
+
+export function upsertClinicalFormResponse(input: {
+  courseId: string;
+  requirementId: string;
+  templateId: string;
+  responseData: Record<string, string | number | boolean | null>;
+  intent: "DRAFT" | "SUBMIT" | "SIGN";
+  signedByUserId?: string;
+  requiredFieldIds?: string[];
+}): { response: ClinicalFormResponse; auditEvent: AuditEvent } {
+  const course = treatmentCourses.find((item) => item.id === input.courseId);
+  if (!course) {
+    throw new Error(`Treatment course ${input.courseId} was not found.`);
+  }
+
+  let response = getClinicalFormResponse(input.courseId, input.requirementId);
+  const created = !response;
+  if (!response) {
+    response = {
+      id: `CFR-${input.courseId.replace("COURSE-", "")}-${input.requirementId}`,
+      patientId: course.patientId,
+      courseId: input.courseId,
+      templateId: input.templateId,
+      requirementId: input.requirementId,
+      status: "IN_PROGRESS",
+      responseData: {}
+    };
+    clinicalFormResponses.push(response);
+  }
+
+  response.templateId = input.templateId;
+  response.responseData = { ...response.responseData, ...input.responseData };
+
+  let status: ClinicalFormResponse["status"] = "IN_PROGRESS";
+  if (input.intent === "SIGN") {
+    status = "SIGNED";
+    response.signedByUserId = input.signedByUserId;
+    response.signedAt = nowIso();
+  } else if (input.intent === "SUBMIT") {
+    const missingRequiredField = (input.requiredFieldIds ?? []).some((fieldId) => {
+      const value = response.responseData[fieldId];
+      return value === undefined || value === null || value === "";
+    });
+    status = missingRequiredField ? "IN_PROGRESS" : "READY_FOR_REVIEW";
+  }
+  response.status = status;
+
+  const auditEvent = addAuditEvent({
+    userId: input.intent === "SIGN" && input.signedByUserId ? input.signedByUserId : "SYSTEM",
+    userName: "Workflow API",
+    action: created ? "Clinical form response created" : "Clinical form response updated",
+    entityType: "CLINICAL_FORM_RESPONSE",
+    entityId: response.id,
+    previousValue: created ? "NONE" : PHI_REDACTED,
+    newValue: PHI_REDACTED,
+    reason: `Structured clinical form ${input.intent.toLowerCase()} recorded in the system of record.`
+  });
+
+  return { response, auditEvent };
 }
 
 function replaceCourseFractionEntries(courseId: string, entries: FractionLogEntry[]) {

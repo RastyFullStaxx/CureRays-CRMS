@@ -3,11 +3,13 @@ import {
   updateWorkflowStepCommand,
   workflowMutationContextFromRequest
 } from "@/lib/server/workflow-command-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import type { WorkflowStepMutationInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ stepId: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { stepId } = await params;
   const body = (await request.json()) as Partial<WorkflowStepMutationInput>;
   const context = workflowMutationContextFromRequest(

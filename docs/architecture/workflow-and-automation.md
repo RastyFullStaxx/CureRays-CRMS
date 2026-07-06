@@ -257,6 +257,8 @@ Derived from the clinic's corrected Dupuytren's fractionation log. Authoritative
 
 **Corrections recalculate:** editing or voiding a fraction recalculates every downstream cumulative value and invalidates affected approvals, per the correction semantics below. All calculation behavior remains clinically unvalidated and production-blocked per [current state](../status/current-state.md) until formal validation.
 
+**Carepath coverage — one engine, per-carepath columns.** All five active fraction logs (Skin Cancer IGSRT, Arthritis Hand/Foot/Knee, Dupuytren's Hand) share this engine: prescription-by-phase table, cumulative sums, energy-tab (50/70/100 kV) isodose lookup by rounded depth, and approval tracking. They differ in column layout and phase count: Dupuytren's is the **superset** (the only log with skin-surface-dose and cumulative-skin-surface-dose columns) and is the reference because it is the repaired sample; Skin Cancer omits skin-surface dose and runs up to Phase IV; Arthritis is single-phase and its template still carries unrepaired `#REF!` cells. This contract is carepath-agnostic — skin-surface dose is optional (Dose to DOT falls back to dose per fraction when it is absent) and phases come from the prescription — so only the XLSX **column mapping at export time** (P2/P3) is per-carepath, not the calculation.
+
 ### Correction Semantics by Record Type
 
 The governing rule is **mutable until signed, superseded after signed**:

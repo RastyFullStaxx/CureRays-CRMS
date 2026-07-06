@@ -522,6 +522,7 @@ export type ClinicalFormResponse = {
   patientId: string;
   courseId: string;
   templateId: string;
+  requirementId: string;
   status: WorkflowItemStatus;
   responseData: Record<string, string | number | boolean | null>;
   generatedDocumentId?: string;
@@ -1267,6 +1268,7 @@ export type AuditEvent = {
     | "DOCUMENT"
     | "FRACTION_LOG"
     | "BILLING"
+    | "CLINICAL_FORM_RESPONSE"
     | "SIMULATION_ORDER"
     | "PRESCRIPTION"
     | "MAPPING_RECORD"

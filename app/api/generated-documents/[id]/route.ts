@@ -8,6 +8,7 @@ import {
   signGeneratedDocumentLifecycle,
   voidGeneratedDocumentOutputLifecycle
 } from "@/lib/server/document-lifecycle-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import { phiAccessFromRequest, type PhiAccessContext } from "@/lib/server/phi-store";
 import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
 import { PersistenceWriteError } from "@/lib/server/write-through";
@@ -34,6 +35,7 @@ function documentMutationAccessFromRequest(request: NextRequest, reason: string)
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { id } = await params;
   const access = phiAccessFromRequest(request, "Read generated PHI document");
   if (!access) {
@@ -48,6 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { id } = await params;
   const body = await request.json();
   const action = String(body.action ?? "render");

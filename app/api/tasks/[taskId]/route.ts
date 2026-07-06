@@ -3,11 +3,13 @@ import {
   updateTaskCommand,
   workflowMutationContextFromRequest
 } from "@/lib/server/workflow-command-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import type { TaskMutationInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ taskId: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { taskId } = await params;
   const body = (await request.json()) as Partial<TaskMutationInput>;
   const context = workflowMutationContextFromRequest(

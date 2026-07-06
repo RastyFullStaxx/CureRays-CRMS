@@ -153,6 +153,23 @@ CREATE TABLE "MappingRecordPhi" (
 );
 
 -- CreateTable
+CREATE TABLE "ClinicalFormResponsePhi" (
+    "id" TEXT NOT NULL,
+    "patientId" TEXT NOT NULL,
+    "courseId" TEXT NOT NULL,
+    "requirementId" TEXT NOT NULL,
+    "templateId" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "responseData" JSONB NOT NULL,
+    "generatedDocumentId" TEXT,
+    "signedByUserId" TEXT,
+    "signedAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ClinicalFormResponsePhi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "FractionLogEntryPhi" (
     "id" TEXT NOT NULL,
     "courseId" TEXT NOT NULL,
@@ -301,6 +318,9 @@ CREATE UNIQUE INDEX "PatientPhi_mrn_key" ON "PatientPhi"("mrn");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "TreatmentCoursePhi_courseRef_key" ON "TreatmentCoursePhi"("courseRef");
+
+-- CreateIndex
+CREATE INDEX "ClinicalFormResponsePhi_courseId_idx" ON "ClinicalFormResponsePhi"("courseId");
 
 -- AddForeignKey
 ALTER TABLE "TreatmentCoursePhi" ADD CONSTRAINT "TreatmentCoursePhi_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "PatientPhi"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

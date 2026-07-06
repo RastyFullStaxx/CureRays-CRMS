@@ -3,11 +3,13 @@ import {
   patientMutationContextFromRequest,
   updatePatientLifecycleRecord
 } from "@/lib/server/patient-registration-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import type { PatientLifecycleUpdateInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { id } = await params;
   const body = (await request.json()) as Partial<PatientLifecycleUpdateInput>;
   const context = patientMutationContextFromRequest(

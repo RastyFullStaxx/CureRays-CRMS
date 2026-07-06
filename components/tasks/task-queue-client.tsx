@@ -152,7 +152,7 @@ export function TaskQueueClient({ snapshot }: TaskQueueClientProps) {
     <PageStack>
       <PageHeader
         title="Tasks"
-        subtitle="Prioritized clinical and administrative work. Open an action to complete it in the patient record."
+        
       />
 
       <nav className="task-bucket-strip" aria-label="Task Due Date Buckets">

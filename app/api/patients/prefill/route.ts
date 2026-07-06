@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parsePatientPrefillDocx, PatientPrefillError } from "@/lib/server/patient-prefill-service";
 import { patientMutationContextFromRequest } from "@/lib/server/patient-registration-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,6 +18,7 @@ function isFileLike(value: FormDataEntryValue | null): value is File {
 }
 
 export async function POST(request: NextRequest) {
+  await hydrateClinicalStoreFromDatabase();
   const context = patientMutationContextFromRequest(
     request,
     "phi:create",

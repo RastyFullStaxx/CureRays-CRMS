@@ -98,6 +98,7 @@ async function clearDatabase() {
   await phi.generatedDocumentOutputPhi.deleteMany();
   await phi.treatmentFractionPhi.deleteMany();
   await phi.fractionLogEntryPhi.deleteMany();
+  await phi.clinicalFormResponsePhi.deleteMany();
   await phi.mappingRecordPhi.deleteMany();
   await phi.prescriptionPhasePhi.deleteMany();
   await phi.prescriptionPhi.deleteMany();
@@ -174,7 +175,7 @@ async function seedOpsStaticRows() {
   }
 
   for (const [id, diagnosis, protocol, description] of [
-    ['WF-SKIN', 'SKIN_CANCER', 'Skin Cancer IGSRT', 'Skin cancer IGSRT carepath'],
+    ['WF-SKIN-IGSRT', 'SKIN_CANCER', 'Skin Cancer IGSRT', 'Skin cancer IGSRT carepath'],
     ['WF-ARTHRITIS', 'ARTHRITIS', 'Joint Orthovoltage', 'Arthritis orthovoltage carepath'],
     ['WF-DUPUYTRENS', 'DUPUYTRENS', 'Dupuytren Orthovoltage', 'Dupuytren orthovoltage carepath'],
   ]) {
@@ -198,7 +199,7 @@ async function seedPatientsAndCourses() {
     const [id, patientRef, phiRecordId, firstName, lastName, mrn, diagnosis, diagnosisCategory, location, physician, chartRoundsPhase, status, assignedStaff, courseRef, nextAction] = patient;
     const [protocolName, treatmentModality, treatmentType, totalFractions, protocolFamily] = courseConfig[diagnosisCategory];
     const currentFraction = chartRoundsPhase === 'UPCOMING' ? index % 2 : chartRoundsPhase === 'POST' ? totalFractions : Math.min(totalFractions - 1, 4 + index);
-    const workflowDefinitionId = diagnosisCategory === 'SKIN_CANCER' ? 'WF-SKIN' : diagnosisCategory === 'ARTHRITIS' ? 'WF-ARTHRITIS' : 'WF-DUPUYTRENS';
+    const workflowDefinitionId = diagnosisCategory === 'SKIN_CANCER' ? 'WF-SKIN-IGSRT' : diagnosisCategory === 'ARTHRITIS' ? 'WF-ARTHRITIS' : 'WF-DUPUYTRENS';
     const coursePhase = phaseByChart[chartRoundsPhase];
     const flags = patientFlags(index, chartRoundsPhase, status);
 
@@ -293,7 +294,7 @@ async function seedPatientsAndCourses() {
 async function seedOperationalWork() {
   for (const [patientIndex, patient] of patients.entries()) {
     const [, patientRef,,,,,, diagnosisCategory,,,,,, courseRef] = patient;
-    const workflowDefinitionId = diagnosisCategory === 'SKIN_CANCER' ? 'WF-SKIN' : diagnosisCategory === 'ARTHRITIS' ? 'WF-ARTHRITIS' : 'WF-DUPUYTRENS';
+    const workflowDefinitionId = diagnosisCategory === 'SKIN_CANCER' ? 'WF-SKIN-IGSRT' : diagnosisCategory === 'ARTHRITIS' ? 'WF-ARTHRITIS' : 'WF-DUPUYTRENS';
 
     await ops.courseFolderPlaceholder.create({
       data: {
@@ -539,6 +540,22 @@ async function seedPhiClinicalRows() {
         fieldDesignDecision: patientIndex % 2 === 0 ? 'Standard field' : 'Custom shielding field',
         status: patientIndex % 3 === 0 ? 'READY_FOR_REVIEW' : 'SIGNED',
         lastUpdatedAt: days(-patientIndex),
+      },
+    });
+
+    await phi.clinicalFormResponsePhi.create({
+      data: {
+        id: `CFR-${courseId.replace('COURSE-', '')}-REQ-INTAKE`,
+        patientId,
+        courseId,
+        requirementId: 'REQ-INTAKE',
+        templateId: 'SRC-INTAKE',
+        status: 'IN_PROGRESS',
+        responseData: {},
+        generatedDocumentId: null,
+        signedByUserId: null,
+        signedAt: null,
+        updatedAt: days(-patientIndex),
       },
     });
 

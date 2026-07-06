@@ -3,11 +3,13 @@ import {
   advanceCourseWorkflow,
   workflowMutationContextFromRequest
 } from "@/lib/server/workflow-command-service";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import type { WorkflowAdvanceInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
+  await hydrateClinicalStoreFromDatabase();
   const { courseId } = await params;
   const body = (await request.json()) as Partial<WorkflowAdvanceInput>;
   const context = workflowMutationContextFromRequest(

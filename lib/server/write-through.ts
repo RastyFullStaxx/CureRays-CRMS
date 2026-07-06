@@ -3,6 +3,7 @@ import "server-only";
 import {
   auditEvents,
   carepathTasks,
+  clinicalFormResponses,
   courseFolderPlaceholders,
   fractionLogEntries,
   generatedDocumentOutputs,
@@ -19,6 +20,7 @@ import { patientRef as patientRefFor, redactAuditEvent } from "@/lib/hipaa";
 import type {
   AuditEvent,
   CarepathTask,
+  ClinicalFormResponse,
   CourseFolderPlaceholder,
   FractionLogEntry,
   GeneratedDocument,
@@ -576,6 +578,26 @@ async function upsertPrescription(tx: PrismaClientLike, prescription: Prescripti
   );
 }
 
+function upsertClinicalFormResponse(tx: PrismaClientLike, response: ClinicalFormResponse) {
+  const shared = {
+    patientId: response.patientId,
+    requirementId: response.requirementId,
+    templateId: response.templateId,
+    status: response.status,
+    responseData: response.responseData,
+    generatedDocumentId: response.generatedDocumentId ?? null,
+    signedByUserId: response.signedByUserId ?? null,
+    signedAt: optionalDateTime(response.signedAt),
+    updatedAt: new Date(),
+  };
+
+  return delegate(tx, "clinicalFormResponsePhi").upsert({
+    where: { id: response.id },
+    create: { id: response.id, courseId: response.courseId, ...shared },
+    update: shared,
+  });
+}
+
 function upsertMappingRecord(tx: PrismaClientLike, record: MappingRecord) {
   const shared = {
     patientId: record.patientId,
@@ -692,6 +714,7 @@ export async function persistCourseClinicalMutation(courseId: string, auditEvent
   const courseSimulationOrders = simulationOrders.filter((order) => order.courseId === courseId);
   const coursePrescriptions = prescriptions.filter((prescription) => prescription.courseId === courseId);
   const courseMappingRecords = mappingRecords.filter((record) => record.courseId === courseId);
+  const courseClinicalFormResponses = clinicalFormResponses.filter((response) => response.courseId === courseId);
   const courseOutputs = generatedDocumentOutputs.filter((output) => output.courseId === courseId);
 
   await withClients(true, true, async (ops, phi) => {
@@ -706,6 +729,7 @@ export async function persistCourseClinicalMutation(courseId: string, auditEvent
       await Promise.all(courseSimulationOrders.map((order) => upsertSimulationOrder(tx, order)));
       await Promise.all(coursePrescriptions.map((prescription) => upsertPrescription(tx, prescription)));
       await Promise.all(courseMappingRecords.map((record) => upsertMappingRecord(tx, record)));
+      await Promise.all(courseClinicalFormResponses.map((response) => upsertClinicalFormResponse(tx, response)));
       await Promise.all(courseOutputs.map((output) => upsertGeneratedDocumentOutput(tx, output)));
     });
 

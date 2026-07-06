@@ -41,7 +41,8 @@ function documentLifecycleResponse(result: DocumentLifecycleResult) {
   return NextResponse.json(result);
 }
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
+  await hydrateClinicalStoreFromDatabase();
   if (!phiAccessFromRequest(request, "Open IGSRT PHI workspace")) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
@@ -56,6 +57,7 @@ export function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  await hydrateClinicalStoreFromDatabase();
   const access = phiAccessFromRequest(request, "Update IGSRT PHI workspace");
   if (!access) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
@@ -108,6 +110,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  await hydrateClinicalStoreFromDatabase();
   const access = phiAccessFromRequest(request, "Mutate IGSRT PHI workspace");
   if (!access) {
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });

@@ -2736,7 +2736,7 @@
             {
               "id": "laterality",
               "label": "Laterality",
-              "kind": "text",
+              "kind": "select",
               "required": true,
               "options": [
                 "Left",
@@ -2749,14 +2749,16 @@
             {
               "id": "cordNoduleMapping",
               "label": "Cord/Nodule Mapping",
-              "kind": "text",
-              "required": true
+              "kind": "textarea",
+              "required": true,
+              "placeholder": "Describe cords/nodules by region (palm, MCP, PIP, wrist)"
             },
             {
               "id": "fieldLimits",
               "label": "Field Limits",
-              "kind": "text",
-              "required": true
+              "kind": "textarea",
+              "required": true,
+              "placeholder": "Proximal and distal field boundaries and margins"
             }
           ]
         }

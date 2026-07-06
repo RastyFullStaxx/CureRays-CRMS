@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import {
   auditEvents,
   carepathTasks,
+  clinicalFormResponses,
+  defaultRequirementIdsForStep,
   fractionLogEntries,
   generatedDocumentOutputs,
   generatedDocuments,
@@ -27,6 +29,7 @@ import type {
   CarepathTask,
   CarepathWorkflowPhase,
   ChartRoundsPhase,
+  ClinicalFormResponse,
   DiagnosisCategory,
   DocumentStatus,
   FractionLogEntry,
@@ -307,6 +310,20 @@ type PhiMappingRecordRow = {
   lastUpdatedAt: Date;
 };
 
+type PhiClinicalResponseRow = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  requirementId: string;
+  templateId: string;
+  status: ClinicalFormResponse['status'];
+  responseData: unknown;
+  generatedDocumentId: string | null;
+  signedByUserId: string | null;
+  signedAt: Date | null;
+  updatedAt: Date;
+};
+
 type PhiTreatmentFractionRow = {
   id: string;
   courseId: string;
@@ -430,7 +447,7 @@ const hydrationCache = ((globalThis as typeof globalThis & {
   [hydrationCacheKey]?: HydrationCacheState;
 })[hydrationCacheKey] ??= { hydrated: false });
 
-let hydrated = hydrationCache.hydrated;
+let hydrated = false;
 
 function loadClient(moduleName: '.prisma/ops-client' | '.prisma/phi-client'): PrismaClientLike {
   const requireFn = eval('require') as NodeRequire;
@@ -563,6 +580,7 @@ async function loadRowsWithWindowsFallback() {
     phiPrescriptions: queryViaWindowsPsql<PhiPrescriptionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('PrescriptionPhi', '"id" ASC')),
     phiPrescriptionPhases: queryViaWindowsPsql<PhiPrescriptionPhaseRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('PrescriptionPhasePhi', '"id" ASC')),
     phiMappingRecords: queryViaWindowsPsql<PhiMappingRecordRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('MappingRecordPhi', '"id" ASC')),
+    phiClinicalResponses: queryViaWindowsPsql<PhiClinicalResponseRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('ClinicalFormResponsePhi', '"id" ASC')),
     phiTreatmentFractions: queryViaWindowsPsql<PhiTreatmentFractionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('TreatmentFractionPhi', '"courseId" ASC, "fractionNumber" ASC')),
     phiFractions: queryViaWindowsPsql<PhiFractionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('FractionLogEntryPhi', '"courseId" ASC, "fractionNumber" ASC')),
     phiGeneratedOutputs: queryViaWindowsPsql<PhiGeneratedOutputRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('GeneratedDocumentOutputPhi', '"id" ASC')),
@@ -743,7 +761,9 @@ function mapWorkflowStep(row: OpsWorkflowStepRow): WorkflowStep {
     phase: row.phase,
     status: row.status,
     applicability: row.applicability ?? carepathStepApplicability(row.stepNumber),
-    requirementIds: stringArray(row.requirementIds),
+    requirementIds: stringArray(row.requirementIds).length > 0
+      ? stringArray(row.requirementIds)
+      : defaultRequirementIdsForStep(row.stepNumber, row.workflowDefinitionId),
     responsibleRole: row.responsibleRole,
     assignedUserId: row.assignedUserId ?? undefined,
     triggerEvent: row.triggerEvent,
@@ -859,6 +879,34 @@ function mapMappingRecord(row: PhiMappingRecordRow): MappingRecord {
   };
 }
 
+function responseDataRecord(value: unknown): ClinicalFormResponse['responseData'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const record: ClinicalFormResponse['responseData'] = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (item instanceof Date) {
+      record[key] = item.toISOString();
+    } else if (item === null || typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') {
+      record[key] = item;
+    }
+  }
+  return record;
+}
+
+function mapClinicalResponse(row: PhiClinicalResponseRow): ClinicalFormResponse {
+  return {
+    id: row.id,
+    patientId: row.patientId,
+    courseId: row.courseId,
+    templateId: row.templateId,
+    requirementId: row.requirementId,
+    status: row.status,
+    responseData: responseDataRecord(row.responseData),
+    generatedDocumentId: row.generatedDocumentId ?? undefined,
+    signedByUserId: row.signedByUserId ?? undefined,
+    signedAt: iso(row.signedAt),
+  };
+}
+
 function mapTreatmentFraction(row: PhiTreatmentFractionRow): TreatmentFraction {
   return {
     id: row.id,
@@ -930,8 +978,7 @@ function mapAuditEvent(row: OpsAuditEventRow): AuditEvent {
 }
 
 export async function hydrateClinicalStoreFromDatabase(options: { force?: boolean } = {}) {
-  if ((hydrated || hydrationCache.hydrated) && !options.force) {
-    hydrated = true;
+  if (hydrated && !options.force) {
     return { hydrated: true, source: 'cache' as const };
   }
 
@@ -971,6 +1018,7 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
       phiPrescriptions,
       phiPrescriptionPhases,
       phiMappingRecords,
+      phiClinicalResponses,
       phiTreatmentFractions,
       phiFractions,
       phiGeneratedOutputs,
@@ -992,6 +1040,7 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
     replaceArray(simulationOrders, phiSimulationOrders.map(mapSimulationOrder));
     replaceArray(prescriptions, phiPrescriptions.map((prescription) => mapPrescription(prescription, phiPrescriptionPhases)));
     replaceArray(mappingRecords, phiMappingRecords.map(mapMappingRecord));
+    replaceArray(clinicalFormResponses, phiClinicalResponses.map(mapClinicalResponse));
     replaceArray(treatmentFractions, phiTreatmentFractions.map(mapTreatmentFraction));
     replaceArray(fractionLogEntries, phiFractions.map(mapFraction));
     replaceArray(generatedDocumentOutputs, phiGeneratedOutputs.map(mapGeneratedOutput));
@@ -1038,6 +1087,7 @@ async function loadRowsWithPrisma() {
       phiPrescriptions,
       phiPrescriptionPhases,
       phiMappingRecords,
+      phiClinicalResponses,
       phiTreatmentFractions,
       phiFractions,
       phiGeneratedOutputs,
@@ -1055,6 +1105,7 @@ async function loadRowsWithPrisma() {
       delegate<PhiPrescriptionRow>(phi, 'prescriptionPhi').findMany({ orderBy: { id: 'asc' } }),
       delegate<PhiPrescriptionPhaseRow>(phi, 'prescriptionPhasePhi').findMany({ orderBy: { id: 'asc' } }),
       delegate<PhiMappingRecordRow>(phi, 'mappingRecordPhi').findMany({ orderBy: { id: 'asc' } }),
+      delegate<PhiClinicalResponseRow>(phi, 'clinicalFormResponsePhi').findMany({ orderBy: { id: 'asc' } }),
       delegate<PhiTreatmentFractionRow>(phi, 'treatmentFractionPhi').findMany({ orderBy: [{ courseId: 'asc' }, { fractionNumber: 'asc' }] }),
       delegate<PhiFractionRow>(phi, 'fractionLogEntryPhi').findMany({ orderBy: [{ courseId: 'asc' }, { fractionNumber: 'asc' }] }),
       delegate<PhiGeneratedOutputRow>(phi, 'generatedDocumentOutputPhi').findMany({ orderBy: { id: 'asc' } }),
@@ -1074,6 +1125,7 @@ async function loadRowsWithPrisma() {
       phiPrescriptions,
       phiPrescriptionPhases,
       phiMappingRecords,
+      phiClinicalResponses,
       phiTreatmentFractions,
       phiFractions,
       phiGeneratedOutputs,

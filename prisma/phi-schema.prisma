@@ -165,6 +165,22 @@ model MappingRecordPhi {
   lastUpdatedAt       DateTime
 }
 
+model ClinicalFormResponsePhi {
+  id                  String             @id
+  patientId           String
+  courseId            String
+  requirementId       String
+  templateId          String
+  status              String
+  responseData        Json
+  generatedDocumentId String?
+  signedByUserId      String?
+  signedAt            DateTime?
+  updatedAt           DateTime
+
+  @@index([courseId])
+}
+
 model FractionLogEntryPhi {
   id                    String             @id
   courseId              String
