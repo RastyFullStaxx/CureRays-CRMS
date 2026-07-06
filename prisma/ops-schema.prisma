@@ -100,12 +100,18 @@ model OperationalWorkflowStep {
   stepName           String
   phase              String
   status             String
+  applicability      String?
+  requirementIds     Json?
   responsibleRole    String
+  assignedUserId     String?
   triggerEvent       String
   dueDate            DateTime?
   requiresSignature  Boolean
+  signedByUserId     String?
+  signedAt           DateTime?
   linkedDocumentId   String?
   naReason           String?
+  systemReason       String?
   blockers           String[]
   auditChecklist     String[]
   notes              String?

@@ -17,6 +17,8 @@ import { PHI_REDACTED, courseRef, patientRef } from "@/lib/hipaa";
 import { PROTOTYPE_OPERATIONAL_AS_OF, PROTOTYPE_OPERATIONAL_DATE } from "@/lib/operational-date";
 import { PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
 import { prototypeSessionFromRequest, type PrototypeSessionClaims } from "@/lib/server/prototype-session";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
+import { isPrismaPersistenceMode, PersistenceWriteError, persistCourseWorkflowMutation } from "@/lib/server/write-through";
 import { completedDocumentStatuses, completedTaskStatuses, orderedCarepathPhases } from "@/lib/workflow";
 import type {
   CarepathTask,
@@ -142,35 +144,7 @@ function nowIso() {
 }
 
 function repositoryModeFromEnv(): WorkflowRepositoryMode {
-  const configuredMode = [
-    process.env.CURERAYS_WORKFLOW_REPOSITORY
-  ]
-    .map((value) => safeText(value).toLowerCase())
-    .find(Boolean);
-
-  return configuredMode === "prisma" || configuredMode === "prisma-ready" ? "prisma" : "memory";
-}
-
-type PrismaClientLike = Record<string, unknown> & {
-  $disconnect(): Promise<void>;
-};
-
-function loadOpsPrismaClient(): PrismaClientLike {
-  if (!process.env.OPS_DATABASE_URL) {
-    throw new WorkflowRepositoryUnavailableError();
-  }
-
-  try {
-    const requireFn = eval("require") as NodeRequire;
-    const moduleValue = requireFn(".prisma/ops-client") as { PrismaClient?: new () => PrismaClientLike };
-    if (!moduleValue.PrismaClient) {
-      throw new WorkflowRepositoryUnavailableError();
-    }
-
-    return new moduleValue.PrismaClient();
-  } catch {
-    throw new WorkflowRepositoryUnavailableError();
-  }
+  return isPrismaPersistenceMode() ? "prisma" : "memory";
 }
 
 function courseByIdOrRef(courseIdOrRef: string): TreatmentCourse | undefined {
@@ -910,42 +884,61 @@ export const inMemoryWorkflowTaskRepository: WorkflowTaskRepository = {
   }
 };
 
+function courseIdForStep(stepId: string): string | undefined {
+  return patientCourseWorkflowSteps.find((step) => step.id === stepId)?.courseId;
+}
+
+function courseIdForTask(taskId: string): string | undefined {
+  return carepathTasks.find((task) => task.id === taskId)?.courseId;
+}
+
+async function writeThroughOrRestore(courseId: string | undefined, auditEventId?: string) {
+  if (!courseId) {
+    return;
+  }
+
+  try {
+    await persistCourseWorkflowMutation(courseId, auditEventId);
+  } catch (error) {
+    await hydrateClinicalStoreFromDatabase({ force: true });
+    throw error;
+  }
+}
+
 export const prismaWorkflowTaskRepository: WorkflowTaskRepository = {
   mode: "prisma",
-  listWorkflowSteps() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  listWorkflowSteps(asOf) {
+    return inMemoryWorkflowTaskRepository.listWorkflowSteps(asOf);
   },
-  listTasks() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  listTasks(asOf) {
+    return inMemoryWorkflowTaskRepository.listTasks(asOf);
   },
-  listQueue() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  listQueue(queue, role, asOf, bucket) {
+    return inMemoryWorkflowTaskRepository.listQueue(queue, role, asOf, bucket);
   },
-  evaluateCourseAdvance() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  evaluateCourseAdvance(courseIdOrRef, asOf) {
+    return inMemoryWorkflowTaskRepository.evaluateCourseAdvance(courseIdOrRef, asOf);
   },
-  advanceCourse() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  async advanceCourse(courseIdOrRef, input, context, asOf) {
+    const result = advanceCourseInMemory(courseIdOrRef, input, context, asOf);
+    if (result.allowed) {
+      await writeThroughOrRestore(courseByIdOrRef(courseIdOrRef)?.id, result.auditEvent?.id);
+    }
+    return result;
   },
-  updateWorkflowStep() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  async updateWorkflowStep(stepId, input, context, asOf) {
+    const result = updateWorkflowStepInMemory(stepId, input, context, asOf);
+    if (result.allowed) {
+      await writeThroughOrRestore(courseIdForStep(stepId), result.auditEvent?.id);
+    }
+    return result;
   },
-  updateTask() {
-    const client = loadOpsPrismaClient();
-    void client.$disconnect();
-    throw new WorkflowRepositoryUnavailableError();
+  async updateTask(taskId, input, context, asOf) {
+    const result = updateTaskInMemory(taskId, input, context, asOf);
+    if (result.allowed) {
+      await writeThroughOrRestore(courseIdForTask(taskId), result.auditEvent?.id);
+    }
+    return result;
   }
 };
 
@@ -972,6 +965,10 @@ function failure<T>(status: number, message: string, errors?: string[], blockers
 function safeFailure<T>(error: unknown): WorkflowServiceResponse<T> {
   if (error instanceof WorkflowRepositoryUnavailableError) {
     return failure(503, "Workflow persistence is not available.");
+  }
+
+  if (error instanceof PersistenceWriteError) {
+    return failure(500, "Workflow change could not be saved to the configured database.");
   }
 
   return failure(500, "Workflow command could not be completed.");

@@ -148,6 +148,7 @@ model PrescriptionPhasePhi {
   technique          String
   shieldingDesign    String
   depthOfTargetMm    Decimal
+  skinSurfaceDoseCgy Float?
 }
 
 model MappingRecordPhi {
@@ -220,6 +221,10 @@ model FractionLogEntryPhi {
   correctionReason      String?
   correctedAt           DateTime?
   correctedByUserId     String?
+  skinSurfaceDoseCgy    Float?
+  cumulativeSkinSurfaceDoseCgy Float?
+  prescriptionMismatchFields Json?
+  prescriptionOverrideReason String?
   notes                 String
 }
 

@@ -140,7 +140,7 @@ for (const expected of [
 assertExcludes(clinicalStore, "drive://generated", "generated outputs must not use fake drive:// URLs");
 assertIncludes(moduleData, "?? \"APP_STORAGE\"", "document instances must default to app-owned storage");
 assertIncludes(documentsPage, "redirect('/patients')", "Global Documents page must redirect into patient-first work");
-assertIncludes(patientWorkspace, "documents-billing", "Patient workspace must own document lifecycle work");
+assertIncludes(patientWorkspace, "record-closeout", "Patient workspace must own document lifecycle work");
 assertIncludes(patientWorkspace, "latestOutputStatus", "Patient document table must show output lifecycle status");
 assertIncludes(patientWorkspace, "manualEditExceptionAt", "Patient document table must show manual edit exceptions");
 assertIncludes(patientWorkspace, "ecwUploadReference", "Patient document table must show eCW upload state");
@@ -171,7 +171,7 @@ assert.ok(readResult.document, "Authorized document read must return safe docume
 assert.equal("patientId" in readResult.document, false, "Document lifecycle DTO must not expose patientId");
 assert.equal("courseId" in readResult.document, false, "Document lifecycle DTO must not expose courseId");
 
-assert.throws(
+await assert.rejects(
   () => renderGeneratedDocumentLifecycle(billingAccess, "DOC-2401-RX", "PDF"),
   /PHI access denied/,
   "Billing cannot render PHI document output"
@@ -193,29 +193,29 @@ generatedDocuments.push({
   auditReady: false
 });
 
-const blockedMapping = renderGeneratedDocumentLifecycle(radOncAccess, "DOC-PHASE5-BLOCKED-PREAUTH", "PDF");
+const blockedMapping = await renderGeneratedDocumentLifecycle(radOncAccess, "DOC-PHASE5-BLOCKED-PREAUTH", "PDF");
 assert.match(
   blockedMapping.blockedReason ?? "",
   /MAPPING_IN_PROGRESS/,
   "Mapping-in-progress template sources must block generation"
 );
 
-const rendered = renderGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX", "PDF");
+const rendered = await renderGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX", "PDF");
 assert.ok(rendered.output, "Render must return safe output metadata");
 assert.equal("contentPreview" in rendered.output, false, "Lifecycle output DTO must not expose contentPreview");
 assert.equal(rendered.output.storageProvider, "APP_STORAGE", "Rendered output must use APP_STORAGE");
 assert.match(rendered.output.storageUrl ?? "", /^app-storage:\/\/generated\//, "Rendered output must use app-storage URL");
 
-const exported = exportGeneratedDocumentLifecycle(physicistAccess, "DOC-2401-RX");
+const exported = await exportGeneratedDocumentLifecycle(physicistAccess, "DOC-2401-RX");
 assert.equal(exported.output?.status, "EXPORTED", "Export command must mark output exported");
 assert.ok(exported.auditEvent?.redacted, "Export audit event must be redacted");
 
-const signed = signGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX");
+const signed = await signGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX");
 assert.equal(signed.document?.signReviewState, "SIGNED", "Sign command must close signature state");
 assert.ok(signed.document?.lockedAt, "Sign command must lock the document");
 assert.equal(signed.output?.status, "LOCKED", "Sign command must lock the current output");
 
-const exportLocked = exportGeneratedDocumentLifecycle(physicistAccess, "DOC-2401-RX");
+const exportLocked = await exportGeneratedDocumentLifecycle(physicistAccess, "DOC-2401-RX");
 assert.match(
   exportLocked.blockedReason ?? "",
   /locked/,
@@ -223,28 +223,28 @@ assert.match(
 );
 assert.equal(exportLocked.output?.status, "LOCKED", "Blocked export must preserve locked output status");
 
-const uploaded = confirmGeneratedDocumentEcwUploadLifecycle(billingAccess, "DOC-2401-RX", {
+const uploaded = await confirmGeneratedDocumentEcwUploadLifecycle(billingAccess, "DOC-2401-RX", {
   externalReference: "ECW-MANUAL-2401-RX",
   reason: "Manual upload confirmed by billing queue"
 });
 assert.ok(uploaded.document?.uploadedToEcwAt, "Billing must be able to confirm manual eCW upload");
 assert.equal(uploaded.document?.ecwUploadReference, "ECW-MANUAL-2401-RX", "eCW confirmation must store reference");
 
-const manualEdit = recordGeneratedDocumentManualEditExceptionLifecycle(adminAccess, "DOC-2401-RX", {
+const manualEdit = await recordGeneratedDocumentManualEditExceptionLifecycle(adminAccess, "DOC-2401-RX", {
   reason: "Provider corrected signed output outside the app"
 });
 assert.equal(manualEdit.document?.signReviewState, "REVIEW_REQUIRED", "Manual edit must reopen signature review");
 assert.equal(manualEdit.document?.uploadedToEcwAt, undefined, "Manual edit must clear downstream eCW readiness");
 assert.equal(manualEdit.output?.status, "DRAFT", "Manual edit must create a draft follow-up output version");
 
-const rerendered = renderGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX", "PDF");
+const rerendered = await renderGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX", "PDF");
 assert.equal(rerendered.output?.status, "READY", "Document can be regenerated after manual edit exception");
 assert.ok(
   (rerendered.output?.version ?? 0) > (rendered.output?.version ?? 0),
   "Regenerated output must increment version"
 );
 
-const voided = voidGeneratedDocumentOutputLifecycle(adminAccess, "DOC-2401-RX", {
+const voided = await voidGeneratedDocumentOutputLifecycle(adminAccess, "DOC-2401-RX", {
   reason: "Superseded by corrected version"
 });
 assert.equal(voided.output?.status, "VOIDED", "Void command must void latest output");

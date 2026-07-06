@@ -298,4 +298,154 @@ const phaseSummaries = service.buildPhaseSummaries(
 assert.equal(phaseSummaries[0].completedFractions, 2);
 assert.equal(phaseSummaries[0].plannedFractions, 20);
 
+// Fraction Calculation Contract golden cases.
+// Sample from the clinic Apps Script notes: Phase V, 100 kV, SSD 23, Time 23,
+// Dose 4 (Gy = 400 cGy), skin dose 300 cGy, DOT depth 3.0 mm.
+// The formulas are asserted; the isodose value (85%) comes from the repo's
+// existing 100 kV / 3.0 cm reference curve at 3.0 mm, not fabricated here.
+const skinDoseEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 1,
+    date: "2026-04-10",
+    phase: "Phase V",
+    energyKv: 100,
+    fieldSizeCm: "3.0 cm",
+    ssdCm: 23,
+    treatmentTimeMinutes: 23,
+    dosePerFractionCgy: 400,
+    skinSurfaceDoseCgy: 300,
+    depthOfTargetMm: 3,
+    technicianInitials: "QA"
+  },
+  []
+);
+assert.equal(skinDoseEntry.isodoseToDotPercent, 85);
+// Dose to DOT uses skin-surface dose (300), not dose per fraction (400).
+assert.equal(skinDoseEntry.doseToDotCgy, 255);
+assert.equal(skinDoseEntry.cumulativeDoseCgy, 400);
+assert.equal(skinDoseEntry.cumulativeSkinSurfaceDoseCgy, 300);
+assert.equal(skinDoseEntry.cumulativeDoseToDotCgy, 255);
+
+// Second fraction: cumulative skin-surface dose and cumulative DOT dose are running sums.
+const skinDoseEntryTwo = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 2,
+    date: "2026-04-11",
+    phase: "Phase V",
+    energyKv: 100,
+    fieldSizeCm: "3.0 cm",
+    ssdCm: 23,
+    treatmentTimeMinutes: 23,
+    dosePerFractionCgy: 400,
+    skinSurfaceDoseCgy: 300,
+    depthOfTargetMm: 3,
+    technicianInitials: "QA"
+  },
+  [skinDoseEntry]
+);
+assert.equal(skinDoseEntryTwo.cumulativeDoseCgy, 800);
+assert.equal(skinDoseEntryTwo.cumulativeSkinSurfaceDoseCgy, 600);
+assert.equal(skinDoseEntryTwo.cumulativeDoseToDotCgy, 510);
+
+// Fallback: with no skin-surface dose, Dose to DOT falls back to dose per fraction.
+const noSkinDoseEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 1,
+    date: "2026-04-12",
+    phase: "Phase I",
+    energyKv: 100,
+    fieldSizeCm: "3.0 cm",
+    ssdCm: 15,
+    treatmentTimeMinutes: 4,
+    dosePerFractionCgy: 400,
+    depthOfTargetMm: 3,
+    technicianInitials: "QA"
+  },
+  []
+);
+assert.equal(noSkinDoseEntry.doseToDotCgy, 340);
+assert.equal(noSkinDoseEntry.cumulativeSkinSurfaceDoseCgy, undefined);
+
+// detectPrescriptionMismatchFields compares row values against the phase prescription
+// (dose fields converted Gy -> cGy).
+const referencePhase = {
+  energyKv: 100,
+  ssdCm: 23,
+  timeMinutes: 23,
+  dosePerFractionGy: 4,
+  skinSurfaceDoseCgy: 300
+};
+assert.deepEqual(service.detectPrescriptionMismatchFields(skinDoseEntry, referencePhase), []);
+const mismatchFields = service.detectPrescriptionMismatchFields(
+  { energyKv: 70, ssdCm: 20, treatmentTimeMinutes: 23, dosePerFractionCgy: 400, skinSurfaceDoseCgy: 350 },
+  referencePhase
+);
+assert.deepEqual(mismatchFields, ["Energy", "SSD", "Skin-surface dose"]);
+
+// A mismatched entry cannot reach Approved (even with both approvals) until an
+// override reason is supplied.
+const mismatchEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 1,
+    date: "2026-04-13",
+    phase: "Phase V",
+    energyKv: 70,
+    fieldSizeCm: "3.0 cm",
+    ssdCm: 23,
+    treatmentTimeMinutes: 23,
+    dosePerFractionCgy: 400,
+    skinSurfaceDoseCgy: 300,
+    depthOfTargetMm: 3,
+    mdApprovalState: "APPROVED",
+    dotApprovalState: "APPROVED",
+    technicianInitials: "QA"
+  },
+  [],
+  { prescriptionPhase: referencePhase }
+);
+assert.deepEqual(mismatchEntry.prescriptionMismatchFields, ["Energy"]);
+assert.equal(mismatchEntry.status, "NEEDS_REVIEW");
+assert.equal(mismatchEntry.mdApproval, true);
+assert.equal(mismatchEntry.dotApproval, true);
+
+const overriddenMismatchEntry = service.calculateFractionWorksheetEntry(
+  {
+    courseId: "COURSE-FIXTURE",
+    fractionNumber: 1,
+    date: "2026-04-13",
+    phase: "Phase V",
+    energyKv: 70,
+    fieldSizeCm: "3.0 cm",
+    ssdCm: 23,
+    treatmentTimeMinutes: 23,
+    dosePerFractionCgy: 400,
+    skinSurfaceDoseCgy: 300,
+    depthOfTargetMm: 3,
+    prescriptionOverrideReason: "Physicist approved 70 kV substitution for this session.",
+    mdApprovalState: "APPROVED",
+    dotApprovalState: "APPROVED",
+    technicianInitials: "QA"
+  },
+  [],
+  { prescriptionPhase: referencePhase }
+);
+assert.equal(overriddenMismatchEntry.status, "APPROVED");
+
+// Mismatch flags survive full-course recalculation (which runs without prescription phases).
+const recalculatedMismatch = service.recalculateFractionWorksheetEntries([mismatchEntry]);
+assert.deepEqual(recalculatedMismatch[0].prescriptionMismatchFields, ["Energy"]);
+assert.equal(recalculatedMismatch[0].status, "NEEDS_REVIEW");
+
+// Correction recalculates downstream cumulative skin-surface dose.
+const correctedSkinDose = service.recalculateFractionWorksheetEntries([
+  { ...skinDoseEntry, skinSurfaceDoseCgy: 200 },
+  skinDoseEntryTwo
+]);
+assert.equal(correctedSkinDose[0].cumulativeSkinSurfaceDoseCgy, 200);
+assert.equal(correctedSkinDose[1].cumulativeSkinSurfaceDoseCgy, 500);
+
 console.log("Fraction worksheet fixtures passed.");

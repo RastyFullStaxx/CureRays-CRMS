@@ -57,6 +57,7 @@ type DraftFraction = {
   energyKv: string;
   fieldSizeCm: string;
   dosePerFractionCgy: string;
+  skinSurfaceDoseCgy: string;
   depthOfTargetMm: string;
   ssdCm: string;
   treatmentTimeMinutes: string;
@@ -65,6 +66,7 @@ type DraftFraction = {
   notes: string;
   isodoseToDotPercent: string;
   isodoseOverrideReason: string;
+  prescriptionOverrideReason: string;
 };
 
 type AdvancedPanel = "note" | "reference" | "billing";
@@ -119,6 +121,7 @@ function phaseDefaults(phase: ReturnType<typeof buildPhaseSummaries>[number] | u
     energyKv: phase?.energyKv ?? parseEnergyKv(course.energy),
     ssdCm: phase?.ssdCm ?? 15,
     dosePerFractionCgy: phase?.dosePerFractionCgy ?? parseNumeric(course.dose) ?? 250,
+    skinSurfaceDoseCgy: phase?.skinSurfaceDoseCgy,
     fieldSizeCm: phase?.fieldSizeCm ?? normalizeFieldSizeCm(course.applicator),
     treatmentTimeMinutes: phase?.treatmentTimeMinutes ?? 0,
     depthOfTargetMm: parseNumeric(course.targetDepth) ?? 1
@@ -169,6 +172,7 @@ function buildInitialDraft(
     energyKv: String(scheduled ? parseEnergyKv(scheduled.energy) : defaults.energyKv),
     fieldSizeCm: scheduled?.applicator ? normalizeFieldSizeCm(scheduled.applicator) : defaults.fieldSizeCm,
     dosePerFractionCgy: String(scheduled?.plannedDose ?? defaults.dosePerFractionCgy),
+    skinSurfaceDoseCgy: defaults.skinSurfaceDoseCgy !== undefined ? String(defaults.skinSurfaceDoseCgy) : "",
     depthOfTargetMm: String(defaults.depthOfTargetMm),
     ssdCm: String(defaults.ssdCm),
     treatmentTimeMinutes: String(defaults.treatmentTimeMinutes),
@@ -176,7 +180,8 @@ function buildInitialDraft(
     treatmentSetupComments: "",
     notes: "Structured fraction entry from CureRays CRMS.",
     isodoseToDotPercent: "",
-    isodoseOverrideReason: ""
+    isodoseOverrideReason: "",
+    prescriptionOverrideReason: ""
   };
 }
 
@@ -189,6 +194,7 @@ function draftToFractionInput(courseId: string, draft: DraftFraction) {
     energyKv: requiredNumber(draft.energyKv, 50),
     fieldSizeCm: draft.fieldSizeCm,
     dosePerFractionCgy: requiredNumber(draft.dosePerFractionCgy, 0),
+    skinSurfaceDoseCgy: optionalNumber(draft.skinSurfaceDoseCgy),
     depthOfTargetMm: requiredNumber(draft.depthOfTargetMm, 0),
     ssdCm: requiredNumber(draft.ssdCm, 15),
     treatmentTimeMinutes: requiredNumber(draft.treatmentTimeMinutes, 0),
@@ -197,6 +203,7 @@ function draftToFractionInput(courseId: string, draft: DraftFraction) {
     notes: draft.notes.trim() || "Structured fraction entry from CureRays CRMS.",
     isodoseToDotPercent: optionalNumber(draft.isodoseToDotPercent),
     isodoseOverrideReason: draft.isodoseOverrideReason.trim(),
+    prescriptionOverrideReason: draft.prescriptionOverrideReason.trim(),
     mdApprovalState: "PENDING" as const,
     dotApprovalState: "PENDING" as const
   };
@@ -285,6 +292,7 @@ export function FractionWorksheetPanel({
     return (
       deriveFractionLogStatus(entry) !== "APPROVED" ||
       hasWarnings ||
+      (entry.prescriptionMismatchFields?.length ?? 0) > 0 ||
       scheduled?.imageGuidanceStatus === "MISSING" ||
       entry.calculationStatus === "MANUAL_OVERRIDE" ||
       entry.calculationStatus === "LEGACY_IMPORTED"
@@ -296,7 +304,10 @@ export function FractionWorksheetPanel({
       const entry = calculateFractionWorksheetEntry(
         draftToFractionInput(course.id, draft),
         sortedActiveEntries,
-        { calculatedAt: new Date().toISOString() }
+        {
+          calculatedAt: new Date().toISOString(),
+          prescriptionPhase: phases.find((phase) => phase.phaseName === draft.phase) ?? null
+        }
       );
       return { entry, error: null };
     } catch (caughtError) {
@@ -305,7 +316,7 @@ export function FractionWorksheetPanel({
         error: caughtError instanceof Error ? caughtError.message : "Fraction calculation failed"
       };
     }
-  }, [course.id, draft, sortedActiveEntries]);
+  }, [course.id, draft, phases, sortedActiveEntries]);
 
   async function requestJson(action: string, data: Record<string, unknown>, successMessage: string) {
     setPendingAction(`${action}-${String(data.id ?? "new")}`);
@@ -396,6 +407,7 @@ export function FractionWorksheetPanel({
       energyKv: formNumber(formData, "energyKv"),
       fieldSizeCm: formValue(formData, "fieldSizeCm"),
       dosePerFractionCgy: formNumber(formData, "dosePerFractionCgy"),
+      skinSurfaceDoseCgy: formNumber(formData, "skinSurfaceDoseCgy"),
       depthOfTargetMm: formNumber(formData, "depthOfTargetMm"),
       ssdCm: formNumber(formData, "ssdCm"),
       treatmentTimeMinutes: formNumber(formData, "treatmentTimeMinutes"),
@@ -404,6 +416,7 @@ export function FractionWorksheetPanel({
       notes: formValue(formData, "notes"),
       isodoseToDotPercent: formNumber(formData, "isodoseToDotPercent"),
       isodoseOverrideReason: formValue(formData, "isodoseOverrideReason"),
+      prescriptionOverrideReason: formValue(formData, "prescriptionOverrideReason"),
       correctionReason: formValue(formData, "correctionReason")
     };
   }
@@ -659,6 +672,16 @@ export function FractionWorksheetPanel({
                       />
                     </label>
                     <label className="grid gap-1">
+                      <span className={labelClass}>Skin-surface dose per fraction (cGy)</span>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={draft.skinSurfaceDoseCgy}
+                        onChange={(event) => updateDraft("skinSurfaceDoseCgy", event.target.value)}
+                      />
+                    </label>
+                    <label className="grid gap-1">
                       <span className={labelClass}>Depth of target (DOT, mm)</span>
                       <Input
                         type="number"
@@ -736,10 +759,31 @@ export function FractionWorksheetPanel({
                     <div className="grid gap-3 sm:grid-cols-2">
                       <PreviewMetric label="Dose to Target Depth" value={formatDose(preview.entry?.doseToDotCgy ?? preview.entry?.doseToDepth)} />
                       <PreviewMetric label="Cumulative" value={formatDose(preview.entry?.cumulativeDoseCgy ?? preview.entry?.cumulativeDose)} />
+                      <PreviewMetric label="Cumulative Skin-Surface Dose" value={formatDose(preview.entry?.cumulativeSkinSurfaceDoseCgy)} />
                       <PreviewMetric label="Cumulative Target Dose" value={formatDose(preview.entry?.cumulativeDoseToDotCgy ?? preview.entry?.cumulativeDoseToDepth)} />
                       <PreviewMetric label="Isodose" value={formatPercent(preview.entry?.isodoseToDotPercent ?? preview.entry?.isodosePercent)} />
                     </div>
                   )}
+
+                  {(preview.entry?.prescriptionMismatchFields?.length ?? 0) > 0 ? (
+                    <div className="grid gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="negative">Prescription mismatch</Badge>
+                        <span className="type-body text-[var(--color-text-muted)]">
+                          {preview.entry?.prescriptionMismatchFields?.join(", ")} differ from the {draft.phase} prescription.
+                        </span>
+                      </div>
+                      <label className="grid gap-1">
+                        <span className={labelClass}>Prescription mismatch override reason</span>
+                        <Textarea
+                          rows={2}
+                          value={draft.prescriptionOverrideReason}
+                          onChange={(event) => updateDraft("prescriptionOverrideReason", event.target.value)}
+                          placeholder="Record the audited reason to approve despite the mismatch"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="grid gap-1">
@@ -893,6 +937,7 @@ export function FractionWorksheetPanel({
                   </Select>
                 </label>
                 <CorrectionInput label="Dose per Fraction (cGy)" name="dosePerFractionCgy" type="number" defaultValue={correctionEntry.dosePerFractionCgy ?? correctionEntry.dosePerFraction} required />
+                <CorrectionInput label="Skin-surface Dose (cGy)" name="skinSurfaceDoseCgy" type="number" step="0.1" defaultValue={correctionEntry.skinSurfaceDoseCgy ?? ""} />
                 <CorrectionInput label="Depth of Target (DOT, mm)" name="depthOfTargetMm" type="number" step="0.1" defaultValue={correctionEntry.depthOfTargetMm ?? parseNumeric(correctionEntry.depthOfTarget)} required />
                 <CorrectionInput label="Source-to-surface distance (SSD, cm)" name="ssdCm" type="number" step="0.1" defaultValue={correctionEntry.ssdCm ?? parseNumeric(correctionEntry.ssd)} required />
                 <CorrectionInput label="Treatment Time (Minutes)" name="treatmentTimeMinutes" type="number" step="0.1" defaultValue={correctionEntry.treatmentTimeMinutes ?? 0} required />
@@ -903,6 +948,7 @@ export function FractionWorksheetPanel({
               <div className="grid gap-3 md:grid-cols-3">
                 <CorrectionInput label="Setup Comments" name="treatmentSetupComments" defaultValue={correctionEntry.treatmentSetupComments ?? ""} />
                 <CorrectionInput label="Notes" name="notes" defaultValue={correctionEntry.notes} />
+                <CorrectionInput label="Prescription Override Reason" name="prescriptionOverrideReason" defaultValue={correctionEntry.prescriptionOverrideReason ?? ""} />
                 <CorrectionInput label="Correction Reason" name="correctionReason" defaultValue="" required />
               </div>
             </div>
@@ -1084,6 +1130,7 @@ export function FractionWorksheetPanel({
                   <PreviewMetric label="Depth of Target (DOT)" value={`${selectedEntry.depthOfTargetMm ?? parseNumeric(selectedEntry.depthOfTarget) ?? "-"} mm`} />
                   <PreviewMetric label="Isodose" value={formatPercent(selectedEntry.isodoseToDotPercent ?? selectedEntry.isodosePercent)} />
                   <PreviewMetric label="Dose to Target Depth" value={formatDose(selectedEntry.doseToDotCgy ?? selectedEntry.doseToDepth)} />
+                  <PreviewMetric label="Cumulative Skin-Surface Dose" value={formatDose(selectedEntry.cumulativeSkinSurfaceDoseCgy)} />
                   <PreviewMetric label="Cumulative Target Dose" value={formatDose(selectedEntry.cumulativeDoseToDotCgy ?? selectedEntry.cumulativeDoseToDepth)} />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -1091,6 +1138,11 @@ export function FractionWorksheetPanel({
                   {approvalBadge("MD", selectedEntry.mdApproval, selectedEntry.mdApprovalState)}
                   {scheduleByFraction.get(selectedEntry.fractionNumber)?.imageGuidanceStatus === "MISSING" ? (
                     <Badge variant="intermediate">Image missing</Badge>
+                  ) : null}
+                  {(selectedEntry.prescriptionMismatchFields?.length ?? 0) > 0 ? (
+                    <Badge variant={selectedEntry.prescriptionOverrideReason ? "intermediate" : "negative"}>
+                      {selectedEntry.prescriptionOverrideReason ? "Mismatch overridden" : "Prescription mismatch"}
+                    </Badge>
                   ) : null}
                   {compactWarnings(selectedEntry).map((warning) => (
                     <Badge key={warning} variant="intermediate">{warning}</Badge>

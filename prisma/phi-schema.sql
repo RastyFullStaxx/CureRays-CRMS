@@ -17,7 +17,7 @@ CREATE TABLE "PatientPhi" (
     "phiRecordId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
-    "mrn" TEXT NOT NULL,
+    "mrn" TEXT,
     "diagnosis" TEXT NOT NULL,
     "diagnosisCategory" "DiagnosisCategory" NOT NULL,
     "location" TEXT NOT NULL,
@@ -131,6 +131,7 @@ CREATE TABLE "PrescriptionPhasePhi" (
     "technique" TEXT NOT NULL,
     "shieldingDesign" TEXT NOT NULL,
     "depthOfTargetMm" DECIMAL(65,30) NOT NULL,
+    "skinSurfaceDoseCgy" DOUBLE PRECISION,
 
     CONSTRAINT "PrescriptionPhasePhi_pkey" PRIMARY KEY ("id")
 );
@@ -207,6 +208,10 @@ CREATE TABLE "FractionLogEntryPhi" (
     "correctionReason" TEXT,
     "correctedAt" TIMESTAMP(3),
     "correctedByUserId" TEXT,
+    "skinSurfaceDoseCgy" DOUBLE PRECISION,
+    "cumulativeSkinSurfaceDoseCgy" DOUBLE PRECISION,
+    "prescriptionMismatchFields" JSONB,
+    "prescriptionOverrideReason" TEXT,
     "notes" TEXT NOT NULL,
 
     CONSTRAINT "FractionLogEntryPhi_pkey" PRIMARY KEY ("id")

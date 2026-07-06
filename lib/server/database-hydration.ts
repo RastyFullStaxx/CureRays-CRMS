@@ -8,12 +8,21 @@ import {
   auditEvents,
   carepathTasks,
   fractionLogEntries,
+  generatedDocumentOutputs,
   generatedDocuments,
+  mappingRecords,
+  patientCourseAuditChecks,
+  patientCourseWorkflowSteps,
   patients,
+  prescriptions,
   priorityFlags,
+  simulationOrders,
   treatmentCourses,
+  treatmentFractions,
 } from '@/lib/clinical-store';
+import { carepathStepApplicability } from '@/lib/workflow';
 import type {
+  AuditCheck,
   AuditEvent,
   CarepathTask,
   CarepathWorkflowPhase,
@@ -22,13 +31,20 @@ import type {
   DocumentStatus,
   FractionLogEntry,
   GeneratedDocument,
+  GeneratedDocumentOutput,
+  MappingRecord,
   Patient,
   PatientFlag,
   PatientStatus,
+  Prescription,
+  PrescriptionPhase,
   PrototypeAccessRole,
   ResponsibleParty,
+  SimulationOrder,
   TreatmentCourse,
   TreatmentCourseStatus,
+  TreatmentFraction,
+  WorkflowStep,
 } from '@/lib/types';
 
 type PrismaDelegate<T> = {
@@ -108,6 +124,47 @@ type OpsDocumentRow = {
   auditReady: boolean;
 };
 
+type OpsWorkflowStepRow = {
+  id: string;
+  courseRef: string;
+  workflowDefinitionId: string;
+  stepNumber: number;
+  stepName: string;
+  phase: CarepathWorkflowPhase;
+  status: WorkflowStep['status'];
+  applicability: WorkflowStep['applicability'] | null;
+  requirementIds: unknown;
+  responsibleRole: ResponsibleParty;
+  assignedUserId: string | null;
+  triggerEvent: string;
+  dueDate: Date | null;
+  requiresSignature: boolean;
+  signedByUserId: string | null;
+  signedAt: Date | null;
+  linkedDocumentId: string | null;
+  naReason: string | null;
+  systemReason: string | null;
+  blockers: string[];
+  auditChecklist: string[];
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type OpsAuditCheckRow = {
+  id: string;
+  courseRef: string;
+  category: string;
+  label: string;
+  status: AuditCheck['status'];
+  required: boolean;
+  evidenceDocumentId: string | null;
+  notes: string | null;
+  completedByUserId: string | null;
+  completedAt: Date | null;
+  naReason: string | null;
+};
+
 type OpsAuditEventRow = {
   id: string;
   patientRef: string | null;
@@ -177,6 +234,125 @@ type PhiCourseRow = {
   notes: string;
 };
 
+type PhiSimulationOrderRow = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  lesionLocation: string;
+  laterality: string;
+  lesionBorderInked: boolean;
+  allMarginsInked: boolean;
+  phaseIMarginInstruction: string;
+  phaseIIMarginInstruction: string;
+  chairSetup: string;
+  position: string;
+  setupPhotoChecklist: string[];
+  ultrasoundFrequencies: string[];
+  specialPhysicsRequired: boolean;
+  specialPhysicsReason: string;
+  weeklyPhysicsRequired: boolean;
+  weeklyPhysicsReason: string;
+  inVivoDosimetryRequired: boolean;
+  radiationOncologist: string;
+  dateCompleted: Date | null;
+  signedAt: Date | null;
+  status: SimulationOrder['status'];
+  lastUpdatedAt: Date;
+};
+
+type PhiPrescriptionRow = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  site: string;
+  laterality: string;
+  verifiedInSensus: boolean;
+  imagingGuidance: string[];
+  priorRadiationTherapy: boolean;
+  preAuthorized: boolean;
+  signedAt: Date | null;
+  dateOrdered: Date | null;
+  status: Prescription['status'];
+  lastUpdatedAt: Date;
+};
+
+type PhiPrescriptionPhaseRow = {
+  id: string;
+  prescriptionId: string;
+  phaseName: PrescriptionPhase['phaseName'];
+  energyKv: number;
+  phaseTotalDoseGy: unknown;
+  dosePerFractionGy: unknown;
+  totalFractions: number;
+  timeMinutes: unknown;
+  ssdCm: unknown;
+  applicatorSize: string;
+  marginMm: number;
+  technique: string;
+  shieldingDesign: string;
+  depthOfTargetMm: unknown;
+  skinSurfaceDoseCgy: number | null;
+};
+
+type PhiMappingRecordRow = {
+  id: string;
+  patientId: string;
+  courseId: string;
+  diagnosis: DiagnosisCategory;
+  bodySite: string;
+  laterality: string;
+  impressions: string;
+  fieldDesignDecision: string;
+  status: MappingRecord['status'];
+  lastUpdatedAt: Date;
+};
+
+type PhiTreatmentFractionRow = {
+  id: string;
+  courseId: string;
+  fractionNumber: number;
+  phase: string;
+  treatmentDate: Date;
+  plannedDose: number;
+  deliveredDose: number | null;
+  cumulativeDose: number;
+  energy: string | null;
+  applicator: string | null;
+  imageGuidanceCompleted: boolean;
+  imageGuidanceStatus: TreatmentFraction['imageGuidanceStatus'] | null;
+  imageAssetIds: string[];
+  imageGuidanceNotApplicableReason: string | null;
+  scheduledFromPrescription: boolean;
+  sourcePrescriptionId: string | null;
+  sourcePhaseId: string | null;
+  linkedFractionLogEntryId: string | null;
+  physicsCheckRequired: boolean;
+  physicsCheckCompletedAt: Date | null;
+  physicsCheckCompletedByUserId: string | null;
+  otvRequired: boolean;
+  otvCompletedAt: Date | null;
+  otvCompletedByUserId: string | null;
+  generatedAt: Date | null;
+  lockedAt: Date | null;
+  status: TreatmentFraction['status'];
+  therapistId: string | null;
+  physicianReviewedAt: Date | null;
+  notes: string | null;
+};
+
+type PhiGeneratedOutputRow = {
+  id: string;
+  documentId: string;
+  patientId: string;
+  courseId: string;
+  format: GeneratedDocumentOutput['format'];
+  version: number;
+  status: GeneratedDocumentOutput['status'];
+  driveFileUrl: string | null;
+  contentPreview: string;
+  renderedAt: Date;
+};
+
 type PhiFractionRow = {
   id: string;
   courseId: string;
@@ -232,6 +408,10 @@ type PhiFractionRow = {
   correctionReason: string | null;
   correctedAt: Date | null;
   correctedByUserId: string | null;
+  skinSurfaceDoseCgy: number | null;
+  cumulativeSkinSurfaceDoseCgy: number | null;
+  prescriptionMismatchFields: unknown;
+  prescriptionOverrideReason: string | null;
   notes: string;
 };
 
@@ -308,6 +488,11 @@ function courseIdFromRef(courseRef: string) {
   return courseRef.replace(/^COURSE-/, 'COURSE-');
 }
 
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function replaceArray<T>(target: T[], rows: T[]) {
   target.splice(0, target.length, ...rows);
 }
@@ -367,12 +552,20 @@ async function loadRowsWithWindowsFallback() {
   return Promise.resolve({
     opsPatients: queryViaWindowsPsql<OpsPatientRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('OperationalPatient', '"patientRef" ASC')),
     opsCourses: queryViaWindowsPsql<OpsCourseRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('OperationalCourse', '"courseRef" ASC')),
+    workflowSteps: queryViaWindowsPsql<OpsWorkflowStepRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('OperationalWorkflowStep', '"courseRef" ASC, "stepNumber" ASC')),
+    auditChecks: queryViaWindowsPsql<OpsAuditCheckRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('OperationalAuditCheck', '"id" ASC')),
     tasks: queryViaWindowsPsql<OpsTaskRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('CarepathTask', '"id" ASC')),
     documents: queryViaWindowsPsql<OpsDocumentRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('GeneratedDocument', '"id" ASC')),
     opsAuditEvents: queryViaWindowsPsql<OpsAuditEventRow>('curerays_ops', 'curerays_ops_user', opsPassword, jsonSelect('OperationalAuditEvent', '"timestamp" DESC')),
     phiPatients: queryViaWindowsPsql<PhiPatientRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('PatientPhi', '"patientRef" ASC')),
     phiCourses: queryViaWindowsPsql<PhiCourseRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('TreatmentCoursePhi', '"courseRef" ASC')),
+    phiSimulationOrders: queryViaWindowsPsql<PhiSimulationOrderRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('SimulationOrderPhi', '"id" ASC')),
+    phiPrescriptions: queryViaWindowsPsql<PhiPrescriptionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('PrescriptionPhi', '"id" ASC')),
+    phiPrescriptionPhases: queryViaWindowsPsql<PhiPrescriptionPhaseRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('PrescriptionPhasePhi', '"id" ASC')),
+    phiMappingRecords: queryViaWindowsPsql<PhiMappingRecordRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('MappingRecordPhi', '"id" ASC')),
+    phiTreatmentFractions: queryViaWindowsPsql<PhiTreatmentFractionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('TreatmentFractionPhi', '"courseId" ASC, "fractionNumber" ASC')),
     phiFractions: queryViaWindowsPsql<PhiFractionRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('FractionLogEntryPhi', '"courseId" ASC, "fractionNumber" ASC')),
+    phiGeneratedOutputs: queryViaWindowsPsql<PhiGeneratedOutputRow>('curerays_phi', 'curerays_phi_user', phiPassword, jsonSelect('GeneratedDocumentOutputPhi', '"id" ASC')),
   });
 }
 
@@ -533,7 +726,186 @@ function mapFraction(row: PhiFractionRow): FractionLogEntry {
     correctionReason: row.correctionReason ?? undefined,
     correctedAt: iso(row.correctedAt),
     correctedByUserId: row.correctedByUserId ?? undefined,
+    skinSurfaceDoseCgy: numberValue(row.skinSurfaceDoseCgy),
+    cumulativeSkinSurfaceDoseCgy: numberValue(row.cumulativeSkinSurfaceDoseCgy),
+    prescriptionMismatchFields: stringArray(row.prescriptionMismatchFields),
+    prescriptionOverrideReason: row.prescriptionOverrideReason ?? undefined,
     notes: row.notes,
+  };
+}
+
+function mapWorkflowStep(row: OpsWorkflowStepRow): WorkflowStep {
+  return {
+    id: row.id,
+    courseId: courseIdFromRef(row.courseRef),
+    stepNumber: row.stepNumber,
+    stepName: row.stepName,
+    phase: row.phase,
+    status: row.status,
+    applicability: row.applicability ?? carepathStepApplicability(row.stepNumber),
+    requirementIds: stringArray(row.requirementIds),
+    responsibleRole: row.responsibleRole,
+    assignedUserId: row.assignedUserId ?? undefined,
+    triggerEvent: row.triggerEvent,
+    dueDate: iso(row.dueDate),
+    requiresSignature: row.requiresSignature,
+    signedByUserId: row.signedByUserId ?? undefined,
+    signedAt: iso(row.signedAt),
+    linkedDocumentId: row.linkedDocumentId ?? undefined,
+    naReason: row.naReason ?? undefined,
+    systemReason: row.systemReason ?? undefined,
+    blockers: row.blockers,
+    auditChecklist: row.auditChecklist,
+    notes: row.notes ?? undefined,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function mapAuditCheck(row: OpsAuditCheckRow): AuditCheck {
+  return {
+    id: row.id,
+    courseId: courseIdFromRef(row.courseRef),
+    category: row.category,
+    label: row.label,
+    status: row.status,
+    required: row.required,
+    evidenceDocumentId: row.evidenceDocumentId ?? undefined,
+    notes: row.notes ?? undefined,
+    completedByUserId: row.completedByUserId ?? undefined,
+    completedAt: iso(row.completedAt),
+    naReason: row.naReason ?? undefined,
+  };
+}
+
+function mapSimulationOrder(row: PhiSimulationOrderRow): SimulationOrder {
+  return {
+    id: row.id,
+    patientId: row.patientId,
+    courseId: row.courseId,
+    lesionLocation: row.lesionLocation,
+    laterality: row.laterality,
+    lesionBorderInked: row.lesionBorderInked,
+    allMarginsInked: row.allMarginsInked,
+    phaseIMarginInstruction: row.phaseIMarginInstruction,
+    phaseIIMarginInstruction: row.phaseIIMarginInstruction,
+    chairSetup: row.chairSetup,
+    position: row.position,
+    setupPhotoChecklist: stringArray(row.setupPhotoChecklist),
+    ultrasoundFrequencies: stringArray(row.ultrasoundFrequencies),
+    specialPhysicsRequired: row.specialPhysicsRequired,
+    specialPhysicsReason: row.specialPhysicsReason,
+    weeklyPhysicsRequired: row.weeklyPhysicsRequired,
+    weeklyPhysicsReason: row.weeklyPhysicsReason,
+    inVivoDosimetryRequired: row.inVivoDosimetryRequired,
+    radiationOncologist: row.radiationOncologist,
+    dateCompleted: iso(row.dateCompleted) ?? null,
+    signedAt: iso(row.signedAt),
+    status: row.status,
+    lastUpdatedAt: row.lastUpdatedAt.toISOString(),
+  };
+}
+
+function mapPrescriptionPhase(row: PhiPrescriptionPhaseRow): PrescriptionPhase {
+  return {
+    id: row.id,
+    phaseName: row.phaseName,
+    energyKv: row.energyKv,
+    phaseTotalDoseGy: numberValue(row.phaseTotalDoseGy) ?? 0,
+    dosePerFractionGy: numberValue(row.dosePerFractionGy) ?? 0,
+    totalFractions: row.totalFractions,
+    timeMinutes: numberValue(row.timeMinutes) ?? 0,
+    ssdCm: numberValue(row.ssdCm) ?? 0,
+    applicatorSize: row.applicatorSize,
+    marginMm: row.marginMm,
+    technique: row.technique,
+    shieldingDesign: row.shieldingDesign,
+    depthOfTargetMm: numberValue(row.depthOfTargetMm) ?? 0,
+    skinSurfaceDoseCgy: numberValue(row.skinSurfaceDoseCgy),
+  };
+}
+
+function mapPrescription(row: PhiPrescriptionRow, phaseRows: PhiPrescriptionPhaseRow[]): Prescription {
+  return {
+    id: row.id,
+    patientId: row.patientId,
+    courseId: row.courseId,
+    site: row.site,
+    laterality: row.laterality,
+    verifiedInSensus: row.verifiedInSensus,
+    phases: phaseRows.filter((phase) => phase.prescriptionId === row.id).map(mapPrescriptionPhase),
+    imagingGuidance: stringArray(row.imagingGuidance),
+    priorRadiationTherapy: row.priorRadiationTherapy,
+    preAuthorized: row.preAuthorized,
+    signedAt: iso(row.signedAt),
+    dateOrdered: iso(row.dateOrdered) ?? null,
+    status: row.status,
+    lastUpdatedAt: row.lastUpdatedAt.toISOString(),
+  };
+}
+
+function mapMappingRecord(row: PhiMappingRecordRow): MappingRecord {
+  return {
+    id: row.id,
+    patientId: row.patientId,
+    courseId: row.courseId,
+    diagnosis: row.diagnosis,
+    bodySite: row.bodySite,
+    laterality: row.laterality,
+    impressions: row.impressions,
+    fieldDesignDecision: row.fieldDesignDecision,
+    status: row.status,
+    lastUpdatedAt: row.lastUpdatedAt.toISOString(),
+  };
+}
+
+function mapTreatmentFraction(row: PhiTreatmentFractionRow): TreatmentFraction {
+  return {
+    id: row.id,
+    courseId: row.courseId,
+    fractionNumber: row.fractionNumber,
+    phase: row.phase,
+    treatmentDate: row.treatmentDate.toISOString().slice(0, 10),
+    plannedDose: row.plannedDose,
+    deliveredDose: numberValue(row.deliveredDose),
+    cumulativeDose: row.cumulativeDose,
+    energy: row.energy ?? undefined,
+    applicator: row.applicator ?? undefined,
+    imageGuidanceCompleted: row.imageGuidanceCompleted,
+    imageGuidanceStatus: row.imageGuidanceStatus ?? undefined,
+    imageAssetIds: stringArray(row.imageAssetIds),
+    imageGuidanceNotApplicableReason: row.imageGuidanceNotApplicableReason ?? undefined,
+    scheduledFromPrescription: row.scheduledFromPrescription,
+    sourcePrescriptionId: row.sourcePrescriptionId ?? undefined,
+    sourcePhaseId: row.sourcePhaseId ?? undefined,
+    linkedFractionLogEntryId: row.linkedFractionLogEntryId ?? undefined,
+    physicsCheckRequired: row.physicsCheckRequired,
+    physicsCheckCompletedAt: iso(row.physicsCheckCompletedAt),
+    physicsCheckCompletedByUserId: row.physicsCheckCompletedByUserId ?? undefined,
+    otvRequired: row.otvRequired,
+    otvCompletedAt: iso(row.otvCompletedAt),
+    otvCompletedByUserId: row.otvCompletedByUserId ?? undefined,
+    generatedAt: iso(row.generatedAt),
+    lockedAt: iso(row.lockedAt),
+    status: row.status,
+    therapistId: row.therapistId ?? undefined,
+    physicianReviewedAt: iso(row.physicianReviewedAt),
+    notes: row.notes ?? undefined,
+  };
+}
+
+function mapGeneratedOutput(row: PhiGeneratedOutputRow): GeneratedDocumentOutput {
+  return {
+    id: row.id,
+    documentId: row.documentId,
+    patientId: row.patientId,
+    courseId: row.courseId,
+    format: row.format,
+    version: row.version,
+    status: row.status,
+    driveFileUrl: row.driveFileUrl ?? undefined,
+    contentPreview: row.contentPreview,
+    renderedAt: row.renderedAt.toISOString(),
   };
 }
 
@@ -585,7 +957,24 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
 
   try {
     const rows = await loadRowsWithPrisma().catch(() => loadRowsWithWindowsFallback());
-    const { opsPatients, opsCourses, tasks, documents, opsAuditEvents, phiPatients, phiCourses, phiFractions } = rows;
+    const {
+      opsPatients,
+      opsCourses,
+      workflowSteps,
+      auditChecks,
+      tasks,
+      documents,
+      opsAuditEvents,
+      phiPatients,
+      phiCourses,
+      phiSimulationOrders,
+      phiPrescriptions,
+      phiPrescriptionPhases,
+      phiMappingRecords,
+      phiTreatmentFractions,
+      phiFractions,
+      phiGeneratedOutputs,
+    } = rows;
 
     if (opsPatients.length === 0 || opsCourses.length === 0 || phiPatients.length === 0 || phiCourses.length === 0) {
       hydrationCache.hydrated = false;
@@ -596,9 +985,16 @@ export async function hydrateClinicalStoreFromDatabase(options: { force?: boolea
 
     replaceArray(patients, phiPatients.map(mapPatient));
     replaceArray(treatmentCourses, phiCourses.map(mapCourse));
+    replaceArray(patientCourseWorkflowSteps, workflowSteps.map(mapWorkflowStep));
+    replaceArray(patientCourseAuditChecks, auditChecks.map(mapAuditCheck));
     replaceArray(carepathTasks, tasks.map(mapTask));
     replaceArray(generatedDocuments, documents.map(mapDocument));
+    replaceArray(simulationOrders, phiSimulationOrders.map(mapSimulationOrder));
+    replaceArray(prescriptions, phiPrescriptions.map((prescription) => mapPrescription(prescription, phiPrescriptionPhases)));
+    replaceArray(mappingRecords, phiMappingRecords.map(mapMappingRecord));
+    replaceArray(treatmentFractions, phiTreatmentFractions.map(mapTreatmentFraction));
     replaceArray(fractionLogEntries, phiFractions.map(mapFraction));
+    replaceArray(generatedDocumentOutputs, phiGeneratedOutputs.map(mapGeneratedOutput));
     replaceArray(auditEvents, opsAuditEvents.map(mapAuditEvent));
     replaceArray(priorityFlags, phiPatients.flatMap((patient) => flags(patient.flags).map((flag) => ({
       id: flag.id,
@@ -628,18 +1024,60 @@ async function loadRowsWithPrisma() {
   const phi = loadClient('.prisma/phi-client');
 
   try {
-    const [opsPatients, opsCourses, tasks, documents, opsAuditEvents, phiPatients, phiCourses, phiFractions] = await Promise.all([
+    const [
+      opsPatients,
+      opsCourses,
+      workflowSteps,
+      auditChecks,
+      tasks,
+      documents,
+      opsAuditEvents,
+      phiPatients,
+      phiCourses,
+      phiSimulationOrders,
+      phiPrescriptions,
+      phiPrescriptionPhases,
+      phiMappingRecords,
+      phiTreatmentFractions,
+      phiFractions,
+      phiGeneratedOutputs,
+    ] = await Promise.all([
       delegate<OpsPatientRow>(ops, 'operationalPatient').findMany({ orderBy: { patientRef: 'asc' } }),
       delegate<OpsCourseRow>(ops, 'operationalCourse').findMany({ orderBy: { courseRef: 'asc' } }),
+      delegate<OpsWorkflowStepRow>(ops, 'operationalWorkflowStep').findMany({ orderBy: [{ courseRef: 'asc' }, { stepNumber: 'asc' }] }),
+      delegate<OpsAuditCheckRow>(ops, 'operationalAuditCheck').findMany({ orderBy: { id: 'asc' } }),
       delegate<OpsTaskRow>(ops, 'carepathTask').findMany({ orderBy: { id: 'asc' } }),
       delegate<OpsDocumentRow>(ops, 'generatedDocument').findMany({ orderBy: { id: 'asc' } }),
       delegate<OpsAuditEventRow>(ops, 'operationalAuditEvent').findMany({ orderBy: { timestamp: 'desc' } }),
       delegate<PhiPatientRow>(phi, 'patientPhi').findMany({ orderBy: { patientRef: 'asc' } }),
       delegate<PhiCourseRow>(phi, 'treatmentCoursePhi').findMany({ orderBy: { courseRef: 'asc' } }),
+      delegate<PhiSimulationOrderRow>(phi, 'simulationOrderPhi').findMany({ orderBy: { id: 'asc' } }),
+      delegate<PhiPrescriptionRow>(phi, 'prescriptionPhi').findMany({ orderBy: { id: 'asc' } }),
+      delegate<PhiPrescriptionPhaseRow>(phi, 'prescriptionPhasePhi').findMany({ orderBy: { id: 'asc' } }),
+      delegate<PhiMappingRecordRow>(phi, 'mappingRecordPhi').findMany({ orderBy: { id: 'asc' } }),
+      delegate<PhiTreatmentFractionRow>(phi, 'treatmentFractionPhi').findMany({ orderBy: [{ courseId: 'asc' }, { fractionNumber: 'asc' }] }),
       delegate<PhiFractionRow>(phi, 'fractionLogEntryPhi').findMany({ orderBy: [{ courseId: 'asc' }, { fractionNumber: 'asc' }] }),
+      delegate<PhiGeneratedOutputRow>(phi, 'generatedDocumentOutputPhi').findMany({ orderBy: { id: 'asc' } }),
     ]);
 
-    return { opsPatients, opsCourses, tasks, documents, opsAuditEvents, phiPatients, phiCourses, phiFractions };
+    return {
+      opsPatients,
+      opsCourses,
+      workflowSteps,
+      auditChecks,
+      tasks,
+      documents,
+      opsAuditEvents,
+      phiPatients,
+      phiCourses,
+      phiSimulationOrders,
+      phiPrescriptions,
+      phiPrescriptionPhases,
+      phiMappingRecords,
+      phiTreatmentFractions,
+      phiFractions,
+      phiGeneratedOutputs,
+    };
   } finally {
     await Promise.allSettled([ops.$disconnect(), phi.$disconnect()]);
   }

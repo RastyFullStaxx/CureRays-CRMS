@@ -34,10 +34,7 @@ export default async function PatientProfilePage({
 }) {
   const { id } = await params;
   const query = await searchParams;
-  const persistenceMode = (process.env.CURERAYS_PATIENT_REPOSITORY ?? process.env.CURERAYS_PERSISTENCE_MODE ?? "")
-    .trim()
-    .toLowerCase();
-  const usePrismaStore = persistenceMode === "prisma" || persistenceMode === "prisma-ready";
+  const usePrismaStore = (process.env.CURERAYS_PERSISTENCE_MODE ?? "").trim().toLowerCase() === "prisma";
 
   await hydrateClinicalStoreFromDatabase({
     force: usePrismaStore

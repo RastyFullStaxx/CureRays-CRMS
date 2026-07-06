@@ -927,6 +927,7 @@ export type PrescriptionPhase = {
   technique: string;
   shieldingDesign: string;
   depthOfTargetMm: number;
+  skinSurfaceDoseCgy?: number;
 };
 
 export type Prescription = {
@@ -1047,8 +1048,10 @@ export type FractionLogEntry = {
   treatmentTimeMinutes?: number;
   dosePerFraction: number;
   dosePerFractionCgy?: number;
+  skinSurfaceDoseCgy?: number;
   cumulativeDose: number;
   cumulativeDoseCgy?: number;
+  cumulativeSkinSurfaceDoseCgy?: number;
   technicianInitials: string;
   mdApproval: boolean;
   mdApprovalState?: FractionWorksheetApprovalState;
@@ -1068,6 +1071,8 @@ export type FractionLogEntry = {
   cumulativeDoseToDotCgy?: number;
   treatmentSetupComments?: string;
   isodoseOverrideReason?: string;
+  prescriptionMismatchFields?: string[];
+  prescriptionOverrideReason?: string;
   calculationStatus?: FractionWorksheetCalculationStatus;
   calculationMeta?: FractionWorksheetCalculationMeta;
   isodoseNote?: string;

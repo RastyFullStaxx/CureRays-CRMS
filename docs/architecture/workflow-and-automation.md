@@ -235,6 +235,28 @@ The workspace surfaces **one** authoritative next action. Selection is determini
 - Reopening requires a reason and clears or supersedes affected approval/lock state.
 - Corrections preserve the prior version and recalculate dependent state.
 
+### Fraction Calculation Contract
+
+Derived from the clinic's corrected Dupuytren's fractionation log. Authoritative reference: `docs/fractionation_log_app_script/appscript_of_hand_laterality_dupuytren` (the Apps Script the clinic now runs on its live log).
+
+**Inputs per fraction** (staff-entered): phase, energy, SSD, treatment time, dose per fraction (cGy), dose at skin surface per fraction (cGy), DOT depth (rounded to 0.1 for lookup).
+
+**Derived values** (auto-computed, never hand-entered):
+
+| Value | Rule |
+|---|---|
+| Cumulative Dose (cGy) | Running sum of dose per fraction across the course's logged fractions in fraction order |
+| Cumulative Skin-Surface Dose (cGy) | Running sum of skin-surface dose per fraction |
+| Isodose to DOT (%) | PDD lookup keyed by (energy reference table, field size from the phase's prescription, DOT depth rounded to 0.1); raw values > 1 normalize as raw/100 |
+| Dose to DOT (cGy) | Isodose × skin-surface dose (falls back to dose per fraction when skin-surface dose is absent) |
+| Cumulative Dose to DOT (cGy) | Running sum of Dose to DOT |
+
+**Review flagging:** an entry whose energy, SSD, treatment time, dose per fraction, or skin-surface dose does not match the prescription values for its selected phase is flagged for review and cannot reach Approved until corrected or explicitly overridden with an audited reason.
+
+**No fabricated reference data:** where approved PDD reference tables are not loaded in the application, Isodose to DOT remains a manually entered value that is itself flagged for review. The system must never invent lookup values.
+
+**Corrections recalculate:** editing or voiding a fraction recalculates every downstream cumulative value and invalidates affected approvals, per the correction semantics below. All calculation behavior remains clinically unvalidated and production-blocked per [current state](../status/current-state.md) until formal validation.
+
 ### Correction Semantics by Record Type
 
 The governing rule is **mutable until signed, superseded after signed**:

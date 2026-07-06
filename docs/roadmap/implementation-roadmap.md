@@ -54,7 +54,7 @@ Acceptance: golden output check per enabled template; download works from Record
 
 - **Outcome:** the treatment loop closes cleanly (pilot gate G4).
 
-Scope: XLSX fraction-log export, approval queue polish on the Treatment tab, treatment summary form. Fraction durability itself lands in P0; correction semantics follow [workflow and automation](../architecture/workflow-and-automation.md).
+Scope: XLSX fraction-log export, approval queue polish on the Treatment tab, treatment summary form. Fraction durability itself lands in P0; correction semantics and the auto-computed values follow the [fraction calculation contract](../architecture/workflow-and-automation.md). The calculation correction (cumulative doses, isodose/dose to DOT, prescription-mismatch review flags) is user-mandated and may land ahead of the rest of P3.
 
 Acceptance: record → correct → approve → export cycle on a synthetic course.
 

@@ -20,9 +20,18 @@ import {
   voidFractionRow
 } from "@/lib/server/phase6-treatment-workflow-service";
 import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
+import { PersistenceWriteError, persistCourseClinicalMutation } from "@/lib/server/write-through";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import type { DocumentLifecycleResult } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+function persistenceFailureResponse() {
+  return NextResponse.json(
+    { message: "Change could not be saved to the configured database." },
+    { status: 500 }
+  );
+}
 
 function documentLifecycleResponse(result: DocumentLifecycleResult) {
   if (result.blockedReason) {
@@ -63,16 +72,36 @@ export async function PATCH(request: NextRequest) {
 
   if (body.resource === "simulationOrder") {
     const result = updateSimulationOrder(courseId, body.data ?? {});
-    return result
-      ? NextResponse.json(result)
-      : NextResponse.json({ message: "Simulation order not found" }, { status: 404 });
+    if (!result) {
+      return NextResponse.json({ message: "Simulation order not found" }, { status: 404 });
+    }
+    try {
+      await persistCourseClinicalMutation(courseId, result.auditEvent?.id);
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        await hydrateClinicalStoreFromDatabase({ force: true });
+        return persistenceFailureResponse();
+      }
+      throw error;
+    }
+    return NextResponse.json(result);
   }
 
   if (body.resource === "prescription") {
     const result = updatePrescription(courseId, body.data ?? {});
-    return result
-      ? NextResponse.json(result)
-      : NextResponse.json({ message: "Prescription not found" }, { status: 404 });
+    if (!result) {
+      return NextResponse.json({ message: "Prescription not found" }, { status: 404 });
+    }
+    try {
+      await persistCourseClinicalMutation(courseId, result.auditEvent?.id);
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        await hydrateClinicalStoreFromDatabase({ force: true });
+        return persistenceFailureResponse();
+      }
+      throw error;
+    }
+    return NextResponse.json(result);
   }
 
   return NextResponse.json({ message: "Unsupported IGSRT resource" }, { status: 400 });
@@ -115,8 +144,11 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "addFraction") {
     try {
-      return NextResponse.json(createFractionRow(access, body.data ?? {}), { status: 201 });
+      return NextResponse.json(await createFractionRow(access, body.data ?? {}), { status: 201 });
     } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction worksheet validation failed" },
         { status: 400 }
@@ -126,11 +158,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "updateFraction") {
     try {
-      const result = correctFractionRow(access, body.data ?? {});
+      const result = await correctFractionRow(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction worksheet validation failed" },
         { status: 400 }
@@ -140,11 +175,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "approveFraction") {
     try {
-      const result = approveFractionRow(access, body.data ?? {});
+      const result = await approveFractionRow(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       if (error instanceof Error && error.message.includes("not allowed")) {
         return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
       }
@@ -157,11 +195,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "requestFractionRevision") {
     try {
-      const result = requestFractionRowRevision(access, body.data ?? {});
+      const result = await requestFractionRowRevision(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       if (error instanceof Error && error.message.includes("not allowed")) {
         return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
       }
@@ -174,11 +215,14 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "voidFraction") {
     try {
-      const result = voidFractionRow(access, body.data ?? {});
+      const result = await voidFractionRow(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Fraction worksheet row not found" }, { status: 404 });
     } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Fraction void failed" },
         { status: 400 }
@@ -188,54 +232,80 @@ export async function POST(request: NextRequest) {
 
   if (body.action === "generateFractionSchedule") {
     try {
-      const result = createFractionSchedule(access, body.data ?? {});
+      const result = await createFractionSchedule(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Treatment course not found" }, { status: 404 });
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json({ message: "Fraction schedule generation failed" }, { status: 400 });
     }
   }
 
   if (body.action === "linkFractionImage") {
     try {
-      const result = attachFractionImage(access, body.data ?? {});
+      const result = await attachFractionImage(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Scheduled fraction not found" }, { status: 404 });
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json({ message: "Fraction imaging update failed" }, { status: 400 });
     }
   }
 
   if (body.action === "recordPhysicsCheck") {
     try {
-      const result = completePhysicsCheck(access, body.data ?? {});
+      const result = await completePhysicsCheck(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Scheduled fraction not found" }, { status: 404 });
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
     }
   }
 
   if (body.action === "recordOtvCheck") {
     try {
-      const result = completeOtvCheck(access, body.data ?? {});
+      const result = await completeOtvCheck(access, body.data ?? {});
       return result
         ? NextResponse.json(result)
         : NextResponse.json({ message: "Scheduled fraction not found" }, { status: 404 });
-    } catch {
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
       return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
     }
   }
 
   if (body.action === "renderDocument") {
-    return documentLifecycleResponse(renderGeneratedDocumentLifecycle(access, body.documentId, body.format ?? "PDF"));
+    try {
+      return documentLifecycleResponse(await renderGeneratedDocumentLifecycle(access, body.documentId, body.format ?? "PDF"));
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
+      throw error;
+    }
   }
 
   if (body.action === "signDocument") {
-    return documentLifecycleResponse(signGeneratedDocumentLifecycle(access, body.documentId));
+    try {
+      return documentLifecycleResponse(await signGeneratedDocumentLifecycle(access, body.documentId));
+    } catch (error) {
+      if (error instanceof PersistenceWriteError) {
+        return persistenceFailureResponse();
+      }
+      throw error;
+    }
   }
 
   return NextResponse.json({ message: "Unsupported IGSRT action" }, { status: 400 });

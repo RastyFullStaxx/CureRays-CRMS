@@ -2099,7 +2099,11 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
       dotApproval: false,
       dotApprovalState: input.dotApprovalState ?? "PENDING"
     },
-    courseEntries
+    courseEntries,
+    {
+      prescriptionPhase:
+        getPrescription(input.courseId)?.phases.find((phase) => phase.phaseName === input.phase) ?? null
+    }
   );
   fractionLogEntries.push(entry);
   recalculateCourseFractionEntries(input.courseId);
@@ -2189,6 +2193,10 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
     courseEntries,
     {
       existingId: existingEntry.id,
+      prescriptionPhase:
+        getPrescription(input.courseId)?.phases.find(
+          (phase) => phase.phaseName === (input.phase ?? existingEntry.phase)
+        ) ?? null,
       firstEntryCumulativeDelta:
         correctionReason && !hasLowerActiveEntry
           ? {

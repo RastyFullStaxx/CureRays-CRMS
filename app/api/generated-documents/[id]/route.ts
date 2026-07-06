@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/document-lifecycle-service";
 import { phiAccessFromRequest, type PhiAccessContext } from "@/lib/server/phi-store";
 import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import { PersistenceWriteError } from "@/lib/server/write-through";
 import type { DocumentLifecycleResult, GeneratedDocumentFormat } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -57,24 +58,29 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const result =
-      action === "sign" || action === "signDocument"
-        ? signGeneratedDocumentLifecycle(access, id)
-        : action === "export"
-          ? exportGeneratedDocumentLifecycle(access, id)
-          : action === "confirmEcwUpload"
-            ? confirmGeneratedDocumentEcwUploadLifecycle(access, id, {
-                externalReference: body.externalReference,
-                reason: body.reason
-              })
-            : action === "voidOutput"
-              ? voidGeneratedDocumentOutputLifecycle(access, id, { reason: body.reason })
-              : action === "recordManualEditException"
-                ? recordGeneratedDocumentManualEditExceptionLifecycle(access, id, { reason: body.reason })
-                : renderGeneratedDocumentLifecycle(access, id, safeOutputFormat(body.format));
+    const result = await (action === "sign" || action === "signDocument"
+      ? signGeneratedDocumentLifecycle(access, id)
+      : action === "export"
+        ? exportGeneratedDocumentLifecycle(access, id)
+        : action === "confirmEcwUpload"
+          ? confirmGeneratedDocumentEcwUploadLifecycle(access, id, {
+              externalReference: body.externalReference,
+              reason: body.reason
+            })
+          : action === "voidOutput"
+            ? voidGeneratedDocumentOutputLifecycle(access, id, { reason: body.reason })
+            : action === "recordManualEditException"
+              ? recordGeneratedDocumentManualEditExceptionLifecycle(access, id, { reason: body.reason })
+              : renderGeneratedDocumentLifecycle(access, id, safeOutputFormat(body.format)));
 
     return documentResponse(result);
-  } catch {
+  } catch (error) {
+    if (error instanceof PersistenceWriteError) {
+      return NextResponse.json(
+        { message: "Document change could not be saved to the configured database." },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ message: "PHI access denied" }, { status: 403 });
   }
 }

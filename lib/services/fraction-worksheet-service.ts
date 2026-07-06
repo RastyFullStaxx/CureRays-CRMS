@@ -16,6 +16,7 @@ export type FractionWorksheetPhaseSummary = {
   energyKv: number;
   ssdCm: number;
   dosePerFractionCgy: number;
+  skinSurfaceDoseCgy?: number;
   fieldSizeCm: string;
   treatmentTimeMinutes: number;
 };
@@ -161,10 +162,24 @@ export function isVoidedFractionEntry(entry: Pick<FractionLogEntry, "status" | "
   return entry.status === "VOIDED" || Boolean(entry.voidedAt);
 }
 
+export function hasUnresolvedPrescriptionMismatch(
+  entry: Pick<FractionLogEntry, "prescriptionMismatchFields" | "prescriptionOverrideReason">
+) {
+  return (entry.prescriptionMismatchFields?.length ?? 0) > 0 && !String(entry.prescriptionOverrideReason ?? "").trim();
+}
+
 export function deriveFractionLogStatus(
   entry: Pick<
     FractionLogEntry,
-    "status" | "mdApproval" | "dotApproval" | "mdApprovalState" | "dotApprovalState" | "revisionReason" | "voidedAt"
+    | "status"
+    | "mdApproval"
+    | "dotApproval"
+    | "mdApprovalState"
+    | "dotApprovalState"
+    | "revisionReason"
+    | "voidedAt"
+    | "prescriptionMismatchFields"
+    | "prescriptionOverrideReason"
   >
 ): FractionLogStatus {
   if (entry.status === "VOIDED" || entry.voidedAt) {
@@ -179,11 +194,11 @@ export function deriveFractionLogStatus(
     return "REVISION_NEEDED";
   }
 
-  if (entry.mdApproval && entry.dotApproval) {
+  if (entry.mdApproval && entry.dotApproval && !hasUnresolvedPrescriptionMismatch(entry)) {
     return "APPROVED";
   }
 
-  if (!entry.mdApproval || !entry.dotApproval) {
+  if (!entry.mdApproval || !entry.dotApproval || hasUnresolvedPrescriptionMismatch(entry)) {
     return "NEEDS_REVIEW";
   }
 
@@ -225,12 +240,66 @@ export function lookupIsodoseToDotPercent(input: {
   };
 }
 
+const prescriptionMismatchTolerance = 0.05;
+
+function valuesMatch(entryValue: number | undefined, prescriptionValue: number | undefined) {
+  if (entryValue === undefined || prescriptionValue === undefined) {
+    return true;
+  }
+  return Math.abs(entryValue - prescriptionValue) <= prescriptionMismatchTolerance;
+}
+
+export function detectPrescriptionMismatchFields(
+  entry: {
+    energyKv?: number;
+    energy?: string;
+    ssdCm?: number;
+    ssd?: string;
+    treatmentTimeMinutes?: number;
+    dosePerFractionCgy?: number;
+    dosePerFraction?: number;
+    skinSurfaceDoseCgy?: number;
+  },
+  phase: Pick<PrescriptionPhase, "energyKv" | "ssdCm" | "timeMinutes" | "dosePerFractionGy" | "skinSurfaceDoseCgy">
+): string[] {
+  const fields: string[] = [];
+  const entryEnergyKv = parseEnergyKv(entry.energyKv ?? entry.energy);
+  const entrySsdCm = parseNumeric(entry.ssdCm ?? entry.ssd);
+  const entryDoseCgy = parseNumeric(entry.dosePerFractionCgy ?? entry.dosePerFraction);
+
+  if (!valuesMatch(entryEnergyKv, phase.energyKv)) {
+    fields.push("Energy");
+  }
+  if (!valuesMatch(entrySsdCm, phase.ssdCm)) {
+    fields.push("SSD");
+  }
+  if (!valuesMatch(parseNumeric(entry.treatmentTimeMinutes), phase.timeMinutes)) {
+    fields.push("Treatment time");
+  }
+  if (!valuesMatch(entryDoseCgy, phase.dosePerFractionGy * 100)) {
+    fields.push("Dose per fraction");
+  }
+  if (
+    entry.skinSurfaceDoseCgy !== undefined &&
+    phase.skinSurfaceDoseCgy !== undefined &&
+    !valuesMatch(entry.skinSurfaceDoseCgy, phase.skinSurfaceDoseCgy)
+  ) {
+    fields.push("Skin-surface dose");
+  }
+
+  return fields;
+}
+
 export function calculateFractionWorksheetEntry(
   input: FractionWorksheetInput,
   priorEntries: FractionLogEntry[],
   options: {
     existingId?: string;
     calculatedAt?: string;
+    prescriptionPhase?: Pick<
+      PrescriptionPhase,
+      "energyKv" | "ssdCm" | "timeMinutes" | "dosePerFractionGy" | "skinSurfaceDoseCgy"
+    > | null;
     firstEntryCumulativeDelta?: {
       previousDoseCgy: number;
       previousDoseToDotCgy: number;
@@ -246,6 +315,8 @@ export function calculateFractionWorksheetEntry(
   const ssdCm = parseNumeric(input.ssdCm ?? input.ssd) ?? 15;
   const fieldSizeCm = normalizeFieldSizeCm(input.fieldSizeCm);
   const dosePerFractionCgy = Number(input.dosePerFractionCgy ?? input.dosePerFraction ?? 0);
+  const skinSurfaceDoseInput = parseNumeric(input.skinSurfaceDoseCgy);
+  const skinSurfaceDoseCgy = skinSurfaceDoseInput !== undefined && skinSurfaceDoseInput > 0 ? skinSurfaceDoseInput : undefined;
   const depthOfTargetMm = parseNumeric(input.depthOfTargetMm ?? input.depthOfTarget) ?? 0;
   const lookup = lookupIsodoseToDotPercent({ energyKv, fieldSizeCm, depthOfTargetMm });
   const hasExplicitOverrideField =
@@ -284,7 +355,8 @@ export function calculateFractionWorksheetEntry(
     );
   }
 
-  const doseToDotCgy = roundToClinicalTenth(dosePerFractionCgy * (isodoseToDotPercent / 100));
+  const doseToDotBaseCgy = skinSurfaceDoseCgy ?? dosePerFractionCgy;
+  const doseToDotCgy = roundToClinicalTenth(doseToDotBaseCgy * (isodoseToDotPercent / 100));
   const providedCumulativeDoseCgy = Number(input.cumulativeDoseCgy ?? input.cumulativeDose ?? dosePerFractionCgy);
   const providedCumulativeDoseToDotCgy = Number(input.cumulativeDoseToDotCgy ?? input.cumulativeDoseToDepth ?? doseToDotCgy);
   const cumulativeDoseCgy = previousEntry
@@ -304,6 +376,30 @@ export function calculateFractionWorksheetEntry(
           )
         : providedCumulativeDoseToDotCgy
   );
+  const cumulativeSkinSurfaceDoseCgy =
+    skinSurfaceDoseCgy === undefined
+      ? previousEntry?.cumulativeSkinSurfaceDoseCgy
+      : roundToClinicalTenth((previousEntry?.cumulativeSkinSurfaceDoseCgy ?? 0) + skinSurfaceDoseCgy);
+  const mismatchFields = options.prescriptionPhase
+    ? detectPrescriptionMismatchFields(
+        {
+          energyKv,
+          ssdCm,
+          treatmentTimeMinutes: parseNumeric(input.treatmentTimeMinutes) ?? 0,
+          dosePerFractionCgy,
+          skinSurfaceDoseCgy
+        },
+        options.prescriptionPhase
+      )
+    : input.prescriptionMismatchFields ?? [];
+  const prescriptionOverrideReason = String(input.prescriptionOverrideReason ?? "").trim();
+  if (mismatchFields.length > 0) {
+    warnings.push(
+      prescriptionOverrideReason
+        ? `Prescription mismatch (${mismatchFields.join(", ")}) overridden with an audited reason.`
+        : `Entry does not match the phase prescription for: ${mismatchFields.join(", ")}. Correct the value or record an override reason before approval.`
+    );
+  }
   const calculationMeta: FractionWorksheetCalculationMeta = {
     referenceVersion: fractionWorksheetReferenceVersion,
     sourceTemplate,
@@ -325,7 +421,9 @@ export function calculateFractionWorksheetEntry(
     mdApprovalState,
     dotApprovalState,
     revisionReason: input.revisionReason,
-    voidedAt: input.voidedAt
+    voidedAt: input.voidedAt,
+    prescriptionMismatchFields: mismatchFields,
+    prescriptionOverrideReason
   });
   const entry: FractionLogEntry = {
     id: input.id ?? `FR-${input.courseId.replace("COURSE-", "")}-${String(fractionNumber).padStart(2, "0")}`,
@@ -342,8 +440,10 @@ export function calculateFractionWorksheetEntry(
     treatmentTimeMinutes: parseNumeric(input.treatmentTimeMinutes) ?? 0,
     dosePerFraction: dosePerFractionCgy,
     dosePerFractionCgy,
+    skinSurfaceDoseCgy,
     cumulativeDose: cumulativeDoseCgy,
     cumulativeDoseCgy,
+    cumulativeSkinSurfaceDoseCgy,
     technicianInitials: input.technicianInitials || "NR",
     mdApproval,
     mdApprovalState,
@@ -363,6 +463,8 @@ export function calculateFractionWorksheetEntry(
     cumulativeDoseToDotCgy,
     treatmentSetupComments: input.treatmentSetupComments ?? input.notes ?? "",
     isodoseOverrideReason: isManualOverride ? overrideReason : "",
+    prescriptionMismatchFields: mismatchFields,
+    prescriptionOverrideReason: mismatchFields.length > 0 ? prescriptionOverrideReason : "",
     calculationStatus: isManualOverride ? (canRetainLegacyOverride ? "LEGACY_IMPORTED" : "MANUAL_OVERRIDE") : "AUTO_LOOKUP",
     calculationMeta,
     notes: input.notes ?? input.treatmentSetupComments ?? "Structured worksheet entry from CureRays CRMS.",
@@ -450,6 +552,7 @@ export function buildPhaseSummaries(
       energyKv: phase?.energyKv ?? parseEnergyKv(course.energy),
       ssdCm: phase?.ssdCm ?? 15,
       dosePerFractionCgy: phase ? phase.dosePerFractionGy * 100 : parseNumeric(course.dose) ?? 0,
+      skinSurfaceDoseCgy: phase?.skinSurfaceDoseCgy,
       fieldSizeCm: normalizeFieldSizeCm(phase?.applicatorSize ?? course.applicator),
       treatmentTimeMinutes: phase?.timeMinutes ?? 0
     };

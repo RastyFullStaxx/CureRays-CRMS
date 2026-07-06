@@ -24,6 +24,7 @@ import {
 } from "@/lib/clinical-store";
 import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
 import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import { isPrismaPersistenceMode } from "@/lib/server/write-through";
 import type { RoleAction } from "@/lib/rbac";
 import type {
   OperationalAuditEvent,
@@ -170,14 +171,7 @@ function restoreClinicalStore(snapshot: ReturnType<typeof snapshotClinicalStore>
 }
 
 function repositoryModeFromEnv(): PatientRepositoryMode {
-  const configuredMode = [
-    process.env.CURERAYS_PATIENT_REPOSITORY,
-    process.env.CURERAYS_PERSISTENCE_MODE
-  ]
-    .map((value) => safeText(value).toLowerCase())
-    .find(Boolean);
-
-  return configuredMode === "prisma" || configuredMode === "prisma-ready" ? "prisma" : "memory";
+  return isPrismaPersistenceMode() ? "prisma" : "memory";
 }
 
 export const inMemoryPatientRegistrationRepository: PatientRegistrationRepository = {

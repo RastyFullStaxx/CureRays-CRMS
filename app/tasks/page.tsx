@@ -14,10 +14,10 @@ export default async function TasksPage({
   searchParams?: Promise<{ bucket?: string; queue?: string }>;
 }) {
   const query = await searchParams;
-  const persistenceMode = (process.env.CURERAYS_WORKFLOW_REPOSITORY ?? '').trim().toLowerCase();
+  const usePrismaStore = (process.env.CURERAYS_PERSISTENCE_MODE ?? '').trim().toLowerCase() === 'prisma';
 
   await hydrateClinicalStoreFromDatabase({
-    force: persistenceMode === 'prisma' || persistenceMode === 'prisma-ready',
+    force: usePrismaStore,
   });
 
   const snapshot = await getTaskQueueSnapshot(

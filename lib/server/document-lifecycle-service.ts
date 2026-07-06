@@ -12,7 +12,9 @@ import {
 } from "@/lib/clinical-store";
 import { courseRef, patientRef, redactAuditEvent } from "@/lib/hipaa";
 import { roleCan } from "@/lib/rbac";
+import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import { requirePhiAction, type PhiAccessContext } from "@/lib/server/phi-store";
+import { persistDocumentLifecycleMutation } from "@/lib/server/write-through";
 import {
   documentRequirements,
   readinessForRequirement,
@@ -182,6 +184,24 @@ function blockedResult(document: GeneratedDocument | null, blockedReason: string
   };
 }
 
+async function persistLifecycleOrRestore(
+  documentId: string,
+  result: DocumentLifecycleResult
+): Promise<DocumentLifecycleResult> {
+  if (result.blockedReason || !result.document) {
+    return result;
+  }
+
+  try {
+    await persistDocumentLifecycleMutation(documentId, result.auditEvent?.id);
+  } catch (error) {
+    await hydrateClinicalStoreFromDatabase({ force: true });
+    throw error;
+  }
+
+  return result;
+}
+
 function requirementForDocument(document: GeneratedDocument) {
   return documentRequirements.find(
     (requirement) => requirement.id === document.templateId || requirement.name === document.name
@@ -239,11 +259,11 @@ export function readGeneratedDocumentLifecycle(
     : notFoundResult();
 }
 
-export function renderGeneratedDocumentLifecycle(
+export async function renderGeneratedDocumentLifecycle(
   access: PhiAccessContext,
   documentId: string,
   format: GeneratedDocumentFormat = "PDF"
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requirePhiAction(access, "document:render");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -263,14 +283,17 @@ export function renderGeneratedDocumentLifecycle(
   const result = documentLifecycleRepository.render(access, documentId, format);
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+      )
     : notFoundResult();
 }
 
-export function exportGeneratedDocumentLifecycle(
+export async function exportGeneratedDocumentLifecycle(
   access: PhiAccessContext,
   documentId: string
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requireDocumentAction(access, "document:export");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -295,14 +318,17 @@ export function exportGeneratedDocumentLifecycle(
   const result = documentLifecycleRepository.exportOutput(access, documentId);
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+      )
     : notFoundResult();
 }
 
-export function signGeneratedDocumentLifecycle(
+export async function signGeneratedDocumentLifecycle(
   access: PhiAccessContext,
   documentId: string
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requirePhiAction(access, "document:sign");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -318,15 +344,18 @@ export function signGeneratedDocumentLifecycle(
   const result = documentLifecycleRepository.sign(access, documentId);
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), documentLifecycleRepository.latestOutput(documentId), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), documentLifecycleRepository.latestOutput(documentId), result)
+      )
     : notFoundResult();
 }
 
-export function confirmGeneratedDocumentEcwUploadLifecycle(
+export async function confirmGeneratedDocumentEcwUploadLifecycle(
   access: PhiAccessContext,
   documentId: string,
   input: DocumentLifecycleMutationInput
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requireDocumentAction(access, "document:upload_ecw");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -351,15 +380,18 @@ export function confirmGeneratedDocumentEcwUploadLifecycle(
   const result = documentLifecycleRepository.confirmEcwUpload(access, documentId, { externalReference, reason });
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+      )
     : notFoundResult();
 }
 
-export function voidGeneratedDocumentOutputLifecycle(
+export async function voidGeneratedDocumentOutputLifecycle(
   access: PhiAccessContext,
   documentId: string,
   input: DocumentLifecycleMutationInput
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requireDocumentAction(access, "document:void");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -379,15 +411,18 @@ export function voidGeneratedDocumentOutputLifecycle(
   const result = documentLifecycleRepository.voidOutput(access, documentId, { reason });
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+      )
     : notFoundResult();
 }
 
-export function recordGeneratedDocumentManualEditExceptionLifecycle(
+export async function recordGeneratedDocumentManualEditExceptionLifecycle(
   access: PhiAccessContext,
   documentId: string,
   input: DocumentLifecycleMutationInput
-): DocumentLifecycleResult {
+): Promise<DocumentLifecycleResult> {
   requireDocumentAction(access, "document:manual_edit");
   const document = documentLifecycleRepository.findDocument(documentId);
 
@@ -407,6 +442,9 @@ export function recordGeneratedDocumentManualEditExceptionLifecycle(
   const result = documentLifecycleRepository.recordManualEditException(access, documentId, { reason });
 
   return result
-    ? resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+    ? persistLifecycleOrRestore(
+        documentId,
+        resultForDocument(documentLifecycleRepository.findDocument(documentId), mutationOutput(result), result)
+      )
     : notFoundResult();
 }

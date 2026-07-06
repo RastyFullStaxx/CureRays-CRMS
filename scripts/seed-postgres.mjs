@@ -336,11 +336,17 @@ async function seedOperationalWork() {
           stepName: title,
           phase,
           status,
+          applicability: null,
+          requirementIds: [],
           responsibleRole: responsibleParty,
+          assignedUserId: null,
           triggerEvent: taskIndex === 0 ? 'Course intake' : 'Prior step completed',
           dueDate: days(taskIndex - 2 + patientIndex),
           requiresSignature: taskIndex >= 2,
+          signedByUserId: null,
+          signedAt: null,
           linkedDocumentId: `GDOC-${courseRef}-${taskNumber}`,
+          systemReason: null,
           blockers: status === 'BLOCKED' ? ['Physics review missing'] : [],
           auditChecklist: ['Owner assigned', 'Evidence traceable'],
           notes: status === 'BLOCKED' ? 'Seeded blocker for dashboard risk graph.' : null,
@@ -387,7 +393,7 @@ async function seedOperationalWork() {
     }
 
     for (const [docIndex, doc] of documentTemplates.entries()) {
-      const [, name, phase, responsibleParty, baseStatus, baseReviewState] = doc;
+      const [templateId, name, phase, responsibleParty, baseStatus, baseReviewState] = doc;
       const status = documentStatus(patientIndex, docIndex, baseStatus);
       const signed = status === 'SIGNED' || status === 'EXPORTED' || status === 'COMPLETED';
       await ops.generatedDocument.create({
@@ -517,6 +523,7 @@ async function seedPhiClinicalRows() {
         technique: 'Orthovoltage',
         shieldingDesign: patientIndex % 2 === 0 ? 'Standard' : 'Custom',
         depthOfTargetMm: 4 + patientIndex,
+        skinSurfaceDoseCgy: diagnosisCategory === 'ARTHRITIS' ? 110 : 220,
       },
     });
 
@@ -588,6 +595,10 @@ async function seedPhiClinicalRows() {
           revisionReason: needsRevision ? 'Depth correction requested.' : null,
           revisionRequestedAt: needsRevision ? days(-1) : null,
           revisionRequestedByUserId: needsRevision ? 'RTT' : null,
+          skinSurfaceDoseCgy: diagnosisCategory === 'ARTHRITIS' ? 110 : 220,
+          cumulativeSkinSurfaceDoseCgy: (diagnosisCategory === 'ARTHRITIS' ? 110 : 220) * fraction,
+          prescriptionMismatchFields: [],
+          prescriptionOverrideReason: null,
           notes: 'Seeded fraction log row.',
         },
       });

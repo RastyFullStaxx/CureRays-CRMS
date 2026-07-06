@@ -1,0 +1,1113 @@
+/**
+ * DUPUYTRENS FRACTIONATION LOG REPAIR
+ * Version: Dupuytrens Log Repair - Formula + Approval Colors - 2026-06-25
+ *
+ * HOW TO USE
+ * 1. Open the Dupuytrens Google Sheet.
+ * 2. Go to Extensions > Apps Script.
+ * 3. Replace the old script with this full script.
+ * 4. Save.
+ * 5. Run INSTALL_DUPUYTRENS_LOG_REPAIR() once.
+ * 6. Authorize when Google asks.
+ *
+ * IMPORTANT DESIGN CHOICE
+ * This script does NOT recreate dropdown validations.
+ * Recreating dropdowns with Apps Script can remove Google Sheets color chips.
+ * Existing dropdown validations are preserved.
+ * Phase, Energy, MD Approval, and DOT Approval cell colors are repaired by value.
+ */
+
+const DUP_PATCH = {
+  VERSION: "Dupuytrens Log Repair - Formula + Approval Colors - 2026-06-25",
+
+  SHEET_NAMES: ["Dupuytrens", "Dupuytren's"],
+  REPORT_SHEET: "DUPUYTRENS_REPAIR_REPORT",
+  NOTE_SHEET: "DUPUYTRENS_SCRIPT_NOTES",
+  TIMEZONE: "America/Los_Angeles",
+
+  START_ROW: 11,
+  END_ROW: 80,
+
+  LOOKUP_SHEETS: ["50 kV", "70 kV", "100 kV"],
+
+  // Main treatment-log columns.
+  COL_FX: 1,                 // A
+  COL_PHASE: 4,              // D
+  COL_ENERGY: 5,             // E
+  COL_SSD: 6,                // F
+  COL_TIME: 7,               // G
+  COL_DOSE_PER_FX: 8,        // H
+  COL_CUM_DOSE: 9,           // I formula
+  COL_SKIN_DOSE: 10,         // J
+  COL_CUM_SKIN_DOSE: 11,     // K formula
+  COL_TECH_INITIALS: 12,     // L
+  COL_MD_APPROVAL: 13,       // M dropdown
+  COL_MD_INITIALS: 14,       // N approval stamp
+  COL_DOT_APPROVAL: 15,      // O dropdown
+  COL_COMMENTS: 16,          // P
+  COL_DEPTH: 17,             // Q input
+  COL_ISODOSE: 18,           // R formula
+  COL_DOSE_TO_DOT: 19,       // S formula
+  COL_CUM_DOT: 20,           // T formula
+  COL_ROUNDED_DEPTH: 21,     // U helper formula
+
+  // Prescription/reference table.
+  REF_FIRST_COL: 12,         // L
+  REF_LAST_COL: 18,          // R
+  REF_PHASE_ROW: 1,
+  REF_ENERGY_ROW: 2,
+  REF_SSD_ROW: 3,
+  REF_TIME_ROW: 4,
+  REF_DOSE_ROW: 5,
+  REF_SKIN_DOSE_ROW: 6,
+  REF_FRACTION_ROW: 7,
+  REF_FIELD_SIZE_ROW: 8
+};
+
+
+/* ============================================================
+ * MAIN INSTALLER
+ * ============================================================
+ */
+
+/**
+ * Run this once after replacing the old script.
+ */
+function INSTALL_DUPUYTRENS_LOG_REPAIR() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = [];
+
+  log_(report, "INFO", "Start", "Running " + DUP_PATCH.VERSION);
+
+  const sheets = getDupuytrensSheets_(ss);
+
+  if (sheets.length === 0) {
+    log_(
+      report,
+      "ERROR",
+      "Sheet detection",
+      "No Dupuytrens treatment sheet was found. No clinical sheets were changed."
+    );
+    writeReport_(ss, report);
+    return;
+  }
+
+  log_(
+    report,
+    "INFO",
+    "Sheet detection",
+    "Detected sheet(s): " + sheets.map(sheet => sheet.getName()).join(", ")
+  );
+
+  repairKnownPrescriptionTotals_(sheets, report);
+  repairKnownLookupIssues_(ss, report);
+
+  sheets.forEach(sheet => {
+    restoreAllDupuytrensFormulas_(sheet, report);
+    applyDropdownValueColorCoding_(sheet, DUP_PATCH.START_ROW, DUP_PATCH.END_ROW, report);
+    applyPrescriptionEnergyColorCoding_(sheet, report);
+    applyClinicalMismatchConditionalFormatting_(sheet, report);
+    addFormulaWarningProtections_(sheet, report);
+  });
+
+  installDupuytrensApprovalTrigger_(ss, report);
+  writeScriptNotes_(ss, report);
+  writeReport_(ss, report);
+
+  try {
+    ss.toast("Dupuytrens repair complete. See " + DUP_PATCH.REPORT_SHEET + ".", "Dupuytrens Repair", 8);
+  } catch (err) {
+    Logger.log("Dupuytrens repair complete.");
+  }
+}
+
+
+/* ============================================================
+ * CUSTOM MENU
+ * ============================================================
+ */
+
+/**
+ * Adds a menu when the spreadsheet opens.
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("Dupuytrens Repair")
+    .addItem("Run full repair", "INSTALL_DUPUYTRENS_LOG_REPAIR")
+    .addItem("Restore formulas only", "RESTORE_DUPUYTRENS_FORMULAS_ONLY")
+    .addItem("Repair colors only", "REPAIR_DUPUYTRENS_COLORS_ONLY")
+    .addItem("Create/update notes tab", "CREATE_DUPUYTRENS_SCRIPT_NOTES")
+    .addItem("Reinstall approval trigger", "REINSTALL_DUPUYTRENS_APPROVAL_TRIGGER")
+    .addToUi();
+}
+
+
+/* ============================================================
+ * EDIT TRIGGERS
+ * ============================================================
+ */
+
+/**
+ * Simple onEdit trigger.
+ *
+ * This keeps formulas alive when staff edit treatment inputs.
+ * It intentionally does not reapply dropdown validations or broad formatting.
+ */
+function onEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+
+  if (!isDupuytrensSheet_(sheet)) return;
+
+  if (rangeTouchesPrescriptionEnergyRow_(range)) {
+    applyPrescriptionEnergyColorCoding_(sheet, null);
+  }
+
+  if (!rangeTouchesRows_(range, DUP_PATCH.START_ROW, DUP_PATCH.END_ROW)) return;
+
+  const inputCols = [
+    DUP_PATCH.COL_PHASE,
+    DUP_PATCH.COL_ENERGY,
+    DUP_PATCH.COL_SSD,
+    DUP_PATCH.COL_TIME,
+    DUP_PATCH.COL_DOSE_PER_FX,
+    DUP_PATCH.COL_SKIN_DOSE,
+    DUP_PATCH.COL_DEPTH
+  ];
+
+  const formulaCols = [
+    DUP_PATCH.COL_CUM_DOSE,
+    DUP_PATCH.COL_CUM_SKIN_DOSE,
+    DUP_PATCH.COL_ISODOSE,
+    DUP_PATCH.COL_DOSE_TO_DOT,
+    DUP_PATCH.COL_CUM_DOT,
+    DUP_PATCH.COL_ROUNDED_DEPTH
+  ];
+
+  if (rangeTouchesAnyColumn_(range, inputCols) || rangeTouchesAnyColumn_(range, formulaCols)) {
+    restoreFormulasForTouchedRows_(sheet, range);
+  }
+
+  if (rangeTouchesAnyColumn_(range, [
+    DUP_PATCH.COL_PHASE,
+    DUP_PATCH.COL_ENERGY,
+    DUP_PATCH.COL_MD_APPROVAL,
+    DUP_PATCH.COL_DOT_APPROVAL
+  ])) {
+    applyDropdownValueColorCodingForTouchedRows_(sheet, range);
+  }
+
+  applySafeWrapToEditedRows_(sheet, range);
+}
+
+
+/**
+ * Installable onEdit trigger.
+ *
+ * This handles MD approval stamping.
+ * Installable triggers are more reliable for user email lookup.
+ */
+function installedDupuytrensOnEdit(e) {
+  if (!e || !e.range) return;
+
+  const range = e.range;
+  const sheet = range.getSheet();
+
+  if (!isDupuytrensSheet_(sheet)) return;
+
+  if (rangeTouchesPrescriptionEnergyRow_(range)) {
+    applyPrescriptionEnergyColorCoding_(sheet, null);
+  }
+
+  if (!rangeTouchesRows_(range, DUP_PATCH.START_ROW, DUP_PATCH.END_ROW)) return;
+
+  if (rangeTouchesColumn_(range, DUP_PATCH.COL_MD_APPROVAL)) {
+    handleApprovalTrackingBlock_(e, sheet, range);
+    applyDropdownValueColorCodingForTouchedRows_(sheet, range);
+    applySafeWrapToEditedRows_(sheet, range);
+  }
+}
+
+
+/* ============================================================
+ * MANUAL UTILITIES
+ * ============================================================
+ */
+
+/**
+ * Manual utility: restore formulas only.
+ */
+function RESTORE_DUPUYTRENS_FORMULAS_ONLY() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = [];
+
+  getDupuytrensSheets_(ss).forEach(sheet => {
+    restoreAllDupuytrensFormulas_(sheet, report);
+  });
+
+  writeReport_(ss, report);
+}
+
+
+/**
+ * Manual utility: repair dropdown colors only.
+ */
+function REPAIR_DUPUYTRENS_COLORS_ONLY() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = [];
+
+  getDupuytrensSheets_(ss).forEach(sheet => {
+    applyDropdownValueColorCoding_(sheet, DUP_PATCH.START_ROW, DUP_PATCH.END_ROW, report);
+    applyPrescriptionEnergyColorCoding_(sheet, report);
+  });
+
+  writeReport_(ss, report);
+}
+
+
+/**
+ * Manual utility: create or refresh the notes tab.
+ */
+function CREATE_DUPUYTRENS_SCRIPT_NOTES() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = [];
+
+  writeScriptNotes_(ss, report);
+  writeReport_(ss, report);
+}
+
+
+/**
+ * Manual utility: reinstall the approval trigger only.
+ */
+function REINSTALL_DUPUYTRENS_APPROVAL_TRIGGER() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const report = [];
+
+  installDupuytrensApprovalTrigger_(ss, report);
+  writeReport_(ss, report);
+}
+
+
+/* ============================================================
+ * SHEET DETECTION
+ * ============================================================
+ */
+
+/**
+ * Returns all Dupuytrens treatment sheets in the spreadsheet.
+ */
+function getDupuytrensSheets_(ss) {
+  return ss.getSheets().filter(sheet => isDupuytrensSheet_(sheet));
+}
+
+
+/**
+ * Detects the Dupuytrens treatment sheet.
+ *
+ * This supports both the current visible tab name, "Dupuytrens",
+ * and the older name assumed by the pasted script, "Dupuytren's".
+ */
+function isDupuytrensSheet_(sheet) {
+  if (!sheet) return false;
+
+  const name = sheet.getName().trim();
+  if (DUP_PATCH.SHEET_NAMES.indexOf(name) !== -1) return true;
+
+  const a1 = String(sheet.getRange("A1").getDisplayValue()).toLowerCase().trim();
+  const d9 = String(sheet.getRange("D9").getDisplayValue()).toLowerCase().trim();
+  const q9 = String(sheet.getRange("Q9").getDisplayValue()).toLowerCase().trim();
+
+  return a1.indexOf("patient name") !== -1 &&
+    d9 === "phase" &&
+    q9.indexOf("depth") !== -1;
+}
+
+
+/* ============================================================
+ * PRESCRIPTION AND LOOKUP REPAIRS
+ * ============================================================
+ */
+
+/**
+ * Repairs prescription totals without touching colors or dropdowns.
+ */
+function repairKnownPrescriptionTotals_(sheets, report) {
+  sheets.forEach(sheet => {
+    sheet.getRange("S5").setFormula("=SUM(L5:R5)");
+    sheet.getRange("S7").setFormula("=SUM(L7:R7)");
+
+    log_(report, "FIXED", sheet.getName(), "Prescription totals repaired in S5 and S7.");
+  });
+}
+
+
+/**
+ * Repairs known lookup-table issue if it exists.
+ */
+function repairKnownLookupIssues_(ss, report) {
+  const sheet70 = ss.getSheetByName("70 kV");
+
+  if (!sheet70) {
+    log_(report, "WARN", "Lookup repair", "70 kV sheet not found. Skipped known lookup repair.");
+    return;
+  }
+
+  const et21 = sheet70.getRange("ET21");
+  const et21Display = String(et21.getDisplayValue()).trim();
+
+  if (et21Display === "38,2" || et21Display.replace(",", ".") === "38.2") {
+    et21.setValue(38.2);
+    log_(report, "FIXED", "Lookup repair", "70 kV!ET21 corrected to numeric 38.2.");
+  }
+
+  const et6 = sheet70.getRange("ET6");
+  const et6Display = String(et6.getDisplayValue()).trim();
+
+  if (et6Display.indexOf("#VALUE") !== -1 || et6Display === "") {
+    et6.setFormula("=ET21/100");
+    log_(report, "FIXED", "Lookup repair", "70 kV!ET6 formula repaired as =ET21/100.");
+  }
+}
+
+
+/* ============================================================
+ * FORMULA RESTORATION
+ * ============================================================
+ */
+
+/**
+ * Restores formula-driven calculation columns.
+ *
+ * Formula columns:
+ * - I: cumulative prescription dose
+ * - K: cumulative skin-surface dose
+ * - R: isodose to DOT
+ * - S: dose to DOT
+ * - T: cumulative dose to DOT
+ * - U: rounded depth helper
+ *
+ * Column Q remains the DOT depth input.
+ */
+function restoreAllDupuytrensFormulas_(sheet, report) {
+  restoreFormulasForRows_(sheet, DUP_PATCH.START_ROW, DUP_PATCH.END_ROW);
+
+  try {
+    sheet.hideColumns(DUP_PATCH.COL_ROUNDED_DEPTH);
+  } catch (err) {
+    log_(report, "WARN", sheet.getName(), "Could not hide helper Column U: " + err.message);
+  }
+
+  log_(
+    report,
+    "FIXED",
+    sheet.getName(),
+    "Formula columns restored in I, K, R, S, T, and U. Column Q remains the DOT depth input."
+  );
+}
+
+
+/**
+ * Restores formulas only for rows touched by an edit.
+ */
+function restoreFormulasForTouchedRows_(sheet, range) {
+  const startRow = Math.max(range.getRow(), DUP_PATCH.START_ROW);
+  const endRow = Math.min(range.getRow() + range.getNumRows() - 1, DUP_PATCH.END_ROW);
+
+  if (startRow > endRow) return;
+
+  restoreFormulasForRows_(sheet, startRow, endRow);
+}
+
+
+/**
+ * Writes formulas for treatment rows only.
+ *
+ * Separator rows such as "PHASE II" are skipped.
+ */
+function restoreFormulasForRows_(sheet, startRow, endRow) {
+  for (let row = startRow; row <= endRow; row++) {
+    if (!isTreatmentRow_(sheet, row)) continue;
+
+    sheet.getRange(row, DUP_PATCH.COL_CUM_DOSE)
+      .setFormula(`=IF($H${row}="","",SUM($H$${DUP_PATCH.START_ROW}:H${row}))`)
+      .setNumberFormat("0.00");
+
+    sheet.getRange(row, DUP_PATCH.COL_CUM_SKIN_DOSE)
+      .setFormula(`=IF($J${row}="","",SUM($J$${DUP_PATCH.START_ROW}:J${row}))`)
+      .setNumberFormat("0.00");
+
+    sheet.getRange(row, DUP_PATCH.COL_ISODOSE)
+      .setFormula(buildIsodoseFormula_(row))
+      .setNumberFormat("0.00%");
+
+    sheet.getRange(row, DUP_PATCH.COL_DOSE_TO_DOT)
+      .setFormula(`=IF(OR($R${row}="",AND($J${row}="",$H${row}="")),"",$R${row}*IF($J${row}<>"",$J${row},$H${row}))`)
+      .setNumberFormat("0.00");
+
+    sheet.getRange(row, DUP_PATCH.COL_CUM_DOT)
+      .setFormula(`=IF($S${row}="","",SUM($S$${DUP_PATCH.START_ROW}:S${row}))`)
+      .setNumberFormat("0.00");
+
+    sheet.getRange(row, DUP_PATCH.COL_ROUNDED_DEPTH)
+      .setFormula(`=IF($Q${row}="","",ROUND($Q${row},1))`)
+      .setNumberFormat("0.00");
+  }
+}
+
+
+/**
+ * Builds the row formula for Isodose to DOT.
+ */
+function buildIsodoseFormula_(row) {
+  return `=IF(OR($D${row}="",$E${row}="",$Q${row}=""),"",IFERROR(LET(fs,INDEX($L$8:$R$8,1,MATCH($D${row},$L$1:$R$1,0)),raw,INDEX(INDIRECT("'"&$E${row}&"'!A:ZZ"),MATCH(fs,INDIRECT("'"&$E${row}&"'!A:A"),0),MATCH(ROUND($Q${row},1),ARRAYFORMULA(IFERROR(ROUND(INDIRECT("'"&$E${row}&"'!1:1"),1),"")),0)),IF(raw>1,raw/100,raw)),""))`;
+}
+
+
+/**
+ * Determines whether a row is a treatment row, not a phase separator.
+ */
+function isTreatmentRow_(sheet, row) {
+  const fx = sheet.getRange(row, DUP_PATCH.COL_FX).getValue();
+  const phase = String(sheet.getRange(row, DUP_PATCH.COL_PHASE).getDisplayValue()).trim();
+
+  return typeof fx === "number" && phase.indexOf("Phase") === 0;
+}
+
+
+/* ============================================================
+ * CONDITIONAL FORMATTING
+ * ============================================================
+ */
+
+/**
+ * Adds clinical mismatch highlighting without clearing existing colors.
+ *
+ * Compared columns:
+ * - E: Energy
+ * - F: SSD
+ * - G: Tx Time
+ * - H: Dose per Fraction
+ * - J: Dose at skin surface per Fx
+ */
+function applyClinicalMismatchConditionalFormatting_(sheet, report) {
+  const targetRanges = [
+    sheet.getRange("E11:H80"),
+    sheet.getRange("J11:J80")
+  ];
+
+  const formula =
+    '=AND(E11<>"",$D11<>"",IFERROR(TO_TEXT(E11)<>TO_TEXT(INDEX($L$2:$R$6,MATCH(COLUMN(E11),{5,6,7,8,10},0),MATCH($D11,$L$1:$R$1,0))),FALSE))';
+
+  const existingRules = sheet.getConditionalFormatRules();
+
+  const filteredRules = existingRules.filter(rule => {
+    const condition = rule.getBooleanCondition();
+    if (!condition) return true;
+
+    const isSameFormula =
+      condition.getCriteriaType() === SpreadsheetApp.BooleanCriteria.CUSTOM_FORMULA &&
+      condition.getCriteriaValues() &&
+      condition.getCriteriaValues()[0] === formula;
+
+    return !isSameFormula;
+  });
+
+  const mismatchRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied(formula)
+    .setBackground("#F4CCCC")
+    .setFontColor("#800000")
+    .setBold(true)
+    .setRanges(targetRanges)
+    .build();
+
+  sheet.setConditionalFormatRules([mismatchRule].concat(filteredRules));
+
+  log_(
+    report,
+    "FIXED",
+    sheet.getName(),
+    "Clinical mismatch color coding applied through conditional formatting. Existing base colors were not cleared."
+  );
+}
+
+
+/* ============================================================
+ * APPROVAL TRACKING
+ * ============================================================
+ */
+
+/**
+ * Tracks MD Approval edits in Column N.
+ */
+function handleApprovalTrackingBlock_(e, sheet, range) {
+  const startRow = Math.max(range.getRow(), DUP_PATCH.START_ROW);
+  const endRow = Math.min(range.getRow() + range.getNumRows() - 1, DUP_PATCH.END_ROW);
+
+  if (startRow > endRow) return;
+
+  for (let row = startRow; row <= endRow; row++) {
+    if (!isTreatmentRow_(sheet, row)) continue;
+    handleApprovalTrackingRow_(e, sheet, row);
+  }
+}
+
+
+/**
+ * Writes initials and timestamp when MD Approval changes.
+ */
+function handleApprovalTrackingRow_(e, sheet, row) {
+  const status = String(sheet.getRange(row, DUP_PATCH.COL_MD_APPROVAL).getValue()).trim();
+  const target = sheet.getRange(row, DUP_PATCH.COL_MD_INITIALS);
+
+  if (status === "") {
+    target.clearContent();
+    return;
+  }
+
+  const email = String(Session.getActiveUser().getEmail()).toLowerCase().trim();
+  let initials = "";
+
+  const map = e.source.getSheetByName("UserMapping");
+  if (map && email) {
+    const data = map.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).toLowerCase().trim() === email) {
+        initials = String(data[i][1]).toUpperCase().trim();
+        break;
+      }
+    }
+  }
+
+  if (!initials && email) {
+    const namePart = email.split("@")[0];
+    const parts = namePart.split(/[\.\-_]/);
+
+    if (parts.length >= 2) {
+      initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else {
+      initials = namePart.substring(0, 2).toUpperCase();
+    }
+  }
+
+  if (!initials) initials = "US";
+
+  const time = Utilities.formatDate(new Date(), DUP_PATCH.TIMEZONE, "MM/dd/yyyy | hh:mm a");
+
+  target
+    .setValue(initials + " | " + time)
+    .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
+    .setFontWeight(status === "Revise" ? "bold" : "normal")
+    .setFontColor(status === "Revise" ? "#800000" : "#274e13");
+}
+
+
+/**
+ * Installs the approval trigger.
+ */
+function installDupuytrensApprovalTrigger_(ss, report) {
+  ScriptApp.getProjectTriggers()
+    .filter(trigger => trigger.getHandlerFunction() === "installedDupuytrensOnEdit")
+    .forEach(trigger => ScriptApp.deleteTrigger(trigger));
+
+  ScriptApp.newTrigger("installedDupuytrensOnEdit")
+    .forSpreadsheet(ss)
+    .onEdit()
+    .create();
+
+  log_(report, "FIXED", "Trigger", "Installable MD approval trigger installed.");
+}
+
+
+/* ============================================================
+ * DROPDOWN VALUE COLOR REPAIR
+ * ============================================================
+ */
+
+/**
+ * Repairs visible cell colors for dropdown-backed columns.
+ *
+ * This does not rebuild data validations.
+ * It only colors the cells based on their current text value.
+ */
+function applyDropdownValueColorCoding_(sheet, startRow, endRow, report) {
+  const firstRow = Math.max(startRow, DUP_PATCH.START_ROW);
+  const lastRow = Math.min(endRow, DUP_PATCH.END_ROW);
+
+  if (firstRow > lastRow) return;
+
+  colorRangeByMap_(sheet, firstRow, lastRow, DUP_PATCH.COL_PHASE, getPhaseColorMap_());
+  colorRangeByMap_(sheet, firstRow, lastRow, DUP_PATCH.COL_ENERGY, getEnergyColorMap_());
+  colorRangeByMap_(sheet, firstRow, lastRow, DUP_PATCH.COL_MD_APPROVAL, getMdApprovalColorMap_());
+  colorRangeByMap_(sheet, firstRow, lastRow, DUP_PATCH.COL_DOT_APPROVAL, getDotApprovalColorMap_());
+
+  if (report) {
+    log_(
+      report,
+      "FIXED",
+      sheet.getName(),
+      "Dropdown value colors repaired for Phase, Energy, MD Approval, and DOT Approval without recreating validations."
+    );
+  }
+}
+
+
+/**
+ * Repairs dropdown colors only for edited rows.
+ */
+function applyDropdownValueColorCodingForTouchedRows_(sheet, range) {
+  const startRow = Math.max(range.getRow(), DUP_PATCH.START_ROW);
+  const endRow = Math.min(range.getRow() + range.getNumRows() - 1, DUP_PATCH.END_ROW);
+
+  if (startRow > endRow) return;
+
+  applyDropdownValueColorCoding_(sheet, startRow, endRow, null);
+}
+
+
+/**
+ * Repairs the top prescription energy cells, usually L2:R2.
+ *
+ * These cells are outside the treatment rows, so they need their own color
+ * refresh when a prescription energy dropdown changes.
+ */
+function applyPrescriptionEnergyColorCoding_(sheet, report) {
+  const startCol = DUP_PATCH.REF_FIRST_COL;
+  const endCol = DUP_PATCH.REF_LAST_COL;
+  const numCols = endCol - startCol + 1;
+  const range = sheet.getRange(DUP_PATCH.REF_ENERGY_ROW, startCol, 1, numCols);
+  const values = range.getDisplayValues()[0];
+  const colorMap = getPrescriptionEnergyColorMap_();
+  const backgrounds = [];
+  const fontColors = [];
+  const fontWeights = [];
+
+  for (let i = 0; i < values.length; i++) {
+    const value = String(values[i]).trim();
+    const style = colorMap[value] || colorMap[""];
+
+    backgrounds.push(style.background);
+    fontColors.push(style.font);
+    fontWeights.push(style.bold ? "bold" : "normal");
+  }
+
+  range
+    .setBackgrounds([backgrounds])
+    .setFontColors([fontColors])
+    .setFontWeights([fontWeights])
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+
+  if (report) {
+    log_(report, "FIXED", sheet.getName(), "Prescription energy colors repaired in L2:R2.");
+  }
+}
+
+
+/**
+ * Colors one column according to a value map.
+ */
+function colorRangeByMap_(sheet, startRow, endRow, col, colorMap) {
+  const numRows = endRow - startRow + 1;
+  const range = sheet.getRange(startRow, col, numRows, 1);
+  const values = range.getDisplayValues();
+  const backgrounds = [];
+  const fontColors = [];
+  const fontWeights = [];
+
+  for (let i = 0; i < values.length; i++) {
+    const value = String(values[i][0]).trim();
+    const style = colorMap[value] || colorMap[""];
+
+    backgrounds.push([style.background]);
+    fontColors.push([style.font]);
+    fontWeights.push([style.bold ? "bold" : "normal"]);
+  }
+
+  range
+    .setBackgrounds(backgrounds)
+    .setFontColors(fontColors)
+    .setFontWeights(fontWeights)
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+}
+
+
+/**
+ * Phase colors. These mirror the visual pattern in the Dupuytrens log.
+ */
+function getPhaseColorMap_() {
+  return {
+    "Phase I":   { background: "#F9CB9C", font: "#783F04", bold: false },
+    "Phase II":  { background: "#FFE599", font: "#7F6000", bold: false },
+    "Phase III": { background: "#D9EAD3", font: "#008000", bold: false },
+    "Phase IV":  { background: "#CFE2F3", font: "#0070C0", bold: false },
+    "Phase V":   { background: "#D0E0E3", font: "#134F5C", bold: false },
+    "Phase VI":  { background: "#D9D2E9", font: "#351C75", bold: false },
+    "":          { background: "#FFFFFF", font: "#000000", bold: false }
+  };
+}
+
+
+/**
+ * Energy colors. Clinical mismatch conditional formatting can still override
+ * these visually with red when the selected energy does not match the phase.
+ */
+function getEnergyColorMap_() {
+  return {
+    "50 kV":  { background: "#F4CCCC", font: "#990000", bold: true },
+    "70 kV":  { background: "#FCE5CD", font: "#990000", bold: true },
+    "100 kV": { background: "#CFE2F3", font: "#0B5394", bold: true },
+    "":       { background: "#FFFFFF", font: "#000000", bold: false }
+  };
+}
+
+
+/**
+ * Prescription table energy colors.
+ *
+ * Kept separate from treatment-row colors so the top prescription table
+ * remains closer to the original blue-header design.
+ */
+function getPrescriptionEnergyColorMap_() {
+  return {
+    "50 kV":  { background: "#F4CCCC", font: "#990000", bold: true },
+    "70 kV":  { background: "#FCE5CD", font: "#990000", bold: true },
+    "100 kV": { background: "#7EA1CC", font: "#FFFFFF", bold: true },
+    "":       { background: "#7EA1CC", font: "#FFFFFF", bold: true }
+  };
+}
+
+
+/**
+ * MD approval colors.
+ */
+function getMdApprovalColorMap_() {
+  return {
+    "Approved": { background: "#FFFFFF", font: "#0000FF", bold: true },
+    "Revise":   { background: "#FFFFFF", font: "#FF0000", bold: true },
+    "":         { background: "#FFFFFF", font: "#000000", bold: false }
+  };
+}
+
+
+/**
+ * DOT approval colors.
+ */
+function getDotApprovalColorMap_() {
+  return {
+    "RTT measurement approved": { background: "#C00000", font: "#FFFFFF", bold: true },
+    "See PPT for correction":   { background: "#1155CC", font: "#FFFFFF", bold: true },
+    "":                         { background: "#FFFFFF", font: "#000000", bold: false }
+  };
+}
+
+
+/* ============================================================
+ * SAFE FORMATTING
+ * ============================================================
+ */
+
+/**
+ * Wraps only plain-text output columns.
+ *
+ * This avoids touching dropdown-chip columns:
+ * - D Phase
+ * - E Energy
+ * - M MD Approval
+ * - O DOT Approval
+ */
+function applySafeWrapToEditedRows_(sheet, range) {
+  const startRow = Math.max(range.getRow(), DUP_PATCH.START_ROW);
+  const endRow = Math.min(range.getRow() + range.getNumRows() - 1, DUP_PATCH.END_ROW);
+
+  if (startRow > endRow) return;
+
+  const numRows = endRow - startRow + 1;
+  const safeTextColumns = [
+    DUP_PATCH.COL_MD_INITIALS,
+    DUP_PATCH.COL_COMMENTS
+  ];
+
+  safeTextColumns.forEach(col => {
+    sheet.getRange(startRow, col, numRows, 1)
+      .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  });
+
+  sheet.autoResizeRows(startRow, numRows);
+}
+
+
+/* ============================================================
+ * PROTECTION CLEANUP AND WARNING-ONLY PROTECTIONS
+ * ============================================================
+ */
+
+/**
+ * Removes old hard protections from formula areas.
+ */
+function clearOldFormulaProtections_(sheet, report) {
+  const targetRanges = [
+    "I11:I80",
+    "K11:K80",
+    "R11:U80"
+  ].map(a1 => sheet.getRange(a1));
+
+  sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(protection => {
+    const protectedRange = protection.getRange();
+    const overlapsFormulaArea = targetRanges.some(targetRange => rangesIntersect_(protectedRange, targetRange));
+
+    if (!overlapsFormulaArea) return;
+
+    try {
+      const a1 = protectedRange.getA1Notation();
+      protection.remove();
+      log_(report, "FIXED", sheet.getName(), "Removed old hard protection from " + a1 + ".");
+    } catch (err) {
+      log_(report, "WARN", sheet.getName(), "Could not remove old protection: " + err.message);
+    }
+  });
+}
+
+
+/**
+ * Adds warning-only protections to formula cells.
+ *
+ * Warning-only protections warn staff before editing formulas,
+ * but they do not block other users from using the sheet.
+ */
+function addFormulaWarningProtections_(sheet, report) {
+  clearOldFormulaProtections_(sheet, report);
+
+  ["I11:I80", "K11:K80", "R11:U80"].forEach(a1 => {
+    try {
+      const protection = sheet.getRange(a1).protect();
+      protection.setDescription("Warning: " + a1 + " contains formula-driven Dupuytrens calculations.");
+      protection.setWarningOnly(true);
+      log_(report, "FIXED", sheet.getName(), "Added warning-only protection to " + a1 + ".");
+    } catch (err) {
+      log_(report, "WARN", sheet.getName(), "Could not add warning-only protection to " + a1 + ": " + err.message);
+    }
+  });
+}
+
+
+/* ============================================================
+ * LEGACY COMPATIBILITY WRAPPERS
+ * ============================================================
+ */
+
+/**
+ * Legacy wrapper kept so old references do not break.
+ * Mismatch styling is now handled by conditional formatting.
+ */
+function runErrorDetection(sheet, row) {
+  return;
+}
+
+
+/**
+ * Legacy wrapper kept so old references do not break.
+ */
+function calculateSum(sheet, sCol, tCol, start) {
+  const last = Math.max(start, sheet.getLastRow());
+  const data = sheet.getRange(start, sCol, last - start + 1, 1).getValues();
+  const results = [];
+  let total = 0;
+
+  for (let i = 0; i < data.length; i++) {
+    const v = Number(data[i][0]);
+
+    if (data[i][0] === "" || isNaN(v)) {
+      results.push([""]);
+    } else {
+      total += v;
+      results.push([total]);
+    }
+  }
+
+  sheet.getRange(start, tCol, results.length, 1).setValues(results);
+}
+
+
+/**
+ * Legacy wrapper kept so old references do not break.
+ */
+function executePDDLookup(sheet, row) {
+  if (!sheet || !isDupuytrensSheet_(sheet) || !isTreatmentRow_(sheet, row)) return;
+  restoreFormulasForRows_(sheet, row, row);
+}
+
+
+/**
+ * Legacy wrapper kept so old references do not break.
+ */
+function applyApproval(e, sheet, range) {
+  handleApprovalTrackingBlock_(e, sheet, range);
+}
+
+
+/* ============================================================
+ * SCRIPT NOTES TAB
+ * ============================================================
+ */
+
+/**
+ * Creates a user-facing notes tab inside the spreadsheet.
+ */
+function writeScriptNotes_(ss, report) {
+  let sheet = ss.getSheetByName(DUP_PATCH.NOTE_SHEET);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(DUP_PATCH.NOTE_SHEET);
+  }
+
+  sheet.clear();
+
+  const rows = [
+    ["Dupuytrens Fractionation Log Repair Notes", ""],
+    ["Version", DUP_PATCH.VERSION],
+    ["Purpose", "Keeps Dupuytrens treatment-log formulas, approval stamps, warning-only protections, and dropdown colors working for multiple users."],
+    ["", ""],
+    ["Daily Use", "Staff should use the sheet normally. Enter Phase, Energy, SSD, Time, Dose, skin dose, DOT Depth, MD Approval, and DOT Approval in the visible treatment rows."],
+    ["Auto-calculated Columns", "I = cumulative dose, K = cumulative skin dose, R = Isodose to DOT, S = Dose to DOT, T = cumulative DOT dose, U = hidden rounded-depth helper."],
+    ["Dropdown Colors", "The script repairs visible colors for Phase, treatment-row Energy, prescription Energy, MD Approval, and DOT Approval based on the selected value. MD Approval uses colored text. DOT Approval uses red/blue filled status cells. It does not rebuild dropdown validations."],
+    ["Mismatch Highlighting", "If Energy, SSD, Time, Dose per Fraction, or skin-surface dose does not match the selected phase prescription table, the cell is highlighted light red."],
+    ["MD Approval", "Selecting Approved or Revise in Column M writes initials and timestamp in Column N. Revise appears red/bold."],
+    ["Protections", "Formula columns use warning-only protections. Users may see a warning, but they should not be blocked from using the sheet."],
+    ["", ""],
+    ["Menu: Run full repair", "Use after pasting a new script version or when the workbook was heavily edited. Repairs formulas, colors, protections, trigger, notes, and report."],
+    ["Menu: Restore formulas only", "Use when formulas in I, K, R, S, T, or U were accidentally deleted or overwritten."],
+    ["Menu: Repair colors only", "Use when Phase/Energy/Approval colors look plain or inconsistent."],
+    ["Menu: Create/update notes tab", "Refreshes this notes page."],
+    ["Menu: Reinstall approval trigger", "Use when MD approval stamping stops working."],
+    ["", ""],
+    ["Apps Script Functions", "INSTALL_DUPUYTRENS_LOG_REPAIR(): main installer. RESTORE_DUPUYTRENS_FORMULAS_ONLY(): formula repair. REPAIR_DUPUYTRENS_COLORS_ONLY(): color repair. CREATE_DUPUYTRENS_SCRIPT_NOTES(): notes repair. REINSTALL_DUPUYTRENS_APPROVAL_TRIGGER(): trigger repair."],
+    ["Testing", "Enter sample values in a treatment row: Phase V, 100 kV, SSD 23, Time 23, Dose 4, skin dose 300, DOT Depth 3.0. R/S/T should calculate. Phase/Energy colors should appear. Change a prescription energy in L2:R2 and its color should also update. MD Approval should show blue Approved or red Revise text. DOT Approval should show red RTT measurement approved or blue See PPT for correction."],
+    ["Important", "Do not manually delete hidden Column U. It helps round DOT depth for lookup matching."],
+    ["Troubleshooting", "If formulas work but colors look wrong, run Dupuytrens Repair > Repair colors only. If approval stamps do not appear, run Reinstall approval trigger."]
+  ];
+
+  sheet.getRange(1, 1, rows.length, 2).setValues(rows);
+
+  sheet.getRange("A1:B1")
+    .merge()
+    .setFontSize(14)
+    .setFontWeight("bold")
+    .setFontColor("#FFFFFF")
+    .setBackground("#242b6b")
+    .setHorizontalAlignment("center");
+
+  sheet.getRange(2, 1, rows.length - 1, 1)
+    .setFontWeight("bold")
+    .setBackground("#D9EAD3");
+
+  sheet.getRange(1, 1, rows.length, 2)
+    .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
+    .setFontFamily("Roboto")
+    .setFontSize(10)
+    .setVerticalAlignment("top");
+
+  sheet.setColumnWidth(1, 230);
+  sheet.setColumnWidth(2, 760);
+  sheet.autoResizeRows(1, rows.length);
+  sheet.setFrozenRows(1);
+
+  log_(report, "FIXED", DUP_PATCH.NOTE_SHEET, "Created or refreshed the script notes tab.");
+}
+
+
+/* ============================================================
+ * HELPER FUNCTIONS
+ * ============================================================
+ */
+
+function rangeTouchesRows_(range, firstRow, lastRow) {
+  const startRow = range.getRow();
+  const endRow = startRow + range.getNumRows() - 1;
+
+  return endRow >= firstRow && startRow <= lastRow;
+}
+
+
+function rangeTouchesColumn_(range, targetCol) {
+  const startCol = range.getColumn();
+  const endCol = startCol + range.getNumColumns() - 1;
+
+  return targetCol >= startCol && targetCol <= endCol;
+}
+
+
+function rangeTouchesAnyColumn_(range, targetCols) {
+  return targetCols.some(col => rangeTouchesColumn_(range, col));
+}
+
+
+function rangeTouchesPrescriptionEnergyRow_(range) {
+  const startRow = range.getRow();
+  const endRow = startRow + range.getNumRows() - 1;
+  const startCol = range.getColumn();
+  const endCol = startCol + range.getNumColumns() - 1;
+
+  return startRow <= DUP_PATCH.REF_ENERGY_ROW &&
+    endRow >= DUP_PATCH.REF_ENERGY_ROW &&
+    startCol <= DUP_PATCH.REF_LAST_COL &&
+    endCol >= DUP_PATCH.REF_FIRST_COL;
+}
+
+
+function rangesIntersect_(a, b) {
+  const aRow1 = a.getRow();
+  const aRow2 = a.getRow() + a.getNumRows() - 1;
+  const aCol1 = a.getColumn();
+  const aCol2 = a.getColumn() + a.getNumColumns() - 1;
+
+  const bRow1 = b.getRow();
+  const bRow2 = b.getRow() + b.getNumRows() - 1;
+  const bCol1 = b.getColumn();
+  const bCol2 = b.getColumn() + b.getNumColumns() - 1;
+
+  return aRow1 <= bRow2 && aRow2 >= bRow1 && aCol1 <= bCol2 && aCol2 >= bCol1;
+}
+
+
+function log_(report, level, area, message) {
+  report.push([new Date(), level, area, message]);
+}
+
+
+/**
+ * Writes the repair report.
+ */
+function writeReport_(ss, report) {
+  let sheet = ss.getSheetByName(DUP_PATCH.REPORT_SHEET);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(DUP_PATCH.REPORT_SHEET);
+  }
+
+  sheet.clear();
+
+  const rows = [
+    ["Timestamp", "Level", "Area", "Message"]
+  ].concat(report);
+
+  sheet.getRange(1, 1, rows.length, 4).setValues(rows);
+
+  sheet.getRange("A1:D1")
+    .setFontWeight("bold")
+    .setBackground("#d9ead3");
+
+  sheet.getRange(1, 1, rows.length, 4)
+    .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
+    .setFontFamily("Roboto")
+    .setFontSize(10)
+    .setVerticalAlignment("top");
+
+  sheet.autoResizeColumns(1, 4);
+  sheet.autoResizeRows(1, rows.length);
+  sheet.setFrozenRows(1);
+}

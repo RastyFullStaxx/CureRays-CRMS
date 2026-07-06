@@ -24,6 +24,8 @@ Active milestones (detail in [docs/roadmap/implementation-roadmap.md](docs/roadm
 4. **P3** — Fraction closeout: XLSX export, approval polish, treatment summary.
 5. **P4** — Preauthorization-lite state machine gating Planning → On Treatment.
 
+**Fractionation calculation correction (user-mandated, active now):** the fraction worksheet must auto-compute — never hand-enter — Cumulative Dose (cGy), Cumulative Skin-Surface Dose (cGy), Isodose to DOT (%), Dose to DOT (cGy), and Cumulative Dose to DOT (cGy), and must flag an entry for review when its Energy, SSD, Time, Dose/Fx, or Skin-Surface Dose does not match the prescription set for its phase. The authoritative calculation reference is the clinic's corrected log script at `docs/fractionation_log_app_script/appscript_of_hand_laterality_dupuytren` (sample sheet: the clinic's fixed Dupuytren's Google Sheet). The precise contract is recorded in [workflow-and-automation.md](docs/architecture/workflow-and-automation.md) → "Fraction Calculation Contract".
+
 **Cut list — do not build these even if older docs mention them:** eCW/Drive adapters · IdP/MFA · immutable-audit infrastructure · deep analytics · imaging beyond evidence attach · PDF/PPTX generation · mobile layouts · live/WYSIWYG document editing (documents are generated from structured forms, permanently).
 
 ## Reading Order

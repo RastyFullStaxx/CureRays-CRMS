@@ -1,6 +1,6 @@
 # Current Implementation State
 
-- **Last evidence review:** 2026-07-03
+- **Last evidence review:** 2026-07-06
 - **Lifecycle stage:** Active development prototype
 - **Real PHI/ePHI use:** Prohibited
 - **Authority:** This document records implementation status; code and test evidence override prose when they disagree.
@@ -24,12 +24,14 @@ The four patient-workspace tabs are the correct long-term structure. The primary
 | Prepare structured forms | Not implemented end to end | Workspace shows steps/evidence, not complete field maps | Render, validate, save, version, review |
 | Preauthorization | Deferred/missing | Skin preauth sources mapping-in-progress; billing mapping missing | First-class authorization lifecycle |
 | Treatment planning/fractions | Strong prototype, clinically unvalidated | Fraction entry, corrections, approvals, image/OTV/physics gates | Durable storage and formal clinical validation |
+| Fraction calculation contract | Implemented for pilot, clinically unvalidated | Auto-computed cumulative dose, cumulative skin-surface dose, isodose→DOT, dose to DOT, cumulative DOT; prescription-mismatch review flag blocks Approved unless overridden with reason; fixtures in `scripts/fraction-worksheet-fixtures.mjs` | Formal clinical validation and approved PDD reference tables |
 | Document lifecycle metadata | Partial | Version/status/sign/eCW state machine exists | Real files, identity signatures, storage, integration |
 | Document generation | Simulated | Text `contentPreview` plus `app-storage://` metadata | Deterministic DOCX/PDF/XLSX/PPTX generation |
 | Image/file attachment | Simulated or metadata-only in several surfaces | Prototype action components do not retain files | Secure durable evidence upload |
 | eCW and Drive | Not implemented | Manual confirmation/status placeholders only | Approved adapters with reconciliation |
 | Billing and closeout | Partial visibility | Evidence/checklist/status surfaces exist | Full authorization/quantity/claim/audit lifecycle |
 | Authentication/RBAC | Prototype only | Synthetic session/role claims | Real IdP, server-enforced permissions, MFA |
+| Durable persistence (pilot) | Implemented for pilot (write-through) | `lib/server/write-through.ts` upserts each mutated course's rows to Postgres after the in-memory mutation; boot hydration reads them back; single `CURERAYS_PERSISTENCE_MODE` flag; DB round-trip verified for fraction fields and workflow-step columns | Prisma-native repositories owning reads/writes/transactions (deferred production workstream) |
 | OPS/PHI databases | Partial bridge | Schemas, generated clients, seed/hydration support | No production in-memory fallback; complete repositories |
 | Audit | Redacted in-memory events | Audit helpers and views exist | Immutable durable audit and monitoring |
 | Clinical validation | Not complete | Production-use blocking checklist exists | Signed protocols and golden clinical tests |
@@ -77,7 +79,7 @@ The following are not durable production capabilities:
 
 1. A preparation step can be completed without capturing the entire applicable template field map.
 2. Preauthorization is not represented as a complete administrative lifecycle.
-3. Workflow/document state remains in memory for important paths.
+3. Workflow/document mutations now write through to Postgres and survive restart in pilot mode; two fidelity gaps remain, both requiring a schema migration before they fully round-trip: `GeneratedDocumentOutput` lifecycle fields (storage provider/key, export/lock/void/manual-edit timestamps and reasons) lack backing columns, and `courseFolderPlaceholder` is written but regenerated deterministically on boot rather than hydrated. Neither loses user-entered clinical data at pilot scope.
 4. Document generation creates metadata/text previews, not authoritative clinical files.
 5. Signing and eCW/Drive actions are not identity-bound external operations.
 6. Audit events are not durable and immutable.
