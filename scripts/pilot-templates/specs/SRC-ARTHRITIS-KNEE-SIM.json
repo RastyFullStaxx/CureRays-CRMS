@@ -1,0 +1,216 @@
+{
+ "sourceId": "SRC-ARTHRITIS-KNEE-SIM",
+ "source": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/02_SIM_CTP_IGRT.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
+ "removeTitlePage": "SIM/CTP",
+ "ops": [
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Anticipated Energy",
+   "offset": 1,
+   "text": "{anticipatedEnergy}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Anticipated Energy",
+   "offset": 2,
+   "text": ""
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Phase dose per fraction",
+   "offset": 1,
+   "text": "{dosePerFractionGy}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Total fraction per phase",
+   "offset": 1,
+   "text": "{totalFractions}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Total Dose",
+   "offset": 1,
+   "text": "{phaseTotalDoseGy}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "Weekly Fractionation Schedule",
+   "offset": 1,
+   "text": "{weeklySchedule}"
+  },
+  {
+   "op": "cellsub",
+   "table": 2,
+   "anchor": "Chair: Motorized",
+   "offset": 0,
+   "subs": [
+    [
+     "Motorized",
+     "{chairSetup}"
+    ]
+   ]
+  },
+  {
+   "op": "cellsub",
+   "table": 2,
+   "anchor": "Region 1:",
+   "offset": 0,
+   "subs": [
+    [
+     "Region 1:",
+     "Region 1: {targetJoints}"
+    ]
+   ]
+  },
+  {
+   "op": "cellsub",
+   "table": 2,
+   "anchor": "SPECIAL PHYSICS: Yes.",
+   "offset": 0,
+   "subs": [
+    [
+     "Yes.",
+     "{specialPhysics}"
+    ]
+   ]
+  },
+  {
+   "op": "cellsub",
+   "table": 2,
+   "anchor": "WEEKLY PHYSICS: Yes.",
+   "offset": 0,
+   "subs": [
+    [
+     "Yes.",
+     "{weeklyPhysics}"
+    ]
+   ]
+  },
+  {
+   "op": "cell",
+   "table": 2,
+   "anchor": "Clayton B. Hess MD MPH",
+   "offset": 2,
+   "text": "{dateCompleted}"
+  },
+  {
+   "op": "cell",
+   "table": 2,
+   "anchor": "Clayton B. Hess MD MPH",
+   "offset": 0,
+   "text": "{radiationOncologist}"
+  },
+  {
+   "op": "cellsub",
+   "table": 3,
+   "anchor": "ID: _",
+   "offset": 0,
+   "subs": [
+    [
+     "ID: _",
+     "ID: {mrn}"
+    ]
+   ]
+  },
+  {
+   "op": "cell",
+   "table": 3,
+   "anchor": "ICD code/ Diagnosis:",
+   "offset": 1,
+   "text": "{diagnosis}"
+  },
+  {
+   "op": "cell",
+   "table": 3,
+   "anchor": "Laterality:",
+   "offset": 1,
+   "text": "{laterality}"
+  },
+  {
+   "op": "cell",
+   "table": 3,
+   "anchor": "Location:",
+   "offset": 1,
+   "text": "{site}"
+  },
+  {
+   "op": "cellsub",
+   "table": 7,
+   "anchor": "IMAGING ORDER PRESCRIPTION",
+   "offset": 0,
+   "subs": [
+    [
+     "IMAGING ORDER PRESCRIPTION",
+     "IMAGING ORDER PRESCRIPTION | {imaging}"
+    ]
+   ]
+  },
+  {
+   "op": "cellsub",
+   "table": 0,
+   "anchor": "Treatment Field Drawn on X-ray",
+   "offset": 0,
+   "subs": [
+    [
+     "Treatment Field Drawn on X-ray",
+     "Treatment Field Drawn on X-ray {finalFieldDesign}"
+    ]
+   ]
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Name:",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB:",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN:",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Pathology",
+   "offset": 1,
+   "text": "{diagnosis}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Laterality:",
+   "offset": 1,
+   "text": "{laterality}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Site:",
+   "offset": 1,
+   "text": "{site}",
+   "part": "word/header1.xml"
+  }
+ ]
+}

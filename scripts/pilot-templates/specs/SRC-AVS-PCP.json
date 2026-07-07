@@ -1,0 +1,64 @@
+{
+ "sourceId": "SRC-AVS-PCP",
+ "source": "docs/2026_TEMPLATES/00_UNIVERSAL/AVS_PCP.Universal.Template.docx",
+ "ops": [
+  {
+   "op": "sub",
+   "find": "Assessment:",
+   "to": "Assessment: {visitSummary}",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Plan: ",
+   "to": "Plan: {followUpPlan} ",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Thank you for visiting Radiation Oncology at CureRays Grass Valley.",
+   "to": "Thank you for visiting Radiation Oncology at CureRays Grass Valley. {pcpCommunicationDetails}",
+   "n": 1
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Patient Name",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Age/Sex",
+   "offset": 1,
+   "text": "{ageSex}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOS",
+   "offset": 1,
+   "text": "{generatedDate}",
+   "part": "word/header1.xml"
+  }
+ ]
+}

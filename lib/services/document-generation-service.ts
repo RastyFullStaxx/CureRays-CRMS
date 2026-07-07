@@ -1,5 +1,7 @@
 import 'server-only';
 
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   AlignmentType,
   Document,
@@ -12,14 +14,20 @@ import {
   TextRun,
   WidthType,
 } from 'docx';
+import Docxtemplater from 'docxtemplater';
 import ExcelJS from 'exceljs';
+import PizZip from 'pizzip';
 import {
   fractionLogEntries,
   getClinicalFormResponse,
   patients,
   treatmentCourses,
 } from '@/lib/clinical-store';
-import { documentRequirements, fieldMapForRequirement } from '@/lib/template-registry';
+import {
+  documentRequirements,
+  fieldMapForRequirement,
+  templateSourceForRequirement,
+} from '@/lib/template-registry';
 import { courseFractions } from '@/lib/workflow';
 import { isVoidedFractionEntry } from '@/lib/services/fraction-worksheet-service';
 import type {
@@ -166,6 +174,93 @@ function requirementName(requirementId: string): string {
   return documentRequirements.find((requirement) => requirement.id === requirementId)?.name ?? 'Clinical Form';
 }
 
+const PILOT_TEMPLATE_DIR = path.join(process.cwd(), 'templates', 'pilot');
+
+function fillValue(value: FieldValue | undefined): string {
+  if (value === undefined || value === null || value === '') return '';
+  if (value === true) return 'Yes';
+  if (value === false) return 'No';
+  return String(value);
+}
+
+function fileToken(value: string | undefined, fallback: string): string {
+  const cleaned = (value ?? '').replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_+|_+$/g, '');
+  return cleaned || fallback;
+}
+
+/** Clinic filename convention: replace the placeholder tokens in the source
+ * template's own filename (LOCATION.LATERALITY.DDMMYY.LastName.FirstName). */
+function clinicFileName(sourceFileName: string, patient: Patient, course: TreatmentCourse): string {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yy = String(now.getFullYear()).slice(2);
+  return path
+    .basename(sourceFileName)
+    .replace(/\.Template(?=\.)/, '')
+    .replace('LOCATION', fileToken(course.bodyRegion, 'SITE'))
+    .replace('LATERALITY', fileToken(course.laterality, 'NA'))
+    .replace('LesionNumber', fileToken(course.id, 'COURSE'))
+    .replace('DDMMYY', `${dd}${mm}${yy}`)
+    .replace('MMDDYY', `${mm}${dd}${yy}`)
+    .replace('DDMMYYYY', `${dd}${mm}${now.getFullYear()}`)
+    .replace('LastName', fileToken(patient.lastName, 'LastName'))
+    .replace('FirstName', fileToken(patient.firstName, 'FirstName'));
+}
+
+function templateFillData(
+  response: ClinicalFormResponse | undefined,
+  patient: Patient,
+  course: TreatmentCourse,
+): Record<string, string> {
+  const ageYears = patient.dob ? Math.floor((Date.now() - new Date(patient.dob).getTime()) / 31_557_600_000) : undefined;
+  const data: Record<string, string> = {
+    patientName: `${patient.firstName} ${patient.lastName}`,
+    dob: patient.dob ?? '',
+    ageSex: [ageYears !== undefined ? String(ageYears) : '', patient.sex ?? ''].filter(Boolean).join(' / '),
+    mrn: patient.mrn,
+    diagnosis: course.diagnosis,
+    laterality: course.laterality ?? '',
+    site: course.bodyRegion ?? '',
+    generatedDate: new Date().toISOString().slice(0, 10),
+    responseStatus: response?.status ?? 'Draft',
+    signedBy: response?.signedByUserId ?? '',
+    orderedDate: response?.signedAt?.slice(0, 10) ?? '',
+  };
+  const values = (response?.responseData ?? {}) as Record<string, FieldValue>;
+  for (const [key, value] of Object.entries(values)) {
+    data[key] = fillValue(value);
+  }
+  return data;
+}
+
+/** Stage 2: fill the tagged copy of the clinic's own template, when one exists. */
+function renderTaggedTemplate(
+  requirementId: string,
+  response: ClinicalFormResponse | undefined,
+  patient: Patient,
+  course: TreatmentCourse,
+): GeneratedDocumentArtifact | null {
+  const requirement = documentRequirements.find((item) => item.id === requirementId);
+  const source = requirement ? templateSourceForRequirement(requirement) : undefined;
+  if (!source) return null;
+  const templatePath = path.join(PILOT_TEMPLATE_DIR, `${source.id}.docx`);
+  if (!fs.existsSync(templatePath)) return null;
+
+  const zip = new PizZip(fs.readFileSync(templatePath));
+  const doc = new Docxtemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true,
+    nullGetter: () => '',
+  });
+  doc.render(templateFillData(response, patient, course));
+  return {
+    fileName: clinicFileName(source.sourceFileName, patient, course),
+    contentType: DOCX_CONTENT_TYPE,
+    buffer: doc.getZip().generate({ type: 'nodebuffer' }) as Buffer,
+  };
+}
+
 /** Generate a DOCX from a course's structured clinical-form response for a requirement. */
 export async function generateClinicalFormDocx(
   courseId: string,
@@ -178,6 +273,11 @@ export async function generateClinicalFormDocx(
   if (!requirement || !fieldMap || !course || !patient) return null;
 
   const response = getClinicalFormResponse(courseId, requirementId);
+
+  const tagged = renderTaggedTemplate(requirementId, response, patient, course);
+  if (tagged) return tagged;
+
+  // Stage 1 fallback: structured builder for requirements without a tagged copy.
   const title = requirementName(requirementId);
   const doc = fieldMapDocx(fieldMap, response, patient, course, title);
   const buffer = await Packer.toBuffer(doc);

@@ -50,9 +50,9 @@ Acceptance: each Dupuytren's form completed end to end in a browser; drafts surv
 
 Scope: the two-stage [pilot generation profile](../architecture/document-lifecycle.md). Isodose PPTX re-scoped to static reference attachments. No PDF.
 
-**Status:** Stage 1 done and verified — `docx`/`exceljs` generate real, downloadable DOCX (from field map + `ClinicalFormResponse`, incl. the 26-zone grid) and XLSX fraction logs via `app/api/documents/generate`; "Generate Document (DOCX)" wired in the Prepare form panel. **Remaining:** Stage 2 (pixel-faithful docxtemplater tagged copies + versioned `GeneratedDocumentOutput` disk persistence + download from Record & Closeout), and wiring the fraction-log XLSX export button (lands with P3).
+**Status:** Stage 1 done and verified — `docx`/`exceljs` generate real, downloadable DOCX and XLSX fraction logs via `app/api/documents/generate`. **Stage 2 tagged-copy generation done and verified** — all 17 active DOCX templates cleaned (classification title pages removed, sample data cleared) and tagged into `templates/pilot/` by the re-runnable `scripts/pilot-templates/build.py` + specs; `generateClinicalFormDocx` fills them with docxtemplater (Stage 1 builder stays as the fallback); filenames follow the clinic convention; golden check `scripts/stage2-template-check.mjs` renders every copy. Verified in-browser for Dupuytren's CR-2402 (saved form values appear in the clinic's own 26-zone layout; Word opens everything clean). **Remaining:** versioned `GeneratedDocumentOutput` disk persistence + download from Record & Closeout, and clinical-owner sign-off of the tagged copies.
 
-Acceptance: Stage 1 — downloading a valid DOCX and XLSX confirmed. Stage 2 — golden output check per enabled template.
+Acceptance: Stage 1 — downloading a valid DOCX and XLSX confirmed. Stage 2 — golden output check per enabled template (`node scripts/stage2-template-check.mjs`, green).
 
 ### P3. Fraction closeout
 
@@ -75,6 +75,19 @@ Scope:
 Acceptance: state transitions demonstrated; gate blocks and unblocks treatment readiness correctly.
 
 **Status:** Done and verified. Preauth-lite reuses the P1 clinical-form stack — the Skin Cancer preauth field maps carry a canonical `authorizationState` select (the full state machine), persisted durably like any form. `preauthBlockers` in `lib/server/workflow-command-service.ts` blocks `PLANNING → ON_TREATMENT` for a course whose workflow requires carepath preauth until any applicable preauth form reaches an approved state (`Approved` / `Partially approved` / `Not required`). Verified: unapproved → advance blocked with "Preauthorization is not approved"; approved → gate clears. No dedicated Prisma entity — form-backed for the pilot; a first-class `AuthorizationCase` with payer evidence/appeals remains the deferred production workstream.
+
+### P5. Template management in Settings (planned, not started)
+
+- **Outcome:** the clinic can maintain its carepath-program templates in-app instead of via repo edits.
+
+Scope (extends the existing `app/settings/templates/page.tsx` registry surface):
+
+- List the template files used per protocol/requirement with tagged-copy presence, checksum, and version (source of truth: the template-source lifecycle in [document lifecycle](../architecture/document-lifecycle.md)).
+- Upload a new template version: bytes to gitignored storage, checksum + version bump, never silently replacing an approved version — a changed template creates review work.
+- Map an uploaded template to its requirement/field map; surface unmapped fields (the specs' `unplaced` lists) for clinical review.
+- Active/draft toggle that gates generation resolution, replacing the convention-path lookup (`templates/pilot/<sourceId>.docx`) with registry-driven resolution.
+
+Prerequisites: `GeneratedDocumentOutput`/storage groundwork (P2 Stage 2 remainder) and moving template-source records from static JSON to durable rows. Depends on clinical-owner sign-off of the current tagged copies.
 
 ## Deferred Production Workstreams
 

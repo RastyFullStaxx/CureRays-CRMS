@@ -28,3 +28,6 @@ pnpm-debug.log*
 
 # system
 .DS_Store
+
+# transient Word owner-lock files
+~$*

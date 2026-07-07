@@ -1,0 +1,1144 @@
+{
+ "sourceId": "SRC-ARTHRITIS-FOOT-MAP",
+ "source": "docs/2026_TEMPLATES/02_ARTHRITIS/FOOT/01_Joint_Mapping.ARTHRITIS.FOOT.LATERALITY.DDMMYY.LastName.FirstName.docx",
+ "ops": [
+  {
+   "op": "sub",
+   "find": "LATERALITY",
+   "to": "{laterality}",
+   "n": 2
+  },
+  {
+   "op": "sub",
+   "find": "Impressions: ",
+   "to": "Impressions: {impression} | ",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Select Physician",
+   "to": "{performedBy}",
+   "n": 1
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Patient Name",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Age/Sex",
+   "offset": 1,
+   "text": "{ageSex}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOS",
+   "offset": 1,
+   "text": "{interpretationDate}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "IP",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__d1IP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "IP",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__d1IP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "IP",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__d1IP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "IP",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__d1IP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "IP",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__d1IP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__d1MTP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__d1MTP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__d1MTP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__d1MTP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__d1MTP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__d1TMT__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__d1TMT__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__d1TMT__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__d1TMT__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__d1TMT__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__d2DIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__d2DIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__d2DIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__d2DIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__d2DIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__d2PIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__d2PIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__d2PIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__d2PIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__d2PIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 2,
+   "offset": 1,
+   "text": "{jointAssessments__d2MTP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 2,
+   "offset": 2,
+   "text": "{jointAssessments__d2MTP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 2,
+   "offset": 3,
+   "text": "{jointAssessments__d2MTP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 2,
+   "offset": 4,
+   "text": "{jointAssessments__d2MTP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 2,
+   "offset": 5,
+   "text": "{jointAssessments__d2MTP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 2,
+   "offset": 1,
+   "text": "{jointAssessments__d2TMT__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 2,
+   "offset": 2,
+   "text": "{jointAssessments__d2TMT__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 2,
+   "offset": 3,
+   "text": "{jointAssessments__d2TMT__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 2,
+   "offset": 4,
+   "text": "{jointAssessments__d2TMT__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 2,
+   "offset": 5,
+   "text": "{jointAssessments__d2TMT__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 2,
+   "offset": 1,
+   "text": "{jointAssessments__d3DIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 2,
+   "offset": 2,
+   "text": "{jointAssessments__d3DIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 2,
+   "offset": 3,
+   "text": "{jointAssessments__d3DIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 2,
+   "offset": 4,
+   "text": "{jointAssessments__d3DIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 2,
+   "offset": 5,
+   "text": "{jointAssessments__d3DIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 2,
+   "offset": 1,
+   "text": "{jointAssessments__d3PIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 2,
+   "offset": 2,
+   "text": "{jointAssessments__d3PIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 2,
+   "offset": 3,
+   "text": "{jointAssessments__d3PIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 2,
+   "offset": 4,
+   "text": "{jointAssessments__d3PIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 2,
+   "offset": 5,
+   "text": "{jointAssessments__d3PIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 3,
+   "offset": 1,
+   "text": "{jointAssessments__d3MTP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 3,
+   "offset": 2,
+   "text": "{jointAssessments__d3MTP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 3,
+   "offset": 3,
+   "text": "{jointAssessments__d3MTP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 3,
+   "offset": 4,
+   "text": "{jointAssessments__d3MTP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 3,
+   "offset": 5,
+   "text": "{jointAssessments__d3MTP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 3,
+   "offset": 1,
+   "text": "{jointAssessments__d3TMT__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 3,
+   "offset": 2,
+   "text": "{jointAssessments__d3TMT__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 3,
+   "offset": 3,
+   "text": "{jointAssessments__d3TMT__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 3,
+   "offset": 4,
+   "text": "{jointAssessments__d3TMT__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 3,
+   "offset": 5,
+   "text": "{jointAssessments__d3TMT__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 3,
+   "offset": 1,
+   "text": "{jointAssessments__d4DIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 3,
+   "offset": 2,
+   "text": "{jointAssessments__d4DIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 3,
+   "offset": 3,
+   "text": "{jointAssessments__d4DIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 3,
+   "offset": 4,
+   "text": "{jointAssessments__d4DIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 3,
+   "offset": 5,
+   "text": "{jointAssessments__d4DIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 3,
+   "offset": 1,
+   "text": "{jointAssessments__d4PIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 3,
+   "offset": 2,
+   "text": "{jointAssessments__d4PIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 3,
+   "offset": 3,
+   "text": "{jointAssessments__d4PIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 3,
+   "offset": 4,
+   "text": "{jointAssessments__d4PIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 3,
+   "offset": 5,
+   "text": "{jointAssessments__d4PIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 4,
+   "offset": 1,
+   "text": "{jointAssessments__d4MTP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 4,
+   "offset": 2,
+   "text": "{jointAssessments__d4MTP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 4,
+   "offset": 3,
+   "text": "{jointAssessments__d4MTP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 4,
+   "offset": 4,
+   "text": "{jointAssessments__d4MTP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 4,
+   "offset": 5,
+   "text": "{jointAssessments__d4MTP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 4,
+   "offset": 1,
+   "text": "{jointAssessments__d4TMT__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 4,
+   "offset": 2,
+   "text": "{jointAssessments__d4TMT__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 4,
+   "offset": 3,
+   "text": "{jointAssessments__d4TMT__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 4,
+   "offset": 4,
+   "text": "{jointAssessments__d4TMT__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 4,
+   "offset": 5,
+   "text": "{jointAssessments__d4TMT__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 4,
+   "offset": 1,
+   "text": "{jointAssessments__d5DIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 4,
+   "offset": 2,
+   "text": "{jointAssessments__d5DIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 4,
+   "offset": 3,
+   "text": "{jointAssessments__d5DIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 4,
+   "offset": 4,
+   "text": "{jointAssessments__d5DIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DIP",
+   "occurrence": 4,
+   "offset": 5,
+   "text": "{jointAssessments__d5DIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 4,
+   "offset": 1,
+   "text": "{jointAssessments__d5PIP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 4,
+   "offset": 2,
+   "text": "{jointAssessments__d5PIP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 4,
+   "offset": 3,
+   "text": "{jointAssessments__d5PIP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 4,
+   "offset": 4,
+   "text": "{jointAssessments__d5PIP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "PIP",
+   "occurrence": 4,
+   "offset": 5,
+   "text": "{jointAssessments__d5PIP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 5,
+   "offset": 1,
+   "text": "{jointAssessments__d5MTP__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 5,
+   "offset": 2,
+   "text": "{jointAssessments__d5MTP__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 5,
+   "offset": 3,
+   "text": "{jointAssessments__d5MTP__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 5,
+   "offset": 4,
+   "text": "{jointAssessments__d5MTP__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MTP",
+   "occurrence": 5,
+   "offset": 5,
+   "text": "{jointAssessments__d5MTP__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 5,
+   "offset": 1,
+   "text": "{jointAssessments__d5TMT__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 5,
+   "offset": 2,
+   "text": "{jointAssessments__d5TMT__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 5,
+   "offset": 3,
+   "text": "{jointAssessments__d5TMT__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 5,
+   "offset": 4,
+   "text": "{jointAssessments__d5TMT__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "TMT",
+   "occurrence": 5,
+   "offset": 5,
+   "text": "{jointAssessments__d5TMT__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Naviculocuneiform joint.",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__naviculocuneiform__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Naviculocuneiform joint.",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__naviculocuneiform__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Naviculocuneiform joint.",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__naviculocuneiform__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Naviculocuneiform joint.",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__naviculocuneiform__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Naviculocuneiform joint.",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__naviculocuneiform__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Talonavicular joint",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__talonavicular__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Talonavicular joint",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__talonavicular__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Talonavicular joint",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__talonavicular__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Talonavicular joint",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__talonavicular__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Talonavicular joint",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__talonavicular__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cubonavicular joint",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{jointAssessments__cubonavicular__jsNarrowing}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cubonavicular joint",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "{jointAssessments__cubonavicular__osteophytes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cubonavicular joint",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "{jointAssessments__cubonavicular__sclerosis}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cubonavicular joint",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "{jointAssessments__cubonavicular__grade}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cubonavicular joint",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "{jointAssessments__cubonavicular__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Calcaneocuboid joint",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Calcaneocuboid joint",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Calcaneocuboid joint",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Calcaneocuboid joint",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Calcaneocuboid joint",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Subtalar joint",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Subtalar joint",
+   "occurrence": 1,
+   "offset": 2,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Subtalar joint",
+   "occurrence": 1,
+   "offset": 3,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Subtalar joint",
+   "occurrence": 1,
+   "offset": 4,
+   "text": "",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Subtalar joint",
+   "occurrence": 1,
+   "offset": 5,
+   "text": "",
+   "collapse": true
+  }
+ ]
+}

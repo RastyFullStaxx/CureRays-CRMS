@@ -1,0 +1,54 @@
+{
+ "sourceId": "SRC-INTAKE",
+ "source": "docs/2026_TEMPLATES/00_UNIVERSAL/Intake_Form.Universal.08APR2025.Template.docx",
+ "unplaced": [
+  "contactDetails",
+  "initialWorkflowNeeds"
+ ],
+ "ops": [
+  {
+   "op": "sub",
+   "find": ": ",
+   "to": ": {patientIdentifiers} ",
+   "nth": 1
+  },
+  {
+   "op": "sub",
+   "find": "History of Present Illness:",
+   "to": "History of Present Illness: {diagnosis}",
+   "n": 1
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Patient Name",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Age/Sex",
+   "offset": 1,
+   "text": "{ageSex}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  }
+ ]
+}

@@ -162,7 +162,7 @@ Drive is a template/storage integration boundary, not workflow state. Sync must:
 
 This section defines how generation works for the staff pilot ([pilot readiness](../requirements/pilot-readiness.md)). The target architecture above remains the production goal; the profile below is the approved pilot subset.
 
-This profile has two stages. **Stage 1 (implemented)** generates clean, real, downloadable documents from the structured form/fraction data. **Stage 2 (deferred)** upgrades DOCX output to pixel-faithful copies of the clinic's exact forms; it needs hand-authored tagged templates and clinical-owner sign-off, so it follows Stage 1.
+This profile has two stages. **Stage 1 (implemented)** generates clean, real, downloadable documents from the structured form/fraction data. **Stage 2 (tagged-copy generation implemented; output persistence deferred)** upgrades DOCX output to copies of the clinic's exact forms filled from the structured data.
 
 ### Formats and libraries (Stage 1, implemented)
 
@@ -171,7 +171,7 @@ This profile has two stages. **Stage 1 (implemented)** generates clean, real, do
 - **PDF:** not generated in the pilot. Staff print from Word/Excel.
 - **PPTX:** never generated. Isodose/planning references are re-scoped to **static reference attachments** on the applicable step.
 
-`docx` and `exceljs` are the recorded exception to the no-new-dependencies guardrail, justified here. (The originally-planned `docxtemplater`/`pizzip` are deferred to Stage 2.)
+`docx`, `exceljs`, `docxtemplater`, and `pizzip` are the recorded exceptions to the no-new-dependencies guardrail, justified here (`docxtemplater`/`pizzip` landed with Stage 2 tagged-copy generation).
 
 ### Delivery (Stage 1)
 
@@ -179,11 +179,13 @@ This profile has two stages. **Stage 1 (implemented)** generates clean, real, do
 - The download route [`app/api/documents/generate`](../../app/api/documents/generate/route.ts) hydrates the store, generates on demand, and streams the file with `Content-Disposition: attachment`. No bytes are persisted to disk in Stage 1 — documents regenerate deterministically from the durable structured source.
 - The "Generate Document (DOCX)" control lives in the Prepare clinical-form panel; the fraction-log XLSX export lands with P3.
 
-### Stage 2 (deferred — pixel-faithful tagged copies)
+### Stage 2 — pixel-faithful tagged copies (generation implemented)
 
-- `docxtemplater` + `pizzip` fill tagged copies of the clinic's own templates so output matches their familiar form exactly.
-- Tagged copies live in `templates/pilot/` with `{placeholder}` tags aligned to `TemplateFieldMap` field IDs; the `docs/2026_TEMPLATES` originals stay pristine.
-- Each generation then persists a `GeneratedDocumentOutput` version (format, incremented version, `APP_STORAGE` opaque storage key, bytes under a gitignored `storage/` directory, `contentPreview`), downloadable by output ID through a role-checked route, with `Draft → Ready → Locked on sign` lifecycle. This replaces `contentPreview`-only outputs.
+- `docxtemplater` + `pizzip` fill tagged copies of the clinic's own templates so output matches their familiar form exactly. Implemented in [`document-generation-service.ts`](../../lib/services/document-generation-service.ts): when `templates/pilot/<templateSourceId>.docx` exists, `generateClinicalFormDocx` fills it; otherwise it falls back to the Stage 1 structured builder (currently only fraction-log DOCX falls back).
+- Tagged copies live in `templates/pilot/` (17 files, one per active DOCX source incl. both mapping-in-progress preauth sources) with `{placeholder}` tags aligned to `TemplateFieldMap` field IDs — grid cells use the flat `{gridId__rowId__colId}` keys the form stack already persists, so the 26-zone US mapping and per-joint arthritis tables fill without loop syntax. A small set of context tags (`patientName`, `dob`, `ageSex`, `mrn`, `diagnosis`, `laterality`, `site`, `generatedDate`, `responseStatus`, `signedBy`, `orderedDate`) fills the identity headers. The `docs/2026_TEMPLATES` originals stay pristine.
+- The copies are built reproducibly by `scripts/pilot-templates/build.py` from per-template specs in `scripts/pilot-templates/specs/` (title/tab divider pages removed, sample data cleared, tags inserted; every operation count-asserted). Fields a template has no honest slot for are recorded in the spec's `unplaced` list. `scripts/stage2-template-check.mjs` is the golden gate: every pilot copy must render under docxtemplater with field-map-derived sample data and contain no tag unbacked by the field map or context keys.
+- Generated filenames follow the clinic's own naming convention, derived from the source filename pattern (e.g. `01_US_Mapping.DUPUYTRENS.HAND.Left.DDMMYY.LastName.FirstName.docx`).
+- **Still deferred:** persisting each generation as a `GeneratedDocumentOutput` version (format, incremented version, `APP_STORAGE` opaque storage key, bytes under a gitignored `storage/` directory, `contentPreview`), downloadable by output ID through a role-checked route, with `Draft → Ready → Locked on sign` lifecycle. Stage 2 generation currently streams on demand like Stage 1 and persists no bytes.
 
 ## Current Prototype Boundary
 

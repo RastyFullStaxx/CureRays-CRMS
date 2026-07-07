@@ -1,0 +1,223 @@
+{
+ "sourceId": "SRC-ARTHRITIS-KNEE-RX",
+ "source": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/07_Prescription.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
+ "removeTitlePage": "APR 2026 version",
+ "ops": [
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Site",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{site}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Laterality",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{laterality}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Verified Rx in Sensus EMR",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{verifiedInSensus}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Cumulative dose per course",
+   "offset": 1,
+   "text": "{cumulativeDoseGy} Gy/course prescribed to midplane",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Dose per FRACTION",
+   "offset": 1,
+   "text": "{dosePerFractionCgy} cGy/fx prescribed to midplane",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Time (minutes)",
+   "offset": 1,
+   "text": "{timeMinutes}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Total Fraction no.",
+   "offset": 1,
+   "text": "{totalFractions} fractions"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "SSD (cm) within box",
+   "offset": 1,
+   "text": "{ssdCm}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Energy",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{energy}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Applicator size",
+   "offset": 1,
+   "text": "{applicatorSize}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Margin",
+   "offset": 1,
+   "text": "{margin}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Technique",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{technique}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Thyroid Shield",
+   "offset": 1,
+   "text": "{thyroidShield}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Lead Apron",
+   "offset": 1,
+   "text": "{leadApron}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Beam Arrangement",
+   "occurrence": 1,
+   "offset": 1,
+   "text": "{beamArrangement}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Fractions per day",
+   "offset": 1,
+   "text": "{fractionsPerDay}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Fractions per week",
+   "offset": 1,
+   "text": "{fractionsPerWeek}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Single or Multi phase/beam",
+   "offset": 1,
+   "text": "{phaseDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Synchronous vs Sequential",
+   "offset": 1,
+   "text": "{sequencing}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "**Concurrent Therapy",
+   "offset": 1,
+   "text": "{concurrentTherapy}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "**Pre-Authorized",
+   "offset": 1,
+   "text": "{preAuthorized}"
+  },
+  {
+   "op": "cellsub",
+   "table": 0,
+   "anchor": "Electronically Signed by:",
+   "offset": 1,
+   "subs": [
+    [
+     "Clayton B. Hess, MD, MPH",
+     "{signedBy}"
+    ]
+   ]
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Date Ordered:",
+   "offset": 1,
+   "text": "{orderedDate}"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Name:",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB:",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN:",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Pathology/Site",
+   "offset": 1,
+   "text": "{site}",
+   "part": "word/header1.xml"
+  }
+ ],
+ "unplaced": [
+  "fractionation",
+  "priorRT",
+  "customBlock",
+  "complexShielding",
+  "shieldingDesign",
+  "imagingGuidance"
+ ]
+}

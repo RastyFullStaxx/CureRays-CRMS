@@ -1,0 +1,914 @@
+{
+ "sourceId": "SRC-DUPUYTRENS-US-MAP",
+ "source": "docs/2026_TEMPLATES/03_DUPUYTRENS/US_MAPPING/01_US_Mapping.DUPUYTRENS.HAND.LATERALITY.DDMMYY.LastName.FirstName.docx",
+ "removeTitlePage": "Tab 1",
+ "ops": [
+  {
+   "op": "sub",
+   "find": "a 12 MHz ultrasound probe",
+   "to": "a {usFrequency} ultrasound probe",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Left                     ",
+   "to": "{laterality}",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Rad Onc DOS: _",
+   "to": "Rad Onc DOS: {interpretationDate}",
+   "n": 1
+  },
+  {
+   "op": "sub",
+   "find": "Select Physician",
+   "to": "{performedBy}",
+   "nth": 2
+  },
+  {
+   "op": "sub",
+   "find": "Finalized Field by Radiation Oncologist",
+   "to": "Finalized Field by Radiation Oncologist | Rationale: {fieldDesignRationale}",
+   "n": 1
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Patient Name",
+   "offset": 1,
+   "text": "{patientName}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "DOB",
+   "offset": 1,
+   "text": "{dob}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Age/Sex",
+   "offset": 1,
+   "text": "{ageSex}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "MRN",
+   "offset": 1,
+   "text": "{mrn}",
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cellsub",
+   "table": 0,
+   "anchor": "DOS",
+   "offset": 1,
+   "subs": [
+    [
+     "For Rad onc:",
+     "For Rad onc: {interpretationDate}"
+    ]
+   ],
+   "part": "word/header1.xml"
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "A",
+   "offset": 2,
+   "text": "{zoneAssessments__A__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "A",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__A__fascialPlane} | Depth of target: {zoneAssessments__A__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "A",
+   "offset": 4,
+   "text": "{zoneAssessments__A__palpation} | MD Notes: {zoneAssessments__A__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "A",
+   "offset": 5,
+   "text": "{zoneAssessments__A__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "B",
+   "offset": 2,
+   "text": "{zoneAssessments__B__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "B",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__B__fascialPlane} | Depth of target: {zoneAssessments__B__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "B",
+   "offset": 4,
+   "text": "{zoneAssessments__B__palpation} | MD Notes: {zoneAssessments__B__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "B",
+   "offset": 5,
+   "text": "{zoneAssessments__B__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "C",
+   "offset": 2,
+   "text": "{zoneAssessments__C__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "C",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__C__fascialPlane} | Depth of target: {zoneAssessments__C__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "C",
+   "offset": 4,
+   "text": "{zoneAssessments__C__palpation} | MD Notes: {zoneAssessments__C__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "C",
+   "offset": 5,
+   "text": "{zoneAssessments__C__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "D",
+   "offset": 2,
+   "text": "{zoneAssessments__D__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "D",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__D__fascialPlane} | Depth of target: {zoneAssessments__D__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "D",
+   "offset": 4,
+   "text": "{zoneAssessments__D__palpation} | MD Notes: {zoneAssessments__D__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "D",
+   "offset": 5,
+   "text": "{zoneAssessments__D__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "E",
+   "offset": 2,
+   "text": "{zoneAssessments__E__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "E",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__E__fascialPlane} | Depth of target: {zoneAssessments__E__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "E",
+   "offset": 4,
+   "text": "{zoneAssessments__E__palpation} | MD Notes: {zoneAssessments__E__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "E",
+   "offset": 5,
+   "text": "{zoneAssessments__E__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "F",
+   "offset": 2,
+   "text": "{zoneAssessments__F__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "F",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__F__fascialPlane} | Depth of target: {zoneAssessments__F__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "F",
+   "offset": 4,
+   "text": "{zoneAssessments__F__palpation} | MD Notes: {zoneAssessments__F__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "F",
+   "offset": 5,
+   "text": "{zoneAssessments__F__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "G",
+   "offset": 2,
+   "text": "{zoneAssessments__G__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "G",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__G__fascialPlane} | Depth of target: {zoneAssessments__G__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "G",
+   "offset": 4,
+   "text": "{zoneAssessments__G__palpation} | MD Notes: {zoneAssessments__G__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "G",
+   "offset": 5,
+   "text": "{zoneAssessments__G__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "H",
+   "offset": 2,
+   "text": "{zoneAssessments__H__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "H",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__H__fascialPlane} | Depth of target: {zoneAssessments__H__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "H",
+   "offset": 4,
+   "text": "{zoneAssessments__H__palpation} | MD Notes: {zoneAssessments__H__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "H",
+   "offset": 5,
+   "text": "{zoneAssessments__H__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "I",
+   "offset": 2,
+   "text": "{zoneAssessments__I__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "I",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__I__fascialPlane} | Depth of target: {zoneAssessments__I__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "I",
+   "offset": 4,
+   "text": "{zoneAssessments__I__palpation} | MD Notes: {zoneAssessments__I__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "I",
+   "offset": 5,
+   "text": "{zoneAssessments__I__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "J",
+   "offset": 2,
+   "text": "{zoneAssessments__J__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "J",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__J__fascialPlane} | Depth of target: {zoneAssessments__J__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "J",
+   "offset": 4,
+   "text": "{zoneAssessments__J__palpation} | MD Notes: {zoneAssessments__J__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "J",
+   "offset": 5,
+   "text": "{zoneAssessments__J__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "K",
+   "offset": 2,
+   "text": "{zoneAssessments__K__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "K",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__K__fascialPlane} | Depth of target: {zoneAssessments__K__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "K",
+   "offset": 4,
+   "text": "{zoneAssessments__K__palpation} | MD Notes: {zoneAssessments__K__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "K",
+   "offset": 5,
+   "text": "{zoneAssessments__K__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "L",
+   "offset": 2,
+   "text": "{zoneAssessments__L__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "L",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__L__fascialPlane} | Depth of target: {zoneAssessments__L__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "L",
+   "offset": 4,
+   "text": "{zoneAssessments__L__palpation} | MD Notes: {zoneAssessments__L__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "L",
+   "offset": 5,
+   "text": "{zoneAssessments__L__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "M",
+   "offset": 2,
+   "text": "{zoneAssessments__M__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "M",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__M__fascialPlane} | Depth of target: {zoneAssessments__M__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "M",
+   "offset": 4,
+   "text": "{zoneAssessments__M__palpation} | MD Notes: {zoneAssessments__M__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "M",
+   "offset": 5,
+   "text": "{zoneAssessments__M__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "N",
+   "offset": 2,
+   "text": "{zoneAssessments__N__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "N",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__N__fascialPlane} | Depth of target: {zoneAssessments__N__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "N",
+   "offset": 4,
+   "text": "{zoneAssessments__N__palpation} | MD Notes: {zoneAssessments__N__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "N",
+   "offset": 5,
+   "text": "{zoneAssessments__N__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "O",
+   "offset": 2,
+   "text": "{zoneAssessments__O__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "O",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__O__fascialPlane} | Depth of target: {zoneAssessments__O__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "O",
+   "offset": 4,
+   "text": "{zoneAssessments__O__palpation} | MD Notes: {zoneAssessments__O__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "O",
+   "offset": 5,
+   "text": "{zoneAssessments__O__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "P",
+   "offset": 2,
+   "text": "{zoneAssessments__P__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "P",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__P__fascialPlane} | Depth of target: {zoneAssessments__P__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "P",
+   "offset": 4,
+   "text": "{zoneAssessments__P__palpation} | MD Notes: {zoneAssessments__P__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "P",
+   "offset": 5,
+   "text": "{zoneAssessments__P__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Q",
+   "offset": 2,
+   "text": "{zoneAssessments__Q__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Q",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__Q__fascialPlane} | Depth of target: {zoneAssessments__Q__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Q",
+   "offset": 4,
+   "text": "{zoneAssessments__Q__palpation} | MD Notes: {zoneAssessments__Q__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Q",
+   "offset": 5,
+   "text": "{zoneAssessments__Q__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "R",
+   "offset": 2,
+   "text": "{zoneAssessments__R__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "R",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__R__fascialPlane} | Depth of target: {zoneAssessments__R__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "R",
+   "offset": 4,
+   "text": "{zoneAssessments__R__palpation} | MD Notes: {zoneAssessments__R__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "R",
+   "offset": 5,
+   "text": "{zoneAssessments__R__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "S",
+   "offset": 2,
+   "text": "{zoneAssessments__S__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "S",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__S__fascialPlane} | Depth of target: {zoneAssessments__S__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "S",
+   "offset": 4,
+   "text": "{zoneAssessments__S__palpation} | MD Notes: {zoneAssessments__S__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "S",
+   "offset": 5,
+   "text": "{zoneAssessments__S__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "T",
+   "offset": 2,
+   "text": "{zoneAssessments__T__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "T",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__T__fascialPlane} | Depth of target: {zoneAssessments__T__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "T",
+   "offset": 4,
+   "text": "{zoneAssessments__T__palpation} | MD Notes: {zoneAssessments__T__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "T",
+   "offset": 5,
+   "text": "{zoneAssessments__T__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "U",
+   "offset": 2,
+   "text": "{zoneAssessments__U__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "U",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__U__fascialPlane} | Depth of target: {zoneAssessments__U__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "U",
+   "offset": 4,
+   "text": "{zoneAssessments__U__palpation} | MD Notes: {zoneAssessments__U__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "U",
+   "offset": 5,
+   "text": "{zoneAssessments__U__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "V",
+   "offset": 2,
+   "text": "{zoneAssessments__V__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "V",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__V__fascialPlane} | Depth of target: {zoneAssessments__V__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "V",
+   "offset": 4,
+   "text": "{zoneAssessments__V__palpation} | MD Notes: {zoneAssessments__V__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "V",
+   "offset": 5,
+   "text": "{zoneAssessments__V__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "W",
+   "offset": 2,
+   "text": "{zoneAssessments__W__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "W",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__W__fascialPlane} | Depth of target: {zoneAssessments__W__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "W",
+   "offset": 4,
+   "text": "{zoneAssessments__W__palpation} | MD Notes: {zoneAssessments__W__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "W",
+   "offset": 5,
+   "text": "{zoneAssessments__W__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "X",
+   "offset": 2,
+   "text": "{zoneAssessments__X__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "X",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__X__fascialPlane} | Depth of target: {zoneAssessments__X__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "X",
+   "offset": 4,
+   "text": "{zoneAssessments__X__palpation} | MD Notes: {zoneAssessments__X__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "X",
+   "offset": 5,
+   "text": "{zoneAssessments__X__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Y",
+   "offset": 2,
+   "text": "{zoneAssessments__Y__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Y",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__Y__fascialPlane} | Depth of target: {zoneAssessments__Y__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Y",
+   "offset": 4,
+   "text": "{zoneAssessments__Y__palpation} | MD Notes: {zoneAssessments__Y__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Y",
+   "offset": 5,
+   "text": "{zoneAssessments__Y__fieldDesign}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Z",
+   "offset": 2,
+   "text": "{zoneAssessments__Z__usImage}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Z",
+   "offset": 3,
+   "text": "Fascial plane: {zoneAssessments__Z__fascialPlane} | Depth of target: {zoneAssessments__Z__depthMm} mm",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Z",
+   "offset": 4,
+   "text": "{zoneAssessments__Z__palpation} | MD Notes: {zoneAssessments__Z__mdNotes}",
+   "collapse": true
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Z",
+   "offset": 5,
+   "text": "{zoneAssessments__Z__fieldDesign}",
+   "collapse": true
+  }
+ ]
+}

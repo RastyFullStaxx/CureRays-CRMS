@@ -1,0 +1,49 @@
+{
+ "sourceId": "SRC-SKIN-CAREPATH-PREAUTH-20",
+ "source": "docs/2026_TEMPLATES/01_SKIN_CANCER_IGSRT/00_CAREPATH_PREAUTH_AUDIT/00_Carepath_PreAuth_Audit.SKIN_CANCER.IGSRT.20fx.LesionNumber.DDMMYY.LastName.FirstName.docx",
+ "removeTitlePage": "Rebrand",
+ "unplaced": [
+  "authorizationState",
+  "payer",
+  "requestedServices",
+  "authorizationNumber",
+  "effectiveTo",
+  "decisionReason",
+  "diagnosis"
+ ],
+ "ops": [
+  {
+   "op": "cellsub",
+   "table": 0,
+   "anchor": "Radiation OncologistClayton B. Hess MD MPH",
+   "offset": 0,
+   "subs": [
+    [
+     "Clayton B. Hess MD MPH",
+     "{responsibleOwner}"
+    ]
+   ]
+  },
+  {
+   "op": "cell",
+   "table": 0,
+   "anchor": "Date:",
+   "offset": 1,
+   "text": "{generatedDate}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "PRE-AUTH COMPLETED",
+   "offset": 1,
+   "text": "{responsibleOwner}"
+  },
+  {
+   "op": "cell",
+   "table": 1,
+   "anchor": "PRE-AUTH COMPLETED",
+   "offset": 2,
+   "text": "Date: {effectiveFrom}"
+  }
+ ]
+}
