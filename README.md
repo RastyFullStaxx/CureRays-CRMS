@@ -2,6 +2,7 @@
 
 CureRays CRMS is a patient-course-centered clinical operations prototype for CureRays Radiation Medicine. It is intended to replace fragmented worksheet, Word, PowerPoint, Google Drive, routing, and status-tracking workflows with one structured and auditable patient course.
 
+
 ## Safety Status
 
 This repository is not approved for real patient PHI/ePHI or clinical production use.
