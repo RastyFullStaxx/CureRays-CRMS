@@ -126,7 +126,9 @@ export function MacNavigation() {
               <Link
                 key={item.key}
                 href={item.href}
+                aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
+                title={item.label}
                 className={cn('mac-command-nav-item', isActive && 'is-active')}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />

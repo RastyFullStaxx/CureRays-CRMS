@@ -98,12 +98,6 @@ function patientDisplayName(patient: Patient) {
   return `${patient.firstName} ${patient.lastName}`;
 }
 
-function stepDotTone(status: string) {
-  // The rail dots need pending vs in-progress to read differently; the shared
-  // statusTone keeps IN_PROGRESS neutral for badge copy elsewhere.
-  return status === 'IN_PROGRESS' ? 'intermediate' : statusTone(status);
-}
-
 function currentPhaseLabel(course: TreatmentCourse) {
   if (course.chartRoundsPhase === 'UPCOMING') return 'Simulation';
   if (course.chartRoundsPhase === 'ON_TREATMENT') return 'On Treatment';
@@ -819,6 +813,7 @@ export function PatientWorkspace({
     const selectedStepDone = selectedCarepathStep
       ? ['COMPLETED', 'SIGNED', 'CLOSED'].includes(selectedCarepathStep.status)
       : false;
+    const treatmentWorkflowSteps = workflowSteps.filter((step) => step.phase === 'ON_TREATMENT');
     if (activeTab === 'prepare') {
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
@@ -854,12 +849,7 @@ export function PatientWorkspace({
                               <span className="type-item-title block truncate">{step.stepName}</span>
                               <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
                             </span>
-                            <span
-                              className={cn('prepare-step-status', statusToneClass(stepDotTone(step.status)))}
-                              role="img"
-                              aria-label={formatUiLabel(step.status)}
-                              title={formatUiLabel(step.status)}
-                            />
+                            <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
                           </button>
                         ))}
                       </div>
@@ -904,12 +894,7 @@ export function PatientWorkspace({
                               <span className="type-item-title block truncate">{requirement.name}</span>
                               <span className="type-meta mt-0.5 block truncate">{phaseLabel} · step {step.stepNumber}</span>
                             </span>
-                            <span
-                              className={cn('prepare-step-status', statusToneClass(stepDotTone(step.status)))}
-                              role="img"
-                              aria-label={formatUiLabel(step.status)}
-                              title={formatUiLabel(step.status)}
-                            />
+                            <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
                           </button>
                         );
                       })}
@@ -1256,32 +1241,31 @@ export function PatientWorkspace({
               </Button>
             )}
           />
-          <section className="clinical-surface overflow-hidden" aria-labelledby="treatment-workflow-heading">
-            <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
-              <h2 id="treatment-workflow-heading" className="type-section-title">Treatment Workflow</h2>
-              <p className="type-meta mt-1">On-treatment actions linked from the Tasks worklist.</p>
-            </div>
-            <div className="grid gap-1.5 p-3">
-              {workflowSteps.filter((step) => step.phase === 'ON_TREATMENT').map((step) => (
-                <div
-                  key={step.id}
-                  id={`workspace-target-step-${step.id}`}
-                  tabIndex={-1}
-                  className="clinical-muted-surface clinical-focus flex min-w-0 items-center gap-3 p-3"
-                >
-                  <span className="prepare-step-index">{step.stepNumber}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="type-item-title block truncate">{step.stepName}</span>
-                    <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
-                  </span>
-                  <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
-                </div>
-              ))}
-              {workflowSteps.every((step) => step.phase !== 'ON_TREATMENT') ? (
-                <div className="p-2 type-body text-[var(--color-text-muted)]">No on-treatment workflow steps are configured.</div>
-              ) : null}
-            </div>
-          </section>
+          {treatmentWorkflowSteps.length ? (
+            <section className="clinical-surface overflow-hidden" aria-labelledby="treatment-workflow-heading">
+              <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
+                <h2 id="treatment-workflow-heading" className="type-section-title">Treatment Workflow</h2>
+                <p className="type-meta mt-1">On-treatment actions linked from the Tasks worklist.</p>
+              </div>
+              <div className="grid gap-1.5 p-3">
+                {treatmentWorkflowSteps.map((step) => (
+                  <div
+                    key={step.id}
+                    id={`workspace-target-step-${step.id}`}
+                    tabIndex={-1}
+                    className="clinical-muted-surface clinical-focus flex min-w-0 items-center gap-3 p-3"
+                  >
+                    <span className="prepare-step-index">{step.stepNumber}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="type-item-title block truncate">{step.stepName}</span>
+                      <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
+                    </span>
+                    <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
           <div id="fraction-workflow" className="min-w-0 scroll-mt-3">
             <FractionWorksheetPanel
               initialEntries={fractionEntries}

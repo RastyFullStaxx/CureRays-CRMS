@@ -170,10 +170,7 @@ export function DataTable<T extends object>({
   const hasError = Boolean(error);
   const isEmpty = !loading && !hasError && filteredRows.length === 0;
   const hasActiveFilters = query.trim() || Object.values(filterValues).some(Boolean);
-  const viewportRows = pageSize > 0 ? pageSize : undefined;
-  const tableViewportHeight = viewportRows
-    ? `calc(var(--height-table-header) + (${viewportRows} * var(--height-table-row)))`
-    : undefined;
+  const visibleRows = pageSize > 0 ? filteredRows.slice(0, pageSize) : filteredRows;
   const tableMinWidth = minTableWidth ?? (
     columns.length >= 9 ? '1280px' :
     columns.length >= 7 ? '1120px' :
@@ -262,9 +259,7 @@ export function DataTable<T extends object>({
             overflowY: isEmpty || loading || hasError ? 'hidden' : 'auto',
             display: 'flex',
             flexDirection: 'column',
-            flex: tableViewportHeight ? '0 0 auto' : 1,
-            height: tableViewportHeight,
-            maxHeight: tableViewportHeight,
+            flex: 1,
           }}
         >
           <table className="w-full border-collapse" style={{ flexShrink: 0, minWidth: tableMinWidth }}>
@@ -294,7 +289,7 @@ export function DataTable<T extends object>({
 
             {!isEmpty && !loading && !hasError && (
               <tbody>
-                {filteredRows.map((row) => (
+                {visibleRows.map((row) => (
                   <tr
                     key={rowKey(row, keyField)}
                     id={getRowId?.(row)}

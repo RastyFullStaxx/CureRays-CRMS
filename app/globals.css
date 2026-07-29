@@ -1620,19 +1620,10 @@ button {
   min-width: 0;
 }
 
-@container (min-width: 1080px) {
+@container (min-width: 900px) {
   .prepare-workbench-layout {
     align-items: start;
-    grid-template-columns: minmax(248px, 280px) minmax(0, 1fr);
-  }
-
-  .prepare-path-rail {
-    /* Match the patient sidebar's length: a full-height sticky column rather
-       than a content-sized card. The step list scrolls inside if it overflows. */
-    height: calc(100dvh - var(--height-mac-menubar) - var(--space-page) - var(--space-page));
-    overflow-y: auto;
-    position: sticky;
-    top: calc(var(--height-mac-menubar) + var(--space-page));
+    grid-template-columns: minmax(220px, 240px) minmax(0, 1fr);
   }
 }
 
@@ -1736,18 +1727,6 @@ button {
 .clinical-form-grid-full {
   grid-column: 1 / -1;
 }
-
-.prepare-step-status {
-  border: 1px solid transparent;
-  border-radius: 50%;
-  flex: 0 0 10px;
-  height: 10px;
-  width: 10px;
-}
-.prepare-step-status.is-positive { background: var(--status-positive-solid); }
-.prepare-step-status.is-intermediate { background: var(--status-intermediate-solid); }
-.prepare-step-status.is-negative { background: var(--status-negative-solid); }
-.prepare-step-status.is-neutral { background: transparent; border-color: var(--color-border); }
 
 .closure-readiness-grid {
   display: grid;
@@ -2215,21 +2194,21 @@ button {
   font-weight: var(--font-weight-semibold);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1320px) {
   .mac-command-inner {
     grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .mac-command-nav {
+    overflow-x: hidden;
   }
 
   .mac-account-copy {
     display: none;
   }
 
-  .mac-command-nav-item span {
+  .mac-command-nav-item:not(.is-active) span {
     display: none;
-  }
-
-  .mac-command-nav-item.is-active span {
-    display: inline;
   }
 
   .mac-command-nav-item {
@@ -2260,6 +2239,7 @@ button {
   .mac-command-nav {
     grid-column: 1 / -1;
     order: 4;
+    overflow-x: auto;
   }
 
   .mac-command-nav-item span {
