@@ -88,23 +88,22 @@ assert.match(loginPage, /LoginCard/, "Login route must render the reusable login
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");
-assert.match(globals, /\.dashboard-command-grid[\s\S]*overflow-y: auto/, "Dashboard chart pages must keep a vertical page scroll area");
+assert.match(globals, /\.dashboard-operations[\s\S]*overflow-y: auto/, "Dashboard operations page must keep a vertical page scroll area");
 assert.match(globals, /\.mac-main > \*[\s\S]*mac-page-enter/, "Mac shell must provide a subtle page transition");
 assert.match(globals, /\.landing-login-card[\s\S]*backdrop-filter: blur\(28px\)/, "Landing login card must use liquid-glass blur");
-assert.match(globals, /\.dashboard-command-grid[\s\S]*overflow-x: hidden/, "Dashboard chart pages must avoid horizontal page scrolling");
+assert.match(globals, /\.dashboard-operations[\s\S]*overflow-x: hidden/, "Dashboard operations page must avoid horizontal page scrolling");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-y: auto/, "Analytics chart pages must keep a vertical page scroll area");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-x: hidden/, "Analytics chart pages must avoid horizontal page scrolling");
 assert.match(globals, /\.clinical-matrix[\s\S]*--matrix-min-height/, "Square-block chart matrices must reserve enough height to avoid clipping");
 assert.match(globals, /\.clinical-matrix[\s\S]*overflow-y: auto/, "Square-block chart matrices must contain tall content inside the chart card");
 assert.match(globals, /--matrix-max-height/, "Square-block chart cards must cap matrix height so blocks cannot overlap neighboring content");
 assert.match(globals, /\.analytics-insight-rail[\s\S]*--list-max-height/, "Analytics insight lists must remain independently scrollable");
-assert.match(dashboardClient, /RiskDomainLoad/, "Dashboard Risk tab must use sorted risk-domain bars instead of another square-block matrix");
-assert.doesNotMatch(dashboardClient, /function SafetyMatrix/, "Dashboard Risk tab must not reintroduce the old square Safety Matrix chart");
-assert.match(dashboardClient, /dashboard-risk-summary-row/, "Dashboard Risk tab must place score, domain load, and PHI assurance in a full-width summary row");
-assert.doesNotMatch(dashboardClient, /dashboard-risk-side/, "Dashboard Risk tab must not use the cramped right-side summary rail");
-assert.match(globals, /\.dashboard-panel-risk[\s\S]*"graph"[\s\S]*"summary"[\s\S]*"queue"[\s\S]*"fraction"/, "Dashboard Risk tab must use a vertical full-width page-scroll layout");
-assert.match(globals, /\.dashboard-risk-graph-card[\s\S]*min-height: 560px/, "Dashboard Risk constellation must reserve enough room for labels and nodes");
-assert.match(globals, /\.dashboard-panel-risk \.dashboard-intervention-list[\s\S]*max-height: none/, "Dashboard Risk intervention list must expand naturally by default");
+assert.doesNotMatch(dashboardClient, /Clinical Safety Score/, "Dashboard must not expose a synthetic clinical safety score");
+assert.doesNotMatch(dashboardClient, /from ['"]recharts['"]|ChartCard|ClinicalMatrix/, "Dashboard must not import or render charts");
+assert.doesNotMatch(dashboardClient, /TabStrip|role="tabpanel"|DashboardPanel|RiskDashboard|Trend/, "Dashboard must not expose tabs, risk panels, or trends");
+assert.match(dashboardClient, /Priority Queue/, "Dashboard must expose the Priority Queue");
+assert.match(dashboardClient, /Today Schedule/, "Dashboard must expose Today Schedule");
+assert.match(dashboardClient, /Exceptions/, "Dashboard must expose Exceptions");
 
 const visibleWorkspaceLabels = [
   "Overview",
