@@ -48,6 +48,7 @@ import type {
   TreatmentFraction,
   WorkflowDefinition,
   WorkflowStep,
+  WorkflowStepMutationInput,
   WorkflowSnapshot
 } from "@/lib/types";
 import {
@@ -63,7 +64,12 @@ import {
   toOperationalPriorityFlag
 } from "@/lib/hipaa";
 import { canApproveFraction } from "@/lib/rbac";
-import { carepathStepApplicability, courseDocuments, courseFractions } from "@/lib/workflow";
+import {
+  carepathStepApplicability,
+  completedTaskStatuses,
+  courseDocuments,
+  courseFractions
+} from "@/lib/workflow";
 import { patientName } from "@/lib/server/patient-phi-formatting";
 import { fileStorageService } from "@/lib/services/file-storage-service";
 import {
@@ -710,6 +716,47 @@ export const carepathTasks: CarepathTask[] = [
     assignedUser: "Noel Rivera"
   }
 ];
+
+export function linkedCarepathTasksForWorkflowStep(step: WorkflowStep) {
+  return carepathTasks.filter(
+    (task) =>
+      task.courseId === step.courseId &&
+      Number(task.taskNumber.match(/\d+$/)?.[0]) === step.stepNumber
+  );
+}
+
+export function synchronizeCarepathTaskWithWorkflowStep(
+  task: CarepathTask,
+  input: Pick<WorkflowStepMutationInput, "status" | "reopenReason">,
+  timestamp: string
+) {
+  if (input.reopenReason) {
+    task.status = "PENDING";
+    task.auditReady = false;
+    task.completedAt = undefined;
+    task.signedAt = undefined;
+    task.blockedReason = undefined;
+    task.naReason = undefined;
+    task.reopenReason = undefined;
+    task.lastUpdatedAt = timestamp;
+    return;
+  }
+
+  if (
+    input.status &&
+    ["COMPLETED", "SIGNED", "UPLOADED", "CLOSED"].includes(input.status) &&
+    !completedTaskStatuses.includes(task.status)
+  ) {
+    task.status = "COMPLETED";
+    task.auditReady = true;
+    task.completedAt = timestamp;
+    task.blockedReason = undefined;
+    task.naReason = undefined;
+    task.reopenReason = undefined;
+    task.lastUpdatedAt = timestamp;
+  }
+}
+
 export const generatedDocuments: GeneratedDocument[] = [
   ...clone(mockGeneratedDocuments),
   {

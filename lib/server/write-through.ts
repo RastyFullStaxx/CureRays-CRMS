@@ -666,7 +666,12 @@ function courseById(courseId: string): TreatmentCourse | undefined {
  * Write-through for a workflow-step / task / course-advance mutation. Persists
  * the affected course's OPS rows plus the recorded operational audit event.
  */
-export async function persistCourseWorkflowMutation(courseId: string, auditEventId?: string): Promise<void> {
+export async function persistCourseWorkflowMutation(
+  courseId: string,
+  auditEventId?: string,
+  workflowStepId?: string,
+  taskId?: string
+): Promise<void> {
   if (!isPrismaPersistenceMode()) {
     return;
   }
@@ -677,6 +682,16 @@ export async function persistCourseWorkflowMutation(courseId: string, auditEvent
   }
 
   const auditEvent = auditEventId ? auditEvents.find((event) => event.id === auditEventId) : undefined;
+  const workflowStep = workflowStepId
+    ? patientCourseWorkflowSteps.find((step) => step.id === workflowStepId && step.courseId === courseId)
+    : undefined;
+  const task = taskId
+    ? carepathTasks.find((item) => item.id === taskId && item.courseId === courseId)
+    : undefined;
+
+  if ((workflowStepId && !workflowStep) || (taskId && !task)) {
+    throw new PersistenceWriteError();
+  }
 
   await withClients(true, false, async (ops) => {
     if (!ops) {

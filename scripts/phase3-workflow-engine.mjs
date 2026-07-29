@@ -270,6 +270,105 @@ const stepUpdate = await workflowService.updateWorkflowStepCommand(
 );
 assert.equal(stepUpdate.ok, true, "Completing consultation step should succeed");
 assert.equal(stepUpdate.body.auditEvent.redacted, true, "Workflow step audit event should be redacted");
+assert.equal(stepUpdate.body.task, undefined, "A step without a matching task should return only the canonical step");
+
+const linkedStep = courseSteps.find((step) => step.stepNumber === 5);
+const linkedTask = {
+  ...structuredClone(courseTasks[0]),
+  id: `${courseTasks[0].id}-LINKED-05`,
+  courseId: course.id,
+  taskNumber: "IGSRT-05",
+  status: "PENDING",
+  auditReady: false,
+  completedAt: undefined,
+  signedAt: undefined,
+  blockedReason: undefined,
+  naReason: undefined,
+  reopenReason: undefined
+};
+store.carepathTasks.push(linkedTask);
+const linkedTaskNumber = linkedTask.taskNumber;
+const linkedStepUpdate = await workflowService.updateWorkflowStepCommand(
+  linkedStep.id,
+  {
+    status: "COMPLETED",
+    expectedUpdatedAt: linkedStep.updatedAt,
+    changeReason: "Phase 3 guardrail completed a linked workflow step."
+  },
+  workflowContext,
+  "2026-06-12T00:00:00.000Z"
+);
+assert.equal(linkedStepUpdate.ok, true, "Completing a linked workflow step should succeed");
+assert.ok(linkedStepUpdate.body.task, "Completing a linked step should return its synchronized task");
+assert.equal(linkedStepUpdate.body.task.status, "COMPLETED", "Completing a linked step should complete its task");
+assert.equal(linkedStepUpdate.body.task.taskNumber, linkedTaskNumber, "Linked task synchronization must preserve its business identifier");
+assert.equal(linkedStepUpdate.body.auditEvent.userName, "Phase 3 RAD_ONC", "Linked step audit must preserve the named actor");
+
+linkedTask.signedAt = "2026-06-12T00:00:00.000Z";
+linkedTask.blockedReason = "Synthetic blocked reason";
+linkedTask.naReason = "Synthetic N/A reason";
+linkedTask.reopenReason = "Synthetic previous reopen reason";
+const reopenedLinkedStep = await workflowService.updateWorkflowStepCommand(
+  linkedStep.id,
+  {
+    status: "COMPLETED",
+    reopenReason: "Phase 3 guardrail reopened a linked workflow step.",
+    expectedUpdatedAt: linkedStepUpdate.body.step.updatedAt,
+    changeReason: "Phase 3 guardrail reopened a linked workflow step."
+  },
+  workflowContext,
+  "2026-06-12T00:00:00.000Z"
+);
+assert.equal(reopenedLinkedStep.ok, true, "Reopening a linked workflow step should succeed");
+assert.equal(reopenedLinkedStep.body.step.status, "PENDING", "Reopen reason should take precedence over a stale terminal status");
+assert.equal(reopenedLinkedStep.body.task.status, "PENDING", "Reopening a linked step should return its task to pending");
+for (const field of ["completedAt", "signedAt", "blockedReason", "naReason", "reopenReason"]) {
+  assert.equal(reopenedLinkedStep.body.task[field], undefined, `Reopening a linked step should clear task ${field}`);
+}
+assert.equal(reopenedLinkedStep.body.task.taskNumber, linkedTaskNumber, "Reopening must preserve the linked task business identifier");
+store.carepathTasks.splice(store.carepathTasks.indexOf(linkedTask), 1);
+
+const duplicateStep = courseSteps.find((step) => step.stepNumber === 6);
+const duplicateTask = {
+  ...structuredClone(courseTasks[0]),
+  id: `${courseTasks[0].id}-LINKED-06`,
+  courseId: course.id,
+  taskNumber: "CP-06",
+  status: "PENDING",
+  auditReady: false,
+  completedAt: undefined,
+  signedAt: undefined
+};
+const conflictingTask = {
+  ...structuredClone(duplicateTask),
+  id: `${duplicateTask.id}-DUPLICATE`,
+  taskNumber: "CUSTOM-06"
+};
+store.carepathTasks.push(duplicateTask, conflictingTask);
+const duplicateStepBefore = structuredClone(duplicateStep);
+const duplicateTaskBefore = structuredClone(duplicateTask);
+const conflictingTaskBefore = structuredClone(conflictingTask);
+const auditCountBeforeDuplicate = store.auditEvents.length;
+const duplicateResult = await workflowService.updateWorkflowStepCommand(
+  duplicateStep.id,
+  {
+    status: "COMPLETED",
+    expectedUpdatedAt: duplicateStep.updatedAt,
+    changeReason: "Reject ambiguous linked task configuration."
+  },
+  workflowContext,
+  "2026-06-12T00:00:00.000Z"
+);
+assert.equal(duplicateResult.ok, false, "Multiple linked tasks should reject the workflow step mutation");
+assert.ok(
+  duplicateResult.body.blockers.some((blocker) => blocker.includes("Multiple carepath tasks")),
+  "Multiple linked tasks should return a configuration blocker"
+);
+assert.deepEqual(duplicateStep, duplicateStepBefore, "Duplicate-link failure must leave the workflow step unchanged");
+assert.deepEqual(duplicateTask, duplicateTaskBefore, "Duplicate-link failure must leave the original task unchanged");
+assert.deepEqual(conflictingTask, conflictingTaskBefore, "Duplicate-link failure must leave the conflicting task unchanged");
+assert.equal(store.auditEvents.length, auditCountBeforeDuplicate, "Duplicate-link failure must not record a mutation audit");
+store.carepathTasks.splice(store.carepathTasks.indexOf(duplicateTask), 2);
 
 for (const task of courseTasks.filter((item) => item.workflowPhase === "CONSULTATION")) {
   const taskUpdate = await workflowService.updateTaskCommand(

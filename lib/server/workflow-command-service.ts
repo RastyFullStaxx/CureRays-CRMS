@@ -6,12 +6,14 @@ import {
   appointments,
   generatedDocuments,
   getClinicalFormResponse,
+  linkedCarepathTasksForWorkflowStep,
   operationalAuditEvents,
   operationalPatients,
   operationalTreatmentCourses,
   patientCourseAuditChecks,
   patientCourseWorkflowSteps,
   recordOperationalAuditEvent,
+  synchronizeCarepathTaskWithWorkflowStep,
   treatmentCourses
 } from "@/lib/clinical-store";
 import { documentRequirements, workflowDefinitions } from "@/lib/template-registry";
@@ -734,6 +736,11 @@ function updateWorkflowStepInMemory(
     reasonErrors.push("Reopen reason is required.");
   }
 
+  const linkedTasks = linkedCarepathTasksForWorkflowStep(step);
+  if (linkedTasks.length > 1) {
+    reasonErrors.push(`Multiple carepath tasks are linked to ${step.stepName}.`);
+  }
+
   if (reasonErrors.length > 0) {
     return mutationResult({
       allowed: false,
@@ -742,6 +749,9 @@ function updateWorkflowStepInMemory(
       auditAction: "Workflow step update rejected"
     });
   }
+
+  const timestamp = nowIso();
+  const linkedTask = linkedTasks[0];
 
   if (input.assignedUserId !== undefined) {
     step.assignedUserId = safeText(input.assignedUserId) || undefined;
@@ -756,10 +766,9 @@ function updateWorkflowStepInMemory(
     step.signedAt = undefined;
     step.signedByUserId = undefined;
     step.blockers = [];
+    step.naReason = undefined;
     step.notes = `Reopened: ${safeText(input.reopenReason)}`;
-  }
-
-  if (input.status) {
+  } else if (input.status) {
     step.status = input.status;
     if (input.status === "NOT_APPLICABLE") {
       step.naReason = safeText(input.naReason);
@@ -772,12 +781,16 @@ function updateWorkflowStepInMemory(
     }
 
     if (["SIGNED", "COMPLETED", "UPLOADED", "CLOSED"].includes(input.status) && step.requiresSignature) {
-      step.signedAt = nowIso();
+      step.signedAt = timestamp;
       step.signedByUserId = context.userId;
     }
   }
 
-  step.updatedAt = nowIso();
+  if (linkedTask) {
+    synchronizeCarepathTaskWithWorkflowStep(linkedTask, input, timestamp);
+  }
+
+  step.updatedAt = timestamp;
   const course = courseByIdOrRef(step.courseId);
   const auditEvent = auditForContext(context, course, "Workflow step updated", "COURSE", step.id);
 
@@ -791,6 +804,7 @@ function updateWorkflowStepInMemory(
     },
     {
       step: toOperationalStep(step, asOf),
+      task: linkedTask ? toOperationalTask(linkedTask, asOf) : undefined,
       auditEvent
     }
   );
@@ -935,13 +949,18 @@ function courseIdForTask(taskId: string): string | undefined {
   return carepathTasks.find((task) => task.id === taskId)?.courseId;
 }
 
-async function writeThroughOrRestore(courseId: string | undefined, auditEventId?: string) {
+async function writeThroughOrRestore(
+  courseId: string | undefined,
+  auditEventId?: string,
+  workflowStepId?: string,
+  taskId?: string
+) {
   if (!courseId) {
     return;
   }
 
   try {
-    await persistCourseWorkflowMutation(courseId, auditEventId);
+    await persistCourseWorkflowMutation(courseId, auditEventId, workflowStepId, taskId);
   } catch (error) {
     await hydrateClinicalStoreFromDatabase({ force: true });
     throw error;
@@ -972,14 +991,14 @@ export const prismaWorkflowTaskRepository: WorkflowTaskRepository = {
   async updateWorkflowStep(stepId, input, context, asOf) {
     const result = updateWorkflowStepInMemory(stepId, input, context, asOf);
     if (result.allowed) {
-      await writeThroughOrRestore(courseIdForStep(stepId), result.auditEvent?.id);
+      await writeThroughOrRestore(courseIdForStep(stepId), result.auditEvent?.id, result.step?.id, result.task?.id);
     }
     return result;
   },
   async updateTask(taskId, input, context, asOf) {
     const result = updateTaskInMemory(taskId, input, context, asOf);
     if (result.allowed) {
-      await writeThroughOrRestore(courseIdForTask(taskId), result.auditEvent?.id);
+      await writeThroughOrRestore(courseIdForTask(taskId), result.auditEvent?.id, undefined, result.task?.id);
     }
     return result;
   }
