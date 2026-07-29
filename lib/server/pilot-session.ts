@@ -67,14 +67,14 @@ function parsePasswordHash(value: string): { salt: Buffer; hash: Buffer } {
   return { salt, hash };
 }
 
-function sessionSecret(): string {
-  const secret = process.env.PILOT_SESSION_SECRET;
+function sessionSecret(): Buffer {
+  const source = process.env.PILOT_SESSION_SECRET;
+  if (!source) configurationError();
+  const secret = canonicalBase64Url(source);
   if (
-    !secret ||
-    secret !== secret.trim() ||
-    Buffer.byteLength(secret) < 32 ||
-    new Set(secret).size < 8 ||
-    /^(?:change-me|replace-me|<)/i.test(secret)
+    secret.length < 32 ||
+    secret.length > 64 ||
+    new Set(secret).size < 16
   ) {
     configurationError();
   }
@@ -264,11 +264,15 @@ export function pilotCookieOptions(maxAge = PILOT_SESSION_MAX_AGE) {
 
 export function isSameOriginRequest(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
-  if (!origin) return true;
-  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
-  if (!host) return false;
+  if (!origin) return false;
   try {
-    return new URL(origin).host === host;
+    const requestUrl = new URL(request.url);
+    const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+    const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+    const expectedOrigin = new URL(
+      `${forwardedProto || requestUrl.protocol.replace(':', '')}://${forwardedHost || requestUrl.host}`,
+    ).origin;
+    return new URL(origin).origin === expectedOrigin;
   } catch {
     return false;
   }
