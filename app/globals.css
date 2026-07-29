@@ -3415,7 +3415,8 @@ button {
   width: 100%;
 }
 
-.landing-orbit-canvas-fallback {
+.landing-orbit-canvas-fallback,
+.landing-orbit-canvas[data-canvas-state="unavailable"] {
   background:
     radial-gradient(ellipse at 34% 42%, transparent 0 26%, color-mix(in srgb, var(--color-primary) 26%, transparent) 26.2% 26.5%, transparent 26.7%),
     radial-gradient(ellipse at 34% 42%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 54%);
