@@ -92,6 +92,9 @@ assert.doesNotMatch(loginPage, /Synthetic Data Pilot|Synthetic data/i, "Landing 
 assert.doesNotMatch(loginCard, /Synthetic Data Pilot|Synthetic data/i, "Landing sign-in must not expose removed pilot wording");
 assert.match(loginPage, /About CureRays/, "Landing must introduce CureRays Radiation Medicine");
 assert.match(loginPage, /href="#sign-in"/, "Landing header must provide a direct sign-in anchor");
+assert.match(loginPage, /sizes="/, "Landing editorial image must provide responsive sizes");
+assert.match(globals, /\.landing-story-link\s*\{[^}]*min-height:\s*40px;/s, "Landing story link must keep a 40px touch target");
+assert.match(globals, /\.landing-password-toggle\s*\{[^}]*height:\s*40px;[^}]*width:\s*40px;/s, "Landing password toggle must keep a 40px touch target");
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");

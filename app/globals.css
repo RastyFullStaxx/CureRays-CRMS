@@ -2983,6 +2983,7 @@ button {
   gap: var(--space-1);
   justify-self: start;
   line-height: var(--type-label-line);
+  min-height: 40px;
   text-decoration: none;
 }
 
@@ -3126,10 +3127,10 @@ button {
   color: color-mix(in srgb, var(--color-text-muted) 86%, var(--color-text));
   cursor: pointer;
   display: grid;
-  height: 36px;
+  height: 40px;
   place-items: center;
   right: var(--space-1);
-  width: 36px;
+  width: 40px;
 }
 
 .landing-password-toggle svg {

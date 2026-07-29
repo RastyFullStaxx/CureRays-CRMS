@@ -116,6 +116,7 @@ export default function LoginPage() {
               alt="Abstract precision treatment geometry in a luminous clinical space"
               width={1717}
               height={916}
+              sizes="(max-width: 1023px) calc(100vw - 32px), (max-width: 1440px) 48vw, 696px"
               className="landing-about-image"
             />
             <div className="landing-about-caption">
