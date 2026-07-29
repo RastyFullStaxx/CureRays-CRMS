@@ -667,7 +667,7 @@ export type WorkflowDefinition = {
 
 export type WorkflowCommandResult = {
   allowed: boolean;
-  status: "READY" | "BLOCKED" | "NOT_FOUND" | "VALIDATION_FAILED";
+  status: "READY" | "BLOCKED" | "STALE" | "NOT_FOUND" | "VALIDATION_FAILED";
   blockers: string[];
   auditAction: string;
   nextPhase?: CarepathWorkflowPhase;
@@ -686,8 +686,8 @@ export type WorkflowQueueName =
 export type TaskDueBucket = "OVERDUE" | "TODAY" | "UPCOMING" | "ALL_OPEN";
 
 export type WorkflowAdvanceInput = {
-  expectedCoursePhase?: CarepathWorkflowPhase;
-  changeReason: string;
+  expectedCoursePhase: CarepathWorkflowPhase;
+  reason: string;
 };
 
 export type WorkflowStepMutationInput = {

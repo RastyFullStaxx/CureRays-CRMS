@@ -48,7 +48,7 @@ type MaybePromise<T> = T | Promise<T>;
 
 export type WorkflowRepositoryMode = "memory" | "prisma";
 
-export type WorkflowMutationAction = "workflow:mutate" | "task:mutate";
+export type WorkflowMutationAction = "workflow:step_mutate" | "workflow:advance" | "task:mutate";
 
 export type WorkflowMutationContext = PilotSessionClaims & {
   action: WorkflowMutationAction;
@@ -57,6 +57,7 @@ export type WorkflowMutationContext = PilotSessionClaims & {
 
 export type WorkflowServiceErrorBody = {
   message: string;
+  status?: WorkflowCommandResult["status"];
   errors?: string[];
   blockers?: string[];
 };
@@ -603,13 +604,13 @@ function advanceCourseInMemory(
   asOf?: string
 ): WorkflowCommandMutationResult {
   const course = courseByIdOrRef(courseIdOrRef);
-  const reasonErrors = validateReason(input.changeReason);
+  const reasonErrors = validateReason(input.reason, "reason");
 
-  if (!validateContext(context, "workflow:mutate")) {
+  if (!validateContext(context, "workflow:advance")) {
     return mutationResult({
       allowed: false,
       status: "VALIDATION_FAILED",
-      blockers: ["Workflow mutation access denied."],
+      blockers: ["Workflow advance access denied."],
       auditAction: "Workflow advancement rejected"
     });
   }
@@ -618,8 +619,10 @@ function advanceCourseInMemory(
     return mutationResult(evaluateCourseAdvance(courseIdOrRef, asOf));
   }
 
-  if (input.expectedCoursePhase && input.expectedCoursePhase !== course.coursePhase) {
-    reasonErrors.push("Course phase was updated by another session.");
+  if (!input.expectedCoursePhase) {
+    reasonErrors.push("expectedCoursePhase is required.");
+  } else if (!orderedCarepathPhases.includes(input.expectedCoursePhase)) {
+    reasonErrors.push("expectedCoursePhase is invalid.");
   }
 
   if (reasonErrors.length > 0) {
@@ -627,6 +630,15 @@ function advanceCourseInMemory(
       allowed: false,
       status: "VALIDATION_FAILED",
       blockers: reasonErrors,
+      auditAction: "Workflow advancement rejected"
+    });
+  }
+
+  if (input.expectedCoursePhase !== course.coursePhase) {
+    return mutationResult({
+      allowed: false,
+      status: "STALE",
+      blockers: ["Course phase was updated by another session."],
       auditAction: "Workflow advancement rejected"
     });
   }
@@ -672,7 +684,7 @@ function updateWorkflowStepInMemory(
   const step = patientCourseWorkflowSteps.find((item) => item.id === stepId);
   const reasonErrors = validateReason(input.changeReason);
 
-  if (!validateContext(context, "workflow:mutate")) {
+  if (!validateContext(context, "workflow:step_mutate")) {
     return mutationResult({
       allowed: false,
       status: "VALIDATION_FAILED",
@@ -979,11 +991,17 @@ function success<T>(status: number, body: T): WorkflowServiceResponse<T> {
   return { ok: true, status, body };
 }
 
-function failure<T>(status: number, message: string, errors?: string[], blockers?: string[]): WorkflowServiceResponse<T> {
+function failure<T>(
+  status: number,
+  message: string,
+  errors?: string[],
+  blockers?: string[],
+  workflowStatus?: WorkflowCommandResult["status"]
+): WorkflowServiceResponse<T> {
   return {
     ok: false,
     status,
-    body: { message, errors, blockers }
+    body: { message, status: workflowStatus, errors, blockers }
   };
 }
 
@@ -1118,7 +1136,8 @@ export async function advanceCourseWorkflow(
         result.status === "NOT_FOUND" ? 404 : result.status === "VALIDATION_FAILED" ? 400 : 409,
         result.auditAction,
         result.status === "VALIDATION_FAILED" ? result.blockers : undefined,
-        result.blockers
+        result.blockers,
+        result.status
       );
     }
 

@@ -130,7 +130,7 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           expectedCoursePhase: selectedCourse.coursePhase,
-          changeReason: 'Phase 3 guarded course workflow advancement.',
+          reason: 'Phase 3 guarded course workflow advancement.',
         }),
       });
       const result = (await response.json()) as { message?: string; blockers?: string[] };

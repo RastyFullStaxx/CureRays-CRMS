@@ -14,7 +14,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const body = (await request.json()) as Partial<WorkflowStepMutationInput>;
   const context = workflowMutationContextFromRequest(
     request,
-    "workflow:mutate",
+    "workflow:step_mutate",
     body.changeReason ?? "Update workflow step"
   );
 

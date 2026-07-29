@@ -5,7 +5,8 @@ export type RoleAction =
   | "phi:create"
   | "phi:update"
   | "igsrt:mutate"
-  | "workflow:mutate"
+  | "workflow:step_mutate"
+  | "workflow:advance"
   | "task:mutate"
   | "fraction:approve_md"
   | "fraction:approve_dot"
@@ -42,25 +43,25 @@ export const roleMatrix: RoleMatrixRow[] = [
     role: "VA",
     label: roleLabels.VA,
     moduleAccess: { patients: "view", tasks: "edit", schedule: "edit", documents: "view", billing: "none", audit: "none", settings: "none" },
-    actions: ["phi:read", "task:mutate"]
+    actions: ["phi:read", "workflow:step_mutate", "task:mutate"]
   },
   {
     role: "MA",
     label: roleLabels.MA,
     moduleAccess: { patients: "view", tasks: "edit", schedule: "edit", documents: "edit", billing: "none", audit: "view", settings: "none" },
-    actions: ["phi:read", "phi:update", "igsrt:mutate", "task:mutate"]
+    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:step_mutate", "task:mutate"]
   },
   {
     role: "RTT",
     label: roleLabels.RTT,
     moduleAccess: { patients: "view", tasks: "edit", schedule: "edit", documents: "view", billing: "none", audit: "view", settings: "none" },
-    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:mutate", "task:mutate", "fraction:approve_dot"]
+    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:step_mutate", "task:mutate", "fraction:approve_dot"]
   },
   {
     role: "NP_PA",
     label: roleLabels.NP_PA,
     moduleAccess: { patients: "view", tasks: "edit", schedule: "view", documents: "edit", billing: "none", audit: "view", settings: "none" },
-    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:mutate", "task:mutate", "document:render", "document:export"]
+    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:step_mutate", "task:mutate", "document:render", "document:export"]
   },
   {
     role: "PCP",
@@ -72,13 +73,13 @@ export const roleMatrix: RoleMatrixRow[] = [
     role: "RAD_ONC",
     label: roleLabels.RAD_ONC,
     moduleAccess: { patients: "full", tasks: "edit", schedule: "view", documents: "edit", billing: "view", audit: "view", settings: "none" },
-    actions: [...allPhiActions, "igsrt:mutate", "workflow:mutate", "task:mutate", "fraction:approve_md", "document:render", "document:export", "document:sign"]
+    actions: [...allPhiActions, "igsrt:mutate", "workflow:step_mutate", "workflow:advance", "task:mutate", "fraction:approve_md", "document:render", "document:export", "document:sign"]
   },
   {
     role: "PHYSICIST",
     label: roleLabels.PHYSICIST,
     moduleAccess: { patients: "view", tasks: "edit", schedule: "view", documents: "edit", billing: "none", audit: "edit", settings: "none" },
-    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:mutate", "task:mutate", "document:render", "document:export"]
+    actions: ["phi:read", "phi:update", "igsrt:mutate", "workflow:step_mutate", "task:mutate", "document:render", "document:export"]
   },
   {
     role: "BILLING",
@@ -93,7 +94,8 @@ export const roleMatrix: RoleMatrixRow[] = [
     actions: [
       ...allPhiActions,
       "igsrt:mutate",
-      "workflow:mutate",
+      "workflow:step_mutate",
+      "workflow:advance",
       "task:mutate",
       "fraction:approve_md",
       "fraction:approve_dot",

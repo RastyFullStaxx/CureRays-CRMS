@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest) {
   const body = (await request.json()) as ClinicalFormPatchBody;
   const context = workflowMutationContextFromRequest(
     request,
-    "workflow:mutate",
+    "workflow:step_mutate",
     body.changeReason ?? "Update clinical form"
   );
 

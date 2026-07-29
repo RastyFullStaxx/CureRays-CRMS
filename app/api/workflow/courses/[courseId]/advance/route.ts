@@ -14,8 +14,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const body = (await request.json()) as Partial<WorkflowAdvanceInput>;
   const context = workflowMutationContextFromRequest(
     request,
-    "workflow:mutate",
-    body.changeReason ?? "Advance course workflow phase"
+    "workflow:advance",
+    body.reason ?? ""
   );
 
   if (!context) {

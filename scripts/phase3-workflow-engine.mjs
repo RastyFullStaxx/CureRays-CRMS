@@ -58,6 +58,7 @@ const taskRoutePath = "app/api/tasks/route.ts";
 const taskMutationRoutePath = "app/api/tasks/[taskId]/route.ts";
 const stepMutationRoutePath = "app/api/workflow/steps/[stepId]/route.ts";
 const advanceRoutePath = "app/api/workflow/courses/[courseId]/advance/route.ts";
+const clinicalFormRoutePath = "app/api/clinical-forms/route.ts";
 const typesSource = read("lib/types.ts");
 const rbacSource = read("lib/rbac.ts");
 const clinicalStoreSource = read("lib/clinical-store.ts");
@@ -96,9 +97,10 @@ for (const expected of [
   assertIncludes(typesSource, expected, `Phase 3 type contract must include ${expected}`);
 }
 
-for (const expected of ["workflow:mutate", "task:mutate"]) {
+for (const expected of ["workflow:step_mutate", "workflow:advance", "task:mutate"]) {
   assertIncludes(rbacSource, expected, `RBAC must include ${expected}`);
 }
+assertExcludes(rbacSource, '"workflow:mutate"', "RBAC must not retain the broad workflow mutation permission");
 
 for (const expected of [
   "removedCarepathReason",
@@ -116,6 +118,9 @@ assertIncludes(read(taskRoutePath), "listTaskQueue", "Task GET must use queue se
 assertIncludes(read(taskMutationRoutePath), "updateTaskCommand", "Task mutation route must use command service");
 assertIncludes(read(stepMutationRoutePath), "updateWorkflowStepCommand", "Step mutation route must use command service");
 assertIncludes(read(advanceRoutePath), "advanceCourseWorkflow", "Advance route must use command service");
+assertIncludes(read(stepMutationRoutePath), '"workflow:step_mutate"', "Step mutation route must require step mutation access");
+assertIncludes(read(advanceRoutePath), '"workflow:advance"', "Advance route must require course advance access");
+assertIncludes(read(clinicalFormRoutePath), '"workflow:step_mutate"', "Clinical form mutation must use the workflow step mutation permission");
 assertExcludes(read(workflowRoutePath), "@/lib/clinical-store", "Workflow route must not import clinical-store directly");
 assertIncludes(packageJson, '"test:phase3"', "package.json must expose Phase 3 guardrail");
 assertIncludes(packageJson, "npm run test:phase3", "npm run verify must include Phase 3 guardrail");
@@ -125,6 +130,7 @@ installTsHook();
 const workflowService = require(join(root, servicePath));
 const patientService = require(join(root, "lib/server/patient-registration-service.ts"));
 const store = require(join(root, "lib/clinical-store.ts"));
+const { roleCan } = require(join(root, "lib/rbac.ts"));
 
 function mutationContext(action, reason, role = "RAD_ONC") {
   return {
@@ -188,11 +194,16 @@ assert.equal(allOpenQueue.tasks.find((task) => task.workspaceTarget?.targetId ==
 assert.equal(allOpenQueue.tasks.find((task) => task.workspaceTarget?.targetId === "WF-COURSE-2405-13")?.workspaceTarget?.tab, "record-closeout", "Post-treatment work should open the Record and Closeout workspace");
 assert.equal(overdueQueue.bucketCounts.ALL_OPEN, allOpenQueue.tasks.length, "Bucket counts should reconcile with All Open");
 
-const createContext = patientService.patientMutationContextFromRequest(
-  { headers: { get: (name) => name.toLowerCase() === "x-curerays-role" ? "RAD_ONC" : null } },
-  "phi:create",
-  "Phase 3 create workflow bundle"
-);
+const createContext = {
+  action: "phi:create",
+  role: "RAD_ONC",
+  userId: "PHASE3-RAD_ONC",
+  userName: "Phase 3 RAD_ONC",
+  sessionId: "phase3-session",
+  ipAddress: "phase3-ip",
+  deviceId: "phase3-device",
+  reason: "Phase 3 create workflow bundle"
+};
 const created = await patientService.registerPatient(registrationInput(Date.now()), createContext);
 assert.equal(created.ok, true, "Phase 3 registration fixture should create");
 assert.equal(created.body.bundle.workflowDefinitionId, "WF-SKIN-IGSRT", "Workflow definition should be selected from course fields");
@@ -216,9 +227,31 @@ assert.equal(requiredNa.allowed, false, "Required workflow steps must not be mar
 const optionalBlankNa = workflowService.markWorkflowStepNotApplicable(courseSteps.find((step) => step.stepNumber === 6).id, "");
 assert.equal(optionalBlankNa.allowed, false, "Optional N/A command should require a reason");
 
-const workflowContext = mutationContext("workflow:mutate", "Phase 3 complete consultation step");
+const roles = ["VA", "MA", "RTT", "NP_PA", "PCP", "RAD_ONC", "PHYSICIST", "BILLING", "ADMIN"];
+const stepMutationRoles = new Set(["VA", "MA", "RTT", "NP_PA", "RAD_ONC", "PHYSICIST", "ADMIN"]);
+const advanceRoles = new Set(["RAD_ONC", "ADMIN"]);
+for (const role of roles) {
+  assert.equal(roleCan(role, "workflow:step_mutate"), stepMutationRoles.has(role), `${role} step mutation permission must match the pilot matrix`);
+  assert.equal(roleCan(role, "workflow:advance"), advanceRoles.has(role), `${role} advance permission must match the pilot matrix`);
+}
+assert.equal(roleCan("PCP", "workflow:step_mutate"), false, "PCP must remain read-only for workflow steps");
+assert.equal(roleCan("PCP", "workflow:advance"), false, "PCP must remain read-only for course advancement");
+
+const workflowContext = mutationContext("workflow:step_mutate", "Phase 3 complete consultation step");
 const taskContext = mutationContext("task:mutate", "Phase 3 complete consultation task");
 const consultationStep = courseSteps.find((step) => step.stepNumber === 0);
+const deniedStep = await workflowService.updateWorkflowStepCommand(
+  consultationStep.id,
+  {
+    status: "COMPLETED",
+    expectedUpdatedAt: consultationStep.updatedAt,
+    changeReason: "PCP must not mutate a workflow step."
+  },
+  mutationContext("workflow:step_mutate", "PCP must not mutate a workflow step.", "PCP")
+);
+assert.equal(deniedStep.ok, false, "PCP workflow step mutation must be denied");
+assert.equal(consultationStep.status, "PENDING", "Denied workflow step mutation must not change state");
+
 const stepUpdate = await workflowService.updateWorkflowStepCommand(
   consultationStep.id,
   {
@@ -246,18 +279,67 @@ for (const task of courseTasks.filter((item) => item.workflowPhase === "CONSULTA
   assert.equal(taskUpdate.ok, true, `${task.id} should complete`);
 }
 
+const coursePhaseBeforeAdvance = course.coursePhase;
+const deniedAdvance = await workflowService.advanceCourseWorkflow(
+  course.id,
+  {
+    expectedCoursePhase: coursePhaseBeforeAdvance,
+    reason: "MA must not advance a course."
+  },
+  mutationContext("workflow:advance", "MA must not advance a course.", "MA")
+);
+assert.equal(deniedAdvance.ok, false, "MA course advancement must be denied");
+assert.equal(course.coursePhase, coursePhaseBeforeAdvance, "Denied course advancement must not change phase");
+
+const emptyReasonAdvance = await workflowService.advanceCourseWorkflow(
+  course.id,
+  {
+    expectedCoursePhase: coursePhaseBeforeAdvance,
+    reason: " "
+  },
+  mutationContext("workflow:advance", " ", "RAD_ONC")
+);
+assert.equal(emptyReasonAdvance.ok, false, "Course advancement must reject an empty reason");
+assert.equal(emptyReasonAdvance.status, 400, "Empty course advance reason must return HTTP 400");
+assert.equal(course.coursePhase, coursePhaseBeforeAdvance, "Invalid course advancement must not change phase");
+
+const missingPhaseAdvance = await workflowService.advanceCourseWorkflow(
+  course.id,
+  {
+    reason: "Expected phase is required."
+  },
+  mutationContext("workflow:advance", "Expected phase is required.", "RAD_ONC")
+);
+assert.equal(missingPhaseAdvance.ok, false, "Course advancement must require the expected phase");
+assert.equal(missingPhaseAdvance.status, 400, "Missing expected course phase must return HTTP 400");
+assert.equal(course.coursePhase, coursePhaseBeforeAdvance, "Missing expected phase must not change course state");
+
+const staleAdvance = await workflowService.advanceCourseWorkflow(
+  course.id,
+  {
+    expectedCoursePhase: "PLANNING",
+    reason: "Reject stale course phase."
+  },
+  mutationContext("workflow:advance", "Reject stale course phase.", "RAD_ONC")
+);
+assert.equal(staleAdvance.ok, false, "Stale course advancement must be rejected");
+assert.equal(staleAdvance.status, 409, "Stale course advancement must return HTTP 409");
+assert.equal(staleAdvance.body.status, "STALE", "Stale course advancement must return workflow status STALE");
+assert.equal(course.coursePhase, coursePhaseBeforeAdvance, "Stale course advancement must not change phase");
+
 const advanced = await workflowService.advanceCourseWorkflow(
   course.id,
   {
     expectedCoursePhase: "CONSULTATION",
-    changeReason: "Phase 3 guardrail advancement after blockers cleared."
+    reason: "Phase 3 guardrail advancement after blockers cleared."
   },
-  workflowContext,
+  mutationContext("workflow:advance", "Phase 3 guardrail advancement after blockers cleared."),
   "2026-06-12T00:00:00.000Z"
 );
 assert.equal(advanced.ok, true, "Course should advance after current blockers are cleared");
 assert.equal(advanced.body.nextPhase, "CHART_PREP", "Course should advance to Chart Prep");
 assert.equal(advanced.body.auditEvent.redacted, true, "Advancement audit event should be redacted");
+assert.equal(advanced.body.auditEvent.userName, "Phase 3 RAD_ONC", "Advancement audit must preserve the named actor");
 
 const editableTask = courseTasks.find((task) => task.responsibleParty === "RAD_ONC") ?? courseTasks[0];
 const blockedWithoutReason = await workflowService.updateTaskCommand(
