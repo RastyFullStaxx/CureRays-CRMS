@@ -24,6 +24,8 @@ const workspace = read("components/patients/patient-workspace.tsx");
 const dataTable = read("components/shared/data-table.tsx");
 const dashboardClient = read("components/dashboard/dashboard-telemetry-client.tsx");
 const dashboardService = read("lib/services/dashboard-telemetry-service.ts");
+const analyticsClient = read("components/analytics/analytics-command-client.tsx");
+const analyticsService = read("lib/services/analytics-telemetry-service.ts");
 const patientRegistry = read("components/patients/patient-registry-client.tsx");
 const fractionWorksheet = read("components/fraction-worksheet-panel.tsx");
 const globals = read("app/globals.css");
@@ -107,7 +109,21 @@ assert.match(globals, /\.analytics-command-body[\s\S]*overflow-x: hidden/, "Anal
 assert.match(globals, /\.clinical-matrix[\s\S]*--matrix-min-height/, "Square-block chart matrices must reserve enough height to avoid clipping");
 assert.match(globals, /\.clinical-matrix[\s\S]*overflow-y: auto/, "Square-block chart matrices must contain tall content inside the chart card");
 assert.match(globals, /--matrix-max-height/, "Square-block chart cards must cap matrix height so blocks cannot overlap neighboring content");
-assert.match(globals, /\.analytics-insight-rail[\s\S]*--list-max-height/, "Analytics insight lists must remain independently scrollable");
+assert.doesNotMatch(analyticsClient, /QueueDrilldown|Tokenized Inspection Queue|courseDrilldown/, "Analytics must not render current-work queues");
+assert.doesNotMatch(analyticsClient, /fetch\(|\/api\/(?:tasks|workflow)|<Button|onTaskAction/, "Analytics must not expose direct workflow actions");
+assert.doesNotMatch(analyticsClient, /Top Course Risk|topCourseRisks|Active Course Progress|courseProgress/, "Analytics must not rank or track individual courses");
+assert.doesNotMatch(analyticsService, /AnalyticsQueueItem|buildCourseDrilldown|courseDrilldown|AnalyticsTreatmentProgress|buildTreatmentProgress|courseProgress|topCourseRisks|buildRiskRankings/, "Analytics telemetry must remain aggregate-only");
+for (const label of ["Overview", "Workflow", "Treatment", "Documents", "Staffing", "Billing & Risk"]) {
+  assert.match(analyticsClient, new RegExp(`['"]${escapeRegExp(label)}['"]`), `Analytics must retain the ${label} panel`);
+}
+assert.match(analyticsClient, />Trend Range</, "Analytics must label the aggregate time control Trend Range");
+assert.match(analyticsClient, /aria-label="Analytics Trend Range"/, "Analytics trend control must expose its aggregate purpose");
+assert.doesNotMatch(analyticsClient, /(?:lg|xl):grid-cols/, "Analytics paired panels must not begin at framework laptop breakpoints");
+assert.match(globals, /\.analytics-paired-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s, "Analytics paired chart grids must default to one chart per row");
+assert.match(globals, /\.analytics-mix-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s, "Analytics cohort charts must default to one chart per row");
+assert.match(globals, /\.analytics-insight-rail\s*\{[^}]*position:\s*static;[^}]*width:\s*100%;/s, "Analytics insights must stay full-width and nonsticky by default");
+assert.match(globals, /\.analytics-insight-list\s*\{[^}]*overflow:\s*visible;/s, "Analytics insights must not add an inner laptop scrollbar");
+assert.match(globals, /@media \(min-width: 1321px\)[\s\S]*\.analytics-panel-split[\s\S]*minmax\(480px,[\s\S]*\.analytics-paired-grid[\s\S]*480px/s, "Analytics may pair panels only above 1320px with at least 480px per panel");
 assert.doesNotMatch(dashboardClient, /Clinical Safety Score/, "Dashboard must not expose a synthetic clinical safety score");
 assert.doesNotMatch(dashboardClient, /from ['"]recharts['"]|ChartCard|ClinicalMatrix/, "Dashboard must not import or render charts");
 assert.doesNotMatch(dashboardClient, /TabStrip|role="tabpanel"|DashboardPanel|RiskDashboard|Trend/, "Dashboard must not expose tabs, risk panels, or trends");

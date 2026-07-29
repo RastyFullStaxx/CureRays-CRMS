@@ -102,18 +102,6 @@ export type AnalyticsHeatmapCell = {
   tone: AnalyticsTone;
 };
 
-export type AnalyticsQueueItem = {
-  id: string;
-  courseRef: string;
-  label: string;
-  owner: string;
-  phase: string;
-  status: string;
-  signal: string;
-  score: number;
-  tone: AnalyticsTone;
-};
-
 export type AnalyticsRoleLoad = {
   role: string;
   assigned: number;
@@ -121,17 +109,6 @@ export type AnalyticsRoleLoad = {
   overdue: number;
   documents: number;
   pressure: number;
-  tone: AnalyticsTone;
-};
-
-export type AnalyticsTreatmentProgress = {
-  courseRef: string;
-  protocol: string;
-  phase: string;
-  completed: number;
-  total: number;
-  percent: number;
-  status: string;
   tone: AnalyticsTone;
 };
 
@@ -195,12 +172,10 @@ export type AnalyticsTelemetry = {
       owners: string[];
       cells: AnalyticsHeatmapCell[];
     };
-    courseDrilldown: AnalyticsQueueItem[];
     insights: AnalyticsInsight[];
   };
   treatment: {
     throughput: AnalyticsThroughputPoint[];
-    courseProgress: AnalyticsTreatmentProgress[];
     signals: AnalyticsKpi[];
     insights: AnalyticsInsight[];
   };
@@ -238,7 +213,6 @@ export type AnalyticsTelemetry = {
   billingRisk: {
     billingReadiness: AnalyticsBillingReadiness[];
     auditReadiness: AnalyticsDistributionDatum[];
-    topCourseRisks: AnalyticsRiskRankDatum[];
     riskDomains: AnalyticsRiskRankDatum[];
     phiBoundary: AnalyticsPhiSignal[];
     insights: AnalyticsInsight[];
@@ -292,23 +266,6 @@ function daysBetween(value: string | undefined, asOf: Date) {
   return Math.max(0, Math.round((asOf.getTime() - parsed) / 86_400_000));
 }
 
-function dueState(dueDate: string | undefined, asOf: Date) {
-  if (!dueDate) {
-    return 'Monitor';
-  }
-
-  const due = new Date(`${dueDate}T12:00:00+08:00`);
-  const asOfDay = new Date(asOf);
-  due.setHours(12, 0, 0, 0);
-  asOfDay.setHours(12, 0, 0, 0);
-  const diffDays = Math.round((due.getTime() - asOfDay.getTime()) / 86_400_000);
-
-  if (diffDays < 0) return 'Overdue';
-  if (diffDays === 0) return 'Due today';
-  if (diffDays <= 2) return `Due in ${diffDays}d`;
-  return 'Scheduled';
-}
-
 function pressureTone(value: number): AnalyticsTone {
   if (value >= 85) return 'negative';
   if (value >= 65) return 'intermediate';
@@ -319,17 +276,6 @@ function severityTone(severity: AnalyticsInsight['severity']): AnalyticsTone {
   if (severity === 'HIGH') return 'negative';
   if (severity === 'MEDIUM') return 'intermediate';
   return 'neutral';
-}
-
-function courseRefMap() {
-  return operationalTreatmentCourses().reduce<Record<string, string>>((current, course) => {
-    current[course.id] = course.courseRef;
-    return current;
-  }, {});
-}
-
-function courseRefFor(courseId: string, refs: Record<string, string>) {
-  return refs[courseId] ?? courseId.replace('COURSE-', 'CRS-');
 }
 
 function appointmentHour(time: string) {
@@ -343,38 +289,6 @@ function appointmentMode(title: string) {
   if (normalized.includes('treatment') || normalized.includes('fraction')) return 'treatment';
   if (normalized.includes('sim') || normalized.includes('mapping')) return 'simulation';
   return 'review';
-}
-
-function taskPriority(status: string, dueDate: string | undefined, asOf: Date) {
-  const dueLabel = dueState(dueDate, asOf);
-  const dueBoost = dueLabel === 'Overdue' ? 4 : dueLabel === 'Due today' ? 3 : dueLabel.startsWith('Due in') ? 2 : 0;
-  const statusScore: Record<string, number> = {
-    BLOCKED: 12,
-    OVERDUE: 12,
-    NEEDS_REVIEW: 8,
-    READY_FOR_REVIEW: 7,
-    IN_PROGRESS: 4,
-    PENDING: 3,
-    NOT_STARTED: 2,
-  };
-
-  return (statusScore[status] ?? 0) + dueBoost;
-}
-
-function documentPriority(status: string, signReviewState: string) {
-  const statusScore: Record<string, number> = {
-    BLOCKED: 12,
-    OVERDUE: 12,
-    MISSING_FIELDS: 10,
-    NEEDS_REVIEW: 8,
-    READY_FOR_REVIEW: 7,
-    PENDING_NEEDED: 6,
-    PENDING: 4,
-    IN_PROGRESS: 3,
-    NOT_STARTED: 2,
-  };
-
-  return (statusScore[status] ?? 0) + (signReviewState !== 'SIGNED' ? 3 : 0);
 }
 
 function riskDomain(text: string) {
@@ -596,47 +510,6 @@ function buildRoleLoad(): AnalyticsRoleLoad[] {
     .sort((a, b) => b.pressure - a.pressure || a.role.localeCompare(b.role));
 }
 
-function buildCourseDrilldown(asOf: Date): AnalyticsQueueItem[] {
-  const refs = courseRefMap();
-  const taskItems = carepathTasks
-    .filter((task) => !completedTaskStatuses.includes(task.status))
-    .map<AnalyticsQueueItem>((task) => {
-      const score = taskPriority(task.status, task.dueDate, asOf);
-      return {
-        id: task.id,
-        courseRef: courseRefFor(task.courseId, refs),
-        label: task.title,
-        owner: responsiblePartyLabels[task.responsibleParty],
-        phase: carepathPhaseLabels[task.workflowPhase],
-        status: formatUiLabel(task.status),
-        signal: dueState(task.dueDate, asOf),
-        score,
-        tone: pressureTone(score * 8),
-      };
-    });
-
-  const documentItems = generatedDocuments
-    .filter((document) => document.signReviewState !== 'SIGNED' || !readyDocumentStatuses.includes(document.status))
-    .map<AnalyticsQueueItem>((document) => {
-      const score = documentPriority(document.status, document.signReviewState);
-      return {
-        id: document.id,
-        courseRef: courseRefFor(document.courseId, refs),
-        label: document.name,
-        owner: responsiblePartyLabels[document.responsibleParty],
-        phase: carepathPhaseLabels[document.clinicalPhase],
-        status: formatUiLabel(document.status),
-        signal: document.signReviewState === 'SIGNED' ? 'Evidence gap' : formatUiLabel(document.signReviewState),
-        score,
-        tone: pressureTone(score * 8),
-      };
-    });
-
-  return [...taskItems, ...documentItems]
-    .sort((a, b) => b.score - a.score || a.courseRef.localeCompare(b.courseRef))
-    .slice(0, 8);
-}
-
 function buildTreatmentThroughput(): AnalyticsThroughputPoint[] {
   const groups = new Map<string, AnalyticsThroughputPoint & { date: string }>();
 
@@ -659,30 +532,6 @@ function buildTreatmentThroughput(): AnalyticsThroughputPoint[] {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-8)
     .map(({ label, fractions, approvals, reviews }) => ({ label, fractions, approvals, reviews }));
-}
-
-function buildTreatmentProgress(): AnalyticsTreatmentProgress[] {
-  return operationalTreatmentCourses()
-    .map((course) => {
-      const percent = Math.round((course.currentFraction / Math.max(course.totalFractions, 1)) * 100);
-      const tone: AnalyticsTone = course.status === 'ON_HOLD'
-        ? 'negative'
-        : course.chartRoundsPhase === 'ON_TREATMENT'
-          ? 'positive'
-          : 'neutral';
-
-      return {
-        courseRef: course.courseRef,
-        protocol: course.protocolFamily,
-        phase: chartRoundsPhaseLabels[course.chartRoundsPhase],
-        completed: course.currentFraction,
-        total: course.totalFractions,
-        percent,
-        status: formatUiLabel(course.status),
-        tone,
-      };
-    })
-    .sort((a, b) => a.percent - b.percent || a.courseRef.localeCompare(b.courseRef));
 }
 
 function buildTreatmentSignals(): AnalyticsKpi[] {
@@ -901,50 +750,36 @@ function buildAuditReadiness(): AnalyticsDistributionDatum[] {
   ];
 }
 
-function buildRiskRankings() {
-  const refs = courseRefMap();
+function buildRiskDomains(): AnalyticsRiskRankDatum[] {
   const domainScores = new Map<string, number>();
-  const courseScores = new Map<string, number>();
 
-  const addRisk = (courseRef: string, domain: string, value: number) => {
+  const addRisk = (domain: string, value: number) => {
     domainScores.set(domain, (domainScores.get(domain) ?? 0) + value);
-    courseScores.set(courseRef, (courseScores.get(courseRef) ?? 0) + value);
   };
 
   operationalPriorityFlags().forEach((flag) => {
-    const course = operationalPatients().find((patient) => patient.patientRef === flag.patientRef)?.activeCourseRef ?? flag.patientRef;
-    addRisk(course, 'Priority Flag', flag.severity === 'HIGH' ? 9 : 5);
+    addRisk('Priority Flag', flag.severity === 'HIGH' ? 9 : 5);
   });
 
   carepathTasks
     .filter((task) => task.status === 'BLOCKED' || task.status === 'OVERDUE' || task.status === 'NEEDS_REVIEW')
-    .forEach((task) => addRisk(courseRefFor(task.courseId, refs), riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6));
+    .forEach((task) => addRisk(riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6));
 
   generatedDocuments
     .filter((document) => document.signReviewState !== 'SIGNED' || blockedDocumentStatuses.includes(document.status))
-    .forEach((document) => addRisk(courseRefFor(document.courseId, refs), riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3));
+    .forEach((document) => addRisk(riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3));
 
   fractionLogEntries
     .filter((entry) => !entry.mdApproval || !entry.dotApproval || entry.status !== 'APPROVED')
-    .forEach((entry) => addRisk(courseRefFor(entry.courseId, refs), 'Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6));
+    .forEach((entry) => addRisk('Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6));
 
-  const topCourseRisks = [...courseScores.entries()]
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 8)
-    .map<AnalyticsRiskRankDatum>(([label, value]) => ({
-      label,
-      value,
-      tone: pressureTone(value * 7),
-    }));
-  const riskDomains = [...domainScores.entries()]
+  return [...domainScores.entries()]
     .sort(([, a], [, b]) => b - a)
     .map<AnalyticsRiskRankDatum>(([label, value]) => ({
       label,
       value,
       tone: pressureTone(value * 8),
     }));
-
-  return { topCourseRisks, riskDomains };
 }
 
 function scopedInsights(insights: AnalyticsInsight[], keywords: string[], fallback: AnalyticsInsight[]) {
@@ -966,7 +801,7 @@ function fallbackInsight(id: string, title: string, evidence: string, recommenda
     summary: 'Current prototype data is sparse, so the chart should be interpreted as an ops signal rather than a statistical conclusion.',
     evidence,
     recommendation,
-    inspection: 'Review tokenized course queues and source module pages before operational decisions.',
+    inspection: 'Compare aggregate trends with the source module before operational decisions.',
     tone,
   };
 }
@@ -985,21 +820,21 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
   const roleLoad = buildRoleLoad();
   const treatmentSignals = buildTreatmentSignals();
   const evidenceMatrix = buildEvidenceMatrix();
-  const riskRankings = buildRiskRankings();
+  const riskDomains = buildRiskDomains();
   const documentHotspots = documentRiskHotspots(generatedDocuments);
 
   const workflowFallback = fallbackInsight(
     'ANL-WORKFLOW-FALLBACK',
     'Workflow pressure is concentrated where review and signature states overlap',
     `${roleLoad[0]?.role ?? 'Role queue'} has the highest modeled load.`,
-    'Use the tokenized drilldown list before adding new handoffs to that lane.',
+    'Use phase and owner aggregates to identify which lane warrants source-module review.',
     roleLoad[0]?.tone ?? 'neutral',
   );
   const treatmentFallback = fallbackInsight(
     'ANL-TREATMENT-FALLBACK',
-    'Treatment analytics should be read as course-progress control signals',
+    'Treatment analytics summarize throughput and approval trends',
     `${treatmentSignals[1]?.value ?? '0%'} approval completion in the current fraction sample.`,
-    'Escalate held courses and review fractions before the next treatment slot.',
+    'Use trend changes to identify where source-module review is warranted.',
     treatmentSignals.some((signal) => signal.tone === 'negative') ? 'negative' : 'intermediate',
   );
   const documentFallback = fallbackInsight(
@@ -1038,12 +873,10 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
     workflow: {
       phaseLoad: workflowPhaseLoad,
       phaseOwnerHeatmap,
-      courseDrilldown: buildCourseDrilldown(asOf),
-      insights: scopedInsights(insights, ['workflow', 'queue', 'handoff', 'role'], [workflowFallback]),
+      insights: scopedInsights(insights, ['workflow', 'handoff', 'role'], [workflowFallback]),
     },
     treatment: {
       throughput: buildTreatmentThroughput(),
-      courseProgress: buildTreatmentProgress(),
       signals: treatmentSignals,
       insights: scopedInsights(insights, ['fraction', 'treatment', 'course'], [treatmentFallback]),
     },
@@ -1058,13 +891,12 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
       roleLoad,
       capacityBands: buildCapacityBands(),
       providerPressure: buildProviderPressure(),
-      insights: scopedInsights(insights, ['role', 'queue', 'capacity', 'staff'], [staffingFallback]),
+      insights: scopedInsights(insights, ['role', 'capacity', 'staff'], [staffingFallback]),
     },
     billingRisk: {
       billingReadiness: buildBillingReadiness(),
       auditReadiness: buildAuditReadiness(),
-      topCourseRisks: riskRankings.topCourseRisks,
-      riskDomains: riskRankings.riskDomains,
+      riskDomains,
       phiBoundary: [
         {
           label: 'Client Payload',

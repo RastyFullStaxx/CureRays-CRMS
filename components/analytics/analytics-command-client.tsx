@@ -4,12 +4,10 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Activity,
-  AlertTriangle,
   BarChart3,
   BrainCircuit,
   CalendarDays,
   CheckCircle2,
-  ClipboardList,
   FileText,
   LockKeyhole,
   PieChart as PieChartIcon,
@@ -74,11 +72,11 @@ const panelCopy: Record<AnalyticsPanel, { title: string; meta: string }> = {
   },
   workflow: {
     title: 'Workflow Performance',
-    meta: 'Carepath phase load, owner pressure, and tokenized inspection queues',
+    meta: 'Carepath phase and owner pressure across aggregate operational work',
   },
   treatment: {
     title: 'Treatment Analytics',
-    meta: 'Fraction throughput, course progression, hold signals, and approval control points',
+    meta: 'Fraction throughput, approval completion, and hold and review trends',
   },
   documents: {
     title: 'Documentation Intelligence',
@@ -90,7 +88,7 @@ const panelCopy: Record<AnalyticsPanel, { title: string; meta: string }> = {
   },
   'billing-risk': {
     title: 'Billing, Audit, And Risk',
-    meta: 'Closeout readiness, billing evidence, course risk ranking, and PHI boundary assurance',
+    meta: 'Aggregate billing, audit, risk-domain, and PHI boundary signals',
   },
 };
 
@@ -126,9 +124,9 @@ function AnalyticsRangeFilter({
 }) {
   return (
     <label className="analytics-range-filter">
-      <span>Date range</span>
+      <span>Trend Range</span>
       <select
-        aria-label="Analytics Date Range"
+        aria-label="Analytics Trend Range"
         value={value}
         onChange={(event) => onChange(event.target.value as AnalyticsDateRange)}
       >
@@ -290,47 +288,6 @@ function RiskRankChart({ rows, name }: { rows: AnalyticsRiskRankDatum[]; name: s
   );
 }
 
-function QueueDrilldown({ telemetry }: { telemetry: AnalyticsTelemetry }) {
-  return (
-    <div className="analytics-queue-list">
-      {telemetry.workflow.courseDrilldown.map((item, index) => (
-        <article key={item.id} className={`analytics-queue-item ${statusToneClass(item.tone)}`}>
-          <span className="analytics-queue-rank">{index + 1}</span>
-          <div>
-            <strong>{item.courseRef}</strong>
-            <p>{item.label}</p>
-            <em>{item.phase} · {item.owner}</em>
-          </div>
-          <span className="analytics-queue-state">
-            {item.status}
-            <b>{item.signal}</b>
-          </span>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function TreatmentProgressList({ telemetry }: { telemetry: AnalyticsTelemetry }) {
-  return (
-    <div className="analytics-progress-list">
-      {telemetry.treatment.courseProgress.map((course) => (
-        <article key={course.courseRef} className={`analytics-progress-row ${statusToneClass(course.tone)}`}>
-          <div>
-            <strong>{course.courseRef}</strong>
-            <span>{course.protocol}</span>
-          </div>
-          <em aria-label={`${course.courseRef} treatment progress`}>
-            <i style={{ width: `${course.percent}%` }} />
-          </em>
-          <p>{course.completed}/{course.total} Fx</p>
-          <b>{course.status}</b>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function TreatmentThroughput({ telemetry }: { telemetry: AnalyticsTelemetry }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={200} initialDimension={{ width: 620, height: 220 }}>
@@ -473,8 +430,8 @@ function PhiBoundary({ rows }: { rows: AnalyticsPhiSignal[] }) {
 
 function PanelSplit({ main, rail }: { main: React.ReactNode; rail: React.ReactNode }) {
   return (
-    <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.68fr)] xl:items-start">
-      <div className="grid gap-2.5 content-start">{main}</div>
+    <div className="analytics-panel-split">
+      <div className="analytics-panel-main">{main}</div>
       {rail}
     </div>
   );
@@ -547,9 +504,6 @@ function WorkflowPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
                 }))}
               />
             </ChartCard>
-            <ChartCard icon={ClipboardList} title="Tokenized Inspection Queue" description="Course refs only, sorted by modeled pressure" height="auto">
-              <QueueDrilldown telemetry={telemetry} />
-            </ChartCard>
           </>
         )}
         rail={<InsightRail insights={telemetry.workflow.insights} />}
@@ -577,9 +531,6 @@ function TreatmentPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
             >
               <TreatmentThroughput telemetry={telemetry} />
             </ChartCard>
-            <ChartCard icon={ClipboardList} title="Active Course Progress" description="Tokenized course progress against planned fractions" height="auto">
-              <TreatmentProgressList telemetry={telemetry} />
-            </ChartCard>
           </>
         )}
         rail={<InsightRail insights={telemetry.treatment.insights} />}
@@ -594,7 +545,7 @@ function DocumentsPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
       <PanelSplit
         main={(
           <>
-            <div className="grid gap-2.5 lg:grid-cols-2">
+            <div className="analytics-paired-grid">
               <ChartCard icon={FileText} title="Document Lifecycle" description="Ready, review, blocked, and draft work state" height="sm">
                 <LifecycleChart data={telemetry.documents.lifecycle} />
               </ChartCard>
@@ -661,15 +612,10 @@ function BillingRiskPanel({ telemetry }: { telemetry: AnalyticsTelemetry }) {
       <PanelSplit
         main={(
           <>
-            <div className="grid gap-2.5 lg:grid-cols-2">
-              <ChartCard icon={AlertTriangle} title="Top Course Risk" description="Highest weighted risk by tokenized course" height="md">
-                <RiskRankChart rows={telemetry.billingRisk.topCourseRisks} name="Risk weight" />
-              </ChartCard>
-              <ChartCard icon={ShieldCheck} title="Risk Domains" description="Where weighted risk signals concentrate" height="md">
-                <RiskRankChart rows={telemetry.billingRisk.riskDomains} name="Domain weight" />
-              </ChartCard>
-            </div>
-            <div className="grid gap-2.5 lg:grid-cols-2">
+            <ChartCard icon={ShieldCheck} title="Risk Domains" description="Where aggregate weighted risk signals concentrate" height="md">
+              <RiskRankChart rows={telemetry.billingRisk.riskDomains} name="Domain weight" />
+            </ChartCard>
+            <div className="analytics-paired-grid">
               <ChartCard icon={CheckCircle2} title="Billing Readiness" description="Billing work state tied to evidence readiness" height="auto">
                 <BillingReadiness rows={telemetry.billingRisk.billingReadiness} />
               </ChartCard>
