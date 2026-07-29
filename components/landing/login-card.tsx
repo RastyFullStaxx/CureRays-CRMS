@@ -19,10 +19,10 @@ export function LoginCard() {
   return (
     <form action="/dashboard" onSubmit={handleSubmit} className="landing-login-card">
       <div className="landing-login-copy">
-        <p className="landing-login-kicker">Pilot Workspace</p>
-        <h2>Enter CureRays CRMS</h2>
+        <p className="landing-login-kicker">Staff Demo Access</p>
+        <h2>Open CureRays CRMS</h2>
         <p className="landing-login-subtitle">
-          Demo mode accepts any valid email and a password of at least six characters.
+          Enter any valid email and a password of at least six characters.
         </p>
       </div>
 
@@ -73,12 +73,12 @@ export function LoginCard() {
       </div>
 
       <Button type="submit" className="landing-submit">
-        Enter Pilot Workspace
+        Open Demo Workspace
       </Button>
 
       <p className="landing-secure-note">
         <ShieldCheck aria-hidden="true" />
-        <span>Synthetic data only. No identity is authenticated in demo mode.</span>
+        <span>Demo access does not verify identity. Use sample or de-identified data only.</span>
       </p>
     </form>
   );

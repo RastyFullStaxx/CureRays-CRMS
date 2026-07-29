@@ -9,44 +9,80 @@ const courseStages = [
   { name: 'Record & Closeout', detail: 'Documents and completion' },
 ] as const;
 
-const pilotLoop = [
+const workflowLoop = [
   { label: 'Fill', detail: 'Complete the structured form' },
-  { label: 'Save', detail: 'Resume a durable draft' },
+  { label: 'Save', detail: 'Resume the course work' },
   { label: 'Generate', detail: 'Create the clinic document' },
   { label: 'Download', detail: 'Export DOCX or XLSX' },
 ] as const;
 
+const cureraysPrinciples = [
+  {
+    name: 'One Course Context',
+    detail: 'See preparation, treatment, and closeout as one connected path.',
+  },
+  {
+    name: 'Clear Handoffs',
+    detail: 'Keep ownership, blockers, and the next action legible across teams.',
+  },
+  {
+    name: 'Document Continuity',
+    detail: 'Build clinic documents from the structured work used to advance the course.',
+  },
+] as const;
+
 export default function LoginPage() {
   return (
-    <main className="landing-page dark">
-      <span className="landing-ambient" aria-hidden="true" />
-      <RadiotherapyOrbitCanvasMount />
-
+    <main className="landing-page">
       <div className="landing-page-frame">
         <header className="landing-topbar">
-          <div className="landing-brand">
+          <a className="landing-brand clinical-focus" href="#top" aria-label="CureRays home">
             <Image
               src="/System_Logo.svg"
-              alt="CureRays"
-              width={144}
-              height={48}
+              alt=""
+              width={44}
+              height={44}
               priority
               className="landing-logo"
             />
-            <span>Clinical Workflow System</span>
-          </div>
-          <span className="landing-pilot-marker">Synthetic Data Pilot</span>
+            <span className="landing-brand-copy">
+              <strong>CureRays</strong>
+              <span>Clinical Workflow System</span>
+            </span>
+          </a>
+
+          <nav className="landing-nav" aria-label="Landing page">
+            <a className="clinical-focus" href="#about">
+              About CureRays
+            </a>
+            <a className="clinical-focus" href="#course">
+              The Course
+            </a>
+            <a className="clinical-focus landing-nav-primary" href="#sign-in">
+              Sign In
+            </a>
+          </nav>
         </header>
 
-        <section className="landing-hero" aria-labelledby="landing-title">
+        <section id="top" className="landing-hero" aria-labelledby="landing-title">
+          <div className="landing-hero-visual" aria-hidden="true">
+            <span className="landing-ambient" />
+            <RadiotherapyOrbitCanvasMount />
+          </div>
+
           <div className="landing-copy">
             <div className="landing-copy-block">
-              <p className="landing-kicker">Patient-Course Operations</p>
+              <p className="landing-kicker">CureRays Radiation Medicine</p>
               <h1 id="landing-title" className="landing-title">
-                One Course. Every Next Action in View.
+                Radiation Medicine, Orchestrated Around Every Course.
               </h1>
               <p className="landing-description">
-                Coordinate preparation, treatment, records, and clinic documents from one patient-centered workspace.
+                CureRays brings preparation, treatment, records, and clinic documents into one
+                coordinated operational view.
+              </p>
+              <p className="landing-hero-note">
+                Keep the next action, owner, blocker, and supporting work visible from intake
+                through closeout.
               </p>
             </div>
 
@@ -61,20 +97,66 @@ export default function LoginPage() {
                 </li>
               ))}
             </ol>
+
+            <a className="landing-story-link clinical-focus" href="#about">
+              Discover the CureRays approach
+              <span aria-hidden="true">→</span>
+            </a>
           </div>
 
-          <div className="landing-card-wrap">
+          <div id="sign-in" className="landing-card-wrap">
             <LoginCard />
           </div>
         </section>
 
-        <section className="landing-proof" aria-labelledby="pilot-loop-title">
+        <section id="about" className="landing-about" aria-labelledby="about-title">
+          <div className="landing-about-media">
+            <Image
+              src="/curerays-treatment-geometry.png"
+              alt="Abstract precision treatment geometry in a luminous clinical space"
+              width={1717}
+              height={916}
+              className="landing-about-image"
+            />
+            <div className="landing-about-caption">
+              <span>Precision Needs Context</span>
+              <p>One operational view for the work surrounding every course.</p>
+            </div>
+          </div>
+
+          <div className="landing-about-copy">
+            <div className="landing-section-heading">
+              <p>About CureRays</p>
+              <h2 id="about-title">Clinical Focus. Operational Clarity.</h2>
+              <p className="landing-section-description">
+                At CureRays, every patient course depends on coordinated preparation, treatment,
+                documentation, and review. CRMS gives that work one shared operational home.
+              </p>
+            </div>
+
+            <dl className="landing-principles">
+              {cureraysPrinciples.map((principle, index) => (
+                <div key={principle.name}>
+                  <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <dt>{principle.name}</dt>
+                  <dd>{principle.detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <section id="course" className="landing-proof" aria-labelledby="workflow-loop-title">
           <div className="landing-section-heading">
-            <p>Working Pilot Loop</p>
-            <h2 id="pilot-loop-title">From Structured Work to Clinic Documents</h2>
+            <p>The Course</p>
+            <h2 id="workflow-loop-title">From Structured Work to Clinic Documents</h2>
+            <p className="landing-section-description">
+              Complete the work once, keep its context with the course, and carry it forward into
+              the clinic document.
+            </p>
           </div>
           <ol className="landing-proof-flow">
-            {pilotLoop.map((step, index) => (
+            {workflowLoop.map((step, index) => (
               <li key={step.label}>
                 <span>{String(index + 1).padStart(2, '0')}</span>
                 <strong>{step.label}</strong>
@@ -88,6 +170,9 @@ export default function LoginPage() {
           <div className="landing-section-heading">
             <p>Course-Centered Clarity</p>
             <h2 id="operations-title">The Operational Truth Stays Together</h2>
+            <p className="landing-section-description">
+              The workspace is organized around the decisions that move a patient course forward.
+            </p>
           </div>
           <dl className="landing-signal-list">
             <div>
@@ -109,19 +194,24 @@ export default function LoginPage() {
           </dl>
         </section>
 
-        <aside className="landing-boundary" aria-labelledby="pilot-boundary-title">
+        <aside className="landing-boundary" aria-labelledby="demo-boundary-title">
           <div>
-            <p>Pilot Boundary</p>
-            <h2 id="pilot-boundary-title">Designed for Controlled Staff Evaluation</h2>
+            <p>Demo Access</p>
+            <h2 id="demo-boundary-title">A Controlled Staff Demonstration</h2>
           </div>
           <p>
-            Use synthetic or de-identified data only. Demo access is not production authentication, and prototype calculations are not clinical guidance.
+            This demonstration does not create or verify an identity. Use sample or de-identified
+            data only. Prototype calculations are not clinical guidance.
           </p>
+          <a className="clinical-focus" href="#sign-in">
+            Open the Demo
+          </a>
         </aside>
 
         <footer className="landing-footer">
           <span>CureRays Radiation Medicine</span>
-          <span>Clinical Workflow System · Synthetic Data Pilot</span>
+          <span>Clinical Workflow System</span>
+          <span>Demo Environment</span>
         </footer>
       </div>
     </main>

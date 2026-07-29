@@ -19,6 +19,7 @@ function escapeRegExp(value) {
 const appShell = read("components/app-shell.tsx");
 const macNavigation = read("components/mac-navigation.tsx");
 const loginPage = read("app/login/page.tsx");
+const loginCard = read("components/landing/login-card.tsx");
 const workspace = read("components/patients/patient-workspace.tsx");
 const dataTable = read("components/shared/data-table.tsx");
 const dashboardClient = read("components/dashboard/dashboard-telemetry-client.tsx");
@@ -86,6 +87,11 @@ assert.doesNotMatch(workspace, /clinical-label">Work Items/, "Patient Carepath m
 assert.match(rootPage, /redirect\(['"]\/login['"]\)/, "Root route must load the pilot login by default");
 assert.match(loginPage, /landing-page/, "Login route must expose the liquid-glass landing page");
 assert.match(loginPage, /LoginCard/, "Login route must render the reusable login card");
+assert.doesNotMatch(loginPage, /className="landing-page dark"/, "Landing must use its fixed daylight palette");
+assert.doesNotMatch(loginPage, /Synthetic Data Pilot|Synthetic data/i, "Landing page must not expose removed pilot wording");
+assert.doesNotMatch(loginCard, /Synthetic Data Pilot|Synthetic data/i, "Landing sign-in must not expose removed pilot wording");
+assert.match(loginPage, /About CureRays/, "Landing must introduce CureRays Radiation Medicine");
+assert.match(loginPage, /href="#sign-in"/, "Landing header must provide a direct sign-in anchor");
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");
