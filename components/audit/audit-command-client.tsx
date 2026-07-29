@@ -279,7 +279,7 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
                     Billing
                   </Button>
                 </Link>
-                <Link href="/security-logs">
+                <Link href="/audit-logs">
                   <Button type="button" variant="secondary" size="sm" className="w-full">
                     <ShieldCheck size={14} />
                     Security Logs

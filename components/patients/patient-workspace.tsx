@@ -941,8 +941,10 @@ export function PatientWorkspace({
                           variant="primary"
                           description={selectedCarepathAction.detail}
                           context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
-                          onComplete={selectedStepDone ? undefined : completeSelectedCarepathStep}
-                          successMessage="The workflow step was updated and the course gate was refreshed."
+                          action={selectedStepDone ? undefined : async (details) => {
+                            await completeSelectedCarepathStep(details);
+                            return { ok: true, message: 'The workflow step was updated and the course gate was refreshed.' };
+                          }}
                         />
                         {selectedStepDone ? (
                           <PrototypeActionButton
@@ -952,9 +954,11 @@ export function PatientWorkspace({
                             variant="secondary"
                             description="Reopen this completed step only when a documented correction is required."
                             context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
-                            onComplete={reopenSelectedCarepathStep}
+                            action={async (details) => {
+                              await reopenSelectedCarepathStep(details);
+                              return { ok: true, message: 'The workflow step was reopened and the correction reason was recorded.' };
+                            }}
                             requireNotes
-                            successMessage="The workflow step was reopened and the correction reason was recorded."
                           />
                         ) : null}
                       </div>

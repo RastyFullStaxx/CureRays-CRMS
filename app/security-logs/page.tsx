@@ -1,20 +1,5 @@
-import { AuditLogCommandClient, type AuditLogRow } from '@/components/audit/audit-log-command-client';
-import { operationalAuditEvents } from '@/lib/services/operational-page-service';
+import { permanentRedirect } from 'next/navigation';
 
 export default function SecurityLogsPage() {
-  const rows: AuditLogRow[] = operationalAuditEvents().map((event) => ({
-    id: event.id,
-    timestamp: event.timestamp,
-    userName: event.userName,
-    patientRef: event.patientRef ?? 'System',
-    action: event.action,
-    entityType: event.entityType,
-    entityId: event.entityId,
-    previousValue: event.previousValue,
-    newValue: event.newValue,
-    redacted: event.redacted,
-    reason: event.reason,
-  }));
-
-  return <AuditLogCommandClient mode="security" rows={rows} />;
+  permanentRedirect('/audit-logs');
 }

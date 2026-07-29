@@ -352,7 +352,7 @@ function queueSnapshot(
     UPCOMING: 0,
     ALL_OPEN: 0,
   });
-  const bucket = requestedBucket ?? (bucketCounts.OVERDUE > 0 ? "OVERDUE" : "TODAY");
+  const bucket = requestedBucket ?? taskDueBuckets.find((candidate) => bucketCounts[candidate] > 0) ?? "ALL_OPEN";
 
   return {
     queue,

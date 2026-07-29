@@ -40,6 +40,9 @@ const dashboardClient = read("components/dashboard/dashboard-telemetry-client.ts
 const dashboardService = read("lib/services/dashboard-telemetry-service.ts");
 const analyticsClient = read("components/analytics/analytics-command-client.tsx");
 const analyticsService = read("lib/services/analytics-telemetry-service.ts");
+const prototypeActionButton = read("components/shared/prototype-action-button.tsx");
+const workflowCommandService = read("lib/server/workflow-command-service.ts");
+const auditCommandClient = read("components/audit/audit-command-client.tsx");
 const patientRegistry = read("components/patients/patient-registry-client.tsx");
 const fractionWorksheet = read("components/fraction-worksheet-panel.tsx");
 const globals = read("app/globals.css");
@@ -50,6 +53,50 @@ const macMainRule = cssRule(globals, ".mac-main");
 const patientWorkspaceRule = cssRule(globals, ".patient-workspace");
 const compactCommandMedia = sourceSection(globals, "@media (max-width: 1320px)", "@media (max-width: 700px)");
 const prepareWorkbenchContainer = sourceSection(globals, "@container (min-width: 900px)", ".workspace-phase-tracker");
+
+assert.match(
+  prototypeActionButton,
+  /export type PrototypeActionResult[\s\S]*\{ ok: true; message: string \}[\s\S]*\{ ok: false; message: string \}/,
+  "Prototype actions must return an explicit typed result",
+);
+assert.match(prototypeActionButton, /href\?: string/, "Prototype actions may route to a real destination");
+assert.match(
+  prototypeActionButton,
+  /action\?: \(details: \{ notes: string \}\) => Promise<PrototypeActionResult>/,
+  "Prototype actions must await an explicit async callback",
+);
+assert.match(
+  prototypeActionButton,
+  /disabled=\{!href && !action\}/,
+  "Prototype controls without a route or action must be disabled",
+);
+assert.match(prototypeActionButton, /await action\(/, "Prototype controls must await their real action");
+assert.doesNotMatch(
+  prototypeActionButton,
+  /onComplete\?\.|setTimeout\(|Date\.now\(/,
+  "Prototype controls must not manufacture completion or references",
+);
+
+const permanentAliases = [
+  ["app/workflow/igsrt/page.tsx", "/patients"],
+  ["app/workflow/templates/page.tsx", "/templates"],
+  ["app/reports/page.tsx", "/analytics"],
+  ["app/security-logs/page.tsx", "/audit-logs"],
+];
+
+for (const [file, destination] of permanentAliases) {
+  const source = read(file);
+  assert.match(source, /from ['"]next\/navigation['"]/, `${file} must use Next navigation`);
+  assert.match(source, /permanentRedirect\(/, `${file} must be a permanent alias`);
+  assert.match(source, new RegExp(`permanentRedirect\\(['"]${escapeRegExp(destination)}['"]\\)`), `${file} must target ${destination}`);
+}
+
+assert.doesNotMatch(auditCommandClient, /href="\/security-logs"/, "Internal audit links must use the canonical audit log route");
+assert.match(
+  workflowCommandService,
+  /requestedBucket \?\? taskDueBuckets\.find\(\(candidate\) => bucketCounts\[candidate\] > 0\) \?\? "ALL_OPEN"/,
+  "Default task buckets must fall back through overdue, today, upcoming, and all open",
+);
 
 const expectedPrimaryHrefs = [
   "/dashboard",
