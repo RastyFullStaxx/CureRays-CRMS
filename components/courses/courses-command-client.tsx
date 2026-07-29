@@ -119,13 +119,11 @@ export function CoursesCommandClient({ rows, stats }: CourseCommandClientProps) 
             <PrototypeActionButton
               label="Export Courses"
               icon="download"
-              kind="export"
               description="Prepare a tokenized course readiness export for operations review."
             />
             <PrototypeActionButton
               label="New Course"
               icon="plus"
-              kind="create"
               variant="primary"
               description="Stage a new course bundle with workflow, task, document, folder, and audit placeholders."
             />

@@ -116,13 +116,11 @@ export function AuditCommandClient({ rows, stats }: AuditCommandClientProps) {
             <PrototypeActionButton
               label="Export Audit Report"
               icon="upload"
-              kind="export"
               description="Prepare a tokenized audit packet for closeout review."
             />
             <PrototypeActionButton
               label="Run Audit Check"
               icon="play"
-              kind="review"
               variant="primary"
               description="Run a simulated closeout readiness check against the visible course rows."
             />

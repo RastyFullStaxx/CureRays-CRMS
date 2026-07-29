@@ -98,13 +98,11 @@ export function BillingCommandClient({ rows, stats }: BillingCommandClientProps)
             <PrototypeActionButton
               label="Export Billing Report"
               icon="wallet"
-              kind="export"
               description="Prepare a tokenized billing readiness report."
             />
             <PrototypeActionButton
               label="Add Billing Item"
               icon="wallet"
-              kind="create"
               variant="primary"
               description="Stage a billing item linked to document and fraction evidence."
             />

@@ -103,7 +103,6 @@ export function ReportsCommandClient({ asOfLabel, sampleNotice, kpis, reportPack
             <PrototypeActionButton
               label="Export Report"
               icon="download"
-              kind="export"
               variant="primary"
               description="Prepare a tokenized report packet for the prototype demo."
             />

@@ -103,13 +103,11 @@ export function TreatmentDeliveryCommandClient({ rows, stats }: TreatmentDeliver
             <PrototypeActionButton
               label="Today, May 6, 2026"
               icon="calendar"
-              kind="schedule"
               description="Review the active treatment day and staged queue changes."
             />
             <PrototypeActionButton
               label="Record Treatment"
               icon="plus"
-              kind="review"
               variant="primary"
               description="Stage a treatment event here, or open a patient workspace Fractions tab for full worksheet entry."
             />

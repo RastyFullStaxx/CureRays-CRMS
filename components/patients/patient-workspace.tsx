@@ -937,7 +937,6 @@ export function PatientWorkspace({
                         <PrototypeActionButton
                           label={selectedCarepathAction.label}
                           icon={selectedCarepathAction.icon}
-                          kind={selectedCarepathAction.kind}
                           variant="primary"
                           description={selectedCarepathAction.detail}
                           context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
@@ -950,7 +949,6 @@ export function PatientWorkspace({
                           <PrototypeActionButton
                             label="Reopen for Correction"
                             icon="refresh"
-                            kind="review"
                             variant="secondary"
                             description="Reopen this completed step only when a documented correction is required."
                             context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
@@ -1107,7 +1105,7 @@ export function PatientWorkspace({
                 <p className="type-meta mt-1">Generate, review, sign, and transfer course records.</p>
               </div>
             }
-            toolbarActions={<PrototypeActionButton label="Generate Document" icon="file" kind="document" description="Queue a simulated document render from mapped course fields." />}
+            toolbarActions={<PrototypeActionButton label="Generate Document" icon="file" description="Queue a simulated document render from mapped course fields." />}
             columns={[
               { key: 'title', label: 'Document', render: (row) => <span className="type-medium">{row.title}</span> },
               { key: 'category', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.category)}>{formatUiLabel(row.category)}</Badge> },
@@ -1145,7 +1143,7 @@ export function PatientWorkspace({
             <Card compact>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <SectionTitle title="Clinical Forms" />
-                <PrototypeActionButton label="Open Form Builder" icon="file" kind="create" description="Open a prototype structured-form workflow for this course." />
+                <PrototypeActionButton label="Open Form Builder" icon="file" description="Open a prototype structured-form workflow for this course." />
               </div>
               <div className="mt-3 grid gap-2">
                 {clinicalFormTemplates.slice(0, 4).map((template) => (
@@ -1347,7 +1345,7 @@ export function PatientWorkspace({
                 <p className="mt-1 type-supporting text-[var(--color-text-muted)]">{missingImageFractions.length} missing image gate(s)</p>
               </div>
             }
-            toolbarActions={<PrototypeActionButton label="Attach Image" icon="upload" kind="upload" description="Stage imaging evidence linked to this course." />}
+            toolbarActions={<PrototypeActionButton label="Attach Image" icon="upload" description="Stage imaging evidence linked to this course." />}
             columns={[
               { key: 'category', label: 'Image / Evidence', render: (row) => <span className="type-medium">{row.category}</span> },
               { key: 'phase', label: 'Phase', render: (row) => <Badge variant={phaseTone(row.phase)}>{formatUiLabel(row.phase)}</Badge> },
@@ -1598,7 +1596,6 @@ function carepathStepAction(step: WorkflowStep) {
     return {
       label: 'Resolve Blocker',
       detail: step.blockers[0] ?? step.notes ?? 'Clear the blocker before this course can advance.',
-      kind: 'review' as const,
       icon: 'play' as const,
     };
   }
@@ -1607,7 +1604,6 @@ function carepathStepAction(step: WorkflowStep) {
     return {
       label: 'Review Record',
       detail: 'This step is already complete. Open it only when a correction or audit check is needed.',
-      kind: 'review' as const,
       icon: 'check' as const,
     };
   }
@@ -1616,7 +1612,6 @@ function carepathStepAction(step: WorkflowStep) {
     return {
       label: 'Review & sign',
       detail: 'Review the generated evidence and capture the required signature before advancing.',
-      kind: 'document' as const,
       icon: 'file' as const,
     };
   }
@@ -1625,7 +1620,6 @@ function carepathStepAction(step: WorkflowStep) {
     return {
       label: 'Generate Document',
       detail: 'Complete the mapped fields, preview the output, then finalize the generated document record.',
-      kind: 'document' as const,
       icon: 'file' as const,
     };
   }
@@ -1633,7 +1627,6 @@ function carepathStepAction(step: WorkflowStep) {
   return {
     label: 'Review Step',
     detail: step.notes ?? step.triggerEvent,
-    kind: 'review' as const,
     icon: 'play' as const,
   };
 }

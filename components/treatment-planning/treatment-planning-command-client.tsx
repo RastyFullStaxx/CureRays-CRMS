@@ -113,13 +113,11 @@ export function TreatmentPlanningCommandClient({ rows, stats }: TreatmentPlannin
             <PrototypeActionButton
               label="Export Planning Worklist"
               icon="download"
-              kind="export"
               description="Prepare a tokenized planning readiness worklist."
             />
             <PrototypeActionButton
               label="New Plan"
               icon="plus"
-              kind="create"
               variant="primary"
               description="Stage a treatment plan with prescription, review, and schedule gates."
             />

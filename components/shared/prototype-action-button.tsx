@@ -20,15 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Textarea } from '@/components/ui/textarea';
 
-type PrototypeActionKind =
-  | 'create'
-  | 'document'
-  | 'export'
-  | 'review'
-  | 'schedule'
-  | 'settings'
-  | 'upload';
-
 type PrototypeActionIcon =
   | 'calendar'
   | 'check'
@@ -52,7 +43,6 @@ type PrototypeActionButtonProps = {
   title?: string;
   description?: string;
   context?: string;
-  kind?: PrototypeActionKind;
   icon?: PrototypeActionIcon;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'default' | 'sm';
@@ -119,6 +109,7 @@ export function PrototypeActionButton({
   }
 
   function close() {
+    if (submitting) return;
     setOpen(false);
     setNotes('');
     setResult(undefined);
@@ -147,7 +138,7 @@ export function PrototypeActionButton({
         {label}
       </Button>
       {action ? (
-        <Modal open={open} onClose={close} title={title ?? label} width={520}>
+        <Modal open={open} onClose={close} shouldClose={() => !submitting} title={title ?? label} width={520}>
           {result?.ok ? (
             <div className="grid gap-4" role="status" aria-live="polite">
               <div className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--status-positive-border)] bg-[var(--status-positive-surface)] p-4 text-[var(--status-positive-text)]">
@@ -181,7 +172,7 @@ export function PrototypeActionButton({
                 <p role="alert" className="type-meta text-[var(--status-negative-text)]">{result.message}</p>
               ) : null}
               <div className="flex flex-wrap justify-end gap-2">
-                <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
+                <Button type="button" variant="secondary" onClick={close} disabled={submitting}>Cancel</Button>
                 <Button type="submit" disabled={submitting}>{submitting ? 'Saving…' : label}</Button>
               </div>
             </form>

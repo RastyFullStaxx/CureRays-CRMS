@@ -211,7 +211,7 @@ export function UsersRolesCommandClient({
       <PageHeader
         title="Users & Roles"
         subtitle="Manage system users, role assignments, and permission matrices"
-        actions={<PrototypeActionButton label="Invite User" icon="plus" kind="settings" variant="primary" description="Stage a staff invitation with role and access controls for the prototype demo." />}
+        actions={<PrototypeActionButton label="Invite User" icon="plus" variant="primary" description="Stage a staff invitation with role and access controls for the prototype demo." />}
       />
 
       {active === 0 && (

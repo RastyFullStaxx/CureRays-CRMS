@@ -279,7 +279,7 @@ export function CarepathCommandClient({ courseRef, steps, tasks }: CarepathComma
                   <Play className="h-4 w-4" aria-hidden="true" />
                   Next Open Step
                 </Button>
-                <PrototypeActionButton label="Generate Carepath Note" icon="file" kind="document" description="Stage a carepath note from the selected workflow step and evidence note." />
+                <PrototypeActionButton label="Generate Carepath Note" icon="file" description="Stage a carepath note from the selected workflow step and evidence note." />
               </div>
             </div>
           ) : (

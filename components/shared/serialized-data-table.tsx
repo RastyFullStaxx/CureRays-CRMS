@@ -15,7 +15,6 @@ export type SerializedTableRow = Record<string, SerializableCell> & { id: string
 type SerializedAction = {
   label: string;
   icon?: 'calendar' | 'check' | 'download' | 'eye' | 'file' | 'pen' | 'play' | 'plus' | 'refresh' | 'settings' | 'upload' | 'wallet';
-  kind?: 'create' | 'document' | 'export' | 'review' | 'schedule' | 'settings' | 'upload';
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'default' | 'sm';
   description?: string;
@@ -101,7 +100,6 @@ function renderCell(row: SerializedTableRow, column: SerializedColumn) {
               key={action.label}
               label={action.label}
               icon={action.icon}
-              kind={action.kind}
               variant={action.variant}
               size={action.size ?? 'sm'}
               description={description}

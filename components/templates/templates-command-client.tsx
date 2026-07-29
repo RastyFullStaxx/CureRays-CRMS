@@ -129,8 +129,8 @@ export function TemplatesCommandClient({
         subtitle="Phase 4 registry, field-map, approval, placeholder, and source-hash control"
         actions={
           <>
-            <PrototypeActionButton label="Upload Template" icon="upload" kind="upload" description="Stage a template source for registry review without syncing external storage." />
-            <PrototypeActionButton label="Create Template" icon="plus" kind="document" variant="primary" description="Create a prototype template requirement and field-map review item." />
+            <PrototypeActionButton label="Upload Template" icon="upload" description="Stage a template source for registry review without syncing external storage." />
+            <PrototypeActionButton label="Create Template" icon="plus" variant="primary" description="Create a prototype template requirement and field-map review item." />
           </>
         }
       />
@@ -168,7 +168,7 @@ export function TemplatesCommandClient({
               </p>
             </div>
           }
-          toolbarActions={<PrototypeActionButton label="Export" icon="download" kind="export" size="sm" description="Prepare a PHI-free template registry export." />}
+          toolbarActions={<PrototypeActionButton label="Export" icon="download" size="sm" description="Prepare a PHI-free template registry export." />}
           search={{ placeholder: 'Search sources, status, approval, hash, or path...', keys: ['name', 'fileType', 'registryStatus', 'approval', 'hash', 'disposition', 'sourcePath'] }}
           filters={[
             { id: 'fileType', label: 'File Type' },

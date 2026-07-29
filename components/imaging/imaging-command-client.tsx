@@ -90,13 +90,11 @@ export function ImagingCommandClient({ rows, categories, stats }: ImagingCommand
             <PrototypeActionButton
               label="Upload Imaging"
               icon="upload"
-              kind="upload"
               description="Stage imaging evidence with category and phase metadata."
             />
             <PrototypeActionButton
               label="New Imaging Study"
               icon="plus"
-              kind="create"
               variant="primary"
               description="Create a prototype imaging study record linked to a course phase."
             />

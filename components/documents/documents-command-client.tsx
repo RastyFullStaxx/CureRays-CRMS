@@ -58,8 +58,8 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
         subtitle="Document management, signatures, and eCW uploads"
         actions={
           <>
-            <PrototypeActionButton label="Upload Document" icon="upload" kind="upload" description="Stage a course document attachment without retaining uploaded contents in prototype mode." />
-            <PrototypeActionButton label="Create from Template" icon="plus" kind="document" variant="primary" description="Queue a generated document from mapped template fields." />
+            <PrototypeActionButton label="Upload Document" icon="upload" description="Stage a course document attachment without retaining uploaded contents in prototype mode." />
+            <PrototypeActionButton label="Create from Template" icon="plus" variant="primary" description="Queue a generated document from mapped template fields." />
           </>
         }
       />
@@ -115,8 +115,8 @@ export function DocumentsCommandClient({ rows, metrics }: DocumentsCommandClient
           )},
           { key: 'actions', label: 'Actions', render: () => (
             <span className="flex min-w-0 gap-2">
-              <PrototypeActionButton label="Render" icon="refresh" kind="document" size="sm" description="Render a simulated document output for this demo row." />
-              <PrototypeActionButton label="Sign" icon="check" kind="review" size="sm" variant="ghost" description="Record a simulated signature review action." />
+              <PrototypeActionButton label="Render" icon="refresh" size="sm" description="Render a simulated document output for this demo row." />
+              <PrototypeActionButton label="Sign" icon="check" size="sm" variant="ghost" description="Record a simulated signature review action." />
             </span>
           )},
         ]}

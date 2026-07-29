@@ -71,6 +71,26 @@ assert.match(
   "Prototype controls without a route or action must be disabled",
 );
 assert.match(prototypeActionButton, /await action\(/, "Prototype controls must await their real action");
+assert.match(
+  prototypeActionButton,
+  /shouldClose=\{\(\) => !submitting\}/,
+  "Pending prototype actions must block modal dismissal",
+);
+assert.match(
+  prototypeActionButton,
+  /<Button type="button" variant="secondary" onClick=\{close\} disabled=\{submitting\}>Cancel<\/Button>/,
+  "Pending prototype actions must disable Cancel",
+);
+assert.match(
+  prototypeActionButton,
+  /function close\(\) \{\s*if \(submitting\) return;/,
+  "Prototype action reset must ignore close requests while a promise is pending",
+);
+assert.doesNotMatch(
+  prototypeActionButton,
+  /PrototypeActionKind|kind\?: PrototypeActionKind/,
+  "Prototype actions must not retain the removed kind compatibility prop",
+);
 assert.doesNotMatch(
   prototypeActionButton,
   /onComplete\?\.|setTimeout\(|Date\.now\(/,
@@ -96,6 +116,11 @@ assert.match(
   workflowCommandService,
   /requestedBucket \?\? taskDueBuckets\.find\(\(candidate\) => bucketCounts\[candidate\] > 0\) \?\? "ALL_OPEN"/,
   "Default task buckets must fall back through overdue, today, upcoming, and all open",
+);
+assert.match(
+  workflowCommandService,
+  /const taskDueBuckets: TaskDueBucket\[\] = \["OVERDUE", "TODAY", "UPCOMING", "ALL_OPEN"\];/,
+  "Task bucket fallback order must remain overdue, today, upcoming, then all open",
 );
 
 const expectedPrimaryHrefs = [

@@ -212,8 +212,8 @@ export function WorkflowCommandClient({ steps: initialSteps, courses }: Workflow
               <ArrowRight className="h-4 w-4" />
               Advance
             </Button>
-            <PrototypeActionButton label="Export" icon="file" kind="export" description="Prepare a tokenized workflow status export." />
-            <PrototypeActionButton label="Customize" icon="pen" kind="settings" description="Stage workflow definition changes for admin review." />
+            <PrototypeActionButton label="Export" icon="file" description="Prepare a tokenized workflow status export." />
+            <PrototypeActionButton label="Customize" icon="pen" description="Stage workflow definition changes for admin review." />
           </>
         }
       />

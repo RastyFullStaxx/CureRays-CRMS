@@ -136,8 +136,8 @@ export function WorkflowTemplateCommandClient({
         subtitle="Carepath workflow definitions, source templates, field maps, and course-bundle creation rules"
         actions={
           <>
-            <PrototypeActionButton label="Import Definition" icon="upload" kind="upload" description="Stage a workflow definition import from a registry source." />
-            <PrototypeActionButton label="New Workflow" icon="plus" kind="create" variant="primary" description="Stage a new diagnosis-specific workflow template for admin review." />
+            <PrototypeActionButton label="Import Definition" icon="upload" description="Stage a workflow definition import from a registry source." />
+            <PrototypeActionButton label="New Workflow" icon="plus" variant="primary" description="Stage a new diagnosis-specific workflow template for admin review." />
           </>
         }
       />
@@ -174,7 +174,7 @@ export function WorkflowTemplateCommandClient({
               <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Select a workflow to review generated carepath rules.</p>
             </div>
           }
-          toolbarActions={<PrototypeActionButton label="Export Definitions" icon="download" kind="export" size="sm" description="Prepare a PHI-free workflow template export." />}
+          toolbarActions={<PrototypeActionButton label="Export Definitions" icon="download" size="sm" description="Prepare a PHI-free workflow template export." />}
           search={{ placeholder: 'Search workflow, diagnosis, protocol, status, phase, or source coverage...', keys: ['name', 'diagnosis', 'protocol', 'status', 'sourceCoverage', 'description'] }}
           filters={[
             { id: 'diagnosis', label: 'Diagnosis' },
@@ -283,7 +283,7 @@ export function WorkflowTemplateCommandClient({
             </p>
           </div>
         }
-        toolbarActions={<PrototypeActionButton label="Generate Bundle Preview" icon="play" kind="review" size="sm" description="Stage a course-bundle preview from the selected workflow definition." />}
+        toolbarActions={<PrototypeActionButton label="Generate Bundle Preview" icon="play" size="sm" description="Stage a course-bundle preview from the selected workflow definition." />}
         search={{ placeholder: 'Search requirement, phase, owner, source, readiness, task, output, or CPT...', keys: ['requirement', 'phase', 'owner', 'reviewer', 'source', 'sourceStatus', 'fieldMap', 'readiness', 'task', 'outputs', 'cpt', 'action'] }}
         filters={[
           { id: 'phase', label: 'Phase' },

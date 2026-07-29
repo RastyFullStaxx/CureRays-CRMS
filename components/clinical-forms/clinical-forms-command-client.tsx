@@ -100,13 +100,11 @@ export function ClinicalFormsCommandClient({ rows, handJointRows, stats }: Clini
             <PrototypeActionButton
               label="Export Form Worklist"
               icon="download"
-              kind="export"
               description="Prepare a tokenized clinical form worklist for review."
             />
             <PrototypeActionButton
               label="New Clinical Form"
               icon="plus"
-              kind="create"
               variant="primary"
               description="Stage a structured clinical form from the active template registry."
             />

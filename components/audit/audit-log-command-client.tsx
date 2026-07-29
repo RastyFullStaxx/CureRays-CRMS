@@ -106,7 +106,6 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
           <PrototypeActionButton
             label="Export Logs"
             icon="download"
-            kind="export"
             description={`Prepare a tokenized ${mode === 'security' ? 'security' : 'audit'} event export.`}
           />
         }
@@ -141,7 +140,6 @@ export function AuditLogCommandClient({ mode, rows }: AuditLogCommandClientProps
             <PrototypeActionButton
               label="Export"
               icon="download"
-              kind="export"
               size="sm"
               description="Prepare the filtered audit event view with PHI-safe values."
             />

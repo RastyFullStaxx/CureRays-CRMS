@@ -91,8 +91,8 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
         subtitle="Fraction log registry, approval queue, document readiness, and worksheet access"
         actions={
           <>
-            <PrototypeActionButton label="Export Fraction Registry" icon="download" kind="export" description="Prepare a tokenized fraction registry export for treatment delivery review." />
-            <PrototypeActionButton label="Record Treatment" icon="plus" kind="review" variant="primary" description="Stage a treatment event or open a patient workspace Fractions tab for worksheet entry." />
+            <PrototypeActionButton label="Export Fraction Registry" icon="download" description="Prepare a tokenized fraction registry export for treatment delivery review." />
+            <PrototypeActionButton label="Record Treatment" icon="plus" variant="primary" description="Stage a treatment event or open a patient workspace Fractions tab for worksheet entry." />
           </>
         }
       />
@@ -172,7 +172,7 @@ export function FractionLogCommandClient({ rows }: FractionLogCommandClientProps
               {reviewNeeded} Review
             </Badge>
           }
-          toolbarActions={<PrototypeActionButton label="Batch Review" icon="check" kind="review" size="sm" description="Stage approval review for selected fraction registry rows." />}
+          toolbarActions={<PrototypeActionButton label="Batch Review" icon="check" size="sm" description="Stage approval review for selected fraction registry rows." />}
           onRowClick={selectRow}
         />
 

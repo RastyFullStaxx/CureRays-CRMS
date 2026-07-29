@@ -117,14 +117,12 @@ export function PhaseCohortCommandClient({ mode, title, subtitle, rows, stats }:
             <PrototypeActionButton
               label="Schedule Review"
               icon="calendar"
-              kind="schedule"
               variant="primary"
               description="Stage a cohort scheduling/review action for the prototype demo."
             />
             <PrototypeActionButton
               label="Export Cohort"
               icon="download"
-              kind="export"
               description="Prepare a tokenized cohort export for operations review."
             />
           </div>

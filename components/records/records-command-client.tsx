@@ -95,14 +95,12 @@ export function RecordsCommandClient({ rows, stats }: RecordsCommandClientProps)
             <PrototypeActionButton
               label="Register Record"
               icon="plus"
-              kind="create"
               variant="primary"
               description="Stage a new master record and course bundle for this prototype session."
             />
             <PrototypeActionButton
               label="Export Index"
               icon="download"
-              kind="export"
               description="Prepare a tokenized operational export without retaining PHI in the prototype action."
             />
           </div>

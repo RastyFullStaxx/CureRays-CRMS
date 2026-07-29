@@ -155,7 +155,7 @@ export function ScheduleCommandClient({ appointments, workflowSteps }: ScheduleC
                 aria-label="Schedule Date"
               />
             </label>
-            <PrototypeActionButton label="New Appointment" icon="plus" kind="schedule" variant="primary" description="Stage an appointment linked to workflow timing." />
+            <PrototypeActionButton label="New Appointment" icon="plus" variant="primary" description="Stage an appointment linked to workflow timing." />
           </>
         )}
       />

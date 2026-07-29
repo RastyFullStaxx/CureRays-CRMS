@@ -109,8 +109,8 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
         subtitle="Skin cancer IGSRT simulation, prescription, schedule gates, generated documents, and fraction worksheet"
         actions={
           <>
-            <PrototypeActionButton label="Open Patient Workspace" icon="play" kind="review" description="Stage navigation to the patient command workspace for this tokenized course." />
-            <PrototypeActionButton label="Generate IGSRT Packet" icon="file" kind="document" variant="primary" description="Stage a simulated IGSRT packet from the current course evidence." />
+            <PrototypeActionButton label="Open Patient Workspace" icon="play" description="Stage navigation to the patient command workspace for this tokenized course." />
+            <PrototypeActionButton label="Generate IGSRT Packet" icon="file" variant="primary" description="Stage a simulated IGSRT packet from the current course evidence." />
           </>
         }
       />
@@ -288,7 +288,7 @@ export function IgsrtCommandClient({ summary, documents, gates }: IgsrtCommandCl
             <p className="mt-1 type-supporting text-[var(--color-text-muted)]">Simulation, prescription, fraction log, treatment summary, and audit note readiness.</p>
           </div>
         }
-        toolbarActions={<PrototypeActionButton label="Render Missing Docs" icon="refresh" kind="document" size="sm" description="Stage simulated rendering for documents that still need output." />}
+        toolbarActions={<PrototypeActionButton label="Render Missing Docs" icon="refresh" size="sm" description="Stage simulated rendering for documents that still need output." />}
         search={{ placeholder: 'Search document, phase, owner, status, signature, audit, or action...', keys: ['name', 'phase', 'owner', 'status', 'signature', 'auditReady', 'requiredAction'] }}
         filters={[
           { id: 'phase', label: 'Phase' },
