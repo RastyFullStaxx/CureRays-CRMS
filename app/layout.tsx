@@ -13,7 +13,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "CureRays CWS",
-  description: "Clinical workflow dashboard for CureRays treatment operations."
+  description: "Clinical workflow dashboard for CureRays treatment operations.",
+  icons: {
+    icon: "/System_Logo.svg",
+  },
 };
 
 const themeScript = `
