@@ -79,8 +79,8 @@ export type DocumentLifecycleRepository = {
 function actorContext(access: PhiAccessContext) {
   return {
     role: access.role,
-    userId: `PROTO-${access.role}`,
-    userName: access.role === "SYSTEM" ? "Prototype System" : `Prototype ${access.role}`,
+    userId: access.userId ?? `SYSTEM-${access.role}`,
+    userName: access.userName ?? "CureRays System",
     reason: access.reason
   };
 }

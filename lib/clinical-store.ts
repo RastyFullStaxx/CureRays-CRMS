@@ -534,12 +534,12 @@ function patientAuditContext(
   fallbackReason: string
 ): PatientMutationAuditContext {
   return {
-    userId: textInput(context?.userId) || "PROTOTYPE-SYSTEM",
-    userName: textInput(context?.userName) || "Prototype System",
+    userId: textInput(context?.userId) || "SYSTEM",
+    userName: textInput(context?.userName) || "CureRays System",
     role: context?.role ?? "SYSTEM",
-    sessionId: textInput(context?.sessionId) || "prototype-session",
-    ipAddress: textInput(context?.ipAddress) || "prototype-ip",
-    deviceId: textInput(context?.deviceId) || "prototype-device",
+    sessionId: textInput(context?.sessionId) || "system",
+    ipAddress: textInput(context?.ipAddress) || "server",
+    deviceId: textInput(context?.deviceId) || "server",
     reason: textInput(context?.reason) || fallbackReason
   };
 }

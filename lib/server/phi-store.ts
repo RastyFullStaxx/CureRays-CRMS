@@ -13,27 +13,36 @@ import {
 } from "@/lib/clinical-store";
 import { phiRecordId } from "@/lib/hipaa";
 import { canAccessPhi, roleCan } from "@/lib/rbac";
-import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import {
+  pilotSessionFromRequest
+} from "@/lib/server/pilot-session";
 import type { Patient, PrototypeAccessRole } from "@/lib/types";
 
 export type PhiAccessContext = {
   role: PrototypeAccessRole;
+  userId: string;
+  userName: string;
+  sessionId: string;
+  ipAddress: string;
+  deviceId: string;
   reason: string;
 };
 
 export function phiAccessFromRequest(request: NextRequest, reason: string): PhiAccessContext | null {
-  const session = prototypeSessionFromRequest(request);
-  const role = session?.role ?? null;
-
-  if (role && canAccessPhi(role)) {
-    return { role, reason };
-  }
-
-  return null;
+  const session = pilotSessionFromRequest(request);
+  return session && canAccessPhi(session.role) ? { ...session, reason } : null;
 }
 
 export function systemPhiAccess(reason: string): PhiAccessContext {
-  return { role: "SYSTEM", reason };
+  return {
+    role: "SYSTEM",
+    userId: "SYSTEM",
+    userName: "CureRays System",
+    sessionId: "system",
+    ipAddress: "server",
+    deviceId: "server",
+    reason
+  };
 }
 
 export function requirePhiAccess(context: PhiAccessContext | null) {

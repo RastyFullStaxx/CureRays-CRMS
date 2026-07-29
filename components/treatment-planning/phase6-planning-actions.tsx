@@ -23,8 +23,7 @@ export function Phase6PlanningActions({ courseId, disabled = false }: Phase6Plan
       const response = await fetch("/api/igsrt", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "x-curerays-role": "RAD_ONC"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           action: "generateFractionSchedule",

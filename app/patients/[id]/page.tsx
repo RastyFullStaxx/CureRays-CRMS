@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import { PatientWorkspace } from '@/components/patients/patient-workspace';
 import {
   auditEvents,
@@ -20,7 +21,11 @@ import {
   getWorkflowSteps,
   imagingAssets,
 } from '@/lib/services/operational-page-service';
-import { findPatientPhi, systemPhiAccess } from '@/lib/server/phi-store';
+import { findPatientPhi } from '@/lib/server/phi-store';
+import {
+  PILOT_SESSION_COOKIE,
+  pilotSessionFromCookieValue
+} from '@/lib/server/pilot-session';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
 import { normalizePatientWorkspaceTab } from '@/lib/services/patient-workspace-service';
@@ -39,7 +44,19 @@ export default async function PatientProfilePage({
   await hydrateClinicalStoreFromDatabase({
     force: usePrismaStore
   });
-  const patient = findPatientPhi(id, systemPhiAccess('Render patient workspace page'));
+  const cookieStore = await cookies();
+  const session = pilotSessionFromCookieValue(
+    cookieStore.get(PILOT_SESSION_COOKIE)?.value
+  );
+
+  if (!session) {
+    redirect('/login');
+  }
+
+  const patient = findPatientPhi(id, {
+    ...session,
+    reason: 'Render patient workspace page'
+  });
 
   if (!patient) {
     notFound();

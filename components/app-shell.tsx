@@ -2,9 +2,18 @@
 
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { MacNavigation } from '@/components/mac-navigation';
+import {
+  MacNavigation,
+  type ShellIdentity
+} from '@/components/mac-navigation';
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  identity
+}: {
+  children: ReactNode;
+  identity: ShellIdentity | null;
+}) {
   const pathname = usePathname();
 
   if (pathname === '/' || pathname === '/login') {
@@ -13,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="mac-desktop">
-      <MacNavigation />
+      {identity ? <MacNavigation identity={identity} /> : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <main

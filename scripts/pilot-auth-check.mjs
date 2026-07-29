@@ -1,16 +1,42 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const [session, prototypeSession, login, logout, sessionRoute, proxy, passwordHash, envExample] = await Promise.all([
+
+async function readSourceTree(path) {
+  const entries = await readdir(new URL(`../${path}`, import.meta.url), {
+    recursive: true,
+    withFileTypes: true,
+  });
+  return Promise.all(
+    entries
+      .filter((entry) => entry.isFile() && /\.[cm]?[jt]sx?$/.test(entry.name))
+      .map((entry) => readFile(`${entry.parentPath}/${entry.name}`, 'utf8')),
+  ).then((sources) => sources.join('\n'));
+}
+
+const [
+  session,
+  login,
+  logout,
+  sessionRoute,
+  proxy,
+  passwordHash,
+  envExample,
+  appSources,
+  componentSources,
+  libSources,
+] = await Promise.all([
   read('lib/server/pilot-session.ts'),
-  read('lib/server/prototype-session.ts'),
   read('app/api/auth/login/route.ts'),
   read('app/api/auth/logout/route.ts'),
   read('app/api/auth/session/route.ts'),
   read('proxy.ts'),
   read('scripts/pilot-password-hash.mjs'),
   read('.env.example'),
+  readSourceTree('app'),
+  readSourceTree('components'),
+  readSourceTree('lib'),
 ]);
 
 assert.match(session, /PILOT_ACCOUNTS_JSON/);
@@ -31,10 +57,17 @@ assert.doesNotMatch(
   session + login + logout + sessionRoute + proxy,
   /CURERAYS_PROTOTYPE_ROLE|x-curerays-role|x-curerays-user|console\./i,
 );
-assert.match(prototypeSession, /pilotSessionFromRequest\(request\)/);
 assert.doesNotMatch(
-  prototypeSession,
-  /CURERAYS_PROTOTYPE_ROLE|x-curerays-role|x-curerays-user|x-curerays-session|x-curerays-device|RAD_ONC/,
+  componentSources,
+  /x-curerays-(?:role|user|session|device)/i,
+);
+assert.doesNotMatch(
+  appSources + componentSources + libSources,
+  /prototype-session/i,
+);
+assert.doesNotMatch(
+  appSources,
+  /systemPhiAccess/,
 );
 assert.match(session, /if \(!origin\) return false/);
 assert.match(session, /\.origin === expectedOrigin/);

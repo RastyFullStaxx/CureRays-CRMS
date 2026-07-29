@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useRef, useSyncExternalStore } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import {
   Bell,
   CalendarDays,
@@ -17,7 +17,14 @@ import {
   Sun,
   TableProperties,
 } from 'lucide-react';
+import { roleLabels } from '@/lib/rbac';
+import type { ResponsibleParty } from '@/lib/types';
 import { cn } from '@/lib/workflow';
+
+export type ShellIdentity = {
+  displayName: string;
+  role: ResponsibleParty;
+};
 
 const commandItems = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -53,10 +60,36 @@ function matchesRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function MacNavigation() {
+function initials(displayName: string) {
+  return displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}
+
+export function MacNavigation({ identity }: { identity: ShellIdentity }) {
   const pathname = usePathname() ?? '';
+  const router = useRouter();
   const darkMode = useSyncExternalStore(subscribeToTheme, getStoredDarkMode, () => false);
   const themeButtonRef = useRef<HTMLButtonElement>(null);
+  const [logoutPending, setLogoutPending] = useState(false);
+
+  const logout = async () => {
+    if (logoutPending) return;
+    setLogoutPending(true);
+
+    try {
+      const response = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!response.ok) return;
+      router.replace('/login');
+      router.refresh();
+    } finally {
+      setLogoutPending(false);
+    }
+  };
 
   const toggleDarkMode = async () => {
     const next = !darkMode;
@@ -161,13 +194,20 @@ export function MacNavigation() {
             >
               {darkMode ? <Sun className="theme-toggle-icon h-4 w-4" aria-hidden="true" /> : <Moon className="theme-toggle-icon h-4 w-4" aria-hidden="true" />}
             </button>
-            <div className="mac-account" aria-label="Signed in as Dr. Sarah Johnson">
-              <span className="mac-account-avatar">SJ</span>
+            <button
+              type="button"
+              className="mac-account"
+              onClick={logout}
+              disabled={logoutPending}
+              aria-label={`Sign out ${identity.displayName}`}
+              title="Sign Out"
+            >
+              <span className="mac-account-avatar">{initials(identity.displayName)}</span>
               <span className="mac-account-copy">
-                <span className="mac-account-name">Dr. Sarah Johnson</span>
-                <span className="mac-account-role">Physician</span>
+                <span className="mac-account-name">{identity.displayName}</span>
+                <span className="mac-account-role">{roleLabels[identity.role]}</span>
               </span>
-            </div>
+            </button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,33 +10,67 @@ import { Input } from '@/components/ui/input';
 export function LoginCard() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(false);
+  const submissionPending = useRef(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push('/dashboard');
+    if (submissionPending.current) return;
+
+    submissionPending.current = true;
+    setPending(true);
+    setError(false);
+
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId: form.get('accountId'),
+          password: form.get('password'),
+        }),
+      });
+
+      if (!response.ok) {
+        setError(true);
+        return;
+      }
+
+      router.replace('/dashboard');
+      router.refresh();
+    } catch {
+      setError(true);
+    } finally {
+      submissionPending.current = false;
+      setPending(false);
+    }
   }
 
   return (
-    <form action="/dashboard" onSubmit={handleSubmit} className="landing-login-card">
+    <form onSubmit={handleSubmit} className="landing-login-card">
       <div className="landing-login-copy">
-        <p className="landing-login-kicker">Staff Demo Access</p>
+        <p className="landing-login-kicker">Staff Pilot Access</p>
         <h2>Open CureRays CRMS</h2>
         <p className="landing-login-subtitle">
-          Enter any valid email and a password of at least six characters.
+          Enter your assigned pilot account ID and password.
         </p>
       </div>
 
       <div className="landing-login-fields">
-        <label className="landing-field-label" htmlFor="email">
-          Email Address
+        <label className="landing-field-label" htmlFor="accountId">
+          Account ID
           <span className="landing-input-wrap">
             <Mail className="landing-input-icon" aria-hidden="true" />
             <Input
-              id="email"
-              type="email"
-              autoComplete="email"
+              id="accountId"
+              name="accountId"
+              type="text"
+              autoComplete="username"
               className="landing-input"
-              placeholder="name@curerays.com"
+              placeholder="Enter your account ID"
               required
             />
           </span>
@@ -48,11 +82,11 @@ export function LoginCard() {
             <LockKeyhole className="landing-input-icon" aria-hidden="true" />
             <Input
               id="password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               className="landing-input landing-password-input"
-              placeholder="Enter at least six characters"
-              minLength={6}
+              placeholder="Enter your password"
               required
             />
             <button
@@ -72,13 +106,17 @@ export function LoginCard() {
         </div>
       </div>
 
-      <Button type="submit" className="landing-submit">
-        Open Demo Workspace
+      <Button type="submit" className="landing-submit" disabled={pending}>
+        {pending ? 'Signing In' : 'Sign In'}
       </Button>
 
-      <p className="landing-secure-note">
+      <p className="landing-secure-note" role={error ? 'alert' : undefined}>
         <ShieldCheck aria-hidden="true" />
-        <span>Demo access does not verify identity. Use sample or de-identified data only.</span>
+        <span>
+          {error
+            ? 'Sign-in failed. Check your account ID and password.'
+            : 'Signed staff access. Use sample or de-identified data only.'}
+        </span>
       </p>
     </form>
   );

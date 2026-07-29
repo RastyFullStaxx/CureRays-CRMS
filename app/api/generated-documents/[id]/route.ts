@@ -10,7 +10,7 @@ import {
 } from "@/lib/server/document-lifecycle-service";
 import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import { phiAccessFromRequest, type PhiAccessContext } from "@/lib/server/phi-store";
-import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import { pilotSessionFromRequest } from "@/lib/server/pilot-session";
 import { PersistenceWriteError } from "@/lib/server/write-through";
 import type { DocumentLifecycleResult, GeneratedDocumentFormat } from "@/lib/types";
 
@@ -30,8 +30,8 @@ function documentResponse(result: DocumentLifecycleResult) {
 }
 
 function documentMutationAccessFromRequest(request: NextRequest, reason: string): PhiAccessContext | null {
-  const session = prototypeSessionFromRequest(request);
-  return session ? { role: session.role, reason } : null;
+  const session = pilotSessionFromRequest(request);
+  return session ? { ...session, reason } : null;
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

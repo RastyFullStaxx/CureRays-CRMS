@@ -1,7 +1,5 @@
 import type { FractionApprovalType, PrototypeAccessRole, ResponsibleParty } from "@/lib/types";
 
-export const PROTOTYPE_ROLE_HEADER = "x-curerays-role";
-
 export type RoleAction =
   | "phi:read"
   | "phi:create"

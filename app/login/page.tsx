@@ -201,7 +201,7 @@ export default function LoginPage() {
             <h2 id="demo-boundary-title">A Controlled Staff Demonstration</h2>
           </div>
           <p>
-            This demonstration does not create or verify an identity. Use sample or de-identified
+            Staff access is verified through assigned pilot accounts. Use sample or de-identified
             data only. Prototype calculations are not clinical guidance.
           </p>
           <a className="clinical-focus" href="#sign-in">

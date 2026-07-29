@@ -230,9 +230,11 @@ function requestIpAddress(request: NextRequest): string {
   );
 }
 
-export function pilotSessionFromRequest(request: NextRequest): PilotSessionClaims | null {
+export function pilotSessionFromCookieValue(
+  token: string | null | undefined,
+  ipAddress = 'unavailable',
+): PilotSessionClaims | null {
   try {
-    const token = cookieToken(request);
     if (!token) return null;
     const claims = parseClaims(token);
     if (!claims) return null;
@@ -244,12 +246,16 @@ export function pilotSessionFromRequest(request: NextRequest): PilotSessionClaim
       userId: account.id,
       userName: account.displayName,
       sessionId: `pilot:${account.id}:${claims.iat}`,
-      ipAddress: requestIpAddress(request),
+      ipAddress,
       deviceId: 'pilot-browser',
     };
   } catch {
     return null;
   }
+}
+
+export function pilotSessionFromRequest(request: NextRequest): PilotSessionClaims | null {
+  return pilotSessionFromCookieValue(cookieToken(request), requestIpAddress(request));
 }
 
 export function pilotCookieOptions(maxAge = PILOT_SESSION_MAX_AGE) {

@@ -34,7 +34,7 @@ async function writeThroughClinical<T extends ClinicalMutationResult>(courseId: 
 }
 
 function actorUserId(access: PhiAccessContext) {
-  return `PROTO-${access.role}`;
+  return access.userId ?? `SYSTEM-${access.role}`;
 }
 
 function requireClinicalMutation(access: PhiAccessContext) {

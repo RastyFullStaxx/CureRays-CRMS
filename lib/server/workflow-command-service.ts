@@ -17,8 +17,8 @@ import {
 import { documentRequirements, workflowDefinitions } from "@/lib/template-registry";
 import { PHI_REDACTED, courseRef, patientRef } from "@/lib/hipaa";
 import { PROTOTYPE_OPERATIONAL_AS_OF, PROTOTYPE_OPERATIONAL_DATE } from "@/lib/operational-date";
-import { PROTOTYPE_ROLE_HEADER, roleCan } from "@/lib/rbac";
-import { prototypeSessionFromRequest, type PrototypeSessionClaims } from "@/lib/server/prototype-session";
+import { roleCan } from "@/lib/rbac";
+import { pilotSessionFromRequest, type PilotSessionClaims } from "@/lib/server/pilot-session";
 import { hydrateClinicalStoreFromDatabase } from "@/lib/server/database-hydration";
 import { isPrismaPersistenceMode, PersistenceWriteError, persistCourseWorkflowMutation } from "@/lib/server/write-through";
 import { completedDocumentStatuses, completedTaskStatuses, orderedCarepathPhases } from "@/lib/workflow";
@@ -50,7 +50,7 @@ export type WorkflowRepositoryMode = "memory" | "prisma";
 
 export type WorkflowMutationAction = "workflow:mutate" | "task:mutate";
 
-export type WorkflowMutationContext = PrototypeSessionClaims & {
+export type WorkflowMutationContext = PilotSessionClaims & {
   action: WorkflowMutationAction;
   reason: string;
 };
@@ -1022,8 +1022,8 @@ export async function getTaskQueueSnapshot(
   return selectWorkflowTaskRepository().listQueue(queue, role, asOf, bucket);
 }
 
-export function workflowReadContextFromRequest(request: NextRequest): PrototypeSessionClaims | null {
-  return prototypeSessionFromRequest(request);
+export function workflowReadContextFromRequest(request: NextRequest): PilotSessionClaims | null {
+  return pilotSessionFromRequest(request);
 }
 
 export function workflowMutationContextFromRequest(
@@ -1031,7 +1031,7 @@ export function workflowMutationContextFromRequest(
   action: WorkflowMutationAction,
   reason: string
 ): WorkflowMutationContext | null {
-  const session = prototypeSessionFromRequest(request);
+  const session = pilotSessionFromRequest(request);
   if (!session || !roleCan(session.role, action)) {
     return null;
   }
@@ -1056,7 +1056,7 @@ export async function listWorkflowCommandSnapshot(asOf?: string) {
       queue: await repository.listQueue("ALL", role, asOf ?? PROTOTYPE_OPERATIONAL_AS_OF),
       auditEvents: operationalAuditEvents(),
       phiBoundary: {
-        roleHeader: PROTOTYPE_ROLE_HEADER,
+        identitySource: "Signed pilot session",
         patientIdentifiers: "Not returned from workflow/task command APIs",
         operationalRecords: "Tokenized patientRef/courseRef records only"
       }
@@ -1075,7 +1075,7 @@ export async function listWorkflowCommandSnapshot(asOf?: string) {
     queue: await inMemoryWorkflowTaskRepository.listQueue("ALL", role, asOf ?? PROTOTYPE_OPERATIONAL_AS_OF),
     auditEvents: operationalAuditEvents(),
     phiBoundary: {
-      roleHeader: PROTOTYPE_ROLE_HEADER,
+      identitySource: "Signed pilot session",
       patientIdentifiers: "Not returned from workflow/task command APIs",
       operationalRecords: "Tokenized patientRef/courseRef records only"
     }

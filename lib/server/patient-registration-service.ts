@@ -22,10 +22,10 @@ import {
   validatePatientUpdateInput,
   type PatientMutationAuditContext
 } from "@/lib/clinical-store";
-import { phiAccessFromRequest, requirePhiAction } from "@/lib/server/phi-store";
-import { prototypeSessionFromRequest } from "@/lib/server/prototype-session";
+import { canAccessPhi, type RoleAction } from "@/lib/rbac";
+import { requirePhiAction } from "@/lib/server/phi-store";
+import { pilotSessionFromRequest } from "@/lib/server/pilot-session";
 import { isPrismaPersistenceMode } from "@/lib/server/write-through";
-import type { RoleAction } from "@/lib/rbac";
 import type {
   OperationalAuditEvent,
   OperationalPatient,
@@ -889,24 +889,16 @@ export function patientMutationContextFromRequest(
   action: PatientMutationAction,
   reason: string
 ): PatientMutationContext | null {
-  const access = phiAccessFromRequest(request, reason);
+  const session = pilotSessionFromRequest(request);
 
-  if (!access) {
+  if (!session || !canAccessPhi(session.role)) {
     return null;
   }
 
-  const actorRole = access.role;
-  const session = prototypeSessionFromRequest(request);
-
   return {
+    ...session,
     action,
-    role: actorRole,
-    userId: session?.userId ?? `PROTOTYPE-${actorRole}`,
-    userName: session?.userName ?? "Prototype User",
-    sessionId: session?.sessionId ?? "prototype-session",
-    ipAddress: session?.ipAddress ?? "prototype-ip",
-    deviceId: session?.deviceId ?? "prototype-device",
-    reason: access.reason
+    reason
   };
 }
 
@@ -947,7 +939,7 @@ function safeFailure<T>(error: unknown): PatientServiceResponse<T> {
 }
 
 function assertPhiAction(context: PatientMutationContext) {
-  requirePhiAction({ role: context.role, reason: context.reason }, context.action);
+  requirePhiAction(context, context.action);
 }
 
 function assertCreatePostConditions(result: PatientCourseMutationResult) {
@@ -1066,7 +1058,7 @@ export async function getPatientEditRecord(
   context: PatientMutationContext
 ): Promise<PatientServiceResponse<{ patient: PatientEditDto }>> {
   try {
-    requirePhiAction({ role: context.role, reason: context.reason }, "phi:read");
+    requirePhiAction(context, "phi:read");
     const repository = selectPatientRegistrationRepository();
     const patient = await repository.getPatientEditRecord(patientRefOrId);
 
@@ -1089,7 +1081,7 @@ export async function listPatientRecordHistoryEntries(
   context: PatientMutationContext
 ): Promise<PatientServiceResponse<{ history: PatientRecordHistoryEntry[] }>> {
   try {
-    requirePhiAction({ role: context.role, reason: context.reason }, "phi:read");
+    requirePhiAction(context, "phi:read");
     const repository = selectPatientRegistrationRepository();
     return success(200, { history: await repository.listPatientRecordHistory(patientRefOrId) });
   } catch (error) {
