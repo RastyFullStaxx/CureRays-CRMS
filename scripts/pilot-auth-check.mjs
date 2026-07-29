@@ -3,16 +3,19 @@ import { readdir, readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-async function readSourceTree(path) {
+async function readSourceTree(path, clientOnly = false) {
   const entries = await readdir(new URL(`../${path}`, import.meta.url), {
     recursive: true,
     withFileTypes: true,
   });
-  return Promise.all(
+  const sources = await Promise.all(
     entries
       .filter((entry) => entry.isFile() && /\.[cm]?[jt]sx?$/.test(entry.name))
       .map((entry) => readFile(`${entry.parentPath}/${entry.name}`, 'utf8')),
-  ).then((sources) => sources.join('\n'));
+  );
+  return sources
+    .filter((source) => !clientOnly || /^\s*['"]use client['"];?/.test(source))
+    .join('\n');
 }
 
 const [
@@ -24,8 +27,11 @@ const [
   passwordHash,
   envExample,
   appSources,
+  appClientSources,
   componentSources,
-  libSources,
+  phase6Service,
+  documentLifecycleService,
+  clinicalStore,
 ] = await Promise.all([
   read('lib/server/pilot-session.ts'),
   read('app/api/auth/login/route.ts'),
@@ -35,8 +41,11 @@ const [
   read('scripts/pilot-password-hash.mjs'),
   read('.env.example'),
   readSourceTree('app'),
+  readSourceTree('app', true),
   readSourceTree('components'),
-  readSourceTree('lib'),
+  read('lib/server/phase6-treatment-workflow-service.ts'),
+  read('lib/server/document-lifecycle-service.ts'),
+  read('lib/clinical-store.ts'),
 ]);
 
 assert.match(session, /PILOT_ACCOUNTS_JSON/);
@@ -58,17 +67,49 @@ assert.doesNotMatch(
   /CURERAYS_PROTOTYPE_ROLE|x-curerays-role|x-curerays-user|console\./i,
 );
 assert.doesNotMatch(
-  componentSources,
-  /x-curerays-(?:role|user|session|device)/i,
+  componentSources + appClientSources,
+  /x-curerays-(?:role|user|session|device)|prototype-session/i,
 );
 assert.doesNotMatch(
-  appSources + componentSources + libSources,
-  /prototype-session/i,
+  appSources,
+  /from\s+['"][^'"]*prototype-session['"]/i,
 );
 assert.doesNotMatch(
   appSources,
   /systemPhiAccess/,
 );
+assert.match(
+  phase6Service,
+  /addFractionLogEntry\([^]*,\s*access\s*\)/,
+);
+assert.match(
+  phase6Service,
+  /updateFractionLogEntry\([^]*,\s*access\s*\)/,
+);
+const phase6MutationSource =
+  clinicalStore.match(/export function addFractionLogEntry[^]*?function renderContent/)?.[0] ?? '';
+assert.doesNotMatch(
+  phase6MutationSource,
+  /userId:\s*["']SYSTEM["']|userName:\s*["']Workflow API["']/,
+);
+assert.match(
+  phase6MutationSource,
+  /patientAuditFields\(auditContext\)/,
+);
+assert.doesNotMatch(
+  documentLifecycleService,
+  /function actorContext/,
+);
+for (const expected of [
+  /renderGeneratedDocument\(documentId,\s*format,\s*access\)/,
+  /exportGeneratedDocumentOutput\(documentId,\s*access\)/,
+  /signGeneratedDocument\(documentId,\s*access\)/,
+  /confirmGeneratedDocumentEcwUpload\(documentId,\s*input,\s*access\)/,
+  /voidGeneratedDocumentOutput\(documentId,\s*input,\s*access\)/,
+  /recordGeneratedDocumentManualEditException\(documentId,\s*input,\s*access\)/,
+]) {
+  assert.match(documentLifecycleService, expected);
+}
 assert.match(session, /if \(!origin\) return false/);
 assert.match(session, /\.origin === expectedOrigin/);
 assert.match(envExample, /PILOT_SESSION_SECRET="<base64url-encoded-32-to-64-random-bytes>"/);

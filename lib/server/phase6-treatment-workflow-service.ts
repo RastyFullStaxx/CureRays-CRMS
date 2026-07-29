@@ -33,10 +33,6 @@ async function writeThroughClinical<T extends ClinicalMutationResult>(courseId: 
   return result;
 }
 
-function actorUserId(access: PhiAccessContext) {
-  return access.userId ?? `SYSTEM-${access.role}`;
-}
-
 function requireClinicalMutation(access: PhiAccessContext) {
   requirePhiAction(access, "igsrt:mutate");
 }
@@ -56,7 +52,7 @@ function requireOtvRole(access: PhiAccessContext) {
 export function createFractionRow(access: PhiAccessContext, data: Record<string, unknown>) {
   requireClinicalMutation(access);
   const courseId = String(data.courseId);
-  return writeThroughClinical(courseId, addFractionLogEntry({ ...data, courseId }));
+  return writeThroughClinical(courseId, addFractionLogEntry({ ...data, courseId }, access));
 }
 
 export function correctFractionRow(access: PhiAccessContext, data: Record<string, unknown>) {
@@ -64,12 +60,14 @@ export function correctFractionRow(access: PhiAccessContext, data: Record<string
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    updateFractionLogEntry({
-      ...data,
-      courseId,
-      id: String(data.id),
-      correctedByUserId: actorUserId(access)
-    })
+    updateFractionLogEntry(
+      {
+        ...data,
+        courseId,
+        id: String(data.id)
+      },
+      access
+    )
   );
 }
 
@@ -78,13 +76,14 @@ export function approveFractionRow(access: PhiAccessContext, data: Record<string
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    approveFractionLogEntry({
-      courseId,
-      id: String(data.id),
-      approvalType: (data.approvalType === "DOT" ? "DOT" : "MD") as FractionApprovalType,
-      role: access.role,
-      userId: actorUserId(access)
-    })
+    approveFractionLogEntry(
+      {
+        courseId,
+        id: String(data.id),
+        approvalType: (data.approvalType === "DOT" ? "DOT" : "MD") as FractionApprovalType
+      },
+      access
+    )
   );
 }
 
@@ -93,14 +92,15 @@ export function requestFractionRowRevision(access: PhiAccessContext, data: Recor
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    requestFractionRevision({
-      courseId,
-      id: String(data.id),
-      approvalType: (data.approvalType === "DOT" ? "DOT" : "MD") as FractionApprovalType,
-      reason: String(data.reason ?? ""),
-      role: access.role,
-      userId: actorUserId(access)
-    })
+    requestFractionRevision(
+      {
+        courseId,
+        id: String(data.id),
+        approvalType: (data.approvalType === "DOT" ? "DOT" : "MD") as FractionApprovalType,
+        reason: String(data.reason ?? "")
+      },
+      access
+    )
   );
 }
 
@@ -109,12 +109,14 @@ export function voidFractionRow(access: PhiAccessContext, data: Record<string, u
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    voidFractionLogEntry({
-      courseId,
-      id: String(data.id),
-      reason: String(data.reason ?? ""),
-      userId: actorUserId(access)
-    })
+    voidFractionLogEntry(
+      {
+        courseId,
+        id: String(data.id),
+        reason: String(data.reason ?? "")
+      },
+      access
+    )
   );
 }
 
@@ -123,10 +125,7 @@ export function createFractionSchedule(access: PhiAccessContext, data: Record<st
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    generateTreatmentFractionSchedule({
-      courseId,
-      userId: actorUserId(access)
-    })
+    generateTreatmentFractionSchedule({ courseId }, access)
   );
 }
 
@@ -135,13 +134,15 @@ export function attachFractionImage(access: PhiAccessContext, data: Record<strin
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    linkFractionImage({
-      courseId,
-      fractionNumber: Number(data.fractionNumber),
-      assetId: data.assetId ? String(data.assetId) : undefined,
-      notApplicableReason: data.notApplicableReason ? String(data.notApplicableReason) : undefined,
-      userId: actorUserId(access)
-    })
+    linkFractionImage(
+      {
+        courseId,
+        fractionNumber: Number(data.fractionNumber),
+        assetId: data.assetId ? String(data.assetId) : undefined,
+        notApplicableReason: data.notApplicableReason ? String(data.notApplicableReason) : undefined
+      },
+      access
+    )
   );
 }
 
@@ -151,11 +152,13 @@ export function completePhysicsCheck(access: PhiAccessContext, data: Record<stri
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    recordPhysicsCheck({
-      courseId,
-      fractionNumber: Number(data.fractionNumber),
-      userId: actorUserId(access)
-    })
+    recordPhysicsCheck(
+      {
+        courseId,
+        fractionNumber: Number(data.fractionNumber)
+      },
+      access
+    )
   );
 }
 
@@ -165,10 +168,12 @@ export function completeOtvCheck(access: PhiAccessContext, data: Record<string, 
   const courseId = String(data.courseId);
   return writeThroughClinical(
     courseId,
-    recordOtvCheck({
-      courseId,
-      fractionNumber: Number(data.fractionNumber),
-      userId: actorUserId(access)
-    })
+    recordOtvCheck(
+      {
+        courseId,
+        fractionNumber: Number(data.fractionNumber)
+      },
+      access
+    )
   );
 }

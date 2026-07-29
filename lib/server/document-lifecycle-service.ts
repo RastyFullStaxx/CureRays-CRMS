@@ -76,15 +76,6 @@ export type DocumentLifecycleRepository = {
   ): LifecycleMutationResult;
 };
 
-function actorContext(access: PhiAccessContext) {
-  return {
-    role: access.role,
-    userId: access.userId ?? `SYSTEM-${access.role}`,
-    userName: access.userName ?? "CureRays System",
-    reason: access.reason
-  };
-}
-
 export const inMemoryDocumentLifecycleRepository: DocumentLifecycleRepository = {
   mode: "memory",
   findDocument(documentId) {
@@ -94,25 +85,25 @@ export const inMemoryDocumentLifecycleRepository: DocumentLifecycleRepository = 
     return latestGeneratedDocumentOutput(documentId);
   },
   render(access, documentId, format) {
-    return renderGeneratedDocument(documentId, format, actorContext(access));
+    return renderGeneratedDocument(documentId, format, access);
   },
   exportOutput(access, documentId) {
-    return exportGeneratedDocumentOutput(documentId, actorContext(access));
+    return exportGeneratedDocumentOutput(documentId, access);
   },
   sign(access, documentId) {
-    const result = signGeneratedDocument(documentId, actorContext(access));
+    const result = signGeneratedDocument(documentId, access);
     return result
       ? { data: latestGeneratedDocumentOutput(documentId) ?? undefined, auditEvent: result.auditEvent }
       : null;
   },
   confirmEcwUpload(access, documentId, input) {
-    return confirmGeneratedDocumentEcwUpload(documentId, input, actorContext(access));
+    return confirmGeneratedDocumentEcwUpload(documentId, input, access);
   },
   voidOutput(access, documentId, input) {
-    return voidGeneratedDocumentOutput(documentId, input, actorContext(access));
+    return voidGeneratedDocumentOutput(documentId, input, access);
   },
   recordManualEditException(access, documentId, input) {
-    return recordGeneratedDocumentManualEditException(documentId, input, actorContext(access));
+    return recordGeneratedDocumentManualEditException(documentId, input, access);
   }
 };
 

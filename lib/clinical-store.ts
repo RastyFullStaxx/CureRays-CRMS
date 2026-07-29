@@ -529,17 +529,27 @@ export type PatientMutationAuditContext = {
   reason: string;
 };
 
+const internalAuditActor: PatientMutationAuditContext = {
+  userId: "SYSTEM",
+  userName: "CureRays System",
+  role: "SYSTEM",
+  sessionId: "system",
+  ipAddress: "server",
+  deviceId: "server",
+  reason: "Internal system mutation"
+};
+
 function patientAuditContext(
   context: Partial<PatientMutationAuditContext> | undefined,
   fallbackReason: string
 ): PatientMutationAuditContext {
   return {
-    userId: textInput(context?.userId) || "SYSTEM",
-    userName: textInput(context?.userName) || "CureRays System",
-    role: context?.role ?? "SYSTEM",
-    sessionId: textInput(context?.sessionId) || "system",
-    ipAddress: textInput(context?.ipAddress) || "server",
-    deviceId: textInput(context?.deviceId) || "server",
+    userId: textInput(context?.userId) || internalAuditActor.userId,
+    userName: textInput(context?.userName) || internalAuditActor.userName,
+    role: context?.role ?? internalAuditActor.role,
+    sessionId: textInput(context?.sessionId) || internalAuditActor.sessionId,
+    ipAddress: textInput(context?.ipAddress) || internalAuditActor.ipAddress,
+    deviceId: textInput(context?.deviceId) || internalAuditActor.deviceId,
     reason: textInput(context?.reason) || fallbackReason
   };
 }
@@ -2106,7 +2116,7 @@ function resetDownstreamRowsAfterCorrection(
   courseId: string,
   correctedFractionNumber: number,
   previousTotals: Map<string, { cumulativeDoseCgy: number; cumulativeDoseToDotCgy: number }>,
-  actorUserId: string
+  auditContext: PatientMutationAuditContext
 ) {
   const now = nowIso();
   const changedEntries = activeFractionEntries(courseFractions(courseId, fractionLogEntries)).filter((entry) => {
@@ -2137,11 +2147,10 @@ function resetDownstreamRowsAfterCorrection(
     entry.status = "NEEDS_REVIEW";
     entry.correctionReason = `Downstream recalculation after Fx ${correctedFractionNumber}.`;
     entry.correctedAt = now;
-    entry.correctedByUserId = actorUserId;
+    entry.correctedByUserId = auditContext.userId;
 
     addAuditEvent({
-      userId: actorUserId,
-      userName: "Workflow API",
+      ...patientAuditFields(auditContext),
       action: "Downstream fraction approval reset",
       entityType: "FRACTION_LOG",
       entityId: entry.id,
@@ -2152,7 +2161,14 @@ function resetDownstreamRowsAfterCorrection(
   });
 }
 
-export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseId: string }) {
+export function addFractionLogEntry(
+  input: Partial<FractionLogEntry> & { courseId: string },
+  auditContextInput?: PatientMutationAuditContext
+) {
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Daily IGSRT treatment entry saved and dose totals recalculated."
+  );
   const courseEntries = activeFractionEntries(courseFractions(input.courseId, fractionLogEntries)).sort(
     (a, b) => a.fractionNumber - b.fractionNumber
   );
@@ -2182,8 +2198,7 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
   recalculateCourseFractionEntries(input.courseId);
   syncTreatmentFractionsForCourse(input.courseId);
   const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "Fraction log entry created",
     entityType: "FRACTION_LOG",
     entityId: entry.id,
@@ -2194,7 +2209,14 @@ export function addFractionLogEntry(input: Partial<FractionLogEntry> & { courseI
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { courseId: string; id: string }) {
+export function updateFractionLogEntry(
+  input: Partial<FractionLogEntry> & { courseId: string; id: string },
+  auditContextInput?: PatientMutationAuditContext
+) {
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Native fractionation worksheet row updated and dependent dose totals recalculated."
+  );
   const entryIndex = fractionLogEntries.findIndex((entry) => entry.id === input.id && entry.courseId === input.courseId);
   if (entryIndex < 0) {
     return null;
@@ -2252,7 +2274,7 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
         status: "NEEDS_REVIEW" as const,
         correctionReason,
         correctedAt: nowIso(),
-        correctedByUserId: input.correctedByUserId ?? "SYSTEM"
+        correctedByUserId: auditContext.userId
       }
     : {};
   const updatedEntry = calculateFractionWorksheetEntry(
@@ -2286,13 +2308,12 @@ export function updateFractionLogEntry(input: Partial<FractionLogEntry> & { cour
       input.courseId,
       updatedEntry.fractionNumber,
       previousTotals,
-      input.correctedByUserId ?? "SYSTEM"
+      auditContext
     );
   }
   syncTreatmentFractionsForCourse(input.courseId);
   const auditEvent = addAuditEvent({
-    userId: "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "Fraction worksheet entry updated",
     entityType: "FRACTION_LOG",
     entityId: input.id,
@@ -2307,13 +2328,14 @@ function normalizeApprovalType(value: unknown): FractionApprovalType {
   return value === "DOT" ? "DOT" : "MD";
 }
 
-export function approveFractionLogEntry(input: {
-  courseId: string;
-  id: string;
-  approvalType: FractionApprovalType;
-  userId?: string;
-  role?: PrototypeAccessRole;
-}) {
+export function approveFractionLogEntry(
+  input: {
+    courseId: string;
+    id: string;
+    approvalType: FractionApprovalType;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
   if (!entry) {
     return null;
@@ -2323,14 +2345,18 @@ export function approveFractionLogEntry(input: {
   }
 
   const approvalType = normalizeApprovalType(input.approvalType);
-  if (!canApproveFraction(input.role ?? null, approvalType)) {
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Role-based fraction review completed inside CureRays CWS."
+  );
+  if (!canApproveFraction(auditContext.role, approvalType)) {
     throw new Error(`${approvalType} approval is not allowed for the current prototype role.`);
   }
   if (approvalType === "DOT") {
     assertFractionImagingGate(input.courseId, entry.fractionNumber);
   }
   const approvedAt = nowIso();
-  const approvedByUserId = input.userId ?? "SYSTEM";
+  const approvedByUserId = auditContext.userId;
 
   if (approvalType === "MD") {
     entry.mdApproval = true;
@@ -2355,8 +2381,7 @@ export function approveFractionLogEntry(input: {
   recalculateCourseFractionEntries(input.courseId);
   syncTreatmentFractionsForCourse(input.courseId);
   const auditEvent = addAuditEvent({
-    userId: approvedByUserId,
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: `${approvalType} fraction approval recorded`,
     entityType: "FRACTION_LOG",
     entityId: input.id,
@@ -2367,14 +2392,15 @@ export function approveFractionLogEntry(input: {
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function requestFractionRevision(input: {
-  courseId: string;
-  id: string;
-  approvalType: FractionApprovalType;
-  reason: string;
-  userId?: string;
-  role?: PrototypeAccessRole;
-}) {
+export function requestFractionRevision(
+  input: {
+    courseId: string;
+    id: string;
+    approvalType: FractionApprovalType;
+    reason: string;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
   if (!entry) {
     return null;
@@ -2389,7 +2415,11 @@ export function requestFractionRevision(input: {
   }
 
   const approvalType = normalizeApprovalType(input.approvalType);
-  if (!canApproveFraction(input.role ?? null, approvalType)) {
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Role-based fraction review requested a documented correction."
+  );
+  if (!canApproveFraction(auditContext.role, approvalType)) {
     throw new Error(`${approvalType} revision is not allowed for the current prototype role.`);
   }
   if (approvalType === "MD") {
@@ -2408,12 +2438,11 @@ export function requestFractionRevision(input: {
   entry.revisionApprovalType = approvalType;
   entry.revisionReason = reason;
   entry.revisionRequestedAt = nowIso();
-  entry.revisionRequestedByUserId = input.userId ?? "SYSTEM";
+  entry.revisionRequestedByUserId = auditContext.userId;
   recalculateCourseFractionEntries(input.courseId);
   syncTreatmentFractionsForCourse(input.courseId);
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: `${approvalType} fraction revision requested`,
     entityType: "FRACTION_LOG",
     entityId: input.id,
@@ -2424,12 +2453,14 @@ export function requestFractionRevision(input: {
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function voidFractionLogEntry(input: {
-  courseId: string;
-  id: string;
-  reason: string;
-  userId?: string;
-}) {
+export function voidFractionLogEntry(
+  input: {
+    courseId: string;
+    id: string;
+    reason: string;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const entry = fractionLogEntries.find((item) => item.id === input.id && item.courseId === input.courseId);
   if (!entry) {
     return null;
@@ -2439,16 +2470,19 @@ export function voidFractionLogEntry(input: {
   if (!reason) {
     throw new Error("Voiding a fraction row requires a reason.");
   }
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Clinical fraction row was voided and retained for audit."
+  );
 
   entry.status = "VOIDED";
   entry.voidReason = reason;
   entry.voidedAt = nowIso();
-  entry.voidedByUserId = input.userId ?? "SYSTEM";
+  entry.voidedByUserId = auditContext.userId;
   recalculateCourseFractionEntries(input.courseId);
   syncTreatmentFractionsForCourse(input.courseId);
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "Fraction row voided",
     entityType: "FRACTION_LOG",
     entityId: input.id,
@@ -2459,7 +2493,10 @@ export function voidFractionLogEntry(input: {
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function generateTreatmentFractionSchedule(input: { courseId: string; userId?: string }) {
+export function generateTreatmentFractionSchedule(
+  input: { courseId: string },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const course = treatmentCourses.find((item) => item.id === input.courseId);
   const prescription = getPrescription(input.courseId);
   const simulationOrder = getSimulationOrder(input.courseId);
@@ -2481,9 +2518,12 @@ export function generateTreatmentFractionSchedule(input: { courseId: string; use
   treatmentFractions.push(...scheduled);
   treatmentFractions.sort((a, b) => a.courseId.localeCompare(b.courseId) || a.fractionNumber - b.fractionNumber);
 
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Prescription phases generated planned treatment fraction rows."
+  );
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "Fraction schedule generated",
     entityType: "TREATMENT_FRACTION",
     entityId: input.courseId,
@@ -2494,13 +2534,15 @@ export function generateTreatmentFractionSchedule(input: { courseId: string; use
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function linkFractionImage(input: {
-  courseId: string;
-  fractionNumber: number;
-  assetId?: string;
-  notApplicableReason?: string;
-  userId?: string;
-}) {
+export function linkFractionImage(
+  input: {
+    courseId: string;
+    fractionNumber: number;
+    assetId?: string;
+    notApplicableReason?: string;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const fraction = treatmentFractions.find(
     (item) => item.courseId === input.courseId && item.fractionNumber === Number(input.fractionNumber)
   );
@@ -2525,9 +2567,12 @@ export function linkFractionImage(input: {
   fraction.imageGuidanceCompleted = true;
   fraction.imageGuidanceStatus = notApplicableReason ? "NOT_APPLICABLE" : "COMPLETE";
 
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Image guidance evidence gate updated for treatment fraction."
+  );
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: notApplicableReason ? "Fraction imaging marked not applicable" : "Fraction imaging linked",
     entityType: "TREATMENT_FRACTION",
     entityId: fraction.id,
@@ -2538,11 +2583,13 @@ export function linkFractionImage(input: {
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function recordPhysicsCheck(input: {
-  courseId: string;
-  fractionNumber: number;
-  userId?: string;
-}) {
+export function recordPhysicsCheck(
+  input: {
+    courseId: string;
+    fractionNumber: number;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const fraction = treatmentFractions.find(
     (item) => item.courseId === input.courseId && item.fractionNumber === Number(input.fractionNumber)
   );
@@ -2550,14 +2597,17 @@ export function recordPhysicsCheck(input: {
   if (!fraction) {
     return null;
   }
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Weekly physics check status recorded for Phase 6 workflow."
+  );
 
   fraction.physicsCheckRequired = true;
   fraction.physicsCheckCompletedAt = nowIso();
-  fraction.physicsCheckCompletedByUserId = input.userId ?? "SYSTEM";
+  fraction.physicsCheckCompletedByUserId = auditContext.userId;
 
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "Physics fraction check recorded",
     entityType: "TREATMENT_FRACTION",
     entityId: fraction.id,
@@ -2568,11 +2618,13 @@ export function recordPhysicsCheck(input: {
   return { data: getIgsrtWorkspace(input.courseId), auditEvent };
 }
 
-export function recordOtvCheck(input: {
-  courseId: string;
-  fractionNumber: number;
-  userId?: string;
-}) {
+export function recordOtvCheck(
+  input: {
+    courseId: string;
+    fractionNumber: number;
+  },
+  auditContextInput?: PatientMutationAuditContext
+) {
   const fraction = treatmentFractions.find(
     (item) => item.courseId === input.courseId && item.fractionNumber === Number(input.fractionNumber)
   );
@@ -2580,14 +2632,17 @@ export function recordOtvCheck(input: {
   if (!fraction) {
     return null;
   }
+  const auditContext = patientAuditContext(
+    auditContextInput,
+    "Treatment management check status recorded for Phase 6 workflow."
+  );
 
   fraction.otvRequired = true;
   fraction.otvCompletedAt = nowIso();
-  fraction.otvCompletedByUserId = input.userId ?? "SYSTEM";
+  fraction.otvCompletedByUserId = auditContext.userId;
 
   const auditEvent = addAuditEvent({
-    userId: input.userId ?? "SYSTEM",
-    userName: "Workflow API",
+    ...patientAuditFields(auditContext),
     action: "OTV fraction check recorded",
     entityType: "TREATMENT_FRACTION",
     entityId: fraction.id,
