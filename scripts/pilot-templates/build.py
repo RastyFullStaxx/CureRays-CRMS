@@ -12,6 +12,9 @@ Spec format (specs/<sourceId>.json):
   "sourceId": "SRC-DUPUYTRENS-RX",
   "source": "docs/2026_TEMPLATES/.../07_Prescription....docx",
   "removeTitlePage": "FEB 2026 version",   // optional; body[0] text must equal this
+  "removeTrailingVersion": "FEB 2026 version",  // optional; drops the interior
+      // title-only page with this text plus the stale duplicate document after
+      // it, and prunes header/footer parts that become unreferenced
   "ops": [
     // global substring replace across w:t nodes; count must equal n
     {"op": "sub", "find": "Feb 24, 2026", "to": "{generatedDate}", "n": 1},
@@ -38,6 +41,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+R_ID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
 REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SPEC_DIR = os.path.join(os.path.dirname(__file__), "specs")
 OUT_DIR = os.path.join(REPO, "templates", "pilot")
@@ -191,6 +195,77 @@ def remove_titled_pages(root, labels):
         body.remove(hits[0])
 
 
+def sect_break_of(child):
+    """The pPr/sectPr of a body-level paragraph, or None."""
+    if child.tag != W + "p":
+        return None
+    ppr = child.find(W + "pPr")
+    return ppr.find(W + "sectPr") if ppr is not None else None
+
+
+def remove_trailing_version(root, label):
+    """Remove a stale duplicate document appended after the current one: the
+    interior title-only page whose text equals `label`, plus everything after
+    it. The section break that ended the kept document is promoted to the
+    body-final sectPr so headers/footers stay correct."""
+    body = root.find(W + "body")
+    children = list(body)
+    if children[-1].tag != W + "sectPr":
+        raise SpecError("removeTrailingVersion: body does not end with a sectPr")
+    hits = [
+        i for i, ch in enumerate(children)
+        if ch.tag == W + "p" and para_text(ch).strip() == label and sect_break_of(ch) is not None
+    ]
+    if len(hits) != 1:
+        raise SpecError(f"removeTrailingVersion {label!r}: found {len(hits)} title paragraphs, expected 1")
+    ti = hits[0]
+    breaks = [i for i in range(ti) if sect_break_of(children[i]) is not None]
+    if not breaks:
+        raise SpecError("removeTrailingVersion: no section-break paragraph precedes the title page")
+    ki = breaks[-1]
+    if para_text(children[ki]).strip():
+        raise SpecError("removeTrailingVersion: the preceding section-break paragraph is not empty")
+    for ch in children[ti:]:
+        body.remove(ch)
+    keep_sect = sect_break_of(children[ki])
+    children[ki].find(W + "pPr").remove(keep_sect)
+    body.remove(children[ki])
+    body.append(keep_sect)
+
+
+def orphan_header_footer_parts(zin, doc_root):
+    """After section surgery, compute header/footer parts no longer referenced
+    from document.xml. Returns (parts_to_skip, replacement_raw_by_part)."""
+    rels_name = "word/_rels/document.xml.rels"
+    rels_raw = zin.read(rels_name).decode("utf-8")
+    used = {
+        el.get(R_ID)
+        for el in doc_root.iter()
+        if el.tag in (W + "headerReference", W + "footerReference")
+    }
+    skip = set()
+
+    def drop_rel(m):
+        ent = m.group(0)
+        typ = re.search(r'Type="([^"]+)"', ent).group(1)
+        rid = re.search(r'Id="([^"]+)"', ent).group(1)
+        if typ.endswith(("/header", "/footer")) and rid not in used:
+            target = re.search(r'Target="([^"]+)"', ent).group(1)
+            skip.add("word/" + target)
+            skip.add(f"word/_rels/{target}.rels")
+            return ""
+        return ent
+
+    new_rels = re.sub(r"<Relationship [^>]*/>", drop_rel, rels_raw)
+    if not skip:
+        return set(), {}
+    ct_name = "[Content_Types].xml"
+    ct_raw = zin.read(ct_name).decode("utf-8")
+    for part in sorted(skip):
+        ct_raw = re.sub(rf'<Override [^>]*PartName="/{re.escape(part)}"[^>]*/>', "", ct_raw)
+    return skip, {rels_name: new_rels.encode("utf-8"), ct_name: ct_raw.encode("utf-8")}
+
+
 def remove_title_page(root, expected_text):
     body = root.find(W + "body")
     first = list(body)[0]
@@ -241,6 +316,10 @@ def build(spec_path):
         remove_title_page(doc_root, spec["removeTitlePage"])
     if spec.get("removeTitledPages"):
         remove_titled_pages(doc_root, spec["removeTitledPages"])
+    skip_parts, raw_replacements = set(), {}
+    if spec.get("removeTrailingVersion"):
+        remove_trailing_version(doc_root, spec["removeTrailingVersion"])
+        skip_parts, raw_replacements = orphan_header_footer_parts(zin, doc_root)
 
     by_part = {}
     for op in spec.get("ops", []):
@@ -260,10 +339,14 @@ def build(spec_path):
     os.makedirs(OUT_DIR, exist_ok=True)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zout:
         for item in zin.infolist():
+            if item.filename in skip_parts:
+                continue
             data = zin.read(item.filename)
             if item.filename in parts:
                 root, raw = parts[item.filename]
                 data = serialize_part(root, raw)
+            elif item.filename in raw_replacements:
+                data = raw_replacements[item.filename]
             zout.writestr(item, data)
     zin.close()
     return out

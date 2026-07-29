@@ -115,17 +115,7 @@ for (const line of globals.split(/\r?\n/)) {
   assert.doesNotMatch(line, /letter-spacing:/, 'Local letter spacing is not allowed');
 }
 
-assert.match(
-  globals,
-  /\.dashboard-phi-link-label\s*\{[^}]*font-size:\s*2\.7px;/s,
-  'The first SVG coordinate-space exception must remain explicit',
-);
-assert.match(
-  globals,
-  /\.dashboard-phi-node text\s*\{[^}]*font-size:\s*3\.2px;/s,
-  'The second SVG coordinate-space exception must remain explicit',
-);
-assert.equal((globals.match(/font-size:\s*(?:2\.7|3\.2)px;/g) ?? []).length, 2, 'Only two SVG size exceptions are allowed');
+assert.equal((globals.match(/font-size:\s*(?:2\.7|3\.2)px;/g) ?? []).length, 0, 'SVG coordinate-space font sizes were retired with the PHI boundary graph; no exceptions remain');
 
 assert.match(button, /type-button/, 'Buttons must use the shared 12px typography role');
 assert.doesNotMatch(button, /type-supporting/, 'Small buttons must not shrink their text');

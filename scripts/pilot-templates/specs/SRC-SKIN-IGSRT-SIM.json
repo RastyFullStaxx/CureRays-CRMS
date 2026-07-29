@@ -210,6 +210,12 @@
    "offset": 1,
    "text": "{site}",
    "part": "word/header1.xml"
+  },
+  {
+   "op": "sub",
+   "find": "Clayton B. Hess, MD MPH",
+   "to": "{signedBy}",
+   "n": 1
   }
  ]
 }

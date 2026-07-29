@@ -85,6 +85,16 @@ Workflow selection and requirement applicability use:
 
 Missing applicability information produces a review/blocking state. It must not silently fall back to a clinically specific workflow.
 
+### Program document visibility
+
+The Prepare tab shows the **full document list of the course's workflow definition** (`workflowDefinitions[].documentRequirementIds`) up front, so staff see the whole carepath packet, not just the steps created so far. Each requirement renders in exactly one state:
+
+- **Step-backed** (a workflow step's `requirementIds` includes the requirement): the requirement mirrors the step status — done (`COMPLETED`/`SIGNED`/`CLOSED`), in progress (`IN_PROGRESS`/`READY_FOR_REVIEW`), otherwise available. Selecting it selects the step.
+- **Locked** (no step yet and the requirement's `workflowPhase` is later than the course's current position, using `chartRoundsPhase` as the coarse position: `UPCOMING` locks `ON_TREATMENT` and later, `ON_TREATMENT` locks `POST_TX` and later): rendered non-interactive with the phase it opens at. Locked entries never expose actions — no fake buttons.
+- **Not scheduled** (no step and the phase is already reachable): rendered non-interactive as informational; step creation, not the document list, is what makes work actionable.
+
+Workflow steps remain the workflow source of truth; this list is a read-only projection and never mutates state by itself.
+
 ## Course Site Model
 
 **One treatment course covers one anatomical site: a single body region and laterality pair.** A patient treated for Arthritis in the right hand and the left foot has two courses, not one course with two sites.

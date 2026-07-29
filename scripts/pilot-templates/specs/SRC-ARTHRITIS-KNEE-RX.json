@@ -2,6 +2,7 @@
  "sourceId": "SRC-ARTHRITIS-KNEE-RX",
  "source": "docs/2026_TEMPLATES/02_ARTHRITIS/KNEE/07_Prescription.ARTHRITIS.KNEE.LATERALITY.DDMMYY.LastName.FirstName.docx",
  "removeTitlePage": "APR 2026 version",
+ "removeTrailingVersion": "FEB 2026 version",
  "ops": [
   {
    "op": "cell",

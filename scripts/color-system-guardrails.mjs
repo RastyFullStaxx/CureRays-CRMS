@@ -8,7 +8,7 @@ const sourceExtensions = new Set(['.ts', '.tsx', '.css']);
 const chartFiles = [
   'components/analytics/analytics-command-client.tsx',
   'components/dashboard/dashboard-telemetry-client.tsx',
-  'components/shared/neuron-signal-field.tsx',
+  'components/shared/chart-card.tsx',
   'lib/services/analytics-telemetry-service.ts',
   'lib/services/dashboard-telemetry-service.ts',
 ];

@@ -143,6 +143,23 @@
   {
    "op": "cellsub",
    "table": 7,
+   "anchor": "A total of thirty-six",
+   "match": "prefix",
+   "offset": 0,
+   "subs": [
+    [
+     "Clayton B. Hess MD MPH",
+     "{radiationOncologist}"
+    ],
+    [
+     "Feb 23, 2026 12:00\u202fPM",
+     "{dateCompleted}"
+    ]
+   ]
+  },
+  {
+   "op": "cellsub",
+   "table": 7,
    "anchor": "IMAGING ORDER PRESCRIPTION",
    "offset": 0,
    "subs": [

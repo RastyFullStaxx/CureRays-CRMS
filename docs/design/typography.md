@@ -41,7 +41,7 @@ Use `lib/ui-typography.ts` when a visualization library requires numeric font va
 
 Use tabular figures where changing digit widths would make comparison harder. Reduce tick density, add chart margins, wrap labels, or allow contained horizontal scrolling instead of shrinking text.
 
-The `.dashboard-phi-link-label` and `.dashboard-phi-node text` SVG rules may retain 2.7 and 3.2 viewBox-coordinate units. These are drawing coordinates, not CSS screen-pixel sizes, and are the only numeric exception.
+There are no numeric font-size exceptions in `globals.css`. (The former `.dashboard-phi-link-label` / `.dashboard-phi-node text` SVG viewBox-coordinate exception was retired along with the PHI boundary graph.)
 
 ## Accessibility
 

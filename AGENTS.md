@@ -47,8 +47,9 @@ npm run test:hipaa   # HIPAA guardrails validation
 - **EditorConfig**: Use 2 spaces, UTF-8, LF line endings.
 - **Naming**: Components `PascalCase`, files `kebab-case`, CSS tokens `--kebab-case`, named exports (except pages).
 
-## Codex Tools and Skills
+## Tools and Skills
 
+- Use our agents skills at .agents
 - Use Ponytail as the default implementation discipline: understand the affected flow first, reuse existing code and platform capabilities, avoid unrequested abstractions and dependencies, and make the smallest safe change. Never simplify away validation, security, accessibility, error handling that prevents data loss, or HIPAA controls.
 - For UI work, use the smallest relevant design skill set. Start with `design-taste-frontend` for audit and direction, then use `frontend-design`, `ui-ux-pro-max`, `impeccable`, or `design-motion-principles` in any case their specialty is needed. Project rules and `docs/design/ui-engineering.md` override generic skill guidance.
 - Use the shadcn MCP to search and inspect registry components. Treat registry output as source material, not automatically approved project code. Reuse or adapt existing `components/ui/` primitives first; do not overwrite them or bypass CSS tokens, accessibility, naming, and shared-component rules.

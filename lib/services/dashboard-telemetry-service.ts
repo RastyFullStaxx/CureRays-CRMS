@@ -37,47 +37,15 @@ export type DashboardMetric = {
   value: string | number;
   detail: string;
   icon: 'patients' | 'schedule' | 'tasks' | 'documents';
-  trend: number[];
 };
 
 export type DashboardSignalStageId = 'chart-prep' | 'planning' | 'delivery' | 'closeout';
-
-export type DashboardSignalNode = {
-  id: string;
-  label: string;
-  group: 'patient' | 'course' | 'stage' | 'task' | 'document' | 'risk';
-  value: number;
-  stage?: DashboardSignalStageId;
-  detail?: string;
-};
-
-export type DashboardSignalLink = {
-  source: string;
-  target: string;
-  value: number;
-};
 
 export type DashboardSignalStageSummary = {
   id: DashboardSignalStageId;
   label: string;
   count: number;
   pressure: number;
-};
-
-export type CarepathLaneToken = {
-  id: string;
-  label: string;
-  offset: number;
-  tone: StatusTone;
-};
-
-export type CarepathLaneDatum = {
-  id: DashboardSignalStageId;
-  label: string;
-  count: number;
-  pressure: number;
-  handoff: number;
-  tokens: CarepathLaneToken[];
 };
 
 export type CourseDistributionDatum = {
@@ -89,13 +57,7 @@ export type CourseDistributionDatum = {
 export type ThroughputDatum = {
   day: string;
   fractions: number;
-  activeLoad: number;
-};
-
-export type AttentionDatum = {
-  label: string;
-  value: number;
-  color: string;
+  approved: number;
 };
 
 export type CapacityBand = {
@@ -122,20 +84,13 @@ export type DashboardKpiDatum = {
   tone: DashboardTone;
 };
 
-export type CarepathSankeyNode = {
-  name: string;
+export type CarepathPhaseLoadDatum = {
   phase: CarepathWorkflowPhase;
-  count: number;
-  riskCount: number;
-  tone: DashboardTone;
-};
-
-export type CarepathSankeyLink = {
-  source: string;
-  target: string;
-  value: number;
-  blocked: number;
+  label: string;
+  open: number;
   needsReview: number;
+  blocked: number;
+  total: number;
   tone: DashboardTone;
 };
 
@@ -186,10 +141,7 @@ export type AuditReadinessDatum = {
 export type CarepathDashboardTelemetry = {
   asOfLabel: string;
   metrics: DashboardKpiDatum[];
-  sankey: {
-    nodes: CarepathSankeyNode[];
-    links: CarepathSankeyLink[];
-  };
+  phaseLoad: CarepathPhaseLoadDatum[];
   phaseOwnerHeatmap: {
     phases: string[];
     owners: string[];
@@ -208,20 +160,9 @@ export type RiskScoreComponent = {
   tone: DashboardTone;
 };
 
-export type RiskGraphNode = {
-  id: string;
-  name: string;
-  category: 'course' | 'domain';
+export type TopCourseRiskDatum = {
+  courseRef: string;
   value: number;
-  detail: string;
-  tone: DashboardTone;
-};
-
-export type RiskGraphLink = {
-  source: string;
-  target: string;
-  value: number;
-  reason: string;
   tone: DashboardTone;
 };
 
@@ -272,10 +213,7 @@ export type RiskDashboardTelemetry = {
     detail: string;
     components: RiskScoreComponent[];
   };
-  riskGraph: {
-    nodes: RiskGraphNode[];
-    links: RiskGraphLink[];
-  };
+  topCourseRisks: TopCourseRiskDatum[];
   safetyMatrix: {
     domains: string[];
     phases: string[];
@@ -286,43 +224,19 @@ export type RiskDashboardTelemetry = {
   phiAssurance: PhiAssuranceDatum[];
 };
 
-export type PhiGraphNode = {
-  id: string;
-  label: string;
-  detail: string;
-  x: number;
-  y: number;
-  tone: StatusTone;
-};
-
-export type PhiGraphLink = {
-  source: string;
-  target: string;
-  label: string;
-  isolated?: boolean;
-};
-
 export type DashboardTelemetry = {
   metrics: DashboardMetric[];
-  signal: {
-    nodes: DashboardSignalNode[];
-    links: DashboardSignalLink[];
+  stageLoad: {
     stages: DashboardSignalStageSummary[];
     loadPercent: number;
     summary: string;
   };
-  carepathLanes: CarepathLaneDatum[];
   courseDistribution: CourseDistributionDatum[];
   throughput: ThroughputDatum[];
-  attention: AttentionDatum[];
   capacityBands: CapacityBand[];
   providerLoad: ProviderLoad[];
   carepath: CarepathDashboardTelemetry;
   risk: RiskDashboardTelemetry;
-  phiBoundary: {
-    nodes: PhiGraphNode[];
-    links: PhiGraphLink[];
-  };
 };
 
 const completedTaskStatuses = ['COMPLETED', 'SIGNED', 'CLOSED', 'UPLOADED', 'NOT_APPLICABLE'];
@@ -339,18 +253,6 @@ const stageLabels: Record<DashboardSignalStageId, string> = {
 
 function countTasksByPhase(phases: CarepathWorkflowPhase[]) {
   return carepathTasks.filter((task) => phases.includes(task.workflowPhase)).length;
-}
-
-function courseStage(phase: 'UPCOMING' | 'ON_TREATMENT' | 'POST'): DashboardSignalStageId {
-  if (phase === 'ON_TREATMENT') {
-    return 'delivery';
-  }
-
-  if (phase === 'POST') {
-    return 'closeout';
-  }
-
-  return 'chart-prep';
 }
 
 function appointmentHour(time: string) {
@@ -396,6 +298,30 @@ function buildCapacityBands() {
       capacity: band.capacity,
     };
   });
+}
+
+function buildThroughput(): ThroughputDatum[] {
+  const byDate = new Map<string, { fractions: number; approved: number }>();
+  fractionLogEntries.forEach((entry) => {
+    if (entry.status === 'VOIDED') {
+      return;
+    }
+    const bucket = byDate.get(entry.date) ?? { fractions: 0, approved: 0 };
+    bucket.fractions += 1;
+    if (entry.mdApproval && entry.dotApproval) {
+      bucket.approved += 1;
+    }
+    byDate.set(entry.date, bucket);
+  });
+
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-7)
+    .map(([date, bucket]) => ({
+      day: shortDate(new Date(`${date}T12:00:00+08:00`)),
+      fractions: bucket.fractions,
+      approved: bucket.approved,
+    }));
 }
 
 function buildProviderLoad() {
@@ -634,26 +560,16 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
     },
     {} as Record<CarepathWorkflowPhase, { total: number; risk: number; blocked: number; needsReview: number }>,
   );
-  const sankeyNodes = orderedCarepathPhases.map<CarepathSankeyNode>((phase) => ({
-    name: carepathPhaseLabels[phase],
-    phase,
-    count: phaseLoad[phase].total,
-    riskCount: phaseLoad[phase].risk,
-    tone: riskTone(phaseLoad[phase].blocked * 4 + phaseLoad[phase].needsReview * 2),
-  }));
-  const sankeyLinks = orderedCarepathPhases.slice(0, -1).map<CarepathSankeyLink>((phase, index) => {
-    const nextPhase = orderedCarepathPhases[index + 1];
-    const value = Math.max(1, Math.round((phaseLoad[phase].total + phaseLoad[nextPhase].total) / 2));
-    const blocked = phaseLoad[phase].blocked + phaseLoad[nextPhase].blocked;
-    const needsReview = phaseLoad[phase].needsReview + phaseLoad[nextPhase].needsReview;
-
+  const phaseLoadData = orderedCarepathPhases.map<CarepathPhaseLoadDatum>((phase) => {
+    const load = phaseLoad[phase];
     return {
-      source: carepathPhaseLabels[phase],
-      target: carepathPhaseLabels[nextPhase],
-      value,
-      blocked,
-      needsReview,
-      tone: riskTone(blocked * 4 + needsReview * 2),
+      phase,
+      label: carepathPhaseLabels[phase],
+      open: Math.max(0, load.total - load.blocked - load.needsReview),
+      needsReview: load.needsReview,
+      blocked: load.blocked,
+      total: load.total,
+      tone: riskTone(load.blocked * 4 + load.needsReview * 2),
     };
   });
   const activeOwners = orderedResponsibleParties.filter((owner) =>
@@ -749,10 +665,7 @@ function buildCarepathTelemetry(courses: OperationalTreatmentCourse[]): Carepath
       { label: 'Audit not ready', value: documentsNotReady.length, detail: 'Documents and task evidence', tone: documentsNotReady.length > 0 ? 'intermediate' : 'positive' },
       { label: 'Signature queue', value: signatureQueue.length, detail: 'Review path still open', tone: signatureQueue.length > 0 ? 'intermediate' : 'positive' },
     ],
-    sankey: {
-      nodes: sankeyNodes,
-      links: sankeyLinks,
-    },
+    phaseLoad: phaseLoadData,
     phaseOwnerHeatmap: {
       phases: orderedCarepathPhases.map((phase) => carepathPhaseLabels[phase]),
       owners: activeOwners.map((owner) => responsiblePartyLabels[owner]),
@@ -793,50 +706,28 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
   ];
   const totalPoints = components.reduce((sum, item) => sum + item.points, 0);
   const safetyScore = Math.max(0, Math.min(100, 100 - totalPoints));
-  const domainNodes: RiskGraphNode[] = [
-    { id: 'domain-high-flag', name: 'High flag', category: 'domain', value: highFlags.length, detail: 'Priority flag', tone: 'negative' },
-    { id: 'domain-blocker', name: 'Workflow blocker', category: 'domain', value: blockedTasks.length, detail: 'Blocked task', tone: 'negative' },
-    { id: 'domain-hold', name: 'Treatment hold', category: 'domain', value: treatmentHolds.length, detail: 'Course hold', tone: 'negative' },
-    { id: 'domain-prescription', name: 'Prescription', category: 'domain', value: unsignedCriticalDocuments.filter((document) => documentRiskDomain(document.name) === 'Prescription').length, detail: 'Unsigned review', tone: 'intermediate' },
-    { id: 'domain-physics', name: 'Physics review', category: 'domain', value: blockedTasks.filter((task) => taskRiskDomain(task.title, task.documentName) === 'Physics review').length, detail: 'Physics path', tone: 'intermediate' },
-    { id: 'domain-fraction', name: 'Fraction approval', category: 'domain', value: fractionIssues.length, detail: 'MD/DOT approval', tone: 'intermediate' },
-    { id: 'domain-signature', name: 'Document signature', category: 'domain', value: unsignedCriticalDocuments.length, detail: 'Signature queue', tone: 'intermediate' },
-    { id: 'domain-audit', name: 'Audit gap', category: 'domain', value: auditGapDocuments.length, detail: 'Audit readiness', tone: 'intermediate' },
-  ];
   const courseRiskScores: Record<string, number> = {};
-  const riskLinks: RiskGraphLink[] = [];
-  const addCourseRisk = (courseRef: string, target: string, value: number, reason: string, tone: DashboardTone) => {
+  const addCourseRisk = (courseRef: string, value: number) => {
     courseRiskScores[courseRef] = (courseRiskScores[courseRef] ?? 0) + value;
-    riskLinks.push({ source: courseRef, target, value, reason, tone });
   };
 
-  highFlags.forEach((flag) => addCourseRisk(patientRefToCourseRef[flag.patientRef] ?? flag.patientRef, 'domain-high-flag', flagSeverityScore(flag.severity) + 2, flag.summary, 'negative'));
-  blockedTasks.forEach((task) => addCourseRisk(courseRefFor(task.courseId, refs), 'domain-blocker', taskPriority(task.status, task.dueDate, asOf), taskRiskDomain(task.title, task.documentName), 'negative'));
-  treatmentHolds.forEach((course) => addCourseRisk(course.courseRef, 'domain-hold', 12, 'Course hold', 'negative'));
+  highFlags.forEach((flag) => addCourseRisk(patientRefToCourseRef[flag.patientRef] ?? flag.patientRef, flagSeverityScore(flag.severity) + 2));
+  blockedTasks.forEach((task) => addCourseRisk(courseRefFor(task.courseId, refs), taskPriority(task.status, task.dueDate, asOf)));
+  treatmentHolds.forEach((course) => addCourseRisk(course.courseRef, 12));
   unsignedCriticalDocuments.forEach((document) => {
-    const domain = documentRiskDomain(document.name);
-    const target = domain === 'Prescription' ? 'domain-prescription' : domain === 'Physics review' ? 'domain-physics' : 'domain-signature';
-    addCourseRisk(courseRefFor(document.courseId, refs), target, documentPriority(document.status, document.signReviewState), domain, documentStatusTone(document.status));
+    addCourseRisk(courseRefFor(document.courseId, refs), documentPriority(document.status, document.signReviewState));
   });
-  fractionIssues.forEach(({ entry, issue, priorityScore }) => addCourseRisk(courseRefFor(entry.courseId, refs), 'domain-fraction', priorityScore, issue, priorityScore >= 10 ? 'negative' : 'intermediate'));
-  auditGapDocuments.forEach((document) => addCourseRisk(courseRefFor(document.courseId, refs), 'domain-audit', 3, 'Audit gap', 'intermediate'));
+  fractionIssues.forEach(({ entry, priorityScore }) => addCourseRisk(courseRefFor(entry.courseId, refs), priorityScore));
+  auditGapDocuments.forEach((document) => addCourseRisk(courseRefFor(document.courseId, refs), 3));
 
-  const courseNodes = Object.entries(courseRiskScores)
+  const topCourseRisks = Object.entries(courseRiskScores)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 8)
-    .map<RiskGraphNode>(([courseRef, value]) => ({
-      id: courseRef,
-      name: courseRef,
-      category: 'course',
+    .map<TopCourseRiskDatum>(([courseRef, value]) => ({
+      courseRef,
       value,
-      detail: `${value} risk weight`,
       tone: riskTone(value),
     }));
-  const shownNodeIds = new Set([...courseNodes.map((node) => node.id), ...domainNodes.map((node) => node.id)]);
-  const graphLinks = riskLinks
-    .filter((link) => shownNodeIds.has(link.source) && shownNodeIds.has(link.target))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 18);
   const domains = ['High flag', 'Treatment hold', 'Prescription', 'Physics review', 'Fraction approval', 'Document signature', 'Audit gap'];
   const matrixCells = domains.flatMap((domain, domainIndex) =>
     orderedCarepathPhases.map<SafetyMatrixCell>((phase, phaseIndex) => {
@@ -925,10 +816,7 @@ function buildRiskTelemetry(courses: OperationalTreatmentCourse[]): RiskDashboar
       detail: `${totalPoints} weighted risk points across ${components.reduce((sum, item) => sum + item.value, 0)} signals`,
       components,
     },
-    riskGraph: {
-      nodes: [...domainNodes, ...courseNodes],
-      links: graphLinks,
-    },
+    topCourseRisks,
     safetyMatrix: {
       domains,
       phases: orderedCarepathPhases.map((phase) => carepathPhaseLabels[phase]),
@@ -952,7 +840,6 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
   const courses = operationalTreatmentCourses();
   const appointments = operationalAppointments();
   const flags = operationalPriorityFlags();
-  const auditEvents = operationalAuditEvents();
   const upcoming = courses.filter((course) => course.chartRoundsPhase === 'UPCOMING').length;
   const active = courses.filter((course) => course.chartRoundsPhase === 'ON_TREATMENT').length;
   const post = courses.filter((course) => course.chartRoundsPhase === 'POST').length;
@@ -960,7 +847,6 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
   const blockedTasks = carepathTasks.filter((task) => task.status === 'BLOCKED').length;
   const signatureQueue = generatedDocuments.filter((document) => document.signReviewState !== 'SIGNED').length;
   const readyDocuments = generatedDocuments.filter((document) => readyDocumentStatuses.includes(document.status)).length;
-  const completedFractions = fractionLogEntries.filter((entry) => entry.mdApproval && entry.dotApproval).length;
   const highFlags = flags.filter((flag) => flag.severity === 'HIGH').length;
   const carepathLoad = openTasks + signatureQueue + highFlags;
   const loadPercent = Math.round((carepathLoad / Math.max(carepathTasks.length + generatedDocuments.length, 1)) * 100);
@@ -982,138 +868,28 @@ export async function getDashboardTelemetry(): Promise<DashboardTelemetry> {
     count: stageLoads[stageId],
     pressure: Math.max(8, Math.round((stageLoads[stageId] / maxStageLoad) * 100)),
   }));
-  const stageNodes = signalStages.map<DashboardSignalNode>((stage) => ({
-    id: `stage-${stage.id}`,
-    label: stage.label,
-    group: 'stage',
-    stage: stage.id,
-    value: stage.count,
-    detail: `${stage.count} active items`,
-  }));
-  const courseNodes = courses.slice(0, 8).map<DashboardSignalNode>((course) => ({
-    id: course.courseRef,
-    label: course.courseRef,
-    group: 'course',
-    stage: courseStage(course.chartRoundsPhase),
-    value: Math.max(2, course.currentFraction),
-    detail: `${course.currentFraction}/${course.totalFractions} fx`,
-  }));
-  const satelliteNodes: DashboardSignalNode[] = [
-    { id: 'task-blocked', label: 'Blocked work', group: 'task', stage: 'planning', value: Math.max(1, blockedTasks), detail: `${blockedTasks} blocked` },
-    { id: 'document-signature', label: 'Signature queue', group: 'document', stage: 'closeout', value: signatureQueue, detail: `${signatureQueue} pending` },
-    { id: 'risk-attention', label: 'Risk attention', group: 'risk', stage: 'planning', value: highFlags + blockedTasks, detail: `${highFlags} high flags` },
-  ];
-  const patientNodes = patients.slice(0, 8).map<DashboardSignalNode>((patient) => ({
-    id: patient.patientRef,
-    label: patient.patientRef,
-    group: 'patient',
-    stage: courseStage(patient.chartRoundsPhase),
-    value: patient.flags.length + 2,
-    detail: stageLabels[courseStage(patient.chartRoundsPhase)],
-  }));
-  const links: DashboardSignalLink[] = courses.slice(0, 8).flatMap((course) => {
-    const stageId = courseStage(course.chartRoundsPhase);
-
-    return [
-      { source: course.patientRef, target: course.courseRef, value: 2 },
-      { source: course.courseRef, target: `stage-${stageId}`, value: Math.max(1, course.currentFraction) },
-    ];
-  });
-  const carepathLanes = stageIds.map<CarepathLaneDatum>((stageId, stageIndex) => {
-    const stageCourses = courses.filter((course) => courseStage(course.chartRoundsPhase) === stageId).slice(0, 3);
-    const nextStageId = stageIds[stageIndex + 1];
-    const fallbackTokens = Array.from({ length: Math.min(3, Math.max(1, Math.ceil(stageLoads[stageId] / Math.max(maxStageLoad, 1) * 3))) }, (_, index) => ({
-      id: `${stageId}-queue-${index + 1}`,
-      label: `Q${index + 1}`,
-      offset: (index * 23 + stageIndex * 11) % 62,
-      tone: 'neutral' as const,
-    }));
-    const tokens = stageCourses.length > 0
-      ? stageCourses.map((course, index) => ({
-        id: course.courseRef,
-        label: course.courseRef,
-        offset: (index * 19 + stageIndex * 13) % 64,
-        tone: 'neutral' as const,
-      }))
-      : fallbackTokens;
-
-    return {
-      id: stageId,
-      label: stageLabels[stageId],
-      count: stageLoads[stageId],
-      pressure: Math.max(8, Math.round((stageLoads[stageId] / maxStageLoad) * 100)),
-      handoff: nextStageId
-        ? Math.max(1, Math.round((stageLoads[stageId] + stageLoads[nextStageId]) / 2))
-        : Math.max(1, readyDocuments),
-      tokens,
-    };
-  });
 
   return {
     metrics: [
-      { label: 'Operational patients', value: patients.length, detail: 'Tokenized registry', icon: 'patients', trend: [12, 18, 17, 24, 21, patients.length] },
-      { label: 'Treatment cadence', value: appointments.length, detail: 'Today schedule', icon: 'schedule', trend: [8, 11, 9, 14, 12, appointments.length] },
-      { label: 'Open work', value: openTasks, detail: `${blockedTasks} blocked`, icon: 'tasks', trend: [20, 17, 19, 13, 15, openTasks] },
-      { label: 'Documents ready', value: readyDocuments, detail: `${signatureQueue} signatures`, icon: 'documents', trend: [5, 9, 11, 10, 14, readyDocuments] },
+      { label: 'Operational patients', value: patients.length, detail: 'Tokenized registry', icon: 'patients' },
+      { label: 'Treatment cadence', value: appointments.length, detail: 'Today schedule', icon: 'schedule' },
+      { label: 'Open work', value: openTasks, detail: `${blockedTasks} blocked`, icon: 'tasks' },
+      { label: 'Documents ready', value: readyDocuments, detail: `${signatureQueue} signatures`, icon: 'documents' },
     ],
-    signal: {
-      nodes: [...stageNodes, ...patientNodes, ...courseNodes, ...satelliteNodes],
-      links: [
-        ...links,
-        { source: 'stage-chart-prep', target: 'stage-planning', value: prepLoad },
-        { source: 'stage-planning', target: 'stage-delivery', value: planningLoad },
-        { source: 'stage-delivery', target: 'stage-closeout', value: deliveryLoad },
-        { source: 'task-blocked', target: 'stage-planning', value: Math.max(1, blockedTasks) },
-        { source: 'stage-delivery', target: 'document-signature', value: Math.max(1, signatureQueue) },
-        { source: 'document-signature', target: 'stage-closeout', value: Math.max(1, readyDocuments) },
-        { source: 'risk-attention', target: 'stage-planning', value: Math.max(1, highFlags) },
-      ],
+    stageLoad: {
       stages: signalStages,
       loadPercent,
       summary: `${highFlags} high-priority flags, ${blockedTasks} blocked tasks, ${signatureQueue} signatures`,
     },
-    carepathLanes,
     courseDistribution: [
       { name: 'Upcoming', value: upcoming, color: 'var(--color-primary)' },
       { name: 'On Tx', value: active, color: 'color-mix(in srgb, var(--color-primary) 62%, var(--color-card-muted))' },
       { name: 'Post', value: post, color: 'color-mix(in srgb, var(--color-primary) 34%, var(--color-card-muted))' },
     ],
-    throughput: [
-      { day: 'Mon', fractions: 18, activeLoad: active + 4 },
-      { day: 'Tue', fractions: 24, activeLoad: active + 7 },
-      { day: 'Wed', fractions: 20, activeLoad: active + 5 },
-      { day: 'Thu', fractions: 29, activeLoad: active + 8 },
-      { day: 'Fri', fractions: 25, activeLoad: active + 6 },
-      { day: 'Sat', fractions: 21, activeLoad: active + 3 },
-      { day: 'Sun', fractions: Math.max(4, completedFractions + active), activeLoad: active },
-    ],
-    attention: [
-      { label: 'High-priority flags', value: highFlags, color: 'var(--status-negative-solid)' },
-      { label: 'Blocked tasks', value: blockedTasks, color: 'var(--status-negative-solid)' },
-      { label: 'Pending signatures', value: signatureQueue, color: 'var(--status-intermediate-solid)' },
-      { label: 'Audit events today', value: auditEvents.length, color: 'var(--status-neutral-solid)' },
-    ],
+    throughput: buildThroughput(),
     capacityBands: buildCapacityBands(),
     providerLoad: buildProviderLoad(),
     carepath: buildCarepathTelemetry(courses),
     risk: buildRiskTelemetry(courses),
-    phiBoundary: {
-      nodes: [
-        { id: 'client', label: 'Dashboard client', detail: 'Tokenized telemetry only', x: 10, y: 56, tone: 'neutral' },
-        { id: 'api', label: 'Operational API', detail: 'Server derivation layer', x: 34, y: 24, tone: 'neutral' },
-        { id: 'ops', label: 'OPS DB', detail: 'Course/task refs', x: 64, y: 20, tone: 'neutral' },
-        { id: 'redaction', label: 'Redaction gate', detail: 'PHI keys stripped', x: 42, y: 68, tone: 'positive' },
-        { id: 'audit', label: 'Audit stream', detail: `${auditEvents.length} events today`, x: 72, y: 66, tone: 'neutral' },
-        { id: 'phi', label: 'PHI vault', detail: 'Identifiers isolated', x: 92, y: 42, tone: 'neutral' },
-      ],
-      links: [
-        { source: 'client', target: 'api', label: 'read model' },
-        { source: 'api', target: 'ops', label: 'token refs' },
-        { source: 'api', target: 'redaction', label: 'sanitize' },
-        { source: 'redaction', target: 'client', label: 'safe payload' },
-        { source: 'api', target: 'audit', label: 'append' },
-        { source: 'ops', target: 'phi', label: 'no client route', isolated: true },
-      ],
-    },
   };
 }

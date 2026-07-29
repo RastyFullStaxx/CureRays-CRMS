@@ -177,7 +177,7 @@ export function ClinicalFormPanel({
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="clinical-form-measure grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="clinical-label">Structured Fields</p>
         <Badge variant={statusTone(status)}>{formatUiLabel(status)}</Badge>
@@ -188,11 +188,11 @@ export function ClinicalFormPanel({
           {fieldMap.sections.length > 1 ? (
             <p className="clinical-label text-[var(--color-text)]">{section.title}</p>
           ) : null}
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="clinical-form-grid">
             {section.fields.map((field) => {
               if (field.kind === 'grid') {
                 return (
-                  <div key={field.id} className="grid gap-1.5 sm:col-span-2">
+                  <div key={field.id} className="clinical-form-grid-full grid gap-1.5">
                     <span className="clinical-label">{field.label}</span>
                     <ClinicalGrid field={field} values={values} disabled={readOnly} onChange={setValue} />
                   </div>
@@ -201,7 +201,7 @@ export function ClinicalFormPanel({
               const value = values[field.id];
               const showError = attemptedSubmit && field.required && isEmpty(value);
               return (
-                <label key={field.id} className={cn('grid gap-1.5', field.kind === 'textarea' && 'sm:col-span-2')}>
+                <label key={field.id} className={cn('grid gap-1.5', field.kind === 'textarea' && 'clinical-form-grid-full')}>
                   <span className="clinical-label">
                     {field.label}
                     {field.required ? <span className="text-[var(--color-error)]"> *</span> : null}

@@ -9,6 +9,9 @@ import {
   Bell,
   ClipboardList,
   FileCheck2,
+  Lock,
+  PanelLeftClose,
+  PanelLeftOpen,
   Radiation,
   Route,
   ShieldCheck,
@@ -48,9 +51,9 @@ import {
   responsiblePartyLabels,
 } from '@/lib/workflow';
 import { patientRef } from '@/lib/hipaa';
-import { phaseTone, priorityTone, statusTone } from '@/lib/status-utils';
+import { phaseTone, priorityTone, statusTone, statusToneClass } from '@/lib/status-utils';
 import { formatUiLabel } from '@/lib/ui-copy';
-import { documentRequirements, fieldMapForRequirement } from '@/lib/template-registry';
+import { documentRequirementAppliesToCourse, documentRequirements, fieldMapForRequirement, workflowDefinitions } from '@/lib/template-registry';
 import {
   derivePatientWorkspaceState,
   type CourseGate,
@@ -93,6 +96,12 @@ const tabs: Array<{ id: PatientWorkspaceTab; label: string; shortLabel?: string;
 
 function patientDisplayName(patient: Patient) {
   return `${patient.firstName} ${patient.lastName}`;
+}
+
+function stepDotTone(status: string) {
+  // The rail dots need pending vs in-progress to read differently; the shared
+  // statusTone keeps IN_PROGRESS neutral for badge copy elsewhere.
+  return status === 'IN_PROGRESS' ? 'intermediate' : statusTone(status);
 }
 
 function currentPhaseLabel(course: TreatmentCourse) {
@@ -263,9 +272,10 @@ type PatientWorkspaceNavigationProps = {
   activeTab: PatientWorkspaceTab;
   orientation: 'horizontal' | 'vertical';
   onTabChange: (tab: PatientWorkspaceTab) => void;
+  compact?: boolean;
 };
 
-function PatientWorkspaceNavigation({ activeTab, orientation, onTabChange }: PatientWorkspaceNavigationProps) {
+function PatientWorkspaceNavigation({ activeTab, orientation, onTabChange, compact = false }: PatientWorkspaceNavigationProps) {
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const horizontal = orientation === 'horizontal';
 
@@ -289,7 +299,7 @@ function PatientWorkspaceNavigation({ activeTab, orientation, onTabChange }: Pat
 
   return (
     <div
-      className={cn('patient-workspace-navigation', `patient-workspace-navigation-${orientation}`, horizontal && 'scrollbar-soft')}
+      className={cn('patient-workspace-navigation', `patient-workspace-navigation-${orientation}`, horizontal && 'scrollbar-soft', compact && 'patient-workspace-navigation-compact')}
       role="tablist"
       aria-label="Patient Workspace Sections"
       aria-orientation={orientation}
@@ -313,11 +323,13 @@ function PatientWorkspaceNavigation({ activeTab, orientation, onTabChange }: Pat
             onClick={() => onTabChange(tab.id)}
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={cn('patient-workspace-nav-item clinical-focus type-item-title', selected && 'patient-workspace-nav-item-selected')}
+            title={compact ? `${tab.label} (Alt ${index + 1})` : undefined}
+            aria-label={compact ? tab.label : undefined}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
-            <span className="patient-workspace-nav-label">{tab.label}</span>
-            {tab.shortLabel ? <span className="patient-workspace-nav-short-label">{tab.shortLabel}</span> : null}
-            {orientation === 'vertical' ? <kbd className="patient-workspace-nav-shortcut">Alt {index + 1}</kbd> : null}
+            {compact ? null : <span className="patient-workspace-nav-label">{tab.label}</span>}
+            {!compact && tab.shortLabel ? <span className="patient-workspace-nav-short-label">{tab.shortLabel}</span> : null}
+            {!compact && orientation === 'vertical' ? <kbd className="patient-workspace-nav-shortcut">Alt {index + 1}</kbd> : null}
           </button>
         );
       })}
@@ -398,6 +410,9 @@ function PatientWorkspaceHeader({
 type PatientWorkspaceSidebarProps = PatientWorkspaceHeaderProps & {
   activeTab: PatientWorkspaceTab;
   onTabChange: (tab: PatientWorkspaceTab) => void;
+  collapsed: boolean;
+  onCollapse: () => void;
+  onExpand: () => void;
 };
 
 function PatientWorkspaceSidebar({
@@ -411,15 +426,68 @@ function PatientWorkspaceSidebar({
   onTabChange,
   onOpenDetails,
   onOpenSignals,
+  collapsed,
+  onCollapse,
+  onExpand,
 }: PatientWorkspaceSidebarProps) {
   const gateTone = courseGate.state === 'BLOCKED' ? 'negative' : courseGate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive';
 
+  if (collapsed) {
+    const initials = `${patient.firstName?.[0] ?? ''}${patient.lastName?.[0] ?? ''}`.toUpperCase() || '—';
+    return (
+      <aside className="patient-workspace-sidebar patient-workspace-sidebar-rail clinical-surface" aria-label="Patient and Active Course Context (collapsed)">
+        <button
+          type="button"
+          className="patient-workspace-collapse clinical-focus"
+          onClick={onExpand}
+          aria-label="Expand patient panel"
+          title="Expand patient panel"
+        >
+          <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="patient-workspace-rail-avatar clinical-focus"
+          onClick={onOpenDetails}
+          aria-label={`${patientDisplayName(patient)} — open patient details`}
+          title={`${patientDisplayName(patient)} · ${patient.mrn || 'No MRN'}`}
+        >
+          {initials}
+        </button>
+        <nav className="patient-workspace-rail-nav" aria-label="Patient Workspace">
+          <PatientWorkspaceNavigation activeTab={activeTab} orientation="vertical" compact onTabChange={onTabChange} />
+        </nav>
+        <button
+          type="button"
+          className="patient-workspace-rail-signals clinical-focus"
+          onClick={onOpenSignals}
+          aria-label={`Course signals, ${signalCount} pending`}
+          title={`Course signals (${signalCount})`}
+        >
+          <Bell className="h-4 w-4" aria-hidden="true" />
+          {signalCount ? <span className={cn('patient-workspace-rail-badge', statusToneClass('intermediate'))}>{signalCount}</span> : null}
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside className="patient-workspace-sidebar clinical-surface" aria-label="Patient and Active Course Context">
-      <Link href="/patients" className="clinical-focus type-meta inline-flex min-h-11 items-center gap-1.5 text-[var(--color-primary)]">
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Patients
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/patients" className="clinical-focus type-meta inline-flex min-h-11 items-center gap-1.5 text-[var(--color-primary)]">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Patients
+        </Link>
+        <button
+          type="button"
+          className="patient-workspace-collapse clinical-focus"
+          onClick={onCollapse}
+          aria-label="Collapse patient panel"
+          title="Collapse patient panel"
+        >
+          <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
 
       <section className="patient-workspace-sidebar-section patient-workspace-sidebar-identity">
         <h1 className="type-page-title break-words">{patientDisplayName(patient)}</h1>
@@ -486,6 +554,14 @@ export function PatientWorkspace({
   auditEvents,
 }: PatientWorkspaceProps) {
   const [activeTab, setActiveTab] = useState<PatientWorkspaceTab>(initialTab);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  useEffect(() => {
+    setSidebarCollapsed(window.localStorage.getItem('curerays-workspace-rail') === 'collapsed');
+  }, []);
+  const setSidebarCollapsedPersistent = useCallback((collapsed: boolean) => {
+    setSidebarCollapsed(collapsed);
+    window.localStorage.setItem('curerays-workspace-rail', collapsed ? 'collapsed' : 'expanded');
+  }, []);
   const [signalsOpen, setSignalsOpen] = useState(false);
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
   const [targetNotice, setTargetNotice] = useState<string | null>(null);
@@ -606,9 +682,41 @@ export function PatientWorkspace({
     return selectedCarepathStep.requirementIds
       .map((requirementId) => documentRequirements.find((requirement) => requirement.id === requirementId))
       .filter((requirement): requirement is DocumentRequirement => Boolean(requirement))
+      // A course covers one anatomical site; only that site's requirements apply
+      // (a Knee course must not render the Hand/Foot variants of a step).
+      .filter((requirement) => documentRequirementAppliesToCourse(requirement, patient, course))
       .map((requirement) => ({ requirement, fieldMap: fieldMapForRequirement(requirement) }))
       .filter((entry): entry is { requirement: DocumentRequirement; fieldMap: TemplateFieldMap } => Boolean(entry.fieldMap));
-  }, [selectedCarepathStep]);
+  }, [selectedCarepathStep, patient, course]);
+  const programDocuments = useMemo(() => {
+    const definition = workflowDefinitions.find((workflow) => workflow.id === course.workflowDefinitionId);
+    if (!definition) return [];
+    const treatmentReached = course.chartRoundsPhase !== 'UPCOMING';
+    const postReached = course.chartRoundsPhase === 'POST';
+    return definition.documentRequirementIds
+      .map((requirementId) => documentRequirements.find((requirement) => requirement.id === requirementId))
+      .filter((requirement): requirement is DocumentRequirement => Boolean(requirement))
+      // One course = one anatomical site; show only this site's documents.
+      .filter((requirement) => documentRequirementAppliesToCourse(requirement, patient, course))
+      .map((requirement) => {
+        const step = workflowSteps.find((candidate) => candidate.requirementIds?.includes(requirement.id));
+        if (step) {
+          const state = ['COMPLETED', 'SIGNED', 'CLOSED'].includes(step.status)
+            ? 'DONE' as const
+            : ['IN_PROGRESS', 'READY_FOR_REVIEW'].includes(step.status)
+              ? 'IN_PROGRESS' as const
+              : 'AVAILABLE' as const;
+          return { requirement, step, state };
+        }
+        const phase = requirement.workflowPhase;
+        const phaseReached = phase === 'ON_TREATMENT'
+          ? treatmentReached
+          : ['POST_TX', 'AUDIT', 'CLOSED'].includes(phase)
+            ? postReached
+            : true;
+        return { requirement, step: undefined, state: phaseReached ? 'UNSCHEDULED' as const : 'LOCKED' as const };
+      });
+  }, [course, patient, workflowSteps]);
   const [formStatusByRequirement, setFormStatusByRequirement] = useState<Record<string, WorkflowItemStatus>>({});
   const setRequirementFormStatus = useCallback((requirementId: string, status: WorkflowItemStatus) => {
     setFormStatusByRequirement((current) =>
@@ -708,11 +816,14 @@ export function PatientWorkspace({
   ].filter((group) => group.items.length > 0), [attentionItems]);
 
   const tabContent = useMemo(() => {
+    const selectedStepDone = selectedCarepathStep
+      ? ['COMPLETED', 'SIGNED', 'CLOSED'].includes(selectedCarepathStep.status)
+      : false;
     if (activeTab === 'prepare') {
       return (
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
           <div className="prepare-workbench-layout">
-            <section className="clinical-surface overflow-hidden" aria-labelledby="course-path-heading">
+            <section className="clinical-surface prepare-path-rail overflow-hidden" aria-labelledby="course-path-heading">
               <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
                 <h2 id="course-path-heading" className="type-section-title">Preparation Path</h2>
                 <p className="type-meta mt-1">{blockedSteps.length} blocked · {urgentTasks.length} priority</p>
@@ -721,9 +832,13 @@ export function PatientWorkspace({
                 {(['CONSULTATION', 'CHART_PREP', 'SIMULATION', 'PLANNING'] as const).map((phase) => {
                   const phaseSteps = workflowSteps.filter((step) => step.phase === phase);
                   if (!phaseSteps.length) return null;
+                  const phaseDone = phaseSteps.filter((step) => ['COMPLETED', 'SIGNED', 'CLOSED'].includes(step.status)).length;
                   return (
                     <section key={phase} className="prepare-step-group" aria-labelledby={`prepare-phase-${phase}`}>
-                      <h3 id={`prepare-phase-${phase}`} className="type-label">{carepathPhaseLabels[phase]}</h3>
+                      <h3 id={`prepare-phase-${phase}`} className="flex items-baseline justify-between type-label">
+                        {carepathPhaseLabels[phase]}
+                        <span className="type-meta">{phaseDone}/{phaseSteps.length}</span>
+                      </h3>
                       <div className="grid gap-1.5">
                         {phaseSteps.map((step) => (
                           <button
@@ -739,26 +854,80 @@ export function PatientWorkspace({
                               <span className="type-item-title block truncate">{step.stepName}</span>
                               <span className="type-meta mt-0.5 block truncate">{responsiblePartyLabels[step.responsibleRole]} · {step.dueDate ? formatDate(step.dueDate) : step.triggerEvent}</span>
                             </span>
-                            <Badge variant={statusTone(step.status)}>{formatUiLabel(step.status)}</Badge>
+                            <span
+                              className={cn('prepare-step-status', statusToneClass(stepDotTone(step.status)))}
+                              role="img"
+                              aria-label={formatUiLabel(step.status)}
+                              title={formatUiLabel(step.status)}
+                            />
                           </button>
                         ))}
                       </div>
                     </section>
                   );
                 })}
+                {programDocuments.length ? (
+                  <section className="prepare-step-group" aria-labelledby="prepare-program-documents">
+                    <h3 id="prepare-program-documents" className="flex items-baseline justify-between type-label">
+                      Program Documents
+                      <span className="type-meta">{programDocuments.filter((doc) => doc.state === 'DONE').length}/{programDocuments.length}</span>
+                    </h3>
+                    <div className="grid gap-1.5">
+                      {programDocuments.map(({ requirement, step, state }) => {
+                        const phaseLabel = carepathPhaseLabels[requirement.workflowPhase] ?? formatUiLabel(requirement.workflowPhase);
+                        if (!step) {
+                          const meta = state === 'LOCKED' ? `Locked · opens at ${phaseLabel}` : 'Not scheduled for this course';
+                          return (
+                            <div key={requirement.id} className={cn('prepare-step prepare-step-static', state === 'LOCKED' && 'prepare-step-locked')}>
+                              <span className="prepare-step-index">
+                                <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                              </span>
+                              <span className="min-w-0 flex-1 text-left">
+                                <span className="type-item-title block truncate">{requirement.name}</span>
+                                <span className="type-meta mt-0.5 block truncate">{meta}</span>
+                              </span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <button
+                            key={requirement.id}
+                            type="button"
+                            onClick={() => setSelectedCarepathStepId(step.id)}
+                            className={cn('prepare-step clinical-focus', step.id === selectedCarepathStep?.id && 'prepare-step-selected')}
+                            aria-pressed={step.id === selectedCarepathStep?.id}
+                          >
+                            <span className="prepare-step-index">
+                              <FileCheck2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0 flex-1 text-left">
+                              <span className="type-item-title block truncate">{requirement.name}</span>
+                              <span className="type-meta mt-0.5 block truncate">{phaseLabel} · step {step.stepNumber}</span>
+                            </span>
+                            <span
+                              className={cn('prepare-step-status', statusToneClass(stepDotTone(step.status)))}
+                              role="img"
+                              aria-label={formatUiLabel(step.status)}
+                              title={formatUiLabel(step.status)}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
               </div>
             </section>
 
             <Card className="self-start">
               {selectedCarepathStep ? (
                 <div className="grid gap-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="clinical-label">Selected Carepath Step</p>
-                      <h3 className="mt-1 type-heading text-[var(--color-text)]">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <h3 className="type-heading truncate text-[var(--color-text)]">
                         {selectedCarepathStep.stepNumber}. {selectedCarepathStep.stepName}
                       </h3>
-                      <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
+                      <p className="type-meta whitespace-nowrap">
                         {selectedCarepathStep.dueDate ? `Due ${formatDate(selectedCarepathStep.dueDate)}` : selectedCarepathStep.triggerEvent}
                       </p>
                     </div>
@@ -768,14 +937,18 @@ export function PatientWorkspace({
                     </div>
                   </div>
 
-                  <div className="clinical-muted-surface p-3">
-                    <p className="clinical-label">Next Action</p>
-                    <p className="mt-2 type-body text-[var(--color-text)]">{selectedCarepathAction?.label ?? 'Review step'}</p>
-                    <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
-                      {selectedCarepathAction?.detail ?? selectedCarepathStep.notes ?? selectedCarepathStep.triggerEvent}
-                    </p>
+                  <div className={cn('clinical-muted-surface p-3', selectedStepDone && 'flex flex-wrap items-center justify-between gap-x-4 gap-y-2')}>
+                    <div className="min-w-0">
+                      <p className="clinical-label">Next Action</p>
+                      {selectedStepDone ? null : (
+                        <p className="mt-2 type-body text-[var(--color-text)]">{selectedCarepathAction?.label ?? 'Review step'}</p>
+                      )}
+                      <p className="mt-1 type-supporting text-[var(--color-text-muted)]">
+                        {selectedCarepathAction?.detail ?? selectedCarepathStep.notes ?? selectedCarepathStep.triggerEvent}
+                      </p>
+                    </div>
                     {selectedCarepathAction ? (
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className={cn('flex flex-wrap items-center gap-2', !selectedStepDone && 'mt-3')}>
                         <PrototypeActionButton
                           label={selectedCarepathAction.label}
                           icon={selectedCarepathAction.icon}
@@ -783,10 +956,10 @@ export function PatientWorkspace({
                           variant="primary"
                           description={selectedCarepathAction.detail}
                           context={`${selectedCarepathStep.stepNumber}. ${selectedCarepathStep.stepName}`}
-                          onComplete={['COMPLETED', 'SIGNED', 'CLOSED'].includes(selectedCarepathStep.status) ? undefined : completeSelectedCarepathStep}
+                          onComplete={selectedStepDone ? undefined : completeSelectedCarepathStep}
                           successMessage="The workflow step was updated and the course gate was refreshed."
                         />
-                        {['COMPLETED', 'SIGNED', 'CLOSED'].includes(selectedCarepathStep.status) ? (
+                        {selectedStepDone ? (
                           <PrototypeActionButton
                             label="Reopen for Correction"
                             icon="refresh"
@@ -1274,32 +1447,34 @@ export function PatientWorkspace({
           </div>
         </section>
 
-        <section className="clinical-surface p-4" aria-labelledby="snapshot-heading">
-          <SectionTitle id="snapshot-heading" title="Course Snapshot" />
-          <dl className="workspace-snapshot-grid">
-            <div><dt>Carepath</dt><dd>{carepath.completed}/{carepath.total} complete</dd></div>
-            <div><dt>Documents</dt><dd>{unsignedDocs.length} unsigned</dd></div>
-            <div><dt>Approvals</dt><dd>{approvedFractions.length}/{currentFraction} logged approved</dd></div>
-            <div><dt>Imaging</dt><dd>{missingImageFractions.length ? `${missingImageFractions.length} missing` : 'Clear'}</dd></div>
-            <div><dt>On-Treatment Visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
-            <div><dt>Physics</dt><dd>{physicsDueFractions.length ? `${physicsDueFractions.length} due` : 'Clear'}</dd></div>
-          </dl>
-        </section>
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+          <section className="clinical-surface p-4" aria-labelledby="snapshot-heading">
+            <SectionTitle id="snapshot-heading" title="Course Snapshot" />
+            <dl className="workspace-snapshot-grid">
+              <div><dt>Carepath</dt><dd>{carepath.completed}/{carepath.total} complete</dd></div>
+              <div><dt>Documents</dt><dd>{unsignedDocs.length} unsigned</dd></div>
+              <div><dt>Approvals</dt><dd>{approvedFractions.length}/{currentFraction} logged approved</dd></div>
+              <div><dt>Imaging</dt><dd>{missingImageFractions.length ? `${missingImageFractions.length} missing` : 'Clear'}</dd></div>
+              <div><dt>On-Treatment Visit</dt><dd>{otvDueFractions.length ? `${otvDueFractions.length} due` : 'Clear'}</dd></div>
+              <div><dt>Physics</dt><dd>{physicsDueFractions.length ? `${physicsDueFractions.length} due` : 'Clear'}</dd></div>
+            </dl>
+          </section>
 
-        <section className="clinical-surface overflow-hidden" aria-labelledby="recent-activity-heading">
-          <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
-            <h2 id="recent-activity-heading" className="type-section-title">Recent Course Activity</h2>
-          </div>
-          <div className="divide-y divide-[var(--color-border-soft)]">
-            {auditEvents.slice(0, 3).map((event) => (
-              <div key={event.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                <div><p className="type-item-title">{event.action}</p><p className="type-meta mt-1">{event.userName}</p></div>
-                <time className="type-meta" dateTime={event.timestamp}>{formatDate(event.timestamp)}</time>
-              </div>
-            ))}
-            {auditEvents.length === 0 ? <p className="type-body p-4 text-[var(--color-text-muted)]">No course activity has been recorded.</p> : null}
-          </div>
-        </section>
+          <section className="clinical-surface overflow-hidden" aria-labelledby="recent-activity-heading">
+            <div className="border-b border-[var(--color-border-soft)] px-4 py-3">
+              <h2 id="recent-activity-heading" className="type-section-title">Recent Course Activity</h2>
+            </div>
+            <div className="divide-y divide-[var(--color-border-soft)]">
+              {auditEvents.slice(0, 3).map((event) => (
+                <div key={event.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <div><p className="type-item-title">{event.action}</p><p className="type-meta mt-1">{event.userName}</p></div>
+                  <time className="type-meta" dateTime={event.timestamp}>{formatDate(event.timestamp)}</time>
+                </div>
+              ))}
+              {auditEvents.length === 0 ? <p className="type-body p-4 text-[var(--color-text-muted)]">No course activity has been recorded.</p> : null}
+            </div>
+          </section>
+        </div>
       </div>
     );
   }, [
@@ -1349,7 +1524,7 @@ export function PatientWorkspace({
   const signalCount = workspaceState.actions.length;
   return (
     <div className="patient-workspace">
-      <div className="patient-workspace-layout">
+      <div className={cn('patient-workspace-layout', sidebarCollapsed && 'patient-workspace-layout-collapsed')}>
         <PatientWorkspaceSidebar
           patient={patient}
           course={course}
@@ -1361,6 +1536,9 @@ export function PatientWorkspace({
           onTabChange={selectTab}
           onOpenDetails={() => setPatientDetailsOpen(true)}
           onOpenSignals={() => setSignalsOpen(true)}
+          collapsed={sidebarCollapsed}
+          onCollapse={() => setSidebarCollapsedPersistent(true)}
+          onExpand={() => setSidebarCollapsedPersistent(false)}
         />
 
         <main className="patient-workspace-main">

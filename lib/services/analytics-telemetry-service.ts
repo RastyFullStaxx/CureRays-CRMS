@@ -53,15 +53,14 @@ export type AnalyticsKpi = {
   value: string | number;
   detail: string;
   tone: AnalyticsTone;
-  delta: string;
 };
 
-export type AnalyticsForecastPoint = {
+export type AnalyticsActivityPoint = {
   label: string;
-  projectedCourses: number;
-  workload: number;
-  risk: number;
-  capacity: number;
+  dayOffset: number;
+  fractions: number;
+  documents: number;
+  tasks: number;
 };
 
 export type AnalyticsInsight = {
@@ -82,17 +81,13 @@ export type AnalyticsDistributionDatum = {
   color: string;
 };
 
-export type AnalyticsSankeyNode = {
-  name: string;
-  value: number;
-  tone: AnalyticsTone;
-};
-
-export type AnalyticsSankeyLink = {
-  source: string;
-  target: string;
-  value: number;
+export type AnalyticsPhaseLoadDatum = {
+  phase: CarepathWorkflowPhase;
+  label: string;
+  open: number;
+  review: number;
   blocked: number;
+  total: number;
   tone: AnalyticsTone;
 };
 
@@ -145,7 +140,6 @@ export type AnalyticsThroughputPoint = {
   fractions: number;
   approvals: number;
   reviews: number;
-  controlLimit: number;
 };
 
 export type AnalyticsDocumentAging = {
@@ -170,17 +164,8 @@ export type AnalyticsBillingReadiness = {
   tone: AnalyticsTone;
 };
 
-export type AnalyticsRiskNode = {
-  id: string;
-  name: string;
-  category: 'domain' | 'course';
-  value: number;
-  tone: AnalyticsTone;
-};
-
-export type AnalyticsRiskLink = {
-  source: string;
-  target: string;
+export type AnalyticsRiskRankDatum = {
+  label: string;
   value: number;
   tone: AnalyticsTone;
 };
@@ -198,22 +183,18 @@ export type AnalyticsTelemetry = {
   sampleNotice: string;
   overview: {
     kpis: AnalyticsKpi[];
-    forecast: AnalyticsForecastPoint[];
+    activityTrend: AnalyticsActivityPoint[];
     diagnosisMix: AnalyticsDistributionDatum[];
     phaseMix: AnalyticsDistributionDatum[];
     insights: AnalyticsInsight[];
   };
   workflow: {
-    sankey: {
-      nodes: AnalyticsSankeyNode[];
-      links: AnalyticsSankeyLink[];
-    };
+    phaseLoad: AnalyticsPhaseLoadDatum[];
     phaseOwnerHeatmap: {
       phases: string[];
       owners: string[];
       cells: AnalyticsHeatmapCell[];
     };
-    bottlenecks: AnalyticsRoleLoad[];
     courseDrilldown: AnalyticsQueueItem[];
     insights: AnalyticsInsight[];
   };
@@ -257,10 +238,8 @@ export type AnalyticsTelemetry = {
   billingRisk: {
     billingReadiness: AnalyticsBillingReadiness[];
     auditReadiness: AnalyticsDistributionDatum[];
-    riskGraph: {
-      nodes: AnalyticsRiskNode[];
-      links: AnalyticsRiskLink[];
-    };
+    topCourseRisks: AnalyticsRiskRankDatum[];
+    riskDomains: AnalyticsRiskRankDatum[];
     phiBoundary: AnalyticsPhiSignal[];
     insights: AnalyticsInsight[];
   };
@@ -443,57 +422,61 @@ function buildOverviewKpis(asOf: Date): AnalyticsKpi[] {
       value: patients.length,
       detail: `${courses.length} tokenized courses`,
       tone: 'neutral',
-      delta: 'Live mock ops state',
     },
     {
       label: 'Carepath Pressure',
       value: openTasks.length + signatures.length,
-      detail: `${openTasks.length} tasks + ${signatures.length} signatures`,
+      detail: `${openTasks.length} tasks + ${signatures.length} signatures as of ${shortDate(asOf)}`,
       tone: openTasks.length + signatures.length > 8 ? 'intermediate' : 'neutral',
-      delta: `As of ${shortDate(asOf)}`,
     },
     {
       label: 'Audit Readiness',
       value: `${auditReady}%`,
       detail: 'Tasks, documents, fractions',
       tone: auditReady >= 80 ? 'positive' : auditReady >= 60 ? 'intermediate' : 'negative',
-      delta: 'Closeout evidence score',
     },
     {
       label: 'Intervention Watch',
       value: highFlags.length + holdCourses,
       detail: `${highFlags.length} high flags, ${holdCourses} holds`,
       tone: highFlags.length + holdCourses > 0 ? 'negative' : 'positive',
-      delta: 'Ops huddle priority',
     },
   ];
 }
 
-function buildForecast(): AnalyticsForecastPoint[] {
-  const courses = operationalTreatmentCourses();
-  const active = courses.filter((course) => course.chartRoundsPhase === 'ON_TREATMENT').length;
-  const upcoming = courses.filter((course) => course.chartRoundsPhase === 'UPCOMING').length;
-  const openWork = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status)).length
-    + generatedDocuments.filter((document) => document.signReviewState !== 'SIGNED').length;
-  const riskBase = operationalPriorityFlags().reduce((sum, flag) => sum + (flag.severity === 'HIGH' ? 3 : flag.severity === 'MEDIUM' ? 2 : 1), 0)
-    + courses.filter((course) => course.status === 'ON_HOLD').length * 3;
-
-  return Array.from({ length: 10 }, (_, index) => {
-    const day = index * 3;
-    const release = Math.max(0, index - 3);
-    const projectedCourses = Math.max(0, courses.length + Math.ceil(upcoming * 0.22 * index) - release);
-    const workload = Math.max(1, Math.round(openWork + Math.sin(index * 0.85) * 2 + upcoming * 0.8 - release * 0.7));
-    const risk = Math.max(0, Math.round(riskBase + Math.cos(index * 0.7) * 2 + active * 0.6 - release));
-    const capacity = Math.max(6, Math.round(9 + active * 1.4 - Math.max(0, index - 6) * 0.6));
-
+function buildActivityTrend(asOf: Date): AnalyticsActivityPoint[] {
+  const dayMs = 86_400_000;
+  const asOfDay = new Date(asOf);
+  asOfDay.setHours(12, 0, 0, 0);
+  const offsetFor = (value: string | undefined) => {
+    const parsed = parseDate(value);
+    if (!Number.isFinite(parsed)) {
+      return -1;
+    }
+    return Math.round((asOfDay.getTime() - parsed) / dayMs);
+  };
+  const points = Array.from({ length: 30 }, (_, index) => {
+    const offset = 29 - index;
     return {
-      label: day === 0 ? 'Now' : `+${day}d`,
-      projectedCourses,
-      workload,
-      risk,
-      capacity,
+      label: shortDate(new Date(asOfDay.getTime() - offset * dayMs)),
+      dayOffset: offset,
+      fractions: 0,
+      documents: 0,
+      tasks: 0,
     };
   });
+  const bump = (offset: number, key: 'fractions' | 'documents' | 'tasks') => {
+    if (offset < 0 || offset > 29) {
+      return;
+    }
+    points[29 - offset][key] += 1;
+  };
+
+  fractionLogEntries.forEach((entry) => bump(offsetFor(entry.date), 'fractions'));
+  generatedDocuments.forEach((document) => bump(offsetFor(document.lastUpdatedAt), 'documents'));
+  carepathTasks.forEach((task) => bump(offsetFor(task.lastUpdatedAt), 'tasks'));
+
+  return points;
 }
 
 function buildDiagnosisMix(): AnalyticsDistributionDatum[] {
@@ -528,50 +511,26 @@ function buildPhaseMix(): AnalyticsDistributionDatum[] {
   }));
 }
 
-function buildWorkflowSankey() {
-  const phaseLoad = orderedCarepathPhases.reduce<Record<CarepathWorkflowPhase, { total: number; blocked: number; review: number }>>(
-    (current, phase) => {
-      const phaseTasks = carepathTasks.filter((task) => task.workflowPhase === phase);
-      const phaseDocuments = generatedDocuments.filter((document) => document.clinicalPhase === phase);
-      const blocked = phaseTasks.filter((task) => task.status === 'BLOCKED' || task.status === 'OVERDUE').length
-        + phaseDocuments.filter((document) => blockedDocumentStatuses.includes(document.status)).length;
-      const review = phaseTasks.filter((task) => task.status === 'NEEDS_REVIEW' || task.status === 'READY_FOR_REVIEW').length
-        + phaseDocuments.filter((document) => document.signReviewState !== 'SIGNED' || reviewDocumentStatuses.includes(document.status)).length;
-
-      current[phase] = {
-        total: phaseTasks.length + phaseDocuments.length,
-        blocked,
-        review,
-      };
-      return current;
-    },
-    {} as Record<CarepathWorkflowPhase, { total: number; blocked: number; review: number }>,
-  );
-
-  const nodes = orderedCarepathPhases.map<AnalyticsSankeyNode>((phase) => {
-    const score = phaseLoad[phase].blocked * 3 + phaseLoad[phase].review;
-    return {
-      name: carepathPhaseLabels[phase],
-      value: phaseLoad[phase].total,
-      tone: pressureTone(score * 20),
-    };
-  });
-
-  const links = orderedCarepathPhases.slice(0, -1).map<AnalyticsSankeyLink>((phase, index) => {
-    const nextPhase = orderedCarepathPhases[index + 1];
-    const blocked = phaseLoad[phase].blocked + phaseLoad[nextPhase].blocked;
-    const value = Math.max(1, Math.round((phaseLoad[phase].total + phaseLoad[nextPhase].total) / 2));
+function buildWorkflowPhaseLoad(): AnalyticsPhaseLoadDatum[] {
+  return orderedCarepathPhases.map<AnalyticsPhaseLoadDatum>((phase) => {
+    const phaseTasks = carepathTasks.filter((task) => task.workflowPhase === phase);
+    const phaseDocuments = generatedDocuments.filter((document) => document.clinicalPhase === phase);
+    const blocked = phaseTasks.filter((task) => task.status === 'BLOCKED' || task.status === 'OVERDUE').length
+      + phaseDocuments.filter((document) => blockedDocumentStatuses.includes(document.status)).length;
+    const review = phaseTasks.filter((task) => task.status === 'NEEDS_REVIEW' || task.status === 'READY_FOR_REVIEW').length
+      + phaseDocuments.filter((document) => document.signReviewState !== 'SIGNED' || reviewDocumentStatuses.includes(document.status)).length;
+    const total = phaseTasks.length + phaseDocuments.length;
 
     return {
-      source: carepathPhaseLabels[phase],
-      target: carepathPhaseLabels[nextPhase],
-      value,
+      phase,
+      label: carepathPhaseLabels[phase],
+      open: Math.max(0, total - blocked - review),
+      review,
       blocked,
-      tone: pressureTone(blocked * 25 + value * 5),
+      total,
+      tone: pressureTone((blocked * 3 + review) * 20),
     };
   });
-
-  return { nodes, links };
 }
 
 function buildPhaseOwnerHeatmap() {
@@ -679,35 +638,27 @@ function buildCourseDrilldown(asOf: Date): AnalyticsQueueItem[] {
 }
 
 function buildTreatmentThroughput(): AnalyticsThroughputPoint[] {
-  const groups = new Map<string, AnalyticsThroughputPoint>();
+  const groups = new Map<string, AnalyticsThroughputPoint & { date: string }>();
 
   fractionLogEntries.forEach((entry) => {
-    const label = shortDate(new Date(`${entry.date}T12:00:00+08:00`));
-    const current = groups.get(label) ?? {
-      label,
+    const current = groups.get(entry.date) ?? {
+      date: entry.date,
+      label: shortDate(new Date(`${entry.date}T12:00:00+08:00`)),
       fractions: 0,
       approvals: 0,
       reviews: 0,
-      controlLimit: 4,
     };
 
     current.fractions += 1;
     current.approvals += entry.mdApproval && entry.dotApproval ? 1 : 0;
     current.reviews += entry.status === 'NEEDS_REVIEW' || entry.status === 'REVISION_NEEDED' ? 1 : 0;
-    groups.set(label, current);
+    groups.set(entry.date, current);
   });
 
-  const actual = [...groups.values()];
-  const fallback = actual.length > 0 ? actual : [{ label: 'Now', fractions: 0, approvals: 0, reviews: 0, controlLimit: 4 }];
-  const projection = Array.from({ length: 5 }, (_, index) => ({
-    label: `M+${index + 1}`,
-    fractions: Math.max(1, Math.round((fallback.at(-1)?.fractions ?? 1) + Math.sin(index + 1) + index)),
-    approvals: Math.max(0, Math.round((fallback.at(-1)?.approvals ?? 0) + index * 0.7)),
-    reviews: Math.max(0, Math.round((fallback.at(-1)?.reviews ?? 0) + Math.cos(index) * 0.4)),
-    controlLimit: 4,
-  }));
-
-  return [...fallback, ...projection].slice(-8);
+  return [...groups.values()]
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-8)
+    .map(({ label, fractions, approvals, reviews }) => ({ label, fractions, approvals, reviews }));
 }
 
 function buildTreatmentProgress(): AnalyticsTreatmentProgress[] {
@@ -747,28 +698,24 @@ function buildTreatmentSignals(): AnalyticsKpi[] {
       value: active.length,
       detail: `${active.reduce((sum, course) => sum + course.currentFraction, 0)} fractions progressed`,
       tone: 'neutral',
-      delta: 'Current course state',
     },
     {
       label: 'Approval Completion',
       value: `${fractionSignals.percent}%`,
-      detail: `${fractionSignals.complete}/${fractionSignals.total} logged fractions`,
+      detail: `MD + DOT on ${fractionSignals.complete}/${fractionSignals.total} logged fractions`,
       tone: fractionSignals.percent >= 90 ? 'positive' : 'intermediate',
-      delta: 'MD + DOT approvals',
     },
     {
       label: 'Held Courses',
       value: held.length,
       detail: 'Requires release review',
       tone: held.length > 0 ? 'negative' : 'positive',
-      delta: 'Treatment safety signal',
     },
     {
       label: 'Review Fractions',
       value: reviewFractions,
-      detail: 'Revision or approval watch',
+      detail: 'Revision or approval watch before next fraction',
       tone: reviewFractions > 0 ? 'intermediate' : 'positive',
-      delta: 'Before next fraction',
     },
   ];
 }
@@ -954,63 +901,50 @@ function buildAuditReadiness(): AnalyticsDistributionDatum[] {
   ];
 }
 
-function buildRiskGraph() {
+function buildRiskRankings() {
   const refs = courseRefMap();
   const domainScores = new Map<string, number>();
   const courseScores = new Map<string, number>();
-  const links: AnalyticsRiskLink[] = [];
 
-  const addRisk = (courseRef: string, domain: string, value: number, tone: AnalyticsTone) => {
+  const addRisk = (courseRef: string, domain: string, value: number) => {
     domainScores.set(domain, (domainScores.get(domain) ?? 0) + value);
     courseScores.set(courseRef, (courseScores.get(courseRef) ?? 0) + value);
-    links.push({
-      source: courseRef,
-      target: domain,
-      value,
-      tone,
-    });
   };
 
   operationalPriorityFlags().forEach((flag) => {
     const course = operationalPatients().find((patient) => patient.patientRef === flag.patientRef)?.activeCourseRef ?? flag.patientRef;
-    addRisk(course, 'Priority Flag', flag.severity === 'HIGH' ? 9 : 5, flag.severity === 'HIGH' ? 'negative' : 'intermediate');
+    addRisk(course, 'Priority Flag', flag.severity === 'HIGH' ? 9 : 5);
   });
 
   carepathTasks
     .filter((task) => task.status === 'BLOCKED' || task.status === 'OVERDUE' || task.status === 'NEEDS_REVIEW')
-    .forEach((task) => addRisk(courseRefFor(task.courseId, refs), riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6, task.status === 'BLOCKED' ? 'negative' : 'intermediate'));
+    .forEach((task) => addRisk(courseRefFor(task.courseId, refs), riskDomain(`${task.title} ${task.documentName}`), task.status === 'BLOCKED' ? 10 : 6));
 
   generatedDocuments
     .filter((document) => document.signReviewState !== 'SIGNED' || blockedDocumentStatuses.includes(document.status))
-    .forEach((document) => addRisk(courseRefFor(document.courseId, refs), riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3, document.status === 'BLOCKED' ? 'negative' : 'intermediate'));
+    .forEach((document) => addRisk(courseRefFor(document.courseId, refs), riskDomain(document.name), document.signReviewState !== 'SIGNED' ? 5 : 3));
 
   fractionLogEntries
     .filter((entry) => !entry.mdApproval || !entry.dotApproval || entry.status !== 'APPROVED')
-    .forEach((entry) => addRisk(courseRefFor(entry.courseId, refs), 'Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6, 'intermediate'));
+    .forEach((entry) => addRisk(courseRefFor(entry.courseId, refs), 'Fraction Approval', entry.status === 'REVISION_NEEDED' ? 9 : 6));
 
-  const domainNodes: AnalyticsRiskNode[] = [...domainScores.entries()].map(([name, value]) => ({
-    id: name,
-    name,
-    category: 'domain',
-    value,
-    tone: pressureTone(value * 8),
-  }));
-  const courseNodes: AnalyticsRiskNode[] = [...courseScores.entries()]
+  const topCourseRisks = [...courseScores.entries()]
     .sort(([, a], [, b]) => b - a)
     .slice(0, 8)
-    .map(([name, value]) => ({
-      id: name,
-      name,
-      category: 'course',
+    .map<AnalyticsRiskRankDatum>(([label, value]) => ({
+      label,
       value,
       tone: pressureTone(value * 7),
     }));
-  const shown = new Set([...domainNodes, ...courseNodes].map((node) => node.id));
+  const riskDomains = [...domainScores.entries()]
+    .sort(([, a], [, b]) => b - a)
+    .map<AnalyticsRiskRankDatum>(([label, value]) => ({
+      label,
+      value,
+      tone: pressureTone(value * 8),
+    }));
 
-  return {
-    nodes: [...domainNodes, ...courseNodes],
-    links: links.filter((link) => shown.has(link.source) && shown.has(link.target)).slice(0, 24),
-  };
+  return { topCourseRisks, riskDomains };
 }
 
 function scopedInsights(insights: AnalyticsInsight[], keywords: string[], fallback: AnalyticsInsight[]) {
@@ -1046,12 +980,12 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
 
   const asOf = asOfDate();
   const insights = makeInsights(asOf);
-  const workflowSankey = buildWorkflowSankey();
+  const workflowPhaseLoad = buildWorkflowPhaseLoad();
   const phaseOwnerHeatmap = buildPhaseOwnerHeatmap();
   const roleLoad = buildRoleLoad();
   const treatmentSignals = buildTreatmentSignals();
   const evidenceMatrix = buildEvidenceMatrix();
-  const riskGraph = buildRiskGraph();
+  const riskRankings = buildRiskRankings();
   const documentHotspots = documentRiskHotspots(generatedDocuments);
 
   const workflowFallback = fallbackInsight(
@@ -1093,18 +1027,17 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
   return {
     panels,
     asOfLabel: shortDate(asOf),
-    sampleNotice: '30-day projections are model-derived from the current prototype data, not live historical forecasting.',
+    sampleNotice: 'All analytics are derived from the current synthetic pilot dataset; interpret trends as operational signals, not statistics.',
     overview: {
       kpis: buildOverviewKpis(asOf),
-      forecast: buildForecast(),
+      activityTrend: buildActivityTrend(asOf),
       diagnosisMix: buildDiagnosisMix(),
       phaseMix: buildPhaseMix(),
       insights: insights.slice(0, 5),
     },
     workflow: {
-      sankey: workflowSankey,
+      phaseLoad: workflowPhaseLoad,
       phaseOwnerHeatmap,
-      bottlenecks: roleLoad,
       courseDrilldown: buildCourseDrilldown(asOf),
       insights: scopedInsights(insights, ['workflow', 'queue', 'handoff', 'role'], [workflowFallback]),
     },
@@ -1130,7 +1063,8 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
     billingRisk: {
       billingReadiness: buildBillingReadiness(),
       auditReadiness: buildAuditReadiness(),
-      riskGraph,
+      topCourseRisks: riskRankings.topCourseRisks,
+      riskDomains: riskRankings.riskDomains,
       phiBoundary: [
         {
           label: 'Client Payload',
@@ -1151,10 +1085,10 @@ export async function getAnalyticsTelemetry(): Promise<AnalyticsTelemetry> {
           tone: 'neutral',
         },
         {
-          label: 'Forecasts',
-          value: 'Labeled',
-          detail: 'Projection charts are explicitly marked as prototype model output.',
-          tone: 'intermediate',
+          label: 'Trends',
+          value: 'Actuals',
+          detail: 'Trend charts plot recorded events only; no projected or modeled values are drawn.',
+          tone: 'positive',
         },
       ],
       insights: scopedInsights(insights, ['billing', 'audit', 'risk', 'readiness'], [billingFallback]),
