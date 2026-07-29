@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import type { FormEvent } from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import type { FormEvent } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export function LoginCard() {
   const router = useRouter();
@@ -13,21 +13,22 @@ export function LoginCard() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/dashboard");
+    router.push('/dashboard');
   }
 
   return (
     <form onSubmit={handleSubmit} className="landing-login-card">
       <div className="landing-login-copy">
-        <h2>Welcome Back</h2>
+        <p className="landing-login-kicker">Pilot Workspace</p>
+        <h2>Enter CureRays CRMS</h2>
         <p className="landing-login-subtitle">
-          Sign in to access the CureRays Admin Dashboard
+          Demo mode accepts any valid email and a password of at least six characters.
         </p>
       </div>
 
       <div className="landing-login-fields">
         <label className="landing-field-label" htmlFor="email">
-          Email address
+          Email Address
           <span className="landing-input-wrap">
             <Mail className="landing-input-icon" aria-hidden="true" />
             <Input
@@ -36,8 +37,8 @@ export function LoginCard() {
               type="email"
               autoComplete="email"
               className="landing-input"
-              placeholder="Enter your email"
-              style={{ height: "var(--height-landing-control)" }}
+              placeholder="name@curerays.com"
+              required
             />
           </span>
         </label>
@@ -49,18 +50,19 @@ export function LoginCard() {
             <Input
               id="password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               className="landing-input landing-password-input"
-              placeholder="Enter your password"
-              style={{ height: "var(--height-landing-control)" }}
+              placeholder="Enter at least six characters"
+              minLength={6}
+              required
             />
             <button
               type="button"
               className="clinical-focus landing-password-toggle"
               onClick={() => setShowPassword((current) => !current)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              title={showPassword ? "Hide password" : "Show password"}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              title={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? (
                 <EyeOff aria-hidden="true" />
@@ -73,28 +75,12 @@ export function LoginCard() {
       </div>
 
       <Button type="submit" className="landing-submit">
-        Sign In
-      </Button>
-
-      <div className="landing-divider">
-        <span className="landing-divider-line" />
-        <span>or</span>
-        <span className="landing-divider-line" />
-      </div>
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="landing-forgot-button"
-      >
-        <LockKeyhole aria-hidden="true" />
-        Forgot password?
+        Enter Pilot Workspace
       </Button>
 
       <p className="landing-secure-note">
         <ShieldCheck aria-hidden="true" />
-        <span>Secure access for authorized clinical staff only.</span>
+        <span>Synthetic data only. No identity is authenticated in demo mode.</span>
       </p>
     </form>
   );
