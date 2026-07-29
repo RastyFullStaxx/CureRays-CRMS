@@ -82,7 +82,7 @@ assert.doesNotMatch(workspace, /clinical-floating-action/, "Patient workspace mu
 assert.match(workspace, /selectedCarepathStep/, "Patient Carepath must use a selected step as the working surface");
 assert.match(workspace, /Related Work Items/, "Patient Carepath must fold related work items into the selected step panel");
 assert.doesNotMatch(workspace, /clinical-label">Work Items/, "Patient Carepath must not render Work Items as a second competing full table");
-assert.match(rootPage, /redirect\(['"]\/dashboard['"]\)/, "Root route must load the dashboard by default");
+assert.match(rootPage, /redirect\(['"]\/login['"]\)/, "Root route must load the pilot login by default");
 assert.match(loginPage, /landing-page/, "Login route must expose the liquid-glass landing page");
 assert.match(loginPage, /LoginCard/, "Login route must render the reusable login card");
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
@@ -90,7 +90,7 @@ assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example U
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");
 assert.match(globals, /\.dashboard-command-grid[\s\S]*overflow-y: auto/, "Dashboard chart pages must keep a vertical page scroll area");
 assert.match(globals, /\.mac-main > \*[\s\S]*mac-page-enter/, "Mac shell must provide a subtle page transition");
-assert.match(globals, /\.landing-login-card[\s\S]*backdrop-filter: blur\(34px\)/, "Landing login card must use liquid-glass blur");
+assert.match(globals, /\.landing-login-card[\s\S]*backdrop-filter: blur\(28px\)/, "Landing login card must use liquid-glass blur");
 assert.match(globals, /\.dashboard-command-grid[\s\S]*overflow-x: hidden/, "Dashboard chart pages must avoid horizontal page scrolling");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-y: auto/, "Analytics chart pages must keep a vertical page scroll area");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-x: hidden/, "Analytics chart pages must avoid horizontal page scrolling");

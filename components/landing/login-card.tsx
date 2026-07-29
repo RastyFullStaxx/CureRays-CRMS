@@ -17,7 +17,7 @@ export function LoginCard() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="landing-login-card">
+    <form action="/dashboard" onSubmit={handleSubmit} className="landing-login-card">
       <div className="landing-login-copy">
         <p className="landing-login-kicker">Pilot Workspace</p>
         <h2>Enter CureRays CRMS</h2>
@@ -33,7 +33,6 @@ export function LoginCard() {
             <Mail className="landing-input-icon" aria-hidden="true" />
             <Input
               id="email"
-              name="email"
               type="email"
               autoComplete="email"
               className="landing-input"
@@ -43,13 +42,12 @@ export function LoginCard() {
           </span>
         </label>
 
-        <label className="landing-field-label" htmlFor="password">
-          Password
+        <div className="landing-field-label">
+          <label htmlFor="password">Password</label>
           <span className="landing-input-wrap">
             <LockKeyhole className="landing-input-icon" aria-hidden="true" />
             <Input
               id="password"
-              name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               className="landing-input landing-password-input"
@@ -71,7 +69,7 @@ export function LoginCard() {
               )}
             </button>
           </span>
-        </label>
+        </div>
       </div>
 
       <Button type="submit" className="landing-submit">
