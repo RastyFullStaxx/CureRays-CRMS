@@ -184,9 +184,11 @@ export function getDashboardOperations(
     .filter((appointment) => appointment.dateTime?.slice(0, 10) === today && appointment.status !== 'CANCELLED');
   const openTasks = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status));
   const blockedSteps = patientCourseWorkflowSteps.filter((step) => step.status === 'BLOCKED' || step.blockers.length > 0);
-  const taskQueue = selectWorkflowTaskRepository().listQueue('ALL', 'RAD_ONC', asOf.toISOString());
-  if (taskQueue instanceof Promise) {
-    throw new Error('Dashboard operations requires a synchronous task queue snapshot.');
+  const taskRepository = selectWorkflowTaskRepository();
+  const blockedTaskQueue = taskRepository.listQueue('BLOCKED', 'RAD_ONC', asOf.toISOString(), 'ALL_OPEN');
+  const signatureTaskQueue = taskRepository.listQueue('SIGNATURES', 'RAD_ONC', asOf.toISOString(), 'ALL_OPEN');
+  if (blockedTaskQueue instanceof Promise || signatureTaskQueue instanceof Promise) {
+    throw new Error('Dashboard operations requires synchronous task queue snapshots.');
   }
   const priorityCandidates = openTasks
     .filter((task) => task.status === 'OVERDUE' || dueState(task.dueDate, today) === 'Overdue');
@@ -283,8 +285,8 @@ export function getDashboardOperations(
     metrics: {
       appointmentsToday: appointments.length,
       actionableTasks: openTasks.length,
-      blockedWork: taskQueue.counts.BLOCKED,
-      documentsAwaitingReview: taskQueue.counts.SIGNATURES,
+      blockedWork: blockedTaskQueue.tasks.length,
+      documentsAwaitingReview: signatureTaskQueue.tasks.length,
     },
     priorityQueue,
     todaySchedule,

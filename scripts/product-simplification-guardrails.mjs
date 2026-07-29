@@ -105,8 +105,10 @@ assert.doesNotMatch(dashboardClient, /TabStrip|role="tabpanel"|DashboardPanel|Ri
 assert.match(dashboardClient, /Priority Queue/, "Dashboard must expose the Priority Queue");
 assert.match(dashboardClient, /Today Schedule/, "Dashboard must expose Today Schedule");
 assert.match(dashboardClient, /Exceptions/, "Dashboard must expose Exceptions");
-assert.match(dashboardService, /blockedWork: taskQueue\.counts\.BLOCKED/, "Blocked Work must use the linked BLOCKED queue count");
-assert.match(dashboardService, /documentsAwaitingReview: taskQueue\.counts\.SIGNATURES/, "Documents Awaiting Review must use the linked SIGNATURES queue count");
+assert.match(dashboardService, /listQueue\('BLOCKED', 'RAD_ONC', asOf\.toISOString\(\), 'ALL_OPEN'\)/, "Blocked Work must use the linked BLOCKED and ALL_OPEN snapshot");
+assert.match(dashboardService, /listQueue\('SIGNATURES', 'RAD_ONC', asOf\.toISOString\(\), 'ALL_OPEN'\)/, "Documents Awaiting Review must use the linked SIGNATURES and ALL_OPEN snapshot");
+assert.match(dashboardService, /blockedWork: blockedTaskQueue\.tasks\.length/, "Blocked Work must count the linked snapshot tasks");
+assert.match(dashboardService, /documentsAwaitingReview: signatureTaskQueue\.tasks\.length/, "Documents Awaiting Review must count the linked snapshot tasks");
 
 const visibleWorkspaceLabels = [
   "Overview",
