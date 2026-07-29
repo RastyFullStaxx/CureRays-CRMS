@@ -51,9 +51,7 @@ const completedTaskStatuses: CarepathTaskStatus[] = [
   'NOT_APPLICABLE',
 ];
 
-const documentReviewStatuses: DocumentStatus[] = [
-  'READY_FOR_REVIEW',
-  'NEEDS_REVIEW',
+const documentExceptionStatuses: DocumentStatus[] = [
   'BLOCKED',
   'OVERDUE',
   'MISSING_FIELDS',
@@ -186,10 +184,8 @@ export function getDashboardOperations(
   const openTasks = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status));
   const blockedSteps = patientCourseWorkflowSteps.filter((step) => step.status === 'BLOCKED' || step.blockers.length > 0);
   const blockedTasks = openTasks.filter((task) => task.status === 'BLOCKED');
-  const heldCourses = courses.filter((course) => course.status === 'ON_HOLD');
   const documentsAwaitingReview = generatedDocuments.filter((document) =>
-    documentReviewStatuses.includes(document.status)
-    || document.signReviewState === 'READY_FOR_SIGNATURE'
+    document.signReviewState === 'READY_FOR_SIGNATURE'
     || document.signReviewState === 'REVIEW_REQUIRED',
   );
   const priorityCandidates = openTasks
@@ -246,7 +242,8 @@ export function getDashboardOperations(
     .filter((task) => dueState(task.dueDate, today) === 'Overdue')
     .map((task) => taskItem(task, today, coursesById))
     .filter((item): item is DashboardOperationsItem => item !== null);
-  const documentExceptions = documentsAwaitingReview
+  const documentExceptions = generatedDocuments
+    .filter((document) => documentExceptionStatuses.includes(document.status))
     .map<DashboardOperationsItem | null>((document) => {
       const course = coursesById.get(document.courseId);
       const href = workspaceHref(course, 'record-closeout', 'document', document.id);
@@ -286,7 +283,7 @@ export function getDashboardOperations(
     metrics: {
       appointmentsToday: appointments.length,
       actionableTasks: openTasks.length,
-      blockedWork: blockedSteps.length + blockedTasks.length + heldCourses.length,
+      blockedWork: blockedTasks.length,
       documentsAwaitingReview: documentsAwaitingReview.length,
     },
     priorityQueue,

@@ -22,6 +22,7 @@ const loginPage = read("app/login/page.tsx");
 const workspace = read("components/patients/patient-workspace.tsx");
 const dataTable = read("components/shared/data-table.tsx");
 const dashboardClient = read("components/dashboard/dashboard-telemetry-client.tsx");
+const dashboardService = read("lib/services/dashboard-telemetry-service.ts");
 const patientRegistry = read("components/patients/patient-registry-client.tsx");
 const fractionWorksheet = read("components/fraction-worksheet-panel.tsx");
 const globals = read("app/globals.css");
@@ -88,10 +89,10 @@ assert.match(loginPage, /LoginCard/, "Login route must render the reusable login
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");
-assert.match(globals, /\.dashboard-operations[\s\S]*overflow-y: auto/, "Dashboard operations page must keep a vertical page scroll area");
+assert.match(globals, /\.dashboard-operations\s*\{[^}]*overflow-y: auto/, "Dashboard operations page must keep a vertical page scroll area");
 assert.match(globals, /\.mac-main > \*[\s\S]*mac-page-enter/, "Mac shell must provide a subtle page transition");
 assert.match(globals, /\.landing-login-card[\s\S]*backdrop-filter: blur\(28px\)/, "Landing login card must use liquid-glass blur");
-assert.match(globals, /\.dashboard-operations[\s\S]*overflow-x: hidden/, "Dashboard operations page must avoid horizontal page scrolling");
+assert.match(globals, /\.dashboard-operations\s*\{[^}]*overflow-x: hidden/, "Dashboard operations page must avoid horizontal page scrolling");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-y: auto/, "Analytics chart pages must keep a vertical page scroll area");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-x: hidden/, "Analytics chart pages must avoid horizontal page scrolling");
 assert.match(globals, /\.clinical-matrix[\s\S]*--matrix-min-height/, "Square-block chart matrices must reserve enough height to avoid clipping");
@@ -104,6 +105,13 @@ assert.doesNotMatch(dashboardClient, /TabStrip|role="tabpanel"|DashboardPanel|Ri
 assert.match(dashboardClient, /Priority Queue/, "Dashboard must expose the Priority Queue");
 assert.match(dashboardClient, /Today Schedule/, "Dashboard must expose Today Schedule");
 assert.match(dashboardClient, /Exceptions/, "Dashboard must expose Exceptions");
+assert.match(dashboardService, /blockedWork: blockedTasks\.length/, "Blocked Work must match the linked blocked Tasks queue");
+assert.doesNotMatch(dashboardService, /documentReviewStatuses/, "Documents Awaiting Review must use actual signature-review states");
+assert.match(
+  dashboardService,
+  /const documentsAwaitingReview = generatedDocuments\.filter\(\(document\) =>\s*document\.signReviewState === 'READY_FOR_SIGNATURE'\s*\|\| document\.signReviewState === 'REVIEW_REQUIRED'/,
+  "Documents Awaiting Review must count only ready-for-signature or review-required documents",
+);
 
 const visibleWorkspaceLabels = [
   "Overview",
