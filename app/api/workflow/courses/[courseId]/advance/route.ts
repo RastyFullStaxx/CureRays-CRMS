@@ -11,11 +11,14 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest, { params }: { params: Promise<{ courseId: string }> }) {
   await hydrateClinicalStoreFromDatabase();
   const { courseId } = await params;
-  const body = (await request.json()) as Partial<WorkflowAdvanceInput>;
+  const payload = await request.json() as unknown;
+  const body = payload && typeof payload === "object" && !Array.isArray(payload)
+    ? payload as Partial<WorkflowAdvanceInput>
+    : {};
   const context = workflowMutationContextFromRequest(
     request,
     "workflow:advance",
-    body.reason ?? ""
+    typeof body.reason === "string" ? body.reason : ""
   );
 
   if (!context) {

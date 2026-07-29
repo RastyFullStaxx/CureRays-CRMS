@@ -74,7 +74,7 @@ export type WorkflowTaskRepository = {
   evaluateCourseAdvance(courseIdOrRef: string, asOf?: string): MaybePromise<WorkflowCommandResult>;
   advanceCourse(
     courseIdOrRef: string,
-    input: WorkflowAdvanceInput,
+    input: Partial<WorkflowAdvanceInput>,
     context: WorkflowMutationContext,
     asOf?: string
   ): MaybePromise<WorkflowCommandMutationResult>;
@@ -599,12 +599,23 @@ function validateContext(context: WorkflowMutationContext, action: WorkflowMutat
 
 function advanceCourseInMemory(
   courseIdOrRef: string,
-  input: WorkflowAdvanceInput,
+  input: Partial<WorkflowAdvanceInput>,
   context: WorkflowMutationContext,
   asOf?: string
 ): WorkflowCommandMutationResult {
-  const course = courseByIdOrRef(courseIdOrRef);
-  const reasonErrors = validateReason(input.reason, "reason");
+  const inputErrors: string[] = [];
+
+  if (typeof input.reason !== "string" || !input.reason.trim()) {
+    inputErrors.push("reason is required.");
+  }
+
+  if (typeof input.expectedCoursePhase !== "string") {
+    inputErrors.push(input.expectedCoursePhase == null
+      ? "expectedCoursePhase is required."
+      : "expectedCoursePhase is invalid.");
+  } else if (!orderedCarepathPhases.includes(input.expectedCoursePhase)) {
+    inputErrors.push("expectedCoursePhase is invalid.");
+  }
 
   if (!validateContext(context, "workflow:advance")) {
     return mutationResult({
@@ -615,23 +626,18 @@ function advanceCourseInMemory(
     });
   }
 
-  if (!course) {
-    return mutationResult(evaluateCourseAdvance(courseIdOrRef, asOf));
-  }
-
-  if (!input.expectedCoursePhase) {
-    reasonErrors.push("expectedCoursePhase is required.");
-  } else if (!orderedCarepathPhases.includes(input.expectedCoursePhase)) {
-    reasonErrors.push("expectedCoursePhase is invalid.");
-  }
-
-  if (reasonErrors.length > 0) {
+  if (inputErrors.length > 0) {
     return mutationResult({
       allowed: false,
       status: "VALIDATION_FAILED",
-      blockers: reasonErrors,
+      blockers: inputErrors,
       auditAction: "Workflow advancement rejected"
     });
+  }
+
+  const course = courseByIdOrRef(courseIdOrRef);
+  if (!course) {
+    return mutationResult(evaluateCourseAdvance(courseIdOrRef, asOf));
   }
 
   if (input.expectedCoursePhase !== course.coursePhase) {
@@ -1129,7 +1135,7 @@ export async function advanceCourseWorkflow(
 ): Promise<WorkflowServiceResponse<WorkflowCommandMutationResult>> {
   try {
     const repository = selectWorkflowTaskRepository();
-    const result = await repository.advanceCourse(courseIdOrRef, input as WorkflowAdvanceInput, context, asOf);
+    const result = await repository.advanceCourse(courseIdOrRef, input, context, asOf);
 
     if (!result.allowed) {
       return failure(

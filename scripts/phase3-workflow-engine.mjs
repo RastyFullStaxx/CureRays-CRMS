@@ -131,6 +131,12 @@ const workflowService = require(join(root, servicePath));
 const patientService = require(join(root, "lib/server/patient-registration-service.ts"));
 const store = require(join(root, "lib/clinical-store.ts"));
 const { roleCan } = require(join(root, "lib/rbac.ts"));
+const { NextRequest } = require("next/server");
+const { POST: advanceCourseRoute } = require(join(root, advanceRoutePath));
+const {
+  createPilotSession,
+  PILOT_SESSION_COOKIE
+} = require(join(root, "lib/server/pilot-session.ts"));
 
 function mutationContext(action, reason, role = "RAD_ONC") {
   return {
@@ -278,6 +284,97 @@ for (const task of courseTasks.filter((item) => item.workflowPhase === "CONSULTA
   );
   assert.equal(taskUpdate.ok, true, `${task.id} should complete`);
 }
+
+const pilotSalt = Buffer.from(Array.from({ length: 16 }, (_, index) => index + 1)).toString("base64url");
+const pilotHash = Buffer.from(Array.from({ length: 64 }, (_, index) => index)).toString("base64url");
+const pilotPasswordHash = `scrypt$${pilotSalt}$${pilotHash}`;
+const routeAccounts = [
+  {
+    id: "phase3-pcp",
+    displayName: "Phase 3 PCP",
+    role: "PCP",
+    passwordHash: pilotPasswordHash
+  },
+  {
+    id: "phase3-rad-onc",
+    displayName: "Phase 3 Radiation Oncologist",
+    role: "RAD_ONC",
+    passwordHash: pilotPasswordHash
+  }
+];
+const originalRouteEnv = {
+  accounts: process.env.PILOT_ACCOUNTS_JSON,
+  persistenceMode: process.env.CURERAYS_PERSISTENCE_MODE,
+  sessionSecret: process.env.PILOT_SESSION_SECRET
+};
+const routeCourseSnapshot = structuredClone(course);
+
+async function invokeAdvanceRoute(account, courseId, body) {
+  const { token } = createPilotSession(account);
+  const request = new NextRequest(`http://localhost/api/workflow/courses/${courseId}/advance`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      cookie: `${PILOT_SESSION_COOKIE}=${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const response = await advanceCourseRoute(request, { params: Promise.resolve({ courseId }) });
+  return { status: response.status, body: await response.json() };
+}
+
+process.env.PILOT_ACCOUNTS_JSON = JSON.stringify(routeAccounts);
+process.env.PILOT_SESSION_SECRET = Buffer.from(Array.from({ length: 32 }, (_, index) => index + 1)).toString("base64url");
+process.env.CURERAYS_PERSISTENCE_MODE = "memory";
+
+try {
+  const pcpRouteResponse = await invokeAdvanceRoute(routeAccounts[0], course.id, {
+    expectedCoursePhase: course.coursePhase,
+    reason: "PCP must not advance a course."
+  });
+  assert.equal(pcpRouteResponse.status, 403, "Signed PCP advance request must return HTTP 403");
+
+  const malformedReasonRouteResponse = await invokeAdvanceRoute(routeAccounts[1], "COURSE-PHASE3-UNKNOWN", {
+    expectedCoursePhase: "CONSULTATION",
+    reason: 17
+  });
+  assert.equal(malformedReasonRouteResponse.status, 400, "Non-string advance reason must return HTTP 400 before course lookup");
+  assert.equal(malformedReasonRouteResponse.body.status, "VALIDATION_FAILED", "Malformed advance reason must return workflow validation status");
+
+  const malformedPhaseRouteResponse = await invokeAdvanceRoute(routeAccounts[1], "COURSE-PHASE3-UNKNOWN", {
+    expectedCoursePhase: { phase: "CONSULTATION" },
+    reason: "Reject malformed expected phase."
+  });
+  assert.equal(malformedPhaseRouteResponse.status, 400, "Non-string expected course phase must return HTTP 400 before course lookup");
+  assert.equal(malformedPhaseRouteResponse.body.status, "VALIDATION_FAILED", "Malformed expected phase must return workflow validation status");
+
+  const missingPhaseRouteResponse = await invokeAdvanceRoute(routeAccounts[1], "COURSE-PHASE3-UNKNOWN", {
+    reason: "Expected phase is required."
+  });
+  assert.equal(missingPhaseRouteResponse.status, 400, "Missing expected course phase must return HTTP 400 before course lookup");
+
+  const staleRouteResponse = await invokeAdvanceRoute(routeAccounts[1], course.id, {
+    expectedCoursePhase: "PLANNING",
+    reason: "Reject stale course phase through route."
+  });
+  assert.equal(staleRouteResponse.status, 409, "Stale signed advance request must return HTTP 409");
+  assert.equal(staleRouteResponse.body.status, "STALE", "Stale signed advance request must return workflow status STALE");
+  assert.equal(course.coursePhase, routeCourseSnapshot.coursePhase, "Rejected route requests must not change course phase");
+} finally {
+  Object.assign(course, routeCourseSnapshot);
+  for (const [key, value] of [
+    ["PILOT_ACCOUNTS_JSON", originalRouteEnv.accounts],
+    ["PILOT_SESSION_SECRET", originalRouteEnv.sessionSecret],
+    ["CURERAYS_PERSISTENCE_MODE", originalRouteEnv.persistenceMode]
+  ]) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+}
+assert.deepEqual(course, routeCourseSnapshot, "Route checks must restore the synthetic course store state");
+assert.equal(process.env.PILOT_ACCOUNTS_JSON, originalRouteEnv.accounts, "Route checks must restore PILOT_ACCOUNTS_JSON");
+assert.equal(process.env.PILOT_SESSION_SECRET, originalRouteEnv.sessionSecret, "Route checks must restore PILOT_SESSION_SECRET");
+assert.equal(process.env.CURERAYS_PERSISTENCE_MODE, originalRouteEnv.persistenceMode, "Route checks must restore persistence mode");
 
 const coursePhaseBeforeAdvance = course.coursePhase;
 const deniedAdvance = await workflowService.advanceCourseWorkflow(
