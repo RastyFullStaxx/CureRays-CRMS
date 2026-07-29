@@ -8,6 +8,7 @@ import {
   patientCourseWorkflowSteps,
 } from '@/lib/clinical-store';
 import { PROTOTYPE_OPERATIONAL_AS_OF } from '@/lib/operational-date';
+import { selectWorkflowTaskRepository } from '@/lib/server/workflow-command-service';
 import type { StatusTone } from '@/lib/status-utils';
 import type {
   CarepathTask,
@@ -183,11 +184,10 @@ export function getDashboardOperations(
     .filter((appointment) => appointment.dateTime?.slice(0, 10) === today && appointment.status !== 'CANCELLED');
   const openTasks = carepathTasks.filter((task) => !completedTaskStatuses.includes(task.status));
   const blockedSteps = patientCourseWorkflowSteps.filter((step) => step.status === 'BLOCKED' || step.blockers.length > 0);
-  const blockedTasks = openTasks.filter((task) => task.status === 'BLOCKED');
-  const documentsAwaitingReview = generatedDocuments.filter((document) =>
-    document.signReviewState === 'READY_FOR_SIGNATURE'
-    || document.signReviewState === 'REVIEW_REQUIRED',
-  );
+  const taskQueue = selectWorkflowTaskRepository().listQueue('ALL', 'RAD_ONC', asOf.toISOString());
+  if (taskQueue instanceof Promise) {
+    throw new Error('Dashboard operations requires a synchronous task queue snapshot.');
+  }
   const priorityCandidates = openTasks
     .filter((task) => task.status === 'OVERDUE' || dueState(task.dueDate, today) === 'Overdue');
   const priorityTasks = (priorityCandidates.length > 0
@@ -283,8 +283,8 @@ export function getDashboardOperations(
     metrics: {
       appointmentsToday: appointments.length,
       actionableTasks: openTasks.length,
-      blockedWork: blockedTasks.length,
-      documentsAwaitingReview: documentsAwaitingReview.length,
+      blockedWork: taskQueue.counts.BLOCKED,
+      documentsAwaitingReview: taskQueue.counts.SIGNATURES,
     },
     priorityQueue,
     todaySchedule,
