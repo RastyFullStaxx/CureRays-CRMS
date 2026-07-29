@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <main
           id="main-content"
-          className="mac-main"
+          className="mac-main scrollbar-soft"
         >
           {children}
         </main>

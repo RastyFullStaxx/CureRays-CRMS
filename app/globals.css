@@ -1000,8 +1000,9 @@ button {
     linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg) 58%, color-mix(in srgb, var(--color-primary-soft) 34%, var(--color-bg)));
   background-attachment: fixed;
   display: flex;
-  min-height: 100dvh;
+  height: 100dvh;
   min-width: 0;
+  overflow: hidden;
   position: relative;
 }
 
@@ -1009,6 +1010,8 @@ button {
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
   padding:
     calc(var(--height-mac-menubar) + var(--space-page))
     var(--space-page)

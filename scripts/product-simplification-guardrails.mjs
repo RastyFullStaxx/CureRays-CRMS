@@ -16,6 +16,20 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function cssRule(source, selector) {
+  const match = source.match(new RegExp(`${escapeRegExp(selector)}\\s*\\{[^}]*\\}`, "s"));
+  assert.ok(match, `Missing CSS rule ${selector}`);
+  return match[0];
+}
+
+function sourceSection(source, start, end) {
+  const startIndex = source.indexOf(start);
+  assert.notEqual(startIndex, -1, `Missing source section ${start}`);
+  const endIndex = source.indexOf(end, startIndex + start.length);
+  assert.notEqual(endIndex, -1, `Missing source section boundary ${end}`);
+  return source.slice(startIndex, endIndex);
+}
+
 const appShell = read("components/app-shell.tsx");
 const macNavigation = read("components/mac-navigation.tsx");
 const loginPage = read("app/login/page.tsx");
@@ -31,6 +45,11 @@ const fractionWorksheet = read("components/fraction-worksheet-panel.tsx");
 const globals = read("app/globals.css");
 const rootPage = read("app/page.tsx");
 const envExample = read(".env.example");
+const macDesktopRule = cssRule(globals, ".mac-desktop");
+const macMainRule = cssRule(globals, ".mac-main");
+const patientWorkspaceRule = cssRule(globals, ".patient-workspace");
+const compactCommandMedia = sourceSection(globals, "@media (max-width: 1320px)", "@media (max-width: 700px)");
+const prepareWorkbenchContainer = sourceSection(globals, "@container (min-width: 900px)", ".workspace-phase-tracker");
 
 const expectedPrimaryHrefs = [
   "/dashboard",
@@ -75,14 +94,20 @@ for (const href of demotedHrefs) {
 assert.match(appShell, /MacNavigation/, "AppShell must render the Mac-style navigation");
 assert.doesNotMatch(appShell, /Sidebar/, "AppShell must not render the legacy sidebar");
 assert.match(appShell, /pathname === '\/login'/, "Login route must stay outside the authenticated Mac command shell");
+assert.match(appShell, /className="mac-main scrollbar-soft"/, "Authenticated shell main must use the shared styled scrollbar");
+assert.match(macDesktopRule, /(?:\{|;)\s*height:\s*100dvh;/s, "Mac desktop must own the exact viewport height");
+assert.match(macDesktopRule, /(?:\{|;)\s*overflow:\s*hidden;/s, "Mac desktop must contain page overflow");
+assert.match(macMainRule, /(?:\{|;)\s*min-height:\s*0;/s, "Mac main must allow its flex child to shrink");
+assert.match(macMainRule, /(?:\{|;)\s*overflow-y:\s*auto;/s, "Mac main must be the shared vertical scroll owner");
+assert.doesNotMatch(patientWorkspaceRule, /overflow-y:\s*auto;/, "Patient workspace must not add a second vertical scroll owner");
 assert.doesNotMatch(macNavigation, /mac-dock/, "Primary navigation must not render the rejected bottom Dock");
 assert.match(macNavigation, /className="mac-command-bar"/, "Shell must render a Mac-style top command bar");
 assert.match(macNavigation, /Search patient, MRN, course, or action/, "Mac shell must keep patient search prominent");
 assert.match(macNavigation, /curerays_theme_mode/, "Mac shell must use the explicit light-first theme preference key");
 assert.match(macNavigation, /aria-label=\{item\.label\}/, "Compact command navigation must retain accessible labels");
 assert.match(macNavigation, /title=\{item\.label\}/, "Compact command navigation must retain tooltips");
-assert.match(globals, /@media \(max-width: 1320px\)[\s\S]*\.mac-command-nav-item:not\(\.is-active\) span\s*\{[^}]*display:\s*none;/s, "Mac command bar must collapse only inactive labels at the laptop breakpoint");
-assert.match(globals, /@media \(max-width: 1320px\)[\s\S]*\.mac-command-nav\s*\{[^}]*overflow-x:\s*hidden;/s, "Compact command navigation must not horizontally scroll");
+assert.match(compactCommandMedia, /\.mac-command-nav-item:not\(\.is-active\) span\s*\{[^}]*display:\s*none;/s, "Mac command bar must collapse only inactive labels at the laptop breakpoint");
+assert.match(compactCommandMedia, /\.mac-command-nav\s*\{[^}]*overflow-x:\s*hidden;/s, "Compact command navigation must not horizontally scroll");
 assert.match(workspace, /patient-workspace-sidebar clinical-surface/, "Patient workspace must keep desktop patient context in the left sidebar");
 assert.match(workspace, /patient-workspace-compact clinical-surface/, "Patient workspace must retain compact patient context below the sidebar breakpoint");
 assert.match(workspace, /PatientWorkspaceNavigation/, "Patient workspace must share navigation behavior across sidebar and compact layouts");
@@ -218,11 +243,10 @@ assert.match(dataTable, /flex-wrap items-center gap-2/, "DataTable toolbar contr
 assert.match(dataTable, /filteredRows\.slice\(0,\s*pageSize\)/, "DataTable pageSize must cap rendered content");
 assert.doesNotMatch(dataTable, /tableViewportHeight|viewportRows|\*\s*var\(--height-table-row\)/, "DataTable pageSize must not imply a fixed row-height viewport");
 assert.match(workspace, /patient-workspace-surface patient-workspace-canvas/, "Patient workspace must use the shared full-width tab content canvas");
-assert.match(globals, /\.patient-workspace[\s\S]*overflow-y: auto/, "Patient workspace page must own vertical scrolling");
 assert.match(globals, /\.patient-workspace-sidebar[\s\S]*overflow: hidden[\s\S]*position: sticky/, "Patient sidebar must remain sticky without an independent scrollbar");
 assert.match(globals, /@media \(min-width: 1280px\)[\s\S]*patient-workspace-layout[\s\S]*grid-template-columns: clamp\(232px, 17vw, 248px\)/, "Patient sidebar must use the approved desktop width and breakpoint");
 assert.doesNotMatch(workspace, /patient-workspace-canvas scrollbar-soft/, "Patient workspace canvas must not render its own vertical scrollbar");
-assert.match(globals, /@container \(min-width: 900px\)[\s\S]*\.prepare-workbench-layout\s*\{[^}]*grid-template-columns:\s*minmax\(220px,\s*240px\)\s+minmax\(0,\s*1fr\);/s, "Prepare workbench must use the laptop-safe two-column threshold and rail width");
+assert.match(prepareWorkbenchContainer, /\.prepare-workbench-layout\s*\{[^}]*grid-template-columns:\s*minmax\(220px,\s*240px\)\s+minmax\(0,\s*1fr\);/s, "Prepare workbench must use the laptop-safe two-column threshold and rail width");
 assert.doesNotMatch(globals, /\.prepare-path-rail\s*\{[^}]*100dvh/s, "Prepare rail must not own an independent viewport-height scroll region");
 assert.doesNotMatch(workspace, /prepare-step-status/, "Prepare workflow status must use shared labeled pill semantics");
 assert.match(workspace, /treatmentWorkflowSteps\.length \? \(/, "Treatment workflow section must render only when it has steps");
