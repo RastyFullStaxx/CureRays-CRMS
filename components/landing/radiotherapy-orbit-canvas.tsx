@@ -22,8 +22,8 @@ function seededValue(index: number, offset: number) {
   return value - Math.floor(value);
 }
 
-function readPalette() {
-  const styles = window.getComputedStyle(document.documentElement);
+function readPalette(element: Element) {
+  const styles = window.getComputedStyle(element);
   const readToken = (token: string) => styles.getPropertyValue(token).trim() || styles.color;
 
   return {
@@ -100,7 +100,7 @@ export function RadiotherapyOrbitCanvas() {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
     const fieldGroup = new THREE.Group();
-    const palette = readPalette();
+    const palette = readPalette(wrap);
     const geometries: THREE.BufferGeometry[] = [];
     const materials: THREE.Material[] = [];
     const rotatingObjects: Array<{ object: THREE.Object3D; speed: number }> = [];
@@ -266,7 +266,7 @@ export function RadiotherapyOrbitCanvas() {
     });
 
     const updateThemeColors = () => {
-      const nextPalette = readPalette();
+      const nextPalette = readPalette(wrap);
       primaryLineMaterial.color.set(nextPalette.primary);
       accentLineMaterial.color.set(nextPalette.accent);
       softLineMaterial.color.set(nextPalette.textSoft);
