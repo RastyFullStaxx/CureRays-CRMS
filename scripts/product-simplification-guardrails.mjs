@@ -105,13 +105,8 @@ assert.doesNotMatch(dashboardClient, /TabStrip|role="tabpanel"|DashboardPanel|Ri
 assert.match(dashboardClient, /Priority Queue/, "Dashboard must expose the Priority Queue");
 assert.match(dashboardClient, /Today Schedule/, "Dashboard must expose Today Schedule");
 assert.match(dashboardClient, /Exceptions/, "Dashboard must expose Exceptions");
-assert.match(dashboardService, /blockedWork: blockedTasks\.length/, "Blocked Work must match the linked blocked Tasks queue");
-assert.doesNotMatch(dashboardService, /documentReviewStatuses/, "Documents Awaiting Review must use actual signature-review states");
-assert.match(
-  dashboardService,
-  /const documentsAwaitingReview = generatedDocuments\.filter\(\(document\) =>\s*document\.signReviewState === 'READY_FOR_SIGNATURE'\s*\|\| document\.signReviewState === 'REVIEW_REQUIRED'/,
-  "Documents Awaiting Review must count only ready-for-signature or review-required documents",
-);
+assert.match(dashboardService, /blockedWork: taskQueue\.counts\.BLOCKED/, "Blocked Work must use the linked BLOCKED queue count");
+assert.match(dashboardService, /documentsAwaitingReview: taskQueue\.counts\.SIGNATURES/, "Documents Awaiting Review must use the linked SIGNATURES queue count");
 
 const visibleWorkspaceLabels = [
   "Overview",
