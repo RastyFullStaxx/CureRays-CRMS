@@ -326,6 +326,30 @@ for (const field of ["completedAt", "signedAt", "blockedReason", "naReason", "re
   assert.equal(reopenedLinkedStep.body.task[field], undefined, `Reopening a linked step should clear task ${field}`);
 }
 assert.equal(reopenedLinkedStep.body.task.taskNumber, linkedTaskNumber, "Reopening must preserve the linked task business identifier");
+
+linkedTask.status = "NOT_APPLICABLE";
+linkedTask.auditReady = true;
+linkedTask.completedAt = "2026-06-11T00:00:00.000Z";
+linkedTask.signedAt = "2026-06-11T00:00:00.000Z";
+linkedTask.blockedReason = "Synthetic stale blocker";
+linkedTask.naReason = "Synthetic stale N/A reason";
+linkedTask.reopenReason = "Synthetic stale reopen reason";
+const terminalLinkedStep = await workflowService.updateWorkflowStepCommand(
+  linkedStep.id,
+  {
+    status: "CLOSED",
+    expectedUpdatedAt: reopenedLinkedStep.body.step.updatedAt,
+    changeReason: "Phase 3 guardrail normalized a terminal linked task."
+  },
+  workflowContext,
+  "2026-06-12T00:00:00.000Z"
+);
+assert.equal(terminalLinkedStep.ok, true, "Closing a step with an already-terminal linked task should succeed");
+assert.equal(terminalLinkedStep.body.task.status, "COMPLETED", "Terminal step actions must normalize a linked task to completed");
+assert.notEqual(terminalLinkedStep.body.task.completedAt, "2026-06-11T00:00:00.000Z", "Terminal task normalization must refresh completion time");
+for (const field of ["signedAt", "blockedReason", "naReason", "reopenReason"]) {
+  assert.equal(terminalLinkedStep.body.task[field], undefined, `Terminal task normalization should clear stale ${field}`);
+}
 store.carepathTasks.splice(store.carepathTasks.indexOf(linkedTask), 1);
 
 const duplicateStep = courseSteps.find((step) => step.stepNumber === 6);

@@ -66,7 +66,6 @@ import {
 import { canApproveFraction } from "@/lib/rbac";
 import {
   carepathStepApplicability,
-  completedTaskStatuses,
   courseDocuments,
   courseFractions
 } from "@/lib/workflow";
@@ -744,12 +743,12 @@ export function synchronizeCarepathTaskWithWorkflowStep(
 
   if (
     input.status &&
-    ["COMPLETED", "SIGNED", "UPLOADED", "CLOSED"].includes(input.status) &&
-    !completedTaskStatuses.includes(task.status)
+    ["COMPLETED", "SIGNED", "UPLOADED", "CLOSED"].includes(input.status)
   ) {
     task.status = "COMPLETED";
     task.auditReady = true;
     task.completedAt = timestamp;
+    task.signedAt = undefined;
     task.blockedReason = undefined;
     task.naReason = undefined;
     task.reopenReason = undefined;
