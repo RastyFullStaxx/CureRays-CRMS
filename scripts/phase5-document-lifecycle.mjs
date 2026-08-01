@@ -66,6 +66,7 @@ const packageJsonPath = "package.json";
 const generatedDocumentStoragePath = "lib/server/generated-document-storage.ts";
 const generatedDocumentOutputServicePath = "lib/server/generated-document-output-service.ts";
 const generatedDocumentGenerationRoutePath = "app/api/documents/generate/route.ts";
+const generatedDocumentDownloadRoutePath = "app/api/generated-document-outputs/[outputId]/download/route.ts";
 const phiSchemaPath = "prisma/phi-schema.prisma";
 const phiSqlPath = "prisma/phi-schema.sql";
 const writeThroughPath = "lib/server/write-through.ts";
@@ -76,7 +77,8 @@ for (const path of [
   generatedDocumentRoutePath,
   generatedDocumentStoragePath,
   generatedDocumentOutputServicePath,
-  generatedDocumentGenerationRoutePath
+  generatedDocumentGenerationRoutePath,
+  generatedDocumentDownloadRoutePath
 ]) {
   assert.ok(existsSync(join(root, path)), `${path} must exist`);
 }
@@ -93,6 +95,7 @@ const patientWorkspace = read(patientWorkspacePath);
 const packageJson = read(packageJsonPath);
 const generatedDocumentOutputServiceSource = read(generatedDocumentOutputServicePath);
 const generatedDocumentGenerationRoute = read(generatedDocumentGenerationRoutePath);
+const generatedDocumentDownloadRoute = read(generatedDocumentDownloadRoutePath);
 const phiSchema = read(phiSchemaPath);
 const phiSql = read(phiSqlPath);
 const writeThroughSource = read(writeThroughPath);
@@ -148,9 +151,9 @@ for (const expected of [
 }
 
 for (const expected of [
-  "app-storage://generated",
   "latestGeneratedDocumentOutput",
-  "exportGeneratedDocumentOutput",
+  "generatedDocumentOutputById",
+  "exportGeneratedDocumentOutputById",
   "confirmGeneratedDocumentEcwUpload",
   "voidGeneratedDocumentOutput",
   "recordGeneratedDocumentManualEditException"
@@ -159,6 +162,8 @@ for (const expected of [
 }
 
 assertExcludes(clinicalStore, "drive://generated", "generated outputs must not use fake drive:// URLs");
+assertExcludes(clinicalStore, "app-storage://generated", "Generated document lifecycle must not mint fake app-storage URLs");
+assertExcludes(clinicalStore, "Manual edit exception recorded. Regenerate", "Generated document lifecycle must not mint PHI preview text");
 assertIncludes(moduleData, "?? \"APP_STORAGE\"", "document instances must default to app-owned storage");
 assertIncludes(documentsPage, "redirect('/patients')", "Global Documents page must redirect into patient-first work");
 assertIncludes(patientWorkspace, "record-closeout", "Patient workspace must own document lifecycle work");
@@ -168,23 +173,72 @@ assertIncludes(patientWorkspace, "ecwUploadReference", "Patient document table m
 assertIncludes(clinicalStore, "commitGeneratedDocumentOutput", "Clinical store must expose one canonical generated-output commit seam");
 assertExcludes(generatedDocumentOutputServiceSource, "app-storage://", "Durable generation must not use fake app-storage URLs");
 assertExcludes(generatedDocumentOutputServiceSource, "contentPreview", "Generation orchestration must not carry PHI preview text");
+assertIncludes(generatedDocumentOutputServiceSource, "persistGeneratedDocumentOutputMutation", "Durable generation must use targeted exact-output persistence");
+assertExcludes(generatedDocumentOutputServiceSource, "persistDocumentLifecycleMutation", "Durable generation must not bulk-persist every output version");
 assertIncludes(generatedDocumentGenerationRoute, "export async function POST", "Generated document route must expose the strict POST contract");
 assertIncludes(generatedDocumentGenerationRoute, "phiAccessFromRequest", "Generated document route must authenticate POST and legacy GET requests");
 assertIncludes(generatedDocumentGenerationRoute, "requirePhiAction", "Generated document route must authorize document rendering");
 assertExcludes(generatedDocumentGenerationRoute, "error.message", "Generated document route errors must not reflect internal details");
 
+for (const expected of [
+  "phiAccessFromRequest",
+  "requirePhiAction",
+  "document:export",
+  "hydrateClinicalStoreFromDatabase",
+  "generatedDocumentOutputById",
+  "exportGeneratedDocumentOutputById",
+  "readGeneratedDocumentBytes",
+  "persistGeneratedDocumentOutputMutation",
+  "Sec-Fetch-Site"
+]) {
+  assertIncludes(generatedDocumentDownloadRoute, expected, `Generated output download route must include ${expected}`);
+}
+for (const forbidden of [
+  "latestGeneratedDocumentOutput",
+  "storageProvider:",
+  "storageKey:",
+  "storageUrl:",
+  "driveFileUrl:",
+  "contentPreview:",
+  "error.message"
+]) {
+  assertExcludes(generatedDocumentDownloadRoute, forbidden, `Generated output download route must exclude ${forbidden}`);
+}
+
+const persistedLifecycleFields = [
+  "storageProvider",
+  "storageKey",
+  "renderedByUserId",
+  "exportedAt",
+  "exportedByUserId",
+  "lockedAt",
+  "lockedByUserId",
+  "voidedAt",
+  "voidedByUserId",
+  "voidReason",
+  "manualEditExceptionAt",
+  "manualEditExceptionByUserId",
+  "manualEditReason"
+];
+for (const expected of persistedLifecycleFields) {
+  assert.ok(new RegExp(`\\b${expected}\\s+(?:DateTime|String)\\?`).test(phiSchema), `PHI schema must include nullable ${expected}`);
+  assert.ok(new RegExp(`"${expected}" (?:TIMESTAMP\\(3\\)|TEXT)`).test(phiSql), `PHI bootstrap SQL must include nullable ${expected}`);
+}
 for (const expected of ["storageProvider String?", "storageKey      String?", "renderedByUserId String?"]) {
   assertIncludes(phiSchema, expected, `PHI schema must include nullable ${expected.split(" ")[0]}`);
 }
-for (const expected of ['"storageProvider" TEXT', '"storageKey" TEXT', '"renderedByUserId" TEXT']) {
-  assertIncludes(phiSql, expected, `PHI bootstrap SQL must include ${expected}`);
+assertIncludes(phiSchema, "@@unique([documentId, version])", "Generated output versions must be unique per document");
+assertIncludes(phiSql, 'CREATE UNIQUE INDEX "GeneratedDocumentOutputPhi_documentId_version_key"', "PHI bootstrap SQL must enforce output-version uniqueness");
+for (const expected of persistedLifecycleFields) {
+  assertIncludes(writeThroughSource, `${expected}: output.${expected}`, `Generated output write-through must include ${expected}`);
+  assertIncludes(hydrationSource, `${expected}: row.${expected}`, `Generated output hydration must include ${expected}`);
 }
-for (const expected of ["storageProvider: output.storageProvider", "storageKey: output.storageKey", "renderedByUserId: output.renderedByUserId"]) {
-  assertIncludes(writeThroughSource, expected, `Generated output write-through must include ${expected.split(":")[0]}`);
-}
-for (const expected of ["storageProvider: row.storageProvider", "storageKey: row.storageKey", "renderedByUserId: row.renderedByUserId"]) {
-  assertIncludes(hydrationSource, expected, `Generated output hydration must include ${expected.split(":")[0]}`);
-}
+assertExcludes(writeThroughSource, "output.driveFileUrl ?? output.storageUrl", "Write-through must not treat app storage as a Drive URL");
+assertIncludes(writeThroughSource, "persistGeneratedDocumentOutputMutation", "Write-through must expose a targeted output persistence seam");
+assertIncludes(writeThroughSource, "compensateGeneratedDocumentOutput", "Targeted output persistence must compensate a partial cross-database write");
+assertExcludes(writeThroughSource, "outputs.map((output) => upsertGeneratedDocumentOutput", "Document persistence must not bulk-upsert stale output versions");
+assertIncludes(types, '"storageProvider" | "storageKey" | "storageUrl"', "Document lifecycle DTOs must omit document storage locators");
+assertIncludes(types, '"driveFileUrl" | "contentPreview"', "Output lifecycle DTOs must omit storage and preview fields");
 
 installTsHook();
 
@@ -200,6 +254,8 @@ const {
 const {
   auditEvents,
   clinicalFormResponses,
+  exportGeneratedDocumentOutputById,
+  generatedDocumentOutputById,
   generatedDocuments,
   generatedDocumentOutputs,
   patients,
@@ -317,7 +373,9 @@ const adminAccess = accessFor("ADMIN");
 
 const writeThrough = require(join(root, writeThroughPath));
 const originalPersistDocumentLifecycleMutation = writeThrough.persistDocumentLifecycleMutation;
+const originalPersistGeneratedDocumentOutputMutation = writeThrough.persistGeneratedDocumentOutputMutation;
 writeThrough.persistDocumentLifecycleMutation = async () => {};
+writeThrough.persistGeneratedDocumentOutputMutation = async () => {};
 const {
   GeneratedDocumentOutputServiceError,
   generateGeneratedDocumentOutput,
@@ -576,7 +634,7 @@ try {
   const failedDocumentSnapshot = structuredClone(formDocument);
   const failedOutputCount = generatedDocumentOutputs.length;
   const failedAuditCount = auditEvents.length;
-  writeThrough.persistDocumentLifecycleMutation = async () => {
+  writeThrough.persistGeneratedDocumentOutputMutation = async () => {
     throw new Error("database path and patient details must stay private");
   };
   await assert.rejects(
@@ -592,6 +650,7 @@ try {
   await removeGeneratedDocumentBytes("sentinel.bin");
 } finally {
   writeThrough.persistDocumentLifecycleMutation = originalPersistDocumentLifecycleMutation;
+  writeThrough.persistGeneratedDocumentOutputMutation = originalPersistGeneratedDocumentOutputMutation;
   const responseIndex = clinicalFormResponses.indexOf(formResponse);
   if (responseIndex >= 0) clinicalFormResponses.splice(responseIndex, 1);
   if (originalOutputStorageDir === undefined) delete process.env.GENERATED_DOCUMENT_STORAGE_DIR;
