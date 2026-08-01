@@ -446,6 +446,20 @@ try {
   );
   formSource.approvalStatus = originalApprovalStatus;
 
+  const originalPilotScope = formRequirement.pilotScope;
+  formRequirement.pilotScope = "FUTURE_PLACEHOLDER";
+  clinicalFormResponses.splice(clinicalFormResponses.indexOf(formResponse), 1);
+  try {
+    await assert.rejects(
+      () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+      (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "TEMPLATE_NOT_READY",
+      "Generation must use the registry's canonical pilot-readiness decision"
+    );
+  } finally {
+    formRequirement.pilotScope = originalPilotScope;
+    clinicalFormResponses.push(formResponse);
+  }
+
   clinicalFormResponses.splice(clinicalFormResponses.indexOf(formResponse), 1);
   await assert.rejects(
     () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),

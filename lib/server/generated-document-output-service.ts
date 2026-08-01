@@ -24,6 +24,7 @@ import {
   documentRequirementAppliesToCourse,
   documentRequirements,
   fieldMapForRequirement,
+  readinessForRequirement,
   templateSourceForRequirement,
 } from '@/lib/template-registry';
 import type {
@@ -130,7 +131,7 @@ function readyTemplate(
       source.approvalStatus === 'PILOT_APPROVED' &&
       source.mimeType === format &&
       requirement.outputFormats.includes(format) &&
-      requirement.pilotScope !== 'DEFERRED' &&
+      readinessForRequirement(requirement).readyForPilot &&
       fieldMap?.status === 'COMPLETE',
   );
 }
