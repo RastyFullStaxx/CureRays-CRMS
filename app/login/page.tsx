@@ -1,6 +1,14 @@
 import Image from 'next/image';
+import { Space_Grotesk } from 'next/font/google';
 import { LoginCard } from '@/components/landing/login-card';
 import { RadiotherapyOrbitCanvasMount } from '@/components/landing/radiotherapy-orbit-canvas-loader';
+
+const landingDisplay = Space_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-landing-display',
+  weight: ['600', '700'],
+});
 
 const courseStages = [
   { name: 'Overview', detail: 'Course gate and next action' },
@@ -33,7 +41,7 @@ const cureraysPrinciples = [
 
 export default function LoginPage() {
   return (
-    <main className="landing-page">
+    <main className={`landing-page ${landingDisplay.variable}`}>
       <div className="landing-page-frame">
         <header className="landing-topbar">
           <a className="landing-brand clinical-focus" href="#top" aria-label="CureRays home">
@@ -116,7 +124,7 @@ export default function LoginPage() {
               alt="Abstract precision treatment geometry in a luminous clinical space"
               width={1717}
               height={916}
-              sizes="(max-width: 1023px) calc(100vw - 32px), (max-width: 1440px) 48vw, 696px"
+              sizes="(max-width: 1023px) calc(100vw - 32px), (max-width: 1599px) 48vw, (max-width: 2559px) 50vw, 960px"
               className="landing-about-image"
             />
             <div className="landing-about-caption">

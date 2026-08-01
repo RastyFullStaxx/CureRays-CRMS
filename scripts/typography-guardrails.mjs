@@ -47,11 +47,13 @@ for (const absolutePath of sourceFiles) {
 
 const globals = read('app/globals.css');
 const layout = read('app/layout.tsx');
+const loginPage = read('app/login/page.tsx');
 const button = read('components/ui/button.tsx');
 const adapter = read('lib/ui-typography.ts');
 
 assert.match(layout, /import \{ Inter \} from ["']next\/font\/google["']/, 'Root layout must load Inter through next/font');
 assert.match(layout, /variable:\s*["']--font-inter["']/, 'Inter must expose the global CSS variable');
+assert.match(loginPage, /Space_Grotesk/, 'Landing must use the approved Space Grotesk display face');
 assert.doesNotMatch(globals, /fonts\.googleapis|@import\s+url/, 'Global CSS must not load remote fonts');
 assert.doesNotMatch(globals, /Manrope/, 'Typography must use Inter exclusively');
 
@@ -82,7 +84,10 @@ for (const className of [
 }
 
 const fontFamilyLines = globals.split(/\r?\n/).filter((line) => line.includes('font-family:'));
-assert.deepEqual(fontFamilyLines.map((line) => line.trim()), ['font-family: var(--font-ui);']);
+assert.deepEqual(fontFamilyLines.map((line) => line.trim()), [
+  'font-family: var(--font-ui);',
+  'font-family: var(--font-landing-display), var(--font-ui);',
+]);
 
 for (const line of globals.split(/\r?\n/)) {
   const fontSize = line.match(/font-size:\s*([^;]+);/);

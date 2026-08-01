@@ -2782,6 +2782,13 @@ button {
   line-height: var(--type-heading-line);
 }
 
+.landing-brand-copy strong,
+.landing-title,
+.landing-section-heading h2,
+.landing-boundary h2 {
+  font-family: var(--font-landing-display), var(--font-ui);
+}
+
 .landing-brand-copy span,
 .landing-nav a {
   font-size: var(--type-label-size);
@@ -2832,8 +2839,8 @@ button {
   display: grid;
   gap: clamp(32px, 4.5vw, 64px);
   grid-template-columns: minmax(0, 1fr) minmax(380px, 420px);
-  min-height: clamp(584px, calc(100dvh - 72px), 680px);
-  overflow: hidden;
+  min-height: clamp(584px, calc(100dvh - 72px), 1120px);
+  overflow: visible;
   padding: var(--space-4) 0 var(--space-6);
   position: relative;
   scroll-margin-top: 72px;
@@ -3520,6 +3527,49 @@ button {
 
   .landing-about {
     gap: var(--space-6);
+  }
+}
+
+@media (min-width: 1600px) {
+  .landing-page-frame {
+    max-width: 1920px;
+    padding-inline: clamp(32px, 3vw, 64px);
+  }
+
+  .landing-hero {
+    grid-template-columns: minmax(680px, 880px) minmax(420px, 460px);
+    justify-content: space-between;
+  }
+
+  .landing-hero-visual {
+    inset-inline-end: 28%;
+    inset-inline-start: calc(50% - 50vw);
+  }
+
+  .landing-orbit-canvas {
+    height: 100%;
+    inset: 0 auto auto 0;
+    width: min(72vw, 1280px);
+  }
+
+  .landing-copy {
+    max-width: 880px;
+  }
+
+  .landing-card-wrap {
+    max-width: 460px;
+  }
+
+  .landing-about {
+    grid-template-columns: minmax(0, 1.15fr) minmax(420px, 0.85fr);
+  }
+
+  .landing-about-image {
+    height: clamp(520px, 32vw, 640px);
+  }
+
+  .landing-about-copy {
+    max-width: 640px;
   }
 }
 

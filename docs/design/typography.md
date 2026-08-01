@@ -6,6 +6,10 @@ This guide is the source of truth for typography across CureRays CRMS. It applie
 
 Use Inter everywhere through `next/font/google` and the global `--font-ui` token. Components must inherit the global family. Do not import another typeface or declare `font-family` in page or component code.
 
+## Landing Display Exception
+
+The public landing may use Space Grotesk 600/700 through the route-scoped `--font-landing-display` variable for the CureRays wordmark and marketing headings only. Navigation, workflow labels, body copy, forms, controls, and every authenticated surface remain Inter.
+
 ## Type Scale
 
 | Role | Token and class | Size / line height | Weight | Use |
