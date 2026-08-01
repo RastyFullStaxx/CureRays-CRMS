@@ -2768,6 +2768,78 @@ export function latestGeneratedDocumentOutput(documentId: string) {
     .sort((left, right) => right.version - left.version)[0] ?? null;
 }
 
+export function commitGeneratedDocumentOutput(
+  input: {
+    id: string;
+    documentId: string;
+    format: "DOCX" | "XLSX";
+    version: number;
+    storageKey: string;
+    renderedAt: string;
+  },
+  context: DocumentLifecycleMutationContext
+) {
+  const document = generatedDocuments.find((item) => item.id === input.documentId);
+  const expectedVersion = (latestGeneratedDocumentOutput(input.documentId)?.version ?? 0) + 1;
+  if (!document || input.version !== expectedVersion || generatedDocumentOutputs.some((output) => output.id === input.id)) {
+    throw new Error("Generated document metadata could not be committed.");
+  }
+
+  const documentSnapshot = clone(document);
+  const actor = auditActor(context, "Document Renderer");
+  const output: GeneratedDocumentOutput = {
+    id: input.id,
+    documentId: document.id,
+    patientId: document.patientId,
+    courseId: document.courseId,
+    format: input.format,
+    version: input.version,
+    status: "READY",
+    storageProvider: "APP_STORAGE",
+    storageKey: input.storageKey,
+    contentPreview: "",
+    renderedAt: input.renderedAt,
+    renderedByUserId: actor.userId
+  };
+
+  generatedDocumentOutputs.unshift(output);
+  document.version = output.version;
+  document.latestOutputId = output.id;
+  document.storageProvider = output.storageProvider;
+  document.storageKey = output.storageKey;
+  document.storageUrl = undefined;
+  document.renderedAt = output.renderedAt;
+  document.renderedByUserId = output.renderedByUserId;
+  document.status = "READY_FOR_REVIEW";
+  document.signReviewState = "READY_FOR_SIGNATURE";
+  document.requiredAction = "Review generated output and route for signature";
+  document.lastUpdatedAt = output.renderedAt;
+
+  const auditEvent = addAuditEvent({
+    ...actor,
+    action: "Generated clinical document persisted",
+    entityType: "DOCUMENT",
+    entityId: document.id,
+    previousValue: `Version ${output.version - 1}`,
+    newValue: `${output.format} version ${output.version}`,
+    reason: context.reason
+  });
+
+  return {
+    output,
+    auditEvent,
+    rollback() {
+      const outputIndex = generatedDocumentOutputs.findIndex((item) => item.id === output.id);
+      if (outputIndex >= 0) generatedDocumentOutputs.splice(outputIndex, 1);
+      const auditIndex = auditEvents.findIndex((event) => event.id === auditEvent.id);
+      if (auditIndex >= 0) auditEvents.splice(auditIndex, 1);
+      const target = document as unknown as Record<string, unknown>;
+      for (const key of Object.keys(target)) delete target[key];
+      Object.assign(document, documentSnapshot);
+    }
+  };
+}
+
 function generatedDocumentStorage(document: GeneratedDocument, version: number, format: GeneratedDocumentFormat) {
   const storageKey = `${courseRef(document.courseId)}/${document.id}/v${version}.${format.toLowerCase()}`;
   return {

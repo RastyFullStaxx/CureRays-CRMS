@@ -366,8 +366,11 @@ type PhiGeneratedOutputRow = {
   version: number;
   status: GeneratedDocumentOutput['status'];
   driveFileUrl: string | null;
+  storageProvider: GeneratedDocumentOutput['storageProvider'] | null;
+  storageKey: string | null;
   contentPreview: string;
   renderedAt: Date;
+  renderedByUserId: string | null;
 };
 
 type PhiFractionRow = {
@@ -952,8 +955,11 @@ function mapGeneratedOutput(row: PhiGeneratedOutputRow): GeneratedDocumentOutput
     version: row.version,
     status: row.status,
     driveFileUrl: row.driveFileUrl ?? undefined,
+    storageProvider: row.storageProvider ?? undefined,
+    storageKey: row.storageKey ?? undefined,
     contentPreview: row.contentPreview,
     renderedAt: row.renderedAt.toISOString(),
+    renderedByUserId: row.renderedByUserId ?? undefined,
   };
 }
 

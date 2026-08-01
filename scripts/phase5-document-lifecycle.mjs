@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { lstat, mkdir, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const root = process.cwd();
 const require = createRequire(import.meta.url);
@@ -61,8 +63,21 @@ const rbacPath = "lib/rbac.ts";
 const documentsPagePath = "app/documents/page.tsx";
 const patientWorkspacePath = "components/patients/patient-workspace.tsx";
 const packageJsonPath = "package.json";
+const generatedDocumentStoragePath = "lib/server/generated-document-storage.ts";
+const generatedDocumentOutputServicePath = "lib/server/generated-document-output-service.ts";
+const generatedDocumentGenerationRoutePath = "app/api/documents/generate/route.ts";
+const phiSchemaPath = "prisma/phi-schema.prisma";
+const phiSqlPath = "prisma/phi-schema.sql";
+const writeThroughPath = "lib/server/write-through.ts";
+const hydrationPath = "lib/server/database-hydration.ts";
 
-for (const path of [documentServicePath, generatedDocumentRoutePath]) {
+for (const path of [
+  documentServicePath,
+  generatedDocumentRoutePath,
+  generatedDocumentStoragePath,
+  generatedDocumentOutputServicePath,
+  generatedDocumentGenerationRoutePath
+]) {
   assert.ok(existsSync(join(root, path)), `${path} must exist`);
 }
 
@@ -76,6 +91,12 @@ const rbac = read(rbacPath);
 const documentsPage = read(documentsPagePath);
 const patientWorkspace = read(patientWorkspacePath);
 const packageJson = read(packageJsonPath);
+const generatedDocumentOutputServiceSource = read(generatedDocumentOutputServicePath);
+const generatedDocumentGenerationRoute = read(generatedDocumentGenerationRoutePath);
+const phiSchema = read(phiSchemaPath);
+const phiSql = read(phiSqlPath);
+const writeThroughSource = read(writeThroughPath);
+const hydrationSource = read(hydrationPath);
 
 for (const expected of [
   'import "server-only"',
@@ -93,7 +114,7 @@ for (const expected of [
 for (const expected of [
   "confirmGeneratedDocumentEcwUploadLifecycle",
   "recordGeneratedDocumentManualEditExceptionLifecycle",
-  "prototypeSessionFromRequest",
+  "pilotSessionFromRequest",
   "DocumentLifecycleResult"
 ]) {
   assertIncludes(generatedDocumentRoute, expected, `generated document route must include ${expected}`);
@@ -144,6 +165,26 @@ assertIncludes(patientWorkspace, "record-closeout", "Patient workspace must own 
 assertIncludes(patientWorkspace, "latestOutputStatus", "Patient document table must show output lifecycle status");
 assertIncludes(patientWorkspace, "manualEditExceptionAt", "Patient document table must show manual edit exceptions");
 assertIncludes(patientWorkspace, "ecwUploadReference", "Patient document table must show eCW upload state");
+assertIncludes(clinicalStore, "commitGeneratedDocumentOutput", "Clinical store must expose one canonical generated-output commit seam");
+assertExcludes(generatedDocumentOutputServiceSource, "app-storage://", "Durable generation must not use fake app-storage URLs");
+assertExcludes(generatedDocumentOutputServiceSource, "contentPreview", "Generation orchestration must not carry PHI preview text");
+assertIncludes(generatedDocumentGenerationRoute, "export async function POST", "Generated document route must expose the strict POST contract");
+assertIncludes(generatedDocumentGenerationRoute, "phiAccessFromRequest", "Generated document route must authenticate POST and legacy GET requests");
+assertIncludes(generatedDocumentGenerationRoute, "requirePhiAction", "Generated document route must authorize document rendering");
+assertExcludes(generatedDocumentGenerationRoute, "error.message", "Generated document route errors must not reflect internal details");
+
+for (const expected of ["storageProvider String?", "storageKey      String?", "renderedByUserId String?"]) {
+  assertIncludes(phiSchema, expected, `PHI schema must include nullable ${expected.split(" ")[0]}`);
+}
+for (const expected of ['"storageProvider" TEXT', '"storageKey" TEXT', '"renderedByUserId" TEXT']) {
+  assertIncludes(phiSql, expected, `PHI bootstrap SQL must include ${expected}`);
+}
+for (const expected of ["storageProvider: output.storageProvider", "storageKey: output.storageKey", "renderedByUserId: output.renderedByUserId"]) {
+  assertIncludes(writeThroughSource, expected, `Generated output write-through must include ${expected.split(":")[0]}`);
+}
+for (const expected of ["storageProvider: row.storageProvider", "storageKey: row.storageKey", "renderedByUserId: row.renderedByUserId"]) {
+  assertIncludes(hydrationSource, expected, `Generated output hydration must include ${expected.split(":")[0]}`);
+}
 
 installTsHook();
 
@@ -157,14 +198,344 @@ const {
   voidGeneratedDocumentOutputLifecycle
 } = require(join(root, documentServicePath));
 const {
+  auditEvents,
+  clinicalFormResponses,
   generatedDocuments,
-  generatedDocumentOutputs
+  generatedDocumentOutputs,
+  patients,
+  treatmentCourses
 } = require(join(root, clinicalStorePath));
+const {
+  GeneratedDocumentStorageError,
+  readGeneratedDocumentBytes,
+  removeGeneratedDocumentBytes,
+  writeGeneratedDocumentBytes
+} = require(join(root, generatedDocumentStoragePath));
 
-const radOncAccess = { role: "RAD_ONC", reason: "Phase 5 guardrail" };
-const physicistAccess = { role: "PHYSICIST", reason: "Phase 5 guardrail" };
-const billingAccess = { role: "BILLING", reason: "Phase 5 guardrail" };
-const adminAccess = { role: "ADMIN", reason: "Phase 5 guardrail" };
+const originalStorageDir = process.env.GENERATED_DOCUMENT_STORAGE_DIR;
+const storageTestRoot = await mkdtemp(join(tmpdir(), "curerays-generated-documents-"));
+const generatedStorageRoot = join(storageTestRoot, "generated");
+process.env.GENERATED_DOCUMENT_STORAGE_DIR = generatedStorageRoot;
+
+try {
+  for (const invalidKey of [
+    "",
+    ".",
+    resolve(storageTestRoot, "absolute.bin"),
+    "../escape.bin",
+    "..\\escape.bin",
+    "nested/../../escape.bin"
+  ]) {
+    await assert.rejects(
+      () => writeGeneratedDocumentBytes(invalidKey, Buffer.from("blocked")),
+      (error) => error instanceof GeneratedDocumentStorageError && !String(error.message).includes(storageTestRoot),
+      `Storage must reject unsafe key ${JSON.stringify(invalidKey)} without exposing a path`
+    );
+  }
+
+  await assert.rejects(
+    () => writeGeneratedDocumentBytes("empty.bin", Buffer.alloc(0)),
+    GeneratedDocumentStorageError,
+    "Storage must reject empty generated output bytes"
+  );
+
+  const firstWriteResult = await writeGeneratedDocumentBytes("contained/output.bin", Buffer.from("first"));
+  assert.equal(firstWriteResult, undefined, "Storage writes must not return filesystem paths");
+  assert.deepEqual(await readGeneratedDocumentBytes("contained/output.bin"), Buffer.from("first"), "Contained reads must return the created bytes");
+  await assert.rejects(
+    () => writeGeneratedDocumentBytes("contained/output.bin", Buffer.from("overwrite")),
+    GeneratedDocumentStorageError,
+    "Generated output writes must be create-only"
+  );
+  assert.deepEqual(await readGeneratedDocumentBytes("contained/output.bin"), Buffer.from("first"), "Create-only failure must preserve the first bytes");
+  if (process.platform !== "win32") {
+    assert.equal((await lstat(join(generatedStorageRoot, "contained", "output.bin"))).mode & 0o777, 0o600, "Generated output files must use mode 0600");
+  }
+
+  const outsideRoot = join(storageTestRoot, "outside");
+  await mkdir(outsideRoot);
+  await symlink(outsideRoot, join(generatedStorageRoot, "linked"), process.platform === "win32" ? "junction" : "dir");
+  await assert.rejects(
+    () => writeGeneratedDocumentBytes("linked/escape.bin", Buffer.from("blocked")),
+    GeneratedDocumentStorageError,
+    "Storage must reject a symlink escape"
+  );
+  assert.deepEqual(await readdir(outsideRoot), [], "Rejected symlink writes must not create bytes outside the storage root");
+
+  assert.equal(await removeGeneratedDocumentBytes("contained/output.bin"), true, "Contained remove must delete the selected generated output");
+  await assert.rejects(
+    () => readGeneratedDocumentBytes("contained/output.bin"),
+    GeneratedDocumentStorageError,
+    "Removed output bytes must no longer be readable"
+  );
+} finally {
+  if (originalStorageDir === undefined) delete process.env.GENERATED_DOCUMENT_STORAGE_DIR;
+  else process.env.GENERATED_DOCUMENT_STORAGE_DIR = originalStorageDir;
+  await rm(storageTestRoot, { recursive: true, force: true });
+}
+
+function accessFor(role) {
+  return {
+    role,
+    userId: `PHASE5-${role}`,
+    userName: `Phase 5 ${role}`,
+    sessionId: "phase5-session",
+    ipAddress: "phase5-ip",
+    deviceId: "phase5-device",
+    reason: "Phase 5 guardrail"
+  };
+}
+
+const radOncAccess = accessFor("RAD_ONC");
+const physicistAccess = accessFor("PHYSICIST");
+const billingAccess = accessFor("BILLING");
+const adminAccess = accessFor("ADMIN");
+
+const writeThrough = require(join(root, writeThroughPath));
+const originalPersistDocumentLifecycleMutation = writeThrough.persistDocumentLifecycleMutation;
+writeThrough.persistDocumentLifecycleMutation = async () => {};
+const {
+  GeneratedDocumentOutputServiceError,
+  generateGeneratedDocumentOutput,
+  missingRequiredFormFieldIds,
+  parseGenerateDocumentRequest
+} = require(join(root, generatedDocumentOutputServicePath));
+const {
+  documentRequirements,
+  fieldMapForRequirement,
+  templateSourceForRequirement
+} = require(join(root, "lib/template-registry.ts"));
+const { NextRequest } = require("next/server");
+const generatedDocumentGenerationRouteHandlers = require(join(root, generatedDocumentGenerationRoutePath));
+
+assert.deepEqual(
+  parseGenerateDocumentRequest({ kind: "form", courseId: "COURSE-2401", requirementId: "REQ-SKIN-IGSRT-RX" }),
+  { kind: "form", courseId: "COURSE-2401", requirementId: "REQ-SKIN-IGSRT-RX" },
+  "Form generation requests must use the exact form union member"
+);
+assert.deepEqual(
+  parseGenerateDocumentRequest({ kind: "fraction-log", courseId: "COURSE-2401" }),
+  { kind: "fraction-log", courseId: "COURSE-2401" },
+  "Fraction generation requests must use the exact fraction-log union member"
+);
+for (const invalidRequest of [
+  null,
+  [],
+  {},
+  { kind: "form", courseId: "COURSE-2401" },
+  { kind: "form", courseId: " ", requirementId: "REQ-SKIN-IGSRT-RX" },
+  { kind: "form", courseId: "COURSE-2401", requirementId: "REQ-SKIN-IGSRT-RX", extra: true },
+  { kind: "fraction-log", courseId: "COURSE-2401", requirementId: "REQ-SKIN-IGSRT-FXLOG" },
+  { kind: "pdf", courseId: "COURSE-2401" }
+]) {
+  assert.equal(parseGenerateDocumentRequest(invalidRequest), null, "Malformed generation requests must fail the strict union parser");
+}
+
+const requiredValueMap = {
+  sections: [
+    {
+      fields: [
+        { id: "count", kind: "number", required: true },
+        { id: "confirmed", kind: "checkbox", required: true },
+        { id: "label", kind: "text", required: true }
+      ]
+    }
+  ]
+};
+assert.deepEqual(
+  missingRequiredFormFieldIds(requiredValueMap, { count: 0, confirmed: false, label: "Saved" }),
+  [],
+  "Required validation must accept saved zero and false values"
+);
+assert.deepEqual(
+  missingRequiredFormFieldIds(requiredValueMap, { count: 0, confirmed: false, label: "   " }),
+  ["label"],
+  "Required validation must reject blank saved strings"
+);
+
+const unauthorizedLegacyGet = await generatedDocumentGenerationRouteHandlers.GET(
+  new NextRequest("http://localhost/api/documents/generate?kind=form&courseId=COURSE-2401&requirementId=REQ-SKIN-IGSRT-RX")
+);
+assert.equal(unauthorizedLegacyGet.status, 403, "Legacy generation GET must reject an unsigned request");
+const unauthorizedPost = await generatedDocumentGenerationRouteHandlers.POST(
+  new NextRequest("http://localhost/api/documents/generate", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ kind: "fraction-log", courseId: "COURSE-2401" })
+  })
+);
+assert.equal(unauthorizedPost.status, 403, "Durable generation POST must reject an unsigned request");
+
+const originalOutputStorageDir = process.env.GENERATED_DOCUMENT_STORAGE_DIR;
+const originalPersistenceMode = process.env.CURERAYS_PERSISTENCE_MODE;
+const outputTestRoot = await mkdtemp(join(tmpdir(), "curerays-output-service-"));
+process.env.GENERATED_DOCUMENT_STORAGE_DIR = join(outputTestRoot, "generated");
+process.env.CURERAYS_PERSISTENCE_MODE = "prisma";
+
+const course = treatmentCourses.find((item) => item.id === "COURSE-2401");
+const patient = patients.find((item) => item.id === course?.patientId);
+const formRequirement = documentRequirements.find((item) => item.id === "REQ-SKIN-IGSRT-RX");
+const formFieldMap = formRequirement ? fieldMapForRequirement(formRequirement) : undefined;
+const formSource = formRequirement ? templateSourceForRequirement(formRequirement) : undefined;
+const formDocument = generatedDocuments.find(
+  (item) => item.courseId === course?.id && (item.templateId === formRequirement?.id || item.name === formRequirement?.name)
+);
+assert.ok(course && patient && formRequirement && formFieldMap && formSource && formDocument, "Phase 5 generation fixtures must resolve");
+
+const formResponse = {
+  id: "FORM-PHASE5-DURABLE",
+  patientId: patient.id,
+  courseId: course.id,
+  templateId: formFieldMap.id,
+  requirementId: formRequirement.id,
+  status: "IN_PROGRESS",
+  responseData: {
+    site: "Nasal bridge",
+    laterality: "Midline",
+    cumulativeDoseGy: 0,
+    dosePerFractionCgy: 250,
+    totalFractions: 20,
+    energy: "50 kV"
+  }
+};
+clinicalFormResponses.push(formResponse);
+
+async function discardGeneratedOutput(result, documentSnapshot, outputCount, auditCount) {
+  const storedOutput = generatedDocumentOutputs.find((output) => output.id === result.output.id);
+  assert.ok(storedOutput?.storageKey, "Committed generated output must retain an opaque storage key server-side");
+  await removeGeneratedDocumentBytes(storedOutput.storageKey);
+  generatedDocumentOutputs.splice(0, generatedDocumentOutputs.length - outputCount);
+  auditEvents.splice(0, auditEvents.length - auditCount);
+  for (const key of Object.keys(formDocument)) delete formDocument[key];
+  Object.assign(formDocument, documentSnapshot);
+}
+
+try {
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(billingAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "ACCESS_DENIED",
+    "Generation orchestration must require document:render"
+  );
+
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: "COURSE-MISSING", requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "NOT_FOUND",
+    "Generation must reject a missing course"
+  );
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: "REQ-DUPUYTRENS-RX" }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "INAPPLICABLE",
+    "Generation must reject an inapplicable form requirement"
+  );
+
+  const originalSourceStatus = formSource.status;
+  formSource.status = "DRAFT";
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "TEMPLATE_NOT_READY",
+    "Generation must reject an inactive template source"
+  );
+  formSource.status = originalSourceStatus;
+
+  const originalApprovalStatus = formSource.approvalStatus;
+  formSource.approvalStatus = "DRAFT_REVIEW";
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "TEMPLATE_NOT_READY",
+    "Generation must reject a template without pilot approval"
+  );
+  formSource.approvalStatus = originalApprovalStatus;
+
+  clinicalFormResponses.splice(clinicalFormResponses.indexOf(formResponse), 1);
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "SAVED_DATA_REQUIRED",
+    "Generation must reject a form without saved structured data"
+  );
+  clinicalFormResponses.push(formResponse);
+
+  formResponse.responseData.site = "   ";
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "MISSING_REQUIRED_FIELDS",
+    "Generation must reject blank required saved strings"
+  );
+  formResponse.responseData.site = "Nasal bridge";
+
+  const formDocumentSnapshot = structuredClone(formDocument);
+  const formOutputCount = generatedDocumentOutputs.length;
+  const formAuditCount = auditEvents.length;
+  const generatedForm = await generateGeneratedDocumentOutput(radOncAccess, {
+    kind: "form",
+    courseId: course.id,
+    requirementId: formRequirement.id
+  });
+  assert.deepEqual(
+    Object.keys(generatedForm.output).sort(),
+    ["documentId", "format", "id", "status", "version"],
+    "Generation response output must contain only safe lifecycle fields"
+  );
+  assert.equal(generatedForm.output.format, "DOCX", "Form generation must persist DOCX output metadata");
+  assert.equal(generatedForm.downloadUrl, `/api/generated-document-outputs/${generatedForm.output.id}/download`, "Generation must return an output-ID download URL");
+  const storedFormOutput = generatedDocumentOutputs.find((output) => output.id === generatedForm.output.id);
+  assert.ok(storedFormOutput?.storageKey, "Form generation must store an opaque key server-side");
+  assert.equal(storedFormOutput.contentPreview, "", "Durable generated output metadata must not retain a PHI preview");
+  assert.equal(storedFormOutput.storageProvider, "APP_STORAGE", "Durable generated output metadata must use APP_STORAGE");
+  assert.equal(storedFormOutput.storageUrl, undefined, "Durable generated output metadata must not use fake storage URLs");
+  assert.deepEqual((await readGeneratedDocumentBytes(storedFormOutput.storageKey)).subarray(0, 2), Buffer.from("PK"), "Persisted DOCX bytes must have an Open XML signature");
+  await discardGeneratedOutput(generatedForm, formDocumentSnapshot, formOutputCount, formAuditCount);
+
+  const fractionDocument = generatedDocuments.find(
+    (item) => item.courseId === course.id && (item.templateId === "REQ-SKIN-IGSRT-FXLOG" || item.name === "IGSRT Fraction Log")
+  );
+  assert.ok(fractionDocument, "Applicable fraction-log document fixture must resolve");
+  const fractionDocumentSnapshot = structuredClone(fractionDocument);
+  const fractionOutputCount = generatedDocumentOutputs.length;
+  const fractionAuditCount = auditEvents.length;
+  const generatedFractionLog = await generateGeneratedDocumentOutput(radOncAccess, {
+    kind: "fraction-log",
+    courseId: course.id
+  });
+  assert.equal(generatedFractionLog.output.format, "XLSX", "Fraction generation must resolve an applicable XLSX requirement");
+  const storedFractionOutput = generatedDocumentOutputs.find((output) => output.id === generatedFractionLog.output.id);
+  assert.ok(storedFractionOutput?.storageKey, "Fraction generation must persist an opaque storage key");
+  assert.deepEqual((await readGeneratedDocumentBytes(storedFractionOutput.storageKey)).subarray(0, 2), Buffer.from("PK"), "Persisted XLSX bytes must have an Open XML signature");
+  const storedFractionKey = storedFractionOutput.storageKey;
+  await removeGeneratedDocumentBytes(storedFractionKey);
+  generatedDocumentOutputs.splice(0, generatedDocumentOutputs.length - fractionOutputCount);
+  auditEvents.splice(0, auditEvents.length - fractionAuditCount);
+  for (const key of Object.keys(fractionDocument)) delete fractionDocument[key];
+  Object.assign(fractionDocument, fractionDocumentSnapshot);
+
+  await writeGeneratedDocumentBytes("sentinel.bin", Buffer.from("keep"));
+  const filesBeforeMetadataFailure = await readdir(process.env.GENERATED_DOCUMENT_STORAGE_DIR);
+  const failedDocumentSnapshot = structuredClone(formDocument);
+  const failedOutputCount = generatedDocumentOutputs.length;
+  const failedAuditCount = auditEvents.length;
+  writeThrough.persistDocumentLifecycleMutation = async () => {
+    throw new Error("database path and patient details must stay private");
+  };
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "METADATA_WRITE_FAILED" && !String(error.message).includes("database"),
+    "Metadata failure must surface a generic PHI-safe generation error"
+  );
+  assert.deepEqual(await readdir(process.env.GENERATED_DOCUMENT_STORAGE_DIR), filesBeforeMetadataFailure, "Metadata failure must delete only the newly created storage key");
+  assert.deepEqual(await readGeneratedDocumentBytes("sentinel.bin"), Buffer.from("keep"), "Metadata cleanup must preserve unrelated stored bytes");
+  assert.equal(generatedDocumentOutputs.length, failedOutputCount, "Metadata failure must roll back the in-memory generated output");
+  assert.equal(auditEvents.length, failedAuditCount, "Metadata failure must roll back its audit event");
+  assert.deepEqual(formDocument, failedDocumentSnapshot, "Metadata failure must restore the generated document lifecycle row");
+  await removeGeneratedDocumentBytes("sentinel.bin");
+} finally {
+  writeThrough.persistDocumentLifecycleMutation = originalPersistDocumentLifecycleMutation;
+  const responseIndex = clinicalFormResponses.indexOf(formResponse);
+  if (responseIndex >= 0) clinicalFormResponses.splice(responseIndex, 1);
+  if (originalOutputStorageDir === undefined) delete process.env.GENERATED_DOCUMENT_STORAGE_DIR;
+  else process.env.GENERATED_DOCUMENT_STORAGE_DIR = originalOutputStorageDir;
+  if (originalPersistenceMode === undefined) delete process.env.CURERAYS_PERSISTENCE_MODE;
+  else process.env.CURERAYS_PERSISTENCE_MODE = originalPersistenceMode;
+  await rm(outputTestRoot, { recursive: true, force: true });
+}
 
 const readResult = readGeneratedDocumentLifecycle(radOncAccess, "DOC-2401-RX");
 assert.ok(readResult.document, "Authorized document read must return safe document metadata");

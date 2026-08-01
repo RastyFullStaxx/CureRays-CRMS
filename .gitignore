@@ -11,6 +11,7 @@ out
 
 # production
 build
+/storage/
 
 # env
 .env

@@ -280,8 +280,11 @@ CREATE TABLE "GeneratedDocumentOutputPhi" (
     "version" INTEGER NOT NULL,
     "status" TEXT NOT NULL,
     "driveFileUrl" TEXT,
+    "storageProvider" TEXT,
+    "storageKey" TEXT,
     "contentPreview" TEXT NOT NULL,
     "renderedAt" TIMESTAMP(3) NOT NULL,
+    "renderedByUserId" TEXT,
 
     CONSTRAINT "GeneratedDocumentOutputPhi_pkey" PRIMARY KEY ("id")
 );

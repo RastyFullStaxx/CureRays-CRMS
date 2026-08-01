@@ -625,8 +625,11 @@ function upsertGeneratedDocumentOutput(tx: PrismaClientLike, output: GeneratedDo
     version: output.version,
     status: output.status,
     driveFileUrl: output.driveFileUrl ?? output.storageUrl ?? null,
+    storageProvider: output.storageProvider ?? null,
+    storageKey: output.storageKey ?? null,
     contentPreview: output.contentPreview,
     renderedAt: dateTime(output.renderedAt),
+    renderedByUserId: output.renderedByUserId ?? null,
   };
 
   return delegate(tx, "generatedDocumentOutputPhi").upsert({

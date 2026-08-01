@@ -288,8 +288,11 @@ model GeneratedDocumentOutputPhi {
   version        Int
   status         String
   driveFileUrl   String?
+  storageProvider String?
+  storageKey      String?
   contentPreview String
   renderedAt     DateTime
+  renderedByUserId String?
 }
 
 model PhiAuditEvent {
