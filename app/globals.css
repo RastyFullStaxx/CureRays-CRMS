@@ -642,7 +642,7 @@ button {
   flex: 0 0 auto;
   font-size: var(--type-label-size);
   font-weight: var(--font-weight-semibold);
-  height: 30px;
+  height: 44px;
   padding: 0 10px;
   white-space: nowrap;
 }
@@ -779,7 +779,7 @@ button {
   color: inherit;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) minmax(124px, auto) 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(124px, var(--width-action-lg)) 16px;
   min-height: 62px;
   padding: 9px 4px;
   text-decoration: none;

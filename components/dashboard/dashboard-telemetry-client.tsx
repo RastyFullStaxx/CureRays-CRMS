@@ -60,7 +60,7 @@ function OperationsCard({
                 </div>
                 <div className="dashboard-operations-item-meta">
                   <Badge variant={item.tone}>{item.status}</Badge>
-                  <p className="truncate type-supporting text-[var(--color-text-muted)]">{item.meta}</p>
+                  <p className="w-full truncate type-supporting text-[var(--color-text-muted)]">{item.meta}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-muted)]" aria-hidden="true" />
               </Link>
