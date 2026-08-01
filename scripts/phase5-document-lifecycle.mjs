@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
-import { lstat, mkdir, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -260,7 +260,19 @@ try {
     GeneratedDocumentStorageError,
     "Storage must reject a symlink escape"
   );
-  assert.deepEqual(await readdir(outsideRoot), [], "Rejected symlink writes must not create bytes outside the storage root");
+  await writeFile(join(outsideRoot, "outside.bin"), Buffer.from("outside"));
+  await assert.rejects(
+    () => readGeneratedDocumentBytes("linked/outside.bin"),
+    GeneratedDocumentStorageError,
+    "Storage reads must reject a symlink escape"
+  );
+  await assert.rejects(
+    () => removeGeneratedDocumentBytes("linked/outside.bin"),
+    GeneratedDocumentStorageError,
+    "Storage removes must reject a symlink escape"
+  );
+  assert.deepEqual(readFileSync(join(outsideRoot, "outside.bin")), Buffer.from("outside"), "Rejected symlink removal must preserve outside bytes");
+  assert.deepEqual(await readdir(outsideRoot), ["outside.bin"], "Rejected symlink writes must not create bytes outside the storage root");
 
   assert.equal(await removeGeneratedDocumentBytes("contained/output.bin"), true, "Contained remove must delete the selected generated output");
   await assert.rejects(
@@ -417,6 +429,15 @@ try {
     "Generation orchestration must require document:render"
   );
 
+  process.env.CURERAYS_PERSISTENCE_MODE = "memory";
+  await assert.rejects(
+    () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+    (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "PERSISTENCE_REQUIRED",
+    "Durable generation must fail closed outside Prisma persistence mode"
+  );
+  assert.deepEqual(await readdir(outputTestRoot), [], "Persistence-mode rejection must happen before any storage write");
+  process.env.CURERAYS_PERSISTENCE_MODE = "prisma";
+
   await assert.rejects(
     () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: "COURSE-MISSING", requirementId: formRequirement.id }),
     (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "NOT_FOUND",
@@ -427,6 +448,18 @@ try {
     (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "INAPPLICABLE",
     "Generation must reject an inapplicable form requirement"
   );
+
+  const originalTemplateSourceId = formRequirement.templateSourceId;
+  formRequirement.templateSourceId = undefined;
+  try {
+    await assert.rejects(
+      () => generateGeneratedDocumentOutput(radOncAccess, { kind: "form", courseId: course.id, requirementId: formRequirement.id }),
+      (error) => error instanceof GeneratedDocumentOutputServiceError && error.code === "TEMPLATE_NOT_READY",
+      "Generation must reject a requirement without a template source"
+    );
+  } finally {
+    formRequirement.templateSourceId = originalTemplateSourceId;
+  }
 
   const originalSourceStatus = formSource.status;
   formSource.status = "DRAFT";
@@ -493,6 +526,10 @@ try {
   assert.equal(generatedForm.downloadUrl, `/api/generated-document-outputs/${generatedForm.output.id}/download`, "Generation must return an output-ID download URL");
   const storedFormOutput = generatedDocumentOutputs.find((output) => output.id === generatedForm.output.id);
   assert.ok(storedFormOutput?.storageKey, "Form generation must store an opaque key server-side");
+  assert.match(storedFormOutput.storageKey, /^[0-9a-f-]+\.docx$/, "Form storage keys must be opaque UUID-based names");
+  for (const forbidden of [patient.id, patient.firstName, patient.lastName, patient.mrn, formDocument.id]) {
+    assert.equal(storedFormOutput.storageKey.includes(forbidden), false, "Form storage keys must not contain patient or document identifiers");
+  }
   assert.equal(storedFormOutput.contentPreview, "", "Durable generated output metadata must not retain a PHI preview");
   assert.equal(storedFormOutput.storageProvider, "APP_STORAGE", "Durable generated output metadata must use APP_STORAGE");
   assert.equal(storedFormOutput.storageUrl, undefined, "Durable generated output metadata must not use fake storage URLs");
@@ -513,6 +550,7 @@ try {
   assert.equal(generatedFractionLog.output.format, "XLSX", "Fraction generation must resolve an applicable XLSX requirement");
   const storedFractionOutput = generatedDocumentOutputs.find((output) => output.id === generatedFractionLog.output.id);
   assert.ok(storedFractionOutput?.storageKey, "Fraction generation must persist an opaque storage key");
+  assert.match(storedFractionOutput.storageKey, /^[0-9a-f-]+\.xlsx$/, "Fraction storage keys must be opaque UUID-based names");
   assert.deepEqual((await readGeneratedDocumentBytes(storedFractionOutput.storageKey)).subarray(0, 2), Buffer.from("PK"), "Persisted XLSX bytes must have an Open XML signature");
   const storedFractionKey = storedFractionOutput.storageKey;
   await removeGeneratedDocumentBytes(storedFractionKey);
