@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
 import { lstat, mkdir, mkdtemp, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, parse, resolve } from "node:path";
 
 const root = process.cwd();
 const require = createRequire(import.meta.url);
@@ -207,6 +207,7 @@ const {
 } = require(join(root, clinicalStorePath));
 const {
   GeneratedDocumentStorageError,
+  isSafeGeneratedDocumentStorageRoot,
   readGeneratedDocumentBytes,
   removeGeneratedDocumentBytes,
   writeGeneratedDocumentBytes
@@ -218,6 +219,20 @@ const generatedStorageRoot = join(storageTestRoot, "generated");
 process.env.GENERATED_DOCUMENT_STORAGE_DIR = generatedStorageRoot;
 
 try {
+  await mkdir(generatedStorageRoot, { recursive: true });
+  const outsideRoot = join(storageTestRoot, "outside");
+  await mkdir(outsideRoot);
+  assert.equal(isSafeGeneratedDocumentStorageRoot(parse(generatedStorageRoot).root), false, "Storage must reject a filesystem root");
+  assert.equal(isSafeGeneratedDocumentStorageRoot(generatedStorageRoot), true, "Storage must accept a scoped generated-output root");
+
+  await symlink(outsideRoot, join(generatedStorageRoot, "linked"), process.platform === "win32" ? "junction" : "dir");
+  await assert.rejects(
+    () => writeGeneratedDocumentBytes("linked/nested/escape.bin", Buffer.from("blocked")),
+    GeneratedDocumentStorageError,
+    "Storage must reject a nested symlink escape"
+  );
+  assert.equal(existsSync(join(outsideRoot, "nested")), false, "Rejected writes must not create directories through a symlink");
+
   for (const invalidKey of [
     "",
     ".",
@@ -239,22 +254,19 @@ try {
     "Storage must reject empty generated output bytes"
   );
 
-  const firstWriteResult = await writeGeneratedDocumentBytes("contained/output.bin", Buffer.from("first"));
+  const firstWriteResult = await writeGeneratedDocumentBytes("output.bin", Buffer.from("first"));
   assert.equal(firstWriteResult, undefined, "Storage writes must not return filesystem paths");
-  assert.deepEqual(await readGeneratedDocumentBytes("contained/output.bin"), Buffer.from("first"), "Contained reads must return the created bytes");
+  assert.deepEqual(await readGeneratedDocumentBytes("output.bin"), Buffer.from("first"), "Contained reads must return the created bytes");
   await assert.rejects(
-    () => writeGeneratedDocumentBytes("contained/output.bin", Buffer.from("overwrite")),
+    () => writeGeneratedDocumentBytes("output.bin", Buffer.from("overwrite")),
     GeneratedDocumentStorageError,
     "Generated output writes must be create-only"
   );
-  assert.deepEqual(await readGeneratedDocumentBytes("contained/output.bin"), Buffer.from("first"), "Create-only failure must preserve the first bytes");
+  assert.deepEqual(await readGeneratedDocumentBytes("output.bin"), Buffer.from("first"), "Create-only failure must preserve the first bytes");
   if (process.platform !== "win32") {
-    assert.equal((await lstat(join(generatedStorageRoot, "contained", "output.bin"))).mode & 0o777, 0o600, "Generated output files must use mode 0600");
+    assert.equal((await lstat(join(generatedStorageRoot, "output.bin"))).mode & 0o777, 0o600, "Generated output files must use mode 0600");
   }
 
-  const outsideRoot = join(storageTestRoot, "outside");
-  await mkdir(outsideRoot);
-  await symlink(outsideRoot, join(generatedStorageRoot, "linked"), process.platform === "win32" ? "junction" : "dir");
   await assert.rejects(
     () => writeGeneratedDocumentBytes("linked/escape.bin", Buffer.from("blocked")),
     GeneratedDocumentStorageError,
@@ -262,21 +274,21 @@ try {
   );
   await writeFile(join(outsideRoot, "outside.bin"), Buffer.from("outside"));
   await assert.rejects(
-    () => readGeneratedDocumentBytes("linked/outside.bin"),
+    () => readGeneratedDocumentBytes("linked"),
     GeneratedDocumentStorageError,
     "Storage reads must reject a symlink escape"
   );
   await assert.rejects(
-    () => removeGeneratedDocumentBytes("linked/outside.bin"),
+    () => removeGeneratedDocumentBytes("linked"),
     GeneratedDocumentStorageError,
     "Storage removes must reject a symlink escape"
   );
   assert.deepEqual(readFileSync(join(outsideRoot, "outside.bin")), Buffer.from("outside"), "Rejected symlink removal must preserve outside bytes");
   assert.deepEqual(await readdir(outsideRoot), ["outside.bin"], "Rejected symlink writes must not create bytes outside the storage root");
 
-  assert.equal(await removeGeneratedDocumentBytes("contained/output.bin"), true, "Contained remove must delete the selected generated output");
+  assert.equal(await removeGeneratedDocumentBytes("output.bin"), true, "Contained remove must delete the selected generated output");
   await assert.rejects(
-    () => readGeneratedDocumentBytes("contained/output.bin"),
+    () => readGeneratedDocumentBytes("output.bin"),
     GeneratedDocumentStorageError,
     "Removed output bytes must no longer be readable"
   );

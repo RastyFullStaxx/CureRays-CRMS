@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { mkdir, readFile, realpath, unlink, writeFile } from 'node:fs/promises';
-import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 
 export class GeneratedDocumentStorageError extends Error {
   constructor() {
@@ -17,7 +17,7 @@ function storageKeySegments(storageKey: string): string[] {
 
   const segments = storageKey.split(/[\\/]+/);
   if (
-    segments.length === 0 ||
+    segments.length !== 1 ||
     segments.some(
       (segment) =>
         !segment ||
@@ -37,11 +37,19 @@ function isContained(root: string, candidate: string): boolean {
   return Boolean(location) && location !== '..' && !location.startsWith(`..${sep}`) && !isAbsolute(location);
 }
 
+export function isSafeGeneratedDocumentStorageRoot(candidate: string): boolean {
+  const root = resolve(candidate);
+  return root !== parse(root).root;
+}
+
 async function storageRoot(): Promise<string> {
   const configured = String(process.env.GENERATED_DOCUMENT_STORAGE_DIR ?? '').trim();
   const root = resolve(configured || join(process.cwd(), 'storage', 'generated-documents'));
+  if (!isSafeGeneratedDocumentStorageRoot(root)) throw new GeneratedDocumentStorageError();
   await mkdir(root, { recursive: true, mode: 0o700 });
-  return realpath(root);
+  const canonicalRoot = await realpath(root);
+  if (!isSafeGeneratedDocumentStorageRoot(canonicalRoot)) throw new GeneratedDocumentStorageError();
+  return canonicalRoot;
 }
 
 async function containedWriteTarget(storageKey: string): Promise<string> {
@@ -52,13 +60,7 @@ async function containedWriteTarget(storageKey: string): Promise<string> {
     throw new GeneratedDocumentStorageError();
   }
 
-  await mkdir(dirname(lexicalTarget), { recursive: true, mode: 0o700 });
-  const parent = await realpath(dirname(lexicalTarget));
-  if (!isContained(root, parent) && parent !== root) {
-    throw new GeneratedDocumentStorageError();
-  }
-
-  return join(parent, basename(lexicalTarget));
+  return lexicalTarget;
 }
 
 async function containedExistingTarget(storageKey: string): Promise<string> {
