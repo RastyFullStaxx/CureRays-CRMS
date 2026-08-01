@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -21,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Modal } from '@/components/ui/modal';
+import { Textarea } from '@/components/ui/textarea';
 import { DataTable } from '@/components/shared/data-table';
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { FractionWorksheetPanel } from '@/components/fraction-worksheet-panel';
@@ -28,6 +30,7 @@ import type {
   AuditCheck,
   AuditEvent,
   CarepathTask,
+  CarepathWorkflowPhase,
   ClinicalFormTemplate,
   Course,
   DocumentInstance,
@@ -48,6 +51,7 @@ import {
   carepathProgress,
   cn,
   formatDate,
+  orderedCarepathPhases,
   responsiblePartyLabels,
 } from '@/lib/workflow';
 import { patientRef } from '@/lib/hipaa';
@@ -71,6 +75,8 @@ type PatientWorkspaceProps = {
     targetId: string;
   };
   domainCourse?: Course;
+  coursePhase: CarepathWorkflowPhase;
+  canAdvanceCourse: boolean;
   carepathTasks: CarepathTask[];
   generatedDocuments: GeneratedDocument[];
   fractionEntries: FractionLogEntry[];
@@ -99,9 +105,10 @@ function patientDisplayName(patient: Patient) {
 }
 
 function currentPhaseLabel(course: TreatmentCourse) {
+  if (course.coursePhase) return carepathPhaseLabels[course.coursePhase];
   if (course.chartRoundsPhase === 'UPCOMING') return 'Simulation';
   if (course.chartRoundsPhase === 'ON_TREATMENT') return 'On Treatment';
-  return 'Post Treatment';
+  return 'Post-Tx';
 }
 
 function ProgressLine({ value }: { value: number }) {
@@ -259,8 +266,6 @@ function CourseGateBanner({ gate, action }: { gate: CourseGate; action?: React.R
     </section>
   );
 }
-
-const workspacePhases = ['Consultation', 'Chart Prep', 'Simulation', 'Planning', 'On Treatment', 'Post-Tx', 'Audit', 'Closed'];
 
 type PatientWorkspaceNavigationProps = {
   activeTab: PatientWorkspaceTab;
@@ -532,6 +537,8 @@ export function PatientWorkspace({
   initialTab = 'overview',
   initialTarget,
   domainCourse,
+  coursePhase,
+  canAdvanceCourse,
   carepathTasks,
   generatedDocuments,
   fractionEntries,
@@ -547,6 +554,7 @@ export function PatientWorkspace({
   auditChecks,
   auditEvents,
 }: PatientWorkspaceProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<PatientWorkspaceTab>(initialTab);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   useEffect(() => {
@@ -559,7 +567,82 @@ export function PatientWorkspace({
   const [signalsOpen, setSignalsOpen] = useState(false);
   const [patientDetailsOpen, setPatientDetailsOpen] = useState(false);
   const [targetNotice, setTargetNotice] = useState<string | null>(null);
+  const [advanceOpen, setAdvanceOpen] = useState(false);
+  const [advanceReason, setAdvanceReason] = useState('');
+  const [advancePending, setAdvancePending] = useState(false);
+  const [advanceError, setAdvanceError] = useState<string | null>(null);
+  const [advanceStale, setAdvanceStale] = useState(false);
+  const [advanceFeedback, setAdvanceFeedback] = useState('');
   const [workflowStepState, setWorkflowStepState] = useState(allWorkflowSteps);
+  const currentCoursePhaseIndex = orderedCarepathPhases.indexOf(coursePhase);
+  const nextCoursePhase = currentCoursePhaseIndex >= 0
+    ? orderedCarepathPhases[currentCoursePhaseIndex + 1]
+    : undefined;
+  const openAdvanceModal = useCallback(() => {
+    setAdvanceFeedback('');
+    setAdvanceError(null);
+    setAdvanceStale(false);
+    setAdvanceOpen(true);
+  }, []);
+  const closeAdvanceModal = useCallback(() => {
+    if (advancePending) return;
+    setAdvanceOpen(false);
+    setAdvanceReason('');
+    setAdvanceError(null);
+    setAdvanceStale(false);
+  }, [advancePending]);
+  const submitCourseAdvance = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (advancePending) return;
+
+    const reason = advanceReason.trim();
+    if (!reason) {
+      setAdvanceError('Enter a PHI-safe reason for advancing this course.');
+      return;
+    }
+
+    setAdvancePending(true);
+    setAdvanceError(null);
+    setAdvanceStale(false);
+    try {
+      const response = await fetch(`/api/workflow/courses/${course.id}/advance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          expectedCoursePhase: coursePhase,
+          reason,
+        }),
+      });
+      const payload = await response.json().catch(() => ({})) as {
+        blockers?: string[];
+        message?: string;
+        nextPhase?: CarepathWorkflowPhase;
+        status?: string;
+      };
+
+      if (response.status === 409 && payload.status === 'STALE') {
+        setAdvanceStale(true);
+        setAdvanceError(`${payload.blockers?.[0] ?? 'The course phase changed in another session.'} Refresh the course and review the current phase before trying again.`);
+        return;
+      }
+
+      if (!response.ok) {
+        setAdvanceError(payload.blockers?.[0] ?? payload.message ?? 'The course could not be advanced. Review the current requirements and try again.');
+        return;
+      }
+
+      const nextPhaseLabel = payload.nextPhase ? carepathPhaseLabels[payload.nextPhase] : nextCoursePhase ? carepathPhaseLabels[nextCoursePhase] : 'the next phase';
+      const message = `Course advanced to ${nextPhaseLabel}.`;
+      setAdvanceFeedback(message);
+      setAdvanceOpen(false);
+      setAdvanceReason('');
+      router.refresh();
+    } catch {
+      setAdvanceError('The course could not be advanced. Check the connection and try again.');
+    } finally {
+      setAdvancePending(false);
+    }
+  }, [advancePending, advanceReason, course.id, coursePhase, nextCoursePhase, router]);
   const selectTab = useCallback((tab: PatientWorkspaceTab) => {
     setActiveTab(tab);
     const url = new URL(window.location.href);
@@ -1374,10 +1457,17 @@ export function PatientWorkspace({
         <CourseGateBanner
           gate={workspaceState.courseGate}
           action={(
-            <Button type="button" onClick={() => selectTab(workspaceState.nextAction.destination)}>
-              <FileCheck2 className="h-4 w-4" aria-hidden="true" />
-              {workspaceState.nextAction.label}
-            </Button>
+            canAdvanceCourse && nextCoursePhase ? (
+              <Button type="button" className="min-h-11" onClick={openAdvanceModal}>
+                <Route className="h-4 w-4" aria-hidden="true" />
+                Advance Phase
+              </Button>
+            ) : (
+              <Button type="button" className="min-h-11" onClick={() => selectTab(workspaceState.nextAction.destination)}>
+                <FileCheck2 className="h-4 w-4" aria-hidden="true" />
+                {workspaceState.nextAction.label}
+              </Button>
+            )
           )}
         />
 
@@ -1385,10 +1475,9 @@ export function PatientWorkspace({
           <SectionTitle id="phase-progress-heading" title="Course Progress" />
           <div className="workspace-phase-scroll scrollbar-soft">
             <ol className="workspace-phase-tracker">
-              {workspacePhases.map((phase, index) => {
-                const currentIndex = Math.max(0, workspacePhases.indexOf(currentPhaseLabel(course)));
-                const state = index < currentIndex ? 'complete' : index === currentIndex ? 'current' : 'upcoming';
-                return <li key={phase} data-state={state}><span aria-hidden="true" />{phase}</li>;
+              {orderedCarepathPhases.map((phase, index) => {
+                const state = index < currentCoursePhaseIndex ? 'complete' : index === currentCoursePhaseIndex ? 'current' : 'upcoming';
+                return <li key={phase} data-state={state} aria-current={state === 'current' ? 'step' : undefined}><span aria-hidden="true" />{carepathPhaseLabels[phase]}</li>;
               })}
             </ol>
           </div>
@@ -1469,6 +1558,7 @@ export function PatientWorkspace({
     auditChecks,
     auditEvents,
     blockedSteps,
+    canAdvanceCourse,
     carepath.completed,
     carepath.total,
     clinicalFormTemplates,
@@ -1480,9 +1570,11 @@ export function PatientWorkspace({
     fractionEntries,
     images,
     clinicalValidationChecklist,
+    currentCoursePhaseIndex,
     missingImageFractions,
     openChecks,
     openAttentionItem,
+    openAdvanceModal,
     otvDueFractions,
     workspaceState.nextAction.label,
     workspaceState.nextAction.destination,
@@ -1490,6 +1582,7 @@ export function PatientWorkspace({
     planningReadiness.clinicianSignoffStatus,
     physicsDueFractions,
     prescriptionPhases,
+    programDocuments,
     scheduledFractions.length,
     selectTab,
     selectedCarepathAction,
@@ -1497,6 +1590,7 @@ export function PatientWorkspace({
     selectedStepFieldMaps,
     setRequirementFormStatus,
     treatmentFractions,
+    nextCoursePhase,
     relatedCarepathWorkItems,
     reopenSelectedCarepathStep,
     attentionItems,
@@ -1542,6 +1636,12 @@ export function PatientWorkspace({
             <PatientWorkspaceNavigation activeTab={activeTab} orientation="horizontal" onTabChange={selectTab} />
           </div>
 
+          {advanceFeedback ? (
+            <div className="rounded-[var(--radius-md)] border border-[var(--status-positive-border)] bg-[var(--status-positive-surface)] px-3 py-2 type-body text-[var(--status-positive-text)]" role="status" aria-live="polite">
+              {advanceFeedback}
+            </div>
+          ) : null}
+
           {targetNotice ? (
             <div className="rounded-[var(--radius-md)] border border-[var(--status-intermediate-border)] bg-[var(--status-intermediate-surface)] px-3 py-2 type-body text-[var(--status-intermediate-text)]" role="status">
               {targetNotice}
@@ -1558,6 +1658,89 @@ export function PatientWorkspace({
           </section>
         </main>
       </div>
+
+      {nextCoursePhase ? (
+        <Modal
+          open={advanceOpen}
+          onClose={closeAdvanceModal}
+          shouldClose={() => !advancePending}
+          title="Advance Course Phase"
+          width="var(--width-clinical-modal)"
+        >
+          <form className="grid gap-4" noValidate onSubmit={submitCourseAdvance}>
+            <section className="clinical-muted-surface p-3" aria-labelledby="advance-phase-transition-heading">
+              <h3 id="advance-phase-transition-heading" className="type-heading text-[var(--color-text)]">Phase Transition</h3>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <dt className="type-label">Current Phase</dt>
+                  <dd className="mt-2"><Badge variant="neutral">{carepathPhaseLabels[coursePhase]}</Badge></dd>
+                </div>
+                <div>
+                  <dt className="type-label">Next Phase</dt>
+                  <dd className="mt-2"><Badge variant="neutral">{carepathPhaseLabels[nextCoursePhase]}</Badge></dd>
+                </div>
+              </dl>
+            </section>
+
+            <section className="clinical-muted-surface p-3" aria-labelledby="advance-phase-gate-heading">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 id="advance-phase-gate-heading" className="type-heading text-[var(--color-text)]">Course Gate Review</h3>
+                <Badge variant={workspaceState.courseGate.state === 'BLOCKED' ? 'negative' : workspaceState.courseGate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive'}>
+                  {formatUiLabel(workspaceState.courseGate.state)}
+                </Badge>
+              </div>
+              <p className="mt-2 type-body text-[var(--color-text)]">
+                {workspaceState.courseGate.reasons[0] ?? 'All currently evaluated course requirements are clear.'}
+              </p>
+              {workspaceState.courseGate.reasons.length > 1 ? (
+                <details className="mt-2">
+                  <summary className="clinical-focus cursor-pointer type-meta text-[var(--color-primary)]">
+                    Review {workspaceState.courseGate.reasons.length - 1} additional blocker{workspaceState.courseGate.reasons.length === 2 ? '' : 's'}
+                  </summary>
+                  <ul className="scrollbar-soft mt-2 grid max-h-32 gap-1 overflow-y-auto pl-5 type-meta">
+                    {workspaceState.courseGate.reasons.slice(1).map((reason) => <li key={reason}>{reason}</li>)}
+                  </ul>
+                </details>
+              ) : null}
+            </section>
+
+            <div>
+              <label htmlFor="advance-phase-reason" className="type-label text-[var(--color-text)]">Reason (Required)</label>
+              <p id="advance-phase-reason-helper" className="mt-1 type-supporting text-[var(--color-text-muted)]">
+                Do not include patient identifiers or clinical details. Describe the workflow decision only.
+              </p>
+              <Textarea
+                id="advance-phase-reason"
+                value={advanceReason}
+                onChange={(event) => setAdvanceReason(event.target.value)}
+                rows={4}
+                required
+                disabled={advancePending}
+                aria-invalid={Boolean(advanceError)}
+                aria-describedby={`advance-phase-reason-helper${advanceError ? ' advance-phase-error' : ''}`}
+                className="mt-2 min-h-[96px] resize-none"
+              />
+              {advanceError ? (
+                <div id="advance-phase-error" className="mt-2 rounded-[var(--radius-md)] border border-[var(--status-negative-border)] bg-[var(--status-negative-surface)] px-3 py-2 type-body text-[var(--status-negative-text)]" role="alert">
+                  <p>{advanceError}</p>
+                  {advanceStale ? (
+                    <Button type="button" variant="secondary" className="mt-3 min-h-11" disabled={advancePending} onClick={() => router.refresh()}>
+                      Refresh Course
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--color-border-soft)] pt-4">
+              <Button type="button" variant="secondary" className="min-h-11" disabled={advancePending} onClick={closeAdvanceModal}>Cancel</Button>
+              <Button type="submit" className="min-h-11" disabled={advancePending}>
+                {advancePending ? 'Advancing...' : 'Advance Phase'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
 
       <Modal open={signalsOpen} onClose={() => setSignalsOpen(false)} title="Course Signals" width={520}>
         <ContextRail

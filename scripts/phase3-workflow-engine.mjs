@@ -59,6 +59,8 @@ const taskMutationRoutePath = "app/api/tasks/[taskId]/route.ts";
 const stepMutationRoutePath = "app/api/workflow/steps/[stepId]/route.ts";
 const advanceRoutePath = "app/api/workflow/courses/[courseId]/advance/route.ts";
 const clinicalFormRoutePath = "app/api/clinical-forms/route.ts";
+const patientPagePath = "app/patients/[id]/page.tsx";
+const patientWorkspacePath = "components/patients/patient-workspace.tsx";
 const typesSource = read("lib/types.ts");
 const rbacSource = read("lib/rbac.ts");
 const clinicalStoreSource = read("lib/clinical-store.ts");
@@ -122,6 +124,12 @@ assertIncludes(read(stepMutationRoutePath), '"workflow:step_mutate"', "Step muta
 assertIncludes(read(advanceRoutePath), '"workflow:advance"', "Advance route must require course advance access");
 assertIncludes(read(clinicalFormRoutePath), '"workflow:step_mutate"', "Clinical form mutation must use the workflow step mutation permission");
 assertExcludes(read(workflowRoutePath), "@/lib/clinical-store", "Workflow route must not import clinical-store directly");
+assertIncludes(read(patientWorkspacePath), "expectedCoursePhase: coursePhase", "Patient workspace must send the authenticated current course phase");
+assertIncludes(read(patientWorkspacePath), "response.status === 409", "Patient workspace must handle stale course conflicts explicitly");
+assertIncludes(read(patientWorkspacePath), "if (advancePending) return", "Patient workspace must prevent duplicate phase advancement submissions");
+assertIncludes(read(patientPagePath), "roleCan(session.role, 'workflow:advance')", "Patient page must compute course advancement access from the signed session");
+assertIncludes(read(patientPagePath), "canAdvanceCourse={canAdvanceCourse}", "Patient page must pass the server-computed course advancement gate");
+assertIncludes(read(patientPagePath), "coursePhase={coursePhase}", "Patient page must pass the authenticated current course phase");
 assertIncludes(packageJson, '"test:phase3"', "package.json must expose Phase 3 guardrail");
 assertIncludes(packageJson, "npm run test:phase3", "npm run verify must include Phase 3 guardrail");
 

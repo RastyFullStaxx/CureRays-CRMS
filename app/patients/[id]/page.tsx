@@ -28,6 +28,7 @@ import {
 } from '@/lib/server/pilot-session';
 import { courseDocuments, courseFractions, courseTasks, patientActiveCourse } from '@/lib/workflow';
 import { hydrateClinicalStoreFromDatabase } from '@/lib/server/database-hydration';
+import { roleCan } from '@/lib/rbac';
 import { normalizePatientWorkspaceTab } from '@/lib/services/patient-workspace-service';
 
 export default async function PatientProfilePage({
@@ -69,6 +70,8 @@ export default async function PatientProfilePage({
   }
 
   const domainCourse = getCourses().find((item) => item.id === course.id);
+  const coursePhase = course.coursePhase ?? domainCourse?.currentPhase ?? 'CONSULTATION';
+  const canAdvanceCourse = roleCan(session.role, 'workflow:advance');
   const prescription = prescriptions.find((item) => item.courseId === course.id);
   const initialTab = normalizePatientWorkspaceTab(query?.tab);
   const allowedTargetKinds = new Set(['step', 'fraction', 'document', 'audit']);
@@ -86,6 +89,8 @@ export default async function PatientProfilePage({
       initialTab={initialTab}
       initialTarget={initialTarget}
       domainCourse={domainCourse}
+      coursePhase={coursePhase}
+      canAdvanceCourse={canAdvanceCourse}
       carepathTasks={courseTasks(course.id, carepathTasks)}
       generatedDocuments={courseDocuments(course.id, generatedDocuments)}
       fractionEntries={courseFractions(course.id, fractionLogEntries)}
