@@ -61,6 +61,7 @@ const advanceRoutePath = "app/api/workflow/courses/[courseId]/advance/route.ts";
 const clinicalFormRoutePath = "app/api/clinical-forms/route.ts";
 const patientPagePath = "app/patients/[id]/page.tsx";
 const patientWorkspacePath = "components/patients/patient-workspace.tsx";
+const patientPageSource = read(patientPagePath);
 const typesSource = read("lib/types.ts");
 const rbacSource = read("lib/rbac.ts");
 const clinicalStoreSource = read("lib/clinical-store.ts");
@@ -135,6 +136,13 @@ assertIncludes(read(patientPagePath), "const coursePhase = course.coursePhase ??
 assertIncludes(read(patientPagePath), "advanceEvaluation={advanceEvaluation}", "Patient page must pass the authoritative advancement evaluation");
 assertIncludes(read(patientWorkspacePath), "const nextCoursePhase = advanceEvaluation.nextPhase", "Patient workspace must use the server-evaluated next phase");
 assertIncludes(read(patientWorkspacePath), "advanceEvaluation.blockers[0]", "Patient modal must show authoritative server blockers");
+assertIncludes(patientPageSource, "operationalAuditEvents().filter", "Patient page must filter the operational audit projection");
+assertExcludes(patientPageSource, "auditEvents={auditEvents.filter", "Patient page must not pass the raw audit collection");
+assert.equal(
+  /import\s*\{[^}]*\bauditEvents\b[^}]*\}\s*from ['"]@\/lib\/services\/operational-page-service['"]/.test(patientPageSource),
+  false,
+  "Patient page must not import the raw audit collection"
+);
 assertIncludes(packageJson, '"test:phase3"', "package.json must expose Phase 3 guardrail");
 assertIncludes(packageJson, "npm run test:phase3", "npm run verify must include Phase 3 guardrail");
 
@@ -170,6 +178,32 @@ const redactedOperationalAudit = redactAuditEvent({
 });
 assert.notEqual(redactedOperationalAudit.reason, phiBearingAuditReason, "Operational audit reasons must not return raw PHI-bearing free text");
 assert.equal(redactedOperationalAudit.reason, "Course phase advancement", "Operational audit reasons must retain only a safe action category");
+
+let recordedOperationalAuditId;
+try {
+  const recordedOperationalAudit = store.recordOperationalAuditEvent({
+    patientId: "CR-2401",
+    userId: "PHASE3-RAD_ONC",
+    userName: "Phase 3 RAD_ONC",
+    role: "RAD_ONC",
+    action: "Workflow advanced",
+    entityType: "COURSE",
+    entityId: "COURSE-2401",
+    previousValue: "ON_TREATMENT",
+    newValue: "POST_TX",
+    reason: phiBearingAuditReason
+  });
+  recordedOperationalAuditId = recordedOperationalAudit.id;
+  assert.equal(recordedOperationalAudit.reason, "Course phase advancement", "Recorded operational audits must return only a safe reason category");
+  assert.equal(
+    store.auditEvents.find((event) => event.id === recordedOperationalAudit.id)?.reason,
+    "Course phase advancement",
+    "Recorded operational audits must store only a safe reason category"
+  );
+} finally {
+  const recordedOperationalAuditIndex = store.auditEvents.findIndex((event) => event.id === recordedOperationalAuditId);
+  if (recordedOperationalAuditIndex >= 0) store.auditEvents.splice(recordedOperationalAuditIndex, 1);
+}
 
 function mutationContext(action, reason, role = "RAD_ONC") {
   return {
@@ -245,6 +279,23 @@ try {
   assert.notEqual(seededAdvance.body.status, "STALE", "A seeded expected course phase must not be rejected as stale");
 } finally {
   Object.assign(seededCourse2401, seededCourseSnapshot);
+}
+
+const legacyCourseSnapshot = structuredClone(seededCourse2401);
+try {
+  seededCourse2401.coursePhase = undefined;
+  const legacyAdvance = await workflowService.advanceCourseWorkflow(
+    seededCourse2401.id,
+    {
+      expectedCoursePhase: "CONSULTATION",
+      reason: "Verify the legacy workflow phase default."
+    },
+    mutationContext("workflow:advance", "Verify the legacy workflow phase default."),
+    "2026-06-12T00:00:00.000Z"
+  );
+  assert.notEqual(legacyAdvance.body.status, "STALE", "An unset legacy course phase must use the Consultation default");
+} finally {
+  Object.assign(seededCourse2401, legacyCourseSnapshot);
 }
 
 assert.ok(store.patientCourseWorkflowSteps.length > 0, "Seeded courses should have persisted workflow step rows");

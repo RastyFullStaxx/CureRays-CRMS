@@ -642,7 +642,7 @@ function advanceCourseInMemory(
     return mutationResult(evaluateCourseAdvance(courseIdOrRef, asOf));
   }
 
-  if (input.expectedCoursePhase !== course.coursePhase) {
+  if (input.expectedCoursePhase !== (course.coursePhase ?? "CONSULTATION")) {
     return mutationResult({
       allowed: false,
       status: "STALE",

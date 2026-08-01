@@ -57,6 +57,7 @@ import {
   patientRef,
   phiRecordId,
   redactAuditEvent,
+  summarizeAction,
   toOperationalActivity,
   toOperationalAppointment,
   toOperationalCourse,
@@ -915,7 +916,8 @@ function addAuditEvent(event: Omit<AuditEvent, "id" | "timestamp">) {
   const auditEvent: AuditEvent = {
     id: `AUD-${900 + auditEvents.length + 1}`,
     timestamp: nowIso(),
-    ...event
+    ...event,
+    reason: event.reason ? summarizeAction(event.reason) : undefined
   };
   auditEvents.unshift(auditEvent);
   return auditEvent;

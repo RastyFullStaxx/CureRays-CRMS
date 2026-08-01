@@ -2,10 +2,10 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { PatientWorkspace } from '@/components/patients/patient-workspace';
 import {
-  auditEvents,
   carepathTasks,
   fractionLogEntries,
   generatedDocuments,
+  operationalAuditEvents,
   prescriptions,
   treatmentCourses,
 } from '@/lib/services/operational-page-service';
@@ -112,7 +112,7 @@ export default async function PatientProfilePage({
       planningReadiness={getPhase6PlanningReadiness(course.id)}
       images={imagingAssets.filter((image) => image.courseId === course.id)}
       auditChecks={auditChecks.filter((check) => check.courseId === course.id)}
-      auditEvents={auditEvents.filter((event) => event.patientId === patient.id || event.entityId.includes(course.id) || event.entityId.includes(patient.id))}
+      auditEvents={operationalAuditEvents().filter((event) => event.patientId === patient.id || event.entityId.includes(course.id) || event.entityId.includes(patient.id))}
     />
   );
 }
