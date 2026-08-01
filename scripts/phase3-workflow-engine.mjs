@@ -130,6 +130,11 @@ assertIncludes(read(patientWorkspacePath), "if (advancePending) return", "Patien
 assertIncludes(read(patientPagePath), "roleCan(session.role, 'workflow:advance')", "Patient page must compute course advancement access from the signed session");
 assertIncludes(read(patientPagePath), "canAdvanceCourse={canAdvanceCourse}", "Patient page must pass the server-computed course advancement gate");
 assertIncludes(read(patientPagePath), "coursePhase={coursePhase}", "Patient page must pass the authenticated current course phase");
+assertIncludes(read(patientPagePath), "evaluateWorkflowCommand(course.id)", "Patient page must evaluate the authoritative course advancement gate on the server");
+assertIncludes(read(patientPagePath), "const coursePhase = course.coursePhase ?? 'CONSULTATION'", "Patient page expected phase must match the command service default");
+assertIncludes(read(patientPagePath), "advanceEvaluation={advanceEvaluation}", "Patient page must pass the authoritative advancement evaluation");
+assertIncludes(read(patientWorkspacePath), "const nextCoursePhase = advanceEvaluation.nextPhase", "Patient workspace must use the server-evaluated next phase");
+assertIncludes(read(patientWorkspacePath), "advanceEvaluation.blockers[0]", "Patient modal must show authoritative server blockers");
 assertIncludes(packageJson, '"test:phase3"', "package.json must expose Phase 3 guardrail");
 assertIncludes(packageJson, "npm run test:phase3", "npm run verify must include Phase 3 guardrail");
 
@@ -138,6 +143,8 @@ installTsHook();
 const workflowService = require(join(root, servicePath));
 const patientService = require(join(root, "lib/server/patient-registration-service.ts"));
 const store = require(join(root, "lib/clinical-store.ts"));
+const { getCourses } = require(join(root, "lib/module-data.ts"));
+const { redactAuditEvent } = require(join(root, "lib/hipaa.ts"));
 const { roleCan } = require(join(root, "lib/rbac.ts"));
 const { NextRequest } = require("next/server");
 const { POST: advanceCourseRoute } = require(join(root, advanceRoutePath));
@@ -145,6 +152,24 @@ const {
   createPilotSession,
   PILOT_SESSION_COOKIE
 } = require(join(root, "lib/server/pilot-session.ts"));
+
+const phiBearingAuditReason = "Advance Jane Smith MRN 12345 to the next phase.";
+const redactedOperationalAudit = redactAuditEvent({
+  id: "AUD-PHASE3-REASON",
+  patientId: "CR-2401",
+  userId: "PHASE3-RAD_ONC",
+  userName: "Phase 3 RAD_ONC",
+  role: "RAD_ONC",
+  action: "Workflow advanced",
+  entityType: "COURSE",
+  entityId: "COURSE-2401",
+  previousValue: "ON_TREATMENT",
+  newValue: "POST_TX",
+  timestamp: "2026-06-12T00:00:00.000Z",
+  reason: phiBearingAuditReason
+});
+assert.notEqual(redactedOperationalAudit.reason, phiBearingAuditReason, "Operational audit reasons must not return raw PHI-bearing free text");
+assert.equal(redactedOperationalAudit.reason, "Course phase advancement", "Operational audit reasons must retain only a safe action category");
 
 function mutationContext(action, reason, role = "RAD_ONC") {
   return {
@@ -182,6 +207,44 @@ function registrationInput(suffix) {
       startDate: "2027-01-20"
     }
   };
+}
+
+const seededCourse2401 = store.treatmentCourses.find((course) => course.id === "COURSE-2401");
+assert.ok(seededCourse2401, "COURSE-2401 must exist in the seeded treatment courses");
+const seededCourse2401Phase = seededCourse2401.coursePhase;
+try {
+  seededCourse2401.coursePhase = "PLANNING";
+  assert.equal(getCourses().find((course) => course.id === seededCourse2401.id)?.currentPhase, "PLANNING", "Domain courses must prefer the treatment course carepath phase");
+} finally {
+  seededCourse2401.coursePhase = seededCourse2401Phase;
+}
+
+const expectedSeededCoursePhases = new Map([
+  ["COURSE-2401", "ON_TREATMENT"],
+  ["COURSE-2402", "CHART_PREP"],
+  ["COURSE-2403", "AUDIT"],
+  ["COURSE-2404", "ON_TREATMENT"],
+  ["COURSE-2405", "AUDIT"],
+  ["COURSE-2406", "CHART_PREP"]
+]);
+for (const [courseId, expectedPhase] of expectedSeededCoursePhases) {
+  assert.equal(store.treatmentCourses.find((course) => course.id === courseId)?.coursePhase, expectedPhase, `${courseId} must seed its explicit carepath phase`);
+}
+
+const seededCourseSnapshot = structuredClone(seededCourse2401);
+try {
+  const seededAdvance = await workflowService.advanceCourseWorkflow(
+    seededCourse2401.id,
+    {
+      expectedCoursePhase: "ON_TREATMENT",
+      reason: "Verify the seeded workflow phase contract."
+    },
+    mutationContext("workflow:advance", "Verify the seeded workflow phase contract."),
+    "2026-06-12T00:00:00.000Z"
+  );
+  assert.notEqual(seededAdvance.body.status, "STALE", "A seeded expected course phase must not be rejected as stale");
+} finally {
+  Object.assign(seededCourse2401, seededCourseSnapshot);
 }
 
 assert.ok(store.patientCourseWorkflowSteps.length > 0, "Seeded courses should have persisted workflow step rows");

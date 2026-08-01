@@ -135,6 +135,7 @@ export function redactAuditEvent(event: AuditEvent): OperationalAuditEvent {
     patientRef: event.patientId ? patientRef(event.patientId) : undefined,
     previousValue: hadPreviousValue ? PHI_REDACTED : NONE_RECORDED,
     newValue: hadNewValue ? PHI_REDACTED : NONE_RECORDED,
+    reason: event.reason ? summarizeAction(event.reason) : undefined,
     redacted
   };
 }
@@ -142,6 +143,9 @@ export function redactAuditEvent(event: AuditEvent): OperationalAuditEvent {
 export function summarizeAction(value: string) {
   const normalized = value.toLowerCase();
 
+  if (normalized.includes("advance") || normalized.includes("next phase")) {
+    return "Course phase advancement";
+  }
   if (normalized.includes("signature") || normalized.includes("sign")) {
     return "Signature or review needed";
   }

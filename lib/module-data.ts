@@ -173,13 +173,13 @@ export function getCourses(): Course[] {
     physicianId: patients.find((patient) => patient.id === course.patientId)?.physician,
     radOncId: patients.find((patient) => patient.id === course.patientId)?.physician,
     currentPhase:
-      course.chartRoundsPhase === "UPCOMING"
+      course.coursePhase ?? (course.chartRoundsPhase === "UPCOMING"
         ? "CHART_PREP"
         : course.chartRoundsPhase === "ON_TREATMENT"
           ? "ON_TREATMENT"
           : course.status === "COMPLETED"
             ? "AUDIT"
-            : "POST_TX",
+            : "POST_TX"),
     simpleDashboardPhase: course.chartRoundsPhase,
     status: course.status === "COMPLETED" ? "COMPLETED" : course.status === "ON_HOLD" ? "BLOCKED" : "IN_PROGRESS",
     startDate: course.startDate,

@@ -44,6 +44,7 @@ import type {
   TreatmentCourse,
   TreatmentFraction,
   TreatmentPlan,
+  WorkflowCommandResult,
   WorkflowStep,
 } from '@/lib/types';
 import {
@@ -77,6 +78,7 @@ type PatientWorkspaceProps = {
   domainCourse?: Course;
   coursePhase: CarepathWorkflowPhase;
   canAdvanceCourse: boolean;
+  advanceEvaluation: Pick<WorkflowCommandResult, 'status' | 'blockers' | 'nextPhase'>;
   carepathTasks: CarepathTask[];
   generatedDocuments: GeneratedDocument[];
   fractionEntries: FractionLogEntry[];
@@ -539,6 +541,7 @@ export function PatientWorkspace({
   domainCourse,
   coursePhase,
   canAdvanceCourse,
+  advanceEvaluation,
   carepathTasks,
   generatedDocuments,
   fractionEntries,
@@ -575,9 +578,7 @@ export function PatientWorkspace({
   const [advanceFeedback, setAdvanceFeedback] = useState('');
   const [workflowStepState, setWorkflowStepState] = useState(allWorkflowSteps);
   const currentCoursePhaseIndex = orderedCarepathPhases.indexOf(coursePhase);
-  const nextCoursePhase = currentCoursePhaseIndex >= 0
-    ? orderedCarepathPhases[currentCoursePhaseIndex + 1]
-    : undefined;
+  const nextCoursePhase = advanceEvaluation.nextPhase;
   const openAdvanceModal = useCallback(() => {
     setAdvanceFeedback('');
     setAdvanceError(null);
@@ -1685,20 +1686,20 @@ export function PatientWorkspace({
             <section className="clinical-muted-surface p-3" aria-labelledby="advance-phase-gate-heading">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 id="advance-phase-gate-heading" className="type-heading text-[var(--color-text)]">Course Gate Review</h3>
-                <Badge variant={workspaceState.courseGate.state === 'BLOCKED' ? 'negative' : workspaceState.courseGate.state === 'REVIEW_REQUIRED' ? 'intermediate' : 'positive'}>
-                  {formatUiLabel(workspaceState.courseGate.state)}
+                <Badge variant={advanceEvaluation.status === 'READY' ? 'positive' : 'negative'}>
+                  {formatUiLabel(advanceEvaluation.status)}
                 </Badge>
               </div>
               <p className="mt-2 type-body text-[var(--color-text)]">
-                {workspaceState.courseGate.reasons[0] ?? 'All currently evaluated course requirements are clear.'}
+                {advanceEvaluation.blockers[0] ?? 'All currently evaluated course requirements are clear.'}
               </p>
-              {workspaceState.courseGate.reasons.length > 1 ? (
+              {advanceEvaluation.blockers.length > 1 ? (
                 <details className="mt-2">
                   <summary className="clinical-focus cursor-pointer type-meta text-[var(--color-primary)]">
-                    Review {workspaceState.courseGate.reasons.length - 1} additional blocker{workspaceState.courseGate.reasons.length === 2 ? '' : 's'}
+                    Review {advanceEvaluation.blockers.length - 1} additional blocker{advanceEvaluation.blockers.length === 2 ? '' : 's'}
                   </summary>
                   <ul className="scrollbar-soft mt-2 grid max-h-32 gap-1 overflow-y-auto pl-5 type-meta">
-                    {workspaceState.courseGate.reasons.slice(1).map((reason) => <li key={reason}>{reason}</li>)}
+                    {advanceEvaluation.blockers.slice(1).map((reason) => <li key={reason}>{reason}</li>)}
                   </ul>
                 </details>
               ) : null}
