@@ -176,13 +176,57 @@ Two traps this work hit, both worth not repeating:
 
 Layout properties are never animated. The header condenses through material and a scaled mark, not padding — it is sticky, so animating a layout property would force layout on the whole page for every frame. The modality rule sweeps with `scaleX`, not `width`.
 
+## The hero field
+
+The hero ground is not a photograph. It is a canvas that grows a vascular bed, holds it, dissolves it, and grows another: [`hero-field-renderers.ts`](../../components/site/hero-field-renderers.ts) owns the simulation and the paint, and [`site-hero-field.tsx`](../../components/site/site-hero-field.tsx) owns sizing, the frame loop, pointer easing, the off-screen pause, and reduced motion. The renderer knows nothing about the DOM; the host knows nothing about vessels.
+
+Growth is space colonisation — attractors pull the nearest node toward them and are consumed on arrival, which is how real vasculature fills a volume.
+
+**It is bounded.** It cycles `growing → holding → dissolving → reseed`, roughly 4s / 15s / 3.2s:
+
+- At `SEGMENT_LIMIT` segments (or when the attractors run out) it stops adding geometry and bakes itself to an offscreen canvas. An earlier version had no limit and kept regrowing over its own accumulated canvas; within a minute it was an unreadable tangle.
+- While holding, the frame is that blit plus a slow perfusion wave running trunk to capillary, and a soft highlight under the pointer. Nothing is added.
+- It then **dissolves** under an accelerating bone wash, and only when the canvas is clear is a fresh bed seeded from new random roots. Clearing outright reads as a glitch; washing out reads as an exhale, and it is the same material the growth was already sitting under.
+
+Reduced motion gets the finished bed and stops there — no hold clock, no dissolve, because a repeating loop is precisely what that preference is asking not to see.
+
+### The paint: clean and opaque, decided by review
+
+**Every stroke is fully opaque, its colour pre-mixed toward the page ground to carry the fade.** This is a reviewed decision, not an incidental one, and it is worth knowing the alternative that was rejected.
+
+A translucent variant was built and shown: hairline strokes at low alpha under a slow bone wash, which bead where short segments overlap at the joins and dry into greys and pale oranges. It is atmospheric, and it was tried more than once. It was rejected in favour of the clean web — the beading reads as dotted twigs at hero scale, and the field is meant to have graphic presence behind a display headline, not to recede into texture.
+
+So: do not "restore" translucency, a growth wash, or taper-derived alpha here. If the delicate variant is ever wanted again it is a deliberate change, not a fix.
+
+Two settings own the bed's *shape*, and both were changed once by accident while other work was going on:
+
+- Roots are **scattered across the field with random headings**. Seeding them along an edge makes every branch fan out of one corner.
+- Attractors are **sparse and spread over the whole field**, with a long reach and a generous kill radius. Raising their count and shortening the reach turns the sweeping web into something leaf-like.
+
+The bed is allowed to grow across the reading column — the veil keeps the copy legible, not the growth rules.
+
+One thing that is load-bearing for performance: **nodes live in a coarse spatial grid keyed on the attractor reach**, so each attractor tests a 3×3 neighbourhood instead of every node. Without it the nearest-node search is `O(attractors × nodes)` and the first paint drops frames.
+
+> If a translucent variant is ever reinstated, note that measuring it by canvas alpha does not work — its wash covers every pixel, so alpha saturates within a second and any "is it drawing?" check reads as full. Measure luminance against the bone ground instead.
+
+## Angular, not rounded
+
+The public site carries **no circular edge elements at all** — no pills, no dots, no round avatars — and square corners everywhere. Where a marker is needed it is a chamfer or a rotated square, cut with `clip-path` or a 45° rotation. This is a brand decision for the site surface, so it lives in `--site-radius` / `--site-chamfer` on `.site-page`; the clinical app keeps the shared `--radius-*` scale.
+
+The hero canvas is the one exception: its line caps are round. Vessels are drawn as a chain of short segments, and square caps leave notches at every direction change. This is geometry, not styling.
+
+One rule that is easy to break: **`clip-path` never goes on an interactive element.** The `.clinical-focus` ring is drawn as an outside `box-shadow`, and a clip erases it. The telephone button gets its chamfer from a pseudo-element carrying the fill; `.site-button` is square rather than chamfered for exactly this reason.
+
+The four attribute chips carry pictograms from [`site-attribute-icon.tsx`](../../components/site/site-attribute-icon.tsx) — straight segments only, mitred joins, square caps. Each has to survive being read at 17px, which rules out interior detail: an abstract mark that needs its label to be understood is no better than the bullet it replaced. Sutures-struck-out was the honest metaphor for *Scar-Free* and had to be abandoned because three ticks and a slash collapse into a scribble at that size.
+
+Reduced motion still gets the finished bed: the host runs frames until it has grown, then draws that state once and never schedules another.
+
 ## Imagery
 
-`public/site/` holds five plates, all **generated with Google Gemini** and each reviewed before it was committed:
+`public/site/` holds four plates, all **generated with Google Gemini** and each reviewed before it was committed:
 
 | File | Subject | Used by |
 |---|---|---|
-| `aperture.jpg` | Warm light through a narrow aperture onto plaster | Hero |
 | `beam.jpg` | A single blade of amber light crossing a dark interior | Gallery — *Invisible* |
 | `diffuse.jpg` | Soft light through frosted glass, no hard edges | Gallery — *Painless* |
 | `grain.jpg` | Terracotta and bone-white plaster meeting along an edge | Gallery — *Scar-Free* |

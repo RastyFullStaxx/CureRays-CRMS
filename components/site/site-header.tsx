@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useReducedMotion, useScroll, useSpring } from 'motion/react';
@@ -17,8 +17,28 @@ import { CLINIC, CONTACT } from '@/lib/site-content';
  * novel layout a visitor would have to learn.
  */
 export function SiteHeader() {
+  const headerRef = useRef<HTMLElement>(null);
   const [condensed, setCondensed] = useState(false);
+  const [over, setOver] = useState<'default' | 'brand'>('default');
   const reduced = useReducedMotion();
+
+  // Publish the measured height so the hero can pull itself up underneath the
+  // bar. Measured rather than hard-coded: the header changes height with the
+  // viewport, and a stale constant would leave a bone gap above the field.
+  useEffect(() => {
+    const node = headerRef.current;
+    if (!node) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        '--site-header-h',
+        `${Math.round(node.getBoundingClientRect().height)}px`
+      );
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, restDelta: 0.001 });
 
@@ -29,8 +49,34 @@ export function SiteHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // The bar carries no fill, so it has to know what is behind it. Anything with
+  // a brand ground would swallow ink links; the header flips to bone over those.
+  useEffect(() => {
+    const toned = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-tone="brand"], .site-footer')
+    );
+    if (toned.length === 0) return;
+
+    const check = () => {
+      const band = 72;
+      const covered = toned.some((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.top <= band && rect.bottom >= 0;
+      });
+      setOver(covered ? 'brand' : 'default');
+    };
+
+    check();
+    window.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, []);
+
   return (
-    <header className="site-header" data-condensed={condensed}>
+    <header ref={headerRef} className="site-header" data-condensed={condensed} data-over={over}>
       <a className="site-skip-link clinical-focus" href="#site-main">
         Skip to content
       </a>

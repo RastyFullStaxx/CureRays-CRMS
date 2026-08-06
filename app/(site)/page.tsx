@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import { AttributeIcon } from '@/components/site/site-attribute-icon';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { SiteGallery } from '@/components/site/site-gallery';
-import { DoseField } from '@/components/site/site-dose-field';
+import { SiteHeroField } from '@/components/site/site-hero-field';
 import { Counter, Drift, Reveal } from '@/components/site/site-motion';
 import {
   CLINIC,
@@ -10,6 +11,7 @@ import {
   CONTACT,
   FOUNDER,
   PRACTICE_FACTS,
+  TREATMENT_ATTRIBUTES,
   TREATMENTS
 } from '@/lib/site-content';
 
@@ -17,16 +19,23 @@ export default function HomePage() {
   return (
     <>
       <section className="site-hero" aria-labelledby="hero-heading">
-        {/* The ground is a live isodose field, not a photograph: the shape of
-            what the clinic actually does, re-aiming under the pointer. */}
+        {/* The ground is a live vascular bed, not a photograph: it grows once, holds
+            under a perfusion wave, then dissolves and grows again. */}
         <div className="site-hero-canvas" aria-hidden="true">
-          <DoseField />
+          <SiteHeroField />
           <span className="site-hero-veil" />
         </div>
 
         <div className="site-hero-inner">
+          {/* The wordmark already names the clinic a row above, so the kicker
+              spends itself on what a visitor actually cannot see: what the
+              therapy is, and where it is. */}
           <Reveal>
-            <p className="site-kicker">{CLINIC.name}</p>
+            <p className="site-kicker">
+              Non-Invasive X-Ray Therapy
+              <span className="site-kicker-sep" aria-hidden="true" />
+              {CONTACT.city}, California
+            </p>
           </Reveal>
 
           <Reveal delay={0.08}>
@@ -39,7 +48,24 @@ export default function HomePage() {
             <p className="site-hero-lead">{CLINIC.belief}</p>
           </Reveal>
 
-          <Reveal delay={0.24}>
+          <Reveal delay={0.22}>
+            <p className="site-hero-support">{CLINIC.purpose}</p>
+          </Reveal>
+
+          {/* Miller: four attributes, the clinic's own words for what treatment
+              feels like. They answer the question the headline provokes. */}
+          <Reveal delay={0.28}>
+            <ul className="site-hero-attributes">
+              {TREATMENT_ATTRIBUTES.map((attribute) => (
+                <li key={attribute.name} className="site-hero-attribute">
+                  <AttributeIcon name={attribute.name} />
+                  {attribute.name}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          <Reveal delay={0.34}>
             <div className="site-hero-actions">
               <a
                 className="site-button site-button-primary clinical-focus"
@@ -53,7 +79,7 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <Reveal delay={0.32}>
+          <Reveal delay={0.4}>
             <p className="site-hero-motto">{CLINIC.motto}</p>
           </Reveal>
         </div>
