@@ -9,9 +9,13 @@ There are exactly two type systems, and they never mix.
 | Surface | Faces | Scale | Loaded by |
 |---|---|---|---|
 | `app/(app)/**`, `app/login`, all shared components | Inter | `--type-*`, fixed 12/13/14/18 | `next/font/google` in `app/layout.tsx` |
-| `app/(site)/**` | Display serif + text sans | `--site-*`, fluid `clamp()` | `next/font/local`, applied on the site root |
+| `app/(site)/**` | Roboto | `--site-*`, fluid `clamp()` | `next/font/google` in `app/(site)/layout.tsx` |
 
-The site faces are exposed as CSS variables on the site root element only. Custom properties descend, so the authenticated app cannot inherit them.
+The site face is exposed as a CSS variable on the site root element only. Custom properties descend, so the authenticated app cannot inherit it.
+
+On the public site, hierarchy is carried by **weight**, not by a contrast of form: 700 at display and heading sizes, 500 for emphasis, 400 for reading. `--font-site-display` and `--font-site-text` remain separate tokens even though both resolve to Roboto today, so a distinct display face can be introduced later without editing every rule that consumes them.
+
+Pick a face whose licence permits redistribution in a public repository — anything on Google Fonts qualifies. See [`../architecture/public-site.md`](../architecture/public-site.md) for the two faces rejected on licence grounds.
 
 Components must inherit their surface's family. Do not import another typeface or declare `font-family` in page or component code.
 
@@ -19,13 +23,11 @@ Components must inherit their surface's family. Do not import another typeface o
 
 1. `html` — `var(--font-ui)`
 2. `.site-page` — `var(--font-site-text), var(--font-ui)`
-3. `.site-display, .site-headline, .site-wordmark strong` — `var(--font-site-display), var(--font-site-text)`
+3. `.site-display, .site-headline, .site-wordmark strong, .site-panel-name, .site-figure-value, .site-section[data-tone="brand"] .site-contact-primary` — `var(--font-site-display), var(--font-site-text)`
 
 Adding a fourth is a deliberate act that must update that assertion.
 
-The `--font-site-*` tokens carry inline `var()` fallbacks. This is load-bearing: `var(--undefined)` with no fallback makes the whole declaration invalid at computed-value time, and the element silently inherits Inter instead of falling back to a serif.
-
-The site faces are not yet committed; licensing is unresolved. See [`../architecture/public-site.md`](../architecture/public-site.md).
+The `--font-site-*` tokens carry inline `var()` fallbacks, and that is load-bearing: `var(--undefined)` with no fallback makes the whole declaration invalid at computed-value time, and the element silently inherits Inter instead.
 
 ## Product Type Scale
 
@@ -72,7 +74,7 @@ Fluid roles for `app/(site)/**` only. Every size is a `clamp()`, so the site has
 
 Public body text starts at 16px because it is read by patients on their own devices, not by staff scanning dense operational tables.
 
-Tracking is permitted **only** through `--site-display-tracking` and `--site-headline-tracking`, and only on those two roles. A 4.5rem serif needs optical correction that the product scale never does. The guardrail rejects every other `letter-spacing`.
+Tracking is permitted **only** through `--site-display-tracking` and `--site-headline-tracking`, and only on those two roles. A geometric sans set at 4.5rem opens up and needs tightening that the product scale never does. The guardrail rejects every other `letter-spacing`.
 
 Prose is capped at `--site-measure` (68ch). Do not set a wider measure.
 

@@ -44,19 +44,18 @@ The site faces are applied as CSS variables on the site root element only. Custo
 
 `scripts/typography-guardrails.mjs` asserts `globals.css` holds exactly three `font-family` declarations, in order. Adding a fourth is a deliberate act that must update that assertion.
 
-### Font licensing — unresolved
+### The face
 
-The intended pairing is **Zodiak** (display) + **Switzer** (text) from Fontshare, self-hosted via `next/font/local`. The files are **not yet committed** and the tokens currently fall back to Georgia and Inter.
+**Roboto**, loaded through `next/font/google` in `app/(site)/layout.tsx`. One family carries both roles, separated by weight rather than by a contrast of form: 700 at display and heading sizes, 400/500 for reading.
 
-Blocking question: Fontshare ships two licence tiers — SIL OFL (Open Source) and the ITF Free Font Licence (Closed Source). The ITF FFL **prohibits redistributing font files and requires written consent to self-host**, directing users to the Fontshare API instead. This repository is public, so committing `.woff2` under the FFL would be redistribution.
+`--font-site-display` and `--font-site-text` stay distinct even though both currently resolve to Roboto, so a separate display face can be reintroduced later without touching every rule that consumes them.
 
-Resolve before adding the files:
+Two earlier directions were rejected on licence grounds, recorded so they are not revisited:
 
-- If Zodiak and Switzer are **OFL**, commit the `.woff2` to `lib/fonts/` with the licence text and wire `next/font/local`.
-- If they are **FFL**, pick an OFL face instead. Any Google Fonts face is OFL and `next/font/google` self-hosts it at build time with no runtime CDN call.
-- Do **not** use the Fontshare CDN: `globals.css` must not load remote fonts (guardrail), and a clinic site should not leak visitor IPs to a third party.
+- **Editorial New** (Pangram Pangram) — free to try only; commercial licences start at $40.
+- **Zodiak + Switzer** (Fontshare) — Fontshare ships two tiers, and the ITF Free Font Licence prohibits redistributing font files and requires written consent to self-host. This repository is public, so committing those `.woff2` would be redistribution.
 
-Editorial New was the first choice and was rejected — Pangram Pangram licenses it commercially from $40, and it is free to try only.
+The rule that follows: **use a face whose licence permits redistribution in a public repo.** Anything on Google Fonts qualifies, and `next/font/google` self-hosts it at build time. Do not load fonts from a third-party CDN — `globals.css` must not reference remote fonts (guardrail), and a clinic site should not leak visitor IPs.
 
 ## Visual World — Aperture
 
@@ -179,13 +178,30 @@ Layout properties are never animated. The header condenses through material and 
 
 ## Imagery
 
-`public/site/` holds four photographs: `aperture`, `spectrum`, `lattice`, `grain`. They are abstract studies of warm light and material, sourced from Unsplash under a licence that permits commercial use, and each one was reviewed before it was committed.
+`public/site/` holds five plates, all **generated with Google Gemini** and each reviewed before it was committed:
 
-**No stock people.** Search results for clinical subjects are almost entirely models posed as clinicians and patients; presenting those as CureRays' own staff or patients would misrepresent a real practice. Every factual claim lives in the copy, which comes from what the clinic publishes. The pictures carry the idea.
+| File | Subject | Used by |
+|---|---|---|
+| `aperture.jpg` | Warm light through a narrow aperture onto plaster | Hero |
+| `beam.jpg` | A single blade of amber light crossing a dark interior | Gallery — *Invisible* |
+| `diffuse.jpg` | Soft light through frosted glass, no hard edges | Gallery — *Painless* |
+| `grain.jpg` | Terracotta and bone-white plaster meeting along an edge | Gallery — *Scar-Free* |
+| `isodose.jpg` | Concentric rings of light falling off into shadow | Gallery — *Anti-Inflammatory* |
 
-No text-to-image tool was available in the session that built this. If one is connected later, purpose-made imagery would be a straight improvement over stock — and real photography of the Grass Valley clinic would beat both.
+Each plate is matched to the attribute it illustrates rather than dropped in for decoration. Total weight is under 400 KB: `sharp` resizes and re-encodes to progressive mozjpeg at q82, and trims the letterbox bars the generator adds.
+
+**No people, generated or otherwise.** Synthetic "clinicians" and "patients" on a real clinic's site would misrepresent the practice as surely as stock models would. Every factual claim lives in the copy, which comes from what the clinic publishes; the pictures carry the idea, not evidence.
+
+Two things to know:
+
+- The plates carry Gemini's visible sparkle marker in a corner, and Google's invisible SynthID regardless. They were left in place. Removing a provenance marker from AI imagery is the clinic's decision to make knowingly, not something to strip silently.
+- **Real photography of the Grass Valley clinic would beat all of this.** Generated abstracts are a strong placeholder for a mood; they cannot show a patient the room they will actually sit in.
 
 Still to supply: clinic exterior, Dr. Hess portrait, treatment room, an OG image at 1200×630, and a favicon set.
+
+### Regenerating a plate
+
+The images are keyed by filename, and **Next's image optimizer caches on that key**. Replacing a file in place while keeping its name will serve the stale optimization even after a dev-server restart — delete `.next` entirely, not just `.next/cache/images`. Verify with `img.naturalWidth` in the browser, not by eye.
 
 `cn()` moved from `lib/workflow.ts` to `lib/utils.ts`. Not `@/lib/workflow` — pointing the shadcn utils alias at a 600-line domain module drags workflow code into every UI primitive's bundle. The move also fixed a latent bug: the old implementation joined classes verbatim, so `cn('bg-[var(--color-card)]', className)` emitted both and the winner depended on CSS source order.
 

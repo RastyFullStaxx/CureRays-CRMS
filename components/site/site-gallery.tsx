@@ -13,16 +13,20 @@ import { TREATMENT_ATTRIBUTES } from '@/lib/site-content';
  * arriving rather than four cards fading in together.
  *
  * The imagery is abstract light and material on purpose. CureRays has no
- * photography of its own here, and stock people staged as clinicians or patients
- * would misrepresent a real practice. Every factual claim lives in the copy,
- * which comes from what the clinic publishes; the pictures carry the idea.
+ * photography of its own here, and people staged as clinicians or patients would
+ * misrepresent a real practice. Every factual claim lives in the copy, which
+ * comes from what the clinic publishes; the pictures carry the idea.
+ *
+ * Each plate is matched to the attribute it illustrates, not dropped in for
+ * decoration: a beam you cannot see, light too soft to feel, an unbroken
+ * surface, and a dose falling away in rings.
  */
 
 const PANELS = [
-  { src: '/site/aperture.jpg', width: 1400, height: 933, span: 'wide' },
-  { src: '/site/spectrum.jpg', width: 1124, height: 2000, span: 'tall' },
-  { src: '/site/lattice.jpg', width: 1400, height: 945, span: 'wide' },
-  { src: '/site/grain.jpg', width: 1333, height: 2000, span: 'tall' }
+  { src: '/site/beam.jpg', width: 1162, height: 768, span: 'wide' },
+  { src: '/site/diffuse.jpg', width: 1376, height: 768, span: 'wide' },
+  { src: '/site/grain.jpg', width: 768, height: 1376, span: 'tall' },
+  { src: '/site/isodose.jpg', width: 768, height: 1376, span: 'tall' }
 ] as const;
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;

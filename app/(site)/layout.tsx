@@ -1,26 +1,24 @@
 import type { ReactNode } from 'react';
-import { Instrument_Serif, Schibsted_Grotesk } from 'next/font/google';
+import { Roboto } from 'next/font/google';
 import { SiteHeader } from '@/components/site/site-header';
 import { SiteFooter } from '@/components/site/site-footer';
 
 /**
- * Public-site typefaces. Both are SIL OFL, and `next/font/google` self-hosts them
- * at build time — no runtime CDN request, so no visitor IP reaches a third party.
+ * Public-site typeface. SIL OFL, and `next/font/google` self-hosts it at build
+ * time — no runtime CDN request, so no visitor IP reaches a third party.
+ *
+ * One family carries both roles, separated by weight rather than by contrast of
+ * form: 700 for display and headings, 400/500 for reading. The two tokens stay
+ * distinct in globals.css so a display face can be reintroduced later without
+ * touching every rule that consumes them.
  *
  * Scoped to this element on purpose: CSS custom properties only descend, so the
- * authenticated app under app/(app)/ cannot inherit these and stays on Inter.
+ * authenticated app under app/(app)/ cannot inherit this and stays on Inter.
  */
-const displayFace = Instrument_Serif({
+const roboto = Roboto({
   subsets: ['latin'],
   display: 'swap',
-  weight: '400',
-  variable: '--font-instrument-serif'
-});
-
-const textFace = Schibsted_Grotesk({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-schibsted-grotesk'
+  variable: '--font-roboto'
 });
 
 export default function SiteLayout({
@@ -29,7 +27,7 @@ export default function SiteLayout({
   children: ReactNode;
 }>) {
   return (
-    <div className={`site-page ${displayFace.variable} ${textFace.variable}`}>
+    <div className={`site-page ${roboto.variable}`}>
       <SiteHeader />
       <main id="site-main" className="site-main">
         {children}

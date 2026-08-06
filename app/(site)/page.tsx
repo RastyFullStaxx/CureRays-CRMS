@@ -1,9 +1,9 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { SiteGallery } from '@/components/site/site-gallery';
-import { BeamField, Counter, Drift, Reveal } from '@/components/site/site-motion';
+import { DoseField } from '@/components/site/site-dose-field';
+import { Counter, Drift, Reveal } from '@/components/site/site-motion';
 import {
   CLINIC,
   CONDITIONS,
@@ -17,17 +17,11 @@ export default function HomePage() {
   return (
     <>
       <section className="site-hero" aria-labelledby="hero-heading">
+        {/* The ground is a live isodose field, not a photograph: the shape of
+            what the clinic actually does, re-aiming under the pointer. */}
         <div className="site-hero-canvas" aria-hidden="true">
-          <Image
-            src="/site/aperture.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="site-hero-plate"
-          />
-          <span className="site-hero-scrim" />
-          <BeamField />
+          <DoseField />
+          <span className="site-hero-veil" />
         </div>
 
         <div className="site-hero-inner">

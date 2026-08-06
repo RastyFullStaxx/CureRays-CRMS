@@ -5,13 +5,10 @@ import {
   animate,
   motion,
   useInView,
-  useMotionValue,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform
 } from 'motion/react';
-import { cn } from '@/lib/utils';
 
 /**
  * Motion primitives for the public site.
@@ -93,45 +90,6 @@ export function Counter({ value, className }: { value: string; className?: strin
     <span ref={ref} className={className}>
       {shown}
     </span>
-  );
-}
-
-/**
- * Pointer-reactive light. The hero's warm wash follows the cursor a little, so
- * the page feels lit rather than painted. Falls back to a fixed wash.
- */
-export function BeamField({ className }: { className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
-  const x = useMotionValue(50);
-  const y = useMotionValue(30);
-  const springX = useSpring(x, { stiffness: 60, damping: 24 });
-  const springY = useSpring(y, { stiffness: 60, damping: 24 });
-  const background = useTransform(
-    [springX, springY],
-    ([px, py]: number[]) =>
-      `radial-gradient(58% 62% at ${px}% ${py}%, color-mix(in srgb, var(--site-brand-lit) 42%, transparent), transparent 70%)`
-  );
-
-  useEffect(() => {
-    if (reduced) return;
-    const handle = (event: PointerEvent) => {
-      const node = ref.current;
-      if (!node) return;
-      const rect = node.getBoundingClientRect();
-      x.set(((event.clientX - rect.left) / rect.width) * 100);
-      y.set(((event.clientY - rect.top) / rect.height) * 100);
-    };
-    window.addEventListener('pointermove', handle, { passive: true });
-    return () => window.removeEventListener('pointermove', handle);
-  }, [reduced, x, y]);
-
-  if (reduced) {
-    return <div ref={ref} className={cn('site-beam site-beam-static', className)} aria-hidden="true" />;
-  }
-
-  return (
-    <motion.div ref={ref} className={cn('site-beam', className)} style={{ background }} aria-hidden="true" />
   );
 }
 
