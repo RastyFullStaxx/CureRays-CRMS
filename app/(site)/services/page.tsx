@@ -36,7 +36,7 @@ export default function ServicesPage() {
 
       <SiteSection
         id="services-contact"
-        tone="ink"
+        tone="brand"
         eyebrow="Get In Touch"
         heading="Book A Screening"
         lead="Call the clinic to arrange a screening or ask about any of these services."

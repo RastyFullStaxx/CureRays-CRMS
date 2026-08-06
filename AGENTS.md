@@ -192,6 +192,7 @@ Never hardcode hex values in components. Always reference tokens:
 | `--color-hover` | `rgba(26,29,33,0.05)` | Hover surface tint |
 | `--status-{tone}-{solid,surface,border,text}` | see `globals.css` | The four functional status tones |
 | `--font-ui` | `Inter` | Every authenticated UI surface, control, chart, and label |
+| `--site-brand` | `#B13F21` | Public-site brand hue. The app stays on `--color-primary` — see docs/architecture/public-site.md |
 | `--font-site-display` / `--font-site-text` | site pairing | Public site only, scoped to `.site-page` |
 | `--site-*-size` / `--site-*-line` | fluid `clamp()` | Public site type roles |
 | `--type-title-size` | `18px` | Page titles, patient identity, critical KPI values |

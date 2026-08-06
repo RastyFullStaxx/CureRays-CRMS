@@ -45,7 +45,7 @@ export default function TreatmentsPage() {
 
       <SiteSection
         id="treatments-contact"
-        tone="ink"
+        tone="brand"
         eyebrow="Next Step"
         heading="Not Sure Which Applies To You?"
         lead="Call the clinic and a member of the care team will talk it through with you."

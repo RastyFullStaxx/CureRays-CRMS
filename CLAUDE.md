@@ -89,6 +89,8 @@ Verified corrections — trust these over older prose:
 - **`cn()` lives in `lib/utils.ts`** (`twMerge(clsx(...))`), not `lib/workflow.ts`.
 - **There is no `--color-accent`.** The accent and every `--landing-color-*` token were retired with the three-color brand system. `--color-success/warning/error/info` never existed despite older AGENTS.md tables.
 - **`components/landing/` is now `components/login/`.** The `.landing-*` CSS block is gone; the login shell uses `.login-*`.
+- **The legacy sidebar is deleted** — `components/sidebar.tsx`, `components/layout/`, and the `.sidebar-*` CSS and tokens. `.patient-workspace-sidebar` is a different, live thing; do not confuse them.
+- **The public site brand is orange (`--site-brand`), the app is petrol (`--color-primary`).** That split is deliberate: an orange primary in the app would be confusable with `--status-negative-solid`.
 - Guardrail scripts hardcode `app/(app)/...` paths. Moving a route means updating `route-smoke`, `hipaa-guardrails`, `phase1`, `phase3`, `phase6`, and `product-simplification-guardrails`.
 - `scripts/phase2-patient-registration.mjs`, `phase4-template-registry.mjs`, `phase5-document-lifecycle.mjs`, and `phase6-treatment-planning.mjs` **fail on `main` already** — pre-existing, unrelated to routing, and invisible because none is in `npm run verify`.
 - Read hydration from Postgres **is** wired (`lib/server/database-hydration.ts`) **and** write-through persistence is live (P0 done) — the store is durable, not memory-only.

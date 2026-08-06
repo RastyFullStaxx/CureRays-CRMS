@@ -37,7 +37,7 @@ export default function AboutPage() {
 
       <SiteSection
         id="founder"
-        tone="ink"
+        tone="brand"
         eyebrow={FOUNDER.role}
         heading={FOUNDER.name}
         lead={`${FOUNDER.credential} with ${FOUNDER.experience}.`}
@@ -94,7 +94,7 @@ export default function AboutPage() {
 
       <SiteSection
         id="about-contact"
-        tone="ink"
+        tone="brand"
         eyebrow="Get In Touch"
         heading={CLINIC.promise}
         lead="Reach the Grass Valley clinic directly."

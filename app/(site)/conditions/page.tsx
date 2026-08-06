@@ -90,7 +90,7 @@ export default function ConditionsPage() {
 
       <SiteSection
         id="conditions-contact"
-        tone="ink"
+        tone="brand"
         eyebrow="Get In Touch"
         heading="Ask About Your Condition"
         lead="The care team can tell you whether x-ray therapy is an option for you."

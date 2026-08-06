@@ -96,6 +96,41 @@ for (const [selector, tokens] of themes) {
 
 assert.deepEqual(failures, [], `Contrast failures:\n  ${failures.join('\n  ')}\n`);
 
+// --- Public-site brand palette (declared on .site-page) ---
+const site = tokenBlock('.site-page');
+const sitePairs = [
+  ['--site-on-brand', '--site-brand', 4.5, 'text on a brand section'],
+  ['--site-on-brand-muted', '--site-brand', 4.5, 'muted text on a brand section'],
+  ['--site-on-brand', '--site-brand-deep', 4.5, 'text on the deep brand gradient stop'],
+  ['--site-on-brand-muted', '--site-brand-deep', 4.5, 'muted text on the deep brand stop'],
+  ['--site-brand-lit', '--site-brand', 3, 'accent mark on a brand section'],
+  ['--site-brand-lit', '--site-brand-deep', 3, 'accent mark on the deep brand stop'],
+];
+
+const rootTokens = themes[0][1];
+for (const [foreground, background, minimum, description] of sitePairs) {
+  const fg = site.get(foreground);
+  const bg = site.get(background);
+  assert.ok(fg, `.site-page is missing ${foreground}`);
+  assert.ok(bg, `.site-page is missing ${background}`);
+  const ratio = contrast(fg, bg);
+  checked += 1;
+  assert.ok(
+    ratio >= minimum,
+    `.site-page ${description}: ${foreground} ${fg} on ${background} ${bg} = ${ratio.toFixed(2)}:1, needs ${minimum}:1`,
+  );
+}
+
+// The brand hue doubles as body-sized link and eyebrow text on the page surface.
+for (const [surface, label] of [['--color-bg', 'the page'], ['--color-card', 'a card']]) {
+  const ratio = contrast(site.get('--site-brand'), rootTokens.get(surface));
+  checked += 1;
+  assert.ok(
+    ratio >= 4.5,
+    `.site-page brand text on ${label}: --site-brand on ${surface} = ${ratio.toFixed(2)}:1, needs 4.5:1`,
+  );
+}
+
 // No pure black or pure white anywhere in the brand system.
 for (const [selector, tokens] of themes) {
   for (const [name, value] of tokens) {

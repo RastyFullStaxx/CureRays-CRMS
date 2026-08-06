@@ -58,6 +58,12 @@ Resolve before adding the files:
 
 Editorial New was the first choice and was rejected — Pangram Pangram licenses it commercially from $40, and it is free to try only.
 
+## Visual World — Aperture
+
+CureRays *is* directed light: the mark is an orange sunburst and the product is a focused beam. The site is built on that rather than on clinic-website convention — a warm source, a hard edge, and material caught in the beam.
+
+It carries three habits the craft floor names as category defaults, now removed: an eyebrow over every section (one named kicker survives, in the hero), `01 / 02 / 03` section numbering, and same-size cards as the page structure. Modalities are a list with a spine; attributes are the gallery.
+
 ## Colour
 
 Three non-true brand families replace the previous `#0033A0` / `#FF671F`:
@@ -67,6 +73,24 @@ Three non-true brand families replace the previous `#0033A0` / `#FF671F`:
 | Ink (`--color-text`) | `#1A1D21` | `#EDE9E3` |
 | Bone (`--color-bg`) | `#F5F2ED` | `#0E1113` |
 | Brand (`--color-primary`) | `#1F5F5B` | `#8FC6C0` |
+
+### The site leads with orange; the app does not
+
+The public site has its own brand hue, declared on `.site-page`:
+
+| Token | Value | Job |
+|---|---|---|
+| `--site-brand` | `#B13F21` | Section grounds, calls to action, links, kicker |
+| `--site-brand-deep` | `#7E2A16` | Gradient stop, hover |
+| `--site-brand-lit` | `#F0BC90` | Accent marks on a brand ground |
+| `--site-on-brand` | `#F5F2ED` | Text on a brand ground |
+| `--site-on-brand-muted` | `#F5E4DB` | Secondary text on a brand ground |
+
+`data-tone="brand"` replaces the old `ink` tone, so the dark sections are burnt orange rather than near-black.
+
+**This deliberately does not extend to the clinical app.** A red-orange primary there sits a few degrees from `--status-negative-solid` (`#9E3B32`), and a primary action that reads as an error is a patient-safety problem, not a taste one. The app keeps petrol. The two surfaces share the ink and bone neutrals, the type system, and the spacing scale; only the brand accent differs, and it differs for a stated reason.
+
+`scripts/contrast-check.mjs` covers the brand pairs too — 76 pairs total. It rejected the first `--site-brand-lit` at 2.65:1 against the brand ground.
 
 Token **values** changed; token **names** did not. `--color-primary` is a role name ("interaction"), not a hue name, so every existing screen inherited the new palette without edits.
 
@@ -138,6 +162,30 @@ Recorded per the repository rule that new dependencies need a decision document.
 | `class-variance-authority` | Required by the vendored `sheet` |
 | `clsx`, `tailwind-merge` | Back `cn()` in `lib/utils.ts` |
 | `tailwindcss-animate` | `sheet` enter/exit animation utilities |
+| `motion` | Scroll-linked reveals, the aperture gallery, and figure counters on the public site only |
+
+## Motion
+
+`components/site/site-motion.tsx` holds the primitives; `components/site/site-gallery.tsx` holds the one authored moment. Everything else enters once, quietly.
+
+Every export checks `useReducedMotion()` and renders a **static** equivalent, not a faster animation — the setting means "no motion".
+
+Two traps this work hit, both worth not repeating:
+
+- **A reveal must not defeat its own trigger.** The gallery panels start at `clip-path: inset(0 0 100% 0)`, so they report an `intersectionRatio` of 0. Any fractional `viewport.amount` can never be met and the panel hides itself permanently. `amount: 'some'` (threshold 0) is required, and is load-bearing rather than lazy.
+- **Do not derive an effect dependency in render.** The figure counter parsed its value into an array during render and listed it in the `useEffect` deps. Since each frame calls `setShown`, the effect re-ran and restarted the count from zero forever. Parse inside the effect; depend on primitives.
+
+Layout properties are never animated. The header condenses through material and a scaled mark, not padding — it is sticky, so animating a layout property would force layout on the whole page for every frame. The modality rule sweeps with `scaleX`, not `width`.
+
+## Imagery
+
+`public/site/` holds four photographs: `aperture`, `spectrum`, `lattice`, `grain`. They are abstract studies of warm light and material, sourced from Unsplash under a licence that permits commercial use, and each one was reviewed before it was committed.
+
+**No stock people.** Search results for clinical subjects are almost entirely models posed as clinicians and patients; presenting those as CureRays' own staff or patients would misrepresent a real practice. Every factual claim lives in the copy, which comes from what the clinic publishes. The pictures carry the idea.
+
+No text-to-image tool was available in the session that built this. If one is connected later, purpose-made imagery would be a straight improvement over stock — and real photography of the Grass Valley clinic would beat both.
+
+Still to supply: clinic exterior, Dr. Hess portrait, treatment room, an OG image at 1200×630, and a favicon set.
 
 `cn()` moved from `lib/workflow.ts` to `lib/utils.ts`. Not `@/lib/workflow` — pointing the shadcn utils alias at a 600-line domain module drags workflow code into every UI primitive's bundle. The move also fixed a latent bug: the old implementation joined classes verbatim, so `cn('bg-[var(--color-card)]', className)` emitted both and the winner depended on CSS source order.
 

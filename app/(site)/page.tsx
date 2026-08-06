@@ -1,70 +1,79 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { SiteSection } from '@/components/site/site-section';
-import { SiteStatRow } from '@/components/site/site-stat-row';
 import { SiteContactCard } from '@/components/site/site-contact-card';
+import { SiteGallery } from '@/components/site/site-gallery';
+import { BeamField, Counter, Drift, Reveal } from '@/components/site/site-motion';
 import {
   CLINIC,
   CONDITIONS,
   CONTACT,
   FOUNDER,
-  TREATMENTS,
-  TREATMENT_ATTRIBUTES
+  PRACTICE_FACTS,
+  TREATMENTS
 } from '@/lib/site-content';
 
 export default function HomePage() {
   return (
     <>
       <section className="site-hero" aria-labelledby="hero-heading">
-        <div className="site-hero-inner">
-          <p className="site-eyebrow">{CLINIC.name}</p>
-          <h1 id="hero-heading" className="site-display">
-            {CLINIC.tagline}
-          </h1>
-          <p className="site-hero-lead">{CLINIC.belief}</p>
-          <p className="site-hero-motto">{CLINIC.motto}</p>
-
-          {/* Hick: one primary action, one secondary. Nothing else competes. */}
-          <div className="site-hero-actions">
-            <a className="site-button site-button-primary clinical-focus" href={CONTACT.tollFreeHref}>
-              Schedule A Consultation
-            </a>
-            <Link className="site-button site-button-ghost clinical-focus" href="/treatments">
-              See How CureRays Works
-            </Link>
-          </div>
+        <div className="site-hero-canvas" aria-hidden="true">
+          <Image
+            src="/site/aperture.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="site-hero-plate"
+          />
+          <span className="site-hero-scrim" />
+          <BeamField />
         </div>
 
-        {/* Shown from 1160px only. The site has no clinical photography, so the
-            hero anchors on the existing abstract brand asset rather than stock
-            imagery of patients we do not have permission to depict. */}
-        <div className="site-hero-media" aria-hidden="true">
-          <Image
-            src="/curerays-treatment-geometry.png"
-            alt=""
-            width={1717}
-            height={916}
-            priority
-            sizes="(max-width: 1159px) 0px, 46vw"
-          />
+        <div className="site-hero-inner">
+          <Reveal>
+            <p className="site-kicker">{CLINIC.name}</p>
+          </Reveal>
+
+          <Reveal delay={0.08}>
+            <h1 id="hero-heading" className="site-display">
+              {CLINIC.tagline}
+            </h1>
+          </Reveal>
+
+          <Reveal delay={0.16}>
+            <p className="site-hero-lead">{CLINIC.belief}</p>
+          </Reveal>
+
+          <Reveal delay={0.24}>
+            <div className="site-hero-actions">
+              <a
+                className="site-button site-button-primary clinical-focus"
+                href={CONTACT.tollFreeHref}
+              >
+                Schedule A Consultation
+              </a>
+              <Link className="site-button site-button-ghost clinical-focus" href="/treatments">
+                See How CureRays Works
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.32}>
+            <p className="site-hero-motto">{CLINIC.motto}</p>
+          </Reveal>
         </div>
       </section>
 
+      {/* The authored moment: four apertures opening on the therapy's own terms. */}
       <SiteSection
         id="attributes"
-        tone="ink"
-        eyebrow="Non-Invasive X-Ray Therapy"
+        tone="brand"
+        layout="stack"
         heading="Treatment You Can Return To Work After"
-        lead="CureRays delivers therapy that reaches the condition without an incision."
+        lead="Non-invasive x-ray therapy reaches the condition without an incision, without sedation, and without a recovery you have to plan your life around."
       >
-        <ul className="site-attribute-grid">
-          {TREATMENT_ATTRIBUTES.map((attribute) => (
-            <li key={attribute.name} className="site-attribute">
-              <p className="site-attribute-name">{attribute.name}</p>
-              <p className="site-body">{attribute.detail}</p>
-            </li>
-          ))}
-        </ul>
+        <SiteGallery />
       </SiteSection>
 
       <SiteSection
@@ -73,15 +82,22 @@ export default function HomePage() {
         heading="Radiation Medicine, Matched To The Condition"
         lead="From superficial skin therapy to image-guided treatment, each modality is chosen for what it treats best."
       >
-        <ul className="site-card-grid">
-          {TREATMENTS.slice(0, 4).map((treatment) => (
-            <li key={treatment.slug} className="site-card">
-              <p className="site-card-tag">{treatment.abbreviation}</p>
-              <h3 className="site-subhead">{treatment.name}</h3>
-              <p className="site-body">{treatment.summary}</p>
-            </li>
+        <ol className="site-modality-list">
+          {TREATMENTS.slice(0, 4).map((treatment, index) => (
+            <Reveal as="li" key={treatment.slug} delay={index * 0.06}>
+              <Link href={`/treatments#${treatment.slug}`} className="site-modality clinical-focus">
+                <span className="site-modality-tag">{treatment.abbreviation}</span>
+                <span className="site-modality-body">
+                  <span className="site-subhead">{treatment.name}</span>
+                  <span className="site-body">{treatment.summary}</span>
+                </span>
+                <span className="site-modality-arrow" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            </Reveal>
           ))}
-        </ul>
+        </ol>
         <Link className="site-inline-link clinical-focus" href="/treatments">
           All Treatments
           <span aria-hidden="true">→</span>
@@ -108,30 +124,53 @@ export default function HomePage() {
         </Link>
       </SiteSection>
 
-      <SiteSection
-        id="practice"
-        eyebrow="The Practice"
-        heading="A Team Built Around Access"
-        lead={CLINIC.purpose}
-      >
-        <SiteStatRow />
-        <div className="site-founder">
-          <p className="site-eyebrow">{FOUNDER.role}</p>
-          <p className="site-founder-name">{FOUNDER.name}</p>
-          <p className="site-body">
-            {FOUNDER.credential} with {FOUNDER.experience}.
-          </p>
-          <Link className="site-inline-link clinical-focus" href="/about">
-            About CureRays
-            <span aria-hidden="true">→</span>
-          </Link>
+      <section className="site-practice" aria-labelledby="practice-heading">
+        <div className="site-practice-inner">
+          <div className="site-practice-copy">
+            <Reveal>
+              <h2 id="practice-heading" className="site-headline">
+                A Team Built Around Access
+              </h2>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <p className="site-lead">{CLINIC.purpose}</p>
+            </Reveal>
+
+            <Reveal delay={0.16}>
+              <div className="site-founder">
+                <p className="site-founder-name">{FOUNDER.name}</p>
+                <p className="site-body">
+                  {FOUNDER.role} · {FOUNDER.credential} with {FOUNDER.experience}.
+                </p>
+                <Link className="site-inline-link clinical-focus" href="/about">
+                  About CureRays
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+
+          <Drift className="site-practice-figures" distance={38}>
+            <dl className="site-figure-stack">
+              {PRACTICE_FACTS.map((fact) => (
+                <div key={fact.label} className="site-figure">
+                  <dt className="site-figure-value">
+                    <Counter value={fact.value} />
+                  </dt>
+                  <dd>
+                    <span className="site-figure-label">{fact.label}</span>
+                    <span className="site-figure-detail">{fact.detail}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Drift>
         </div>
-      </SiteSection>
+      </section>
 
       <SiteSection
         id="contact"
-        tone="ink"
-        eyebrow="Get In Touch"
+        tone="brand"
         heading={CLINIC.promise}
         lead="Call, email, or visit the Grass Valley clinic. A member of the team will help you find the right next step."
       >

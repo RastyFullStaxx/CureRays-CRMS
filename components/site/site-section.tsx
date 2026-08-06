@@ -12,7 +12,8 @@ export function SiteSection({
   lead,
   children,
   className,
-  tone = 'default'
+  tone = 'default',
+  layout = 'split'
 }: {
   id?: string;
   eyebrow?: string;
@@ -20,7 +21,9 @@ export function SiteSection({
   lead?: string;
   children?: ReactNode;
   className?: string;
-  tone?: 'default' | 'muted' | 'ink';
+  tone?: 'default' | 'muted' | 'brand';
+  /** `stack` drops the desktop two-column split so wide content gets the row. */
+  layout?: 'split' | 'stack';
 }) {
   const headingId = id ? `${id}-heading` : undefined;
 
@@ -29,6 +32,7 @@ export function SiteSection({
       id={id}
       className={cn('site-section', className)}
       data-tone={tone}
+      data-layout={layout}
       aria-labelledby={headingId}
     >
       <div className="site-section-inner">

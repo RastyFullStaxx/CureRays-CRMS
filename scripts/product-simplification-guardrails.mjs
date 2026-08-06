@@ -216,8 +216,9 @@ const proxy = read("proxy.ts");
 assert.match(siteNav, /SITE_NAV_ROUTES/, "Public navigation must read the shared route list");
 assert.match(proxy, /isSitePath/, "Middleware must allow public routes through the shared route list");
 assert.match(siteHeader, /href="\/login"/, "Public site must offer a staff login entry point");
-assert.match(siteHeader, /site-button-primary/, "Public header must expose the phone call to action");
+assert.match(siteHeader, /CONTACT\.tollFreeHref/, "Public header must expose the telephone call to action");
 assert.match(globals, /\.site-button\s*\{[^}]*min-height:\s*48px;/s, "Public calls to action must keep a 48px target");
+assert.match(globals, /\.site-call\s*\{[^}]*min-height:\s*48px;/s, "The header telephone target must stay at 48px");
 
 // Miller: five primary destinations, no more.
 assert.equal(
@@ -231,10 +232,17 @@ assert.doesNotMatch(siteContactCard, /<form|<input|<button/, "Public contact mus
 assert.match(siteContactCard, /tel:|CONTACT\.tollFreeHref/, "Public contact must expose a working telephone link");
 
 // The public site is the only responsive surface, and it stays at two breakpoints.
-assert.equal(
-  (globals.match(/@media \(min-width: (?:768|1160)px\)/g) ?? []).length,
-  2,
-  "The public site must hold to exactly two breakpoints",
+// Scoped to the site CSS: the authenticated app has its own breakpoints above.
+// Distinct widths are the invariant — a media query may be co-located with the
+// component it adjusts, so the number of blocks is not what matters.
+// Anchor on the first real site rule, not on a banner comment — prose elsewhere
+// in the file can contain the section name and would widen the slice.
+const sitePartitionIndex = globals.indexOf('.site-page {');
+assert.notEqual(sitePartitionIndex, -1, 'The public site CSS section must be present');
+assert.deepEqual(
+  [...new Set(globals.slice(sitePartitionIndex).match(/@media \(min-width: \d+px\)/g) ?? [])].sort(),
+  ['@media (min-width: 1160px)', '@media (min-width: 768px)'],
+  'The public site must hold to exactly two breakpoints: 768px and 1160px',
 );
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
