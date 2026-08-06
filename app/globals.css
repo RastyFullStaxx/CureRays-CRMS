@@ -3483,9 +3483,24 @@ button {
   background: var(--color-card-muted);
 }
 
+/* Depth from darker pools only, never from a lighter bloom. Bone body text on
+   flat brand measures 4.72:1 — it clears 4.5:1, but with so little headroom
+   that lightening the ground anywhere breaks it (a 6% wash of --site-brand-lit
+   already drops it to 4.36:1). Darkening can only ever help. A single radial
+   left the lower half reading as one uniform sheet of orange. */
 .site-section[data-tone="brand"] {
   background:
     radial-gradient(120% 90% at 12% 0%, var(--site-brand-deep), transparent 62%),
+    radial-gradient(
+      86% 68% at 92% 16%,
+      color-mix(in srgb, var(--site-brand-deep) 38%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      110% 85% at 62% 112%,
+      color-mix(in srgb, var(--site-brand-deep) 66%, transparent),
+      transparent 64%
+    ),
     var(--site-brand);
   --site-fg: var(--site-on-brand);
   --site-fg-muted: var(--site-on-brand-muted);
@@ -4304,46 +4319,6 @@ button {
   padding-left: clamp(16px, 1.6vw, 24px);
 }
 
-/* The clinic's own four words for what treatment is like. They answer the
-   question the headline provokes before a visitor has to hunt for it. */
-.site-hero-attributes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  list-style: none;
-  margin-top: 6px;
-}
-
-/* Chamfered top-left and bottom-right so the four read as cut plates rather
-   than pills. Non-interactive, so the clip carries no focus-ring cost. */
-.site-hero-attribute {
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--site-brand) 30%, transparent);
-  border-radius: var(--site-radius);
-  clip-path: polygon(
-    var(--site-chamfer-sm) 0,
-    100% 0,
-    100% calc(100% - var(--site-chamfer-sm)),
-    calc(100% - var(--site-chamfer-sm)) 100%,
-    0 100%,
-    0 var(--site-chamfer-sm)
-  );
-  color: var(--site-brand-deep);
-  display: flex;
-  font-size: var(--site-label-size);
-  font-weight: var(--font-weight-semibold);
-  gap: 8px;
-  line-height: var(--site-label-line);
-  padding: 7px 14px;
-}
-
-.site-attribute-icon {
-  color: var(--site-brand);
-  flex: none;
-  height: 17px;
-  width: 17px;
-}
-
 .site-hero-motto {
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
@@ -4356,22 +4331,25 @@ button {
 
 /* --- Gallery: four apertures opening --- */
 
+/* Two up rather than four across. At four columns the frames were ~300px wide
+   on a 1440 viewport and the captions broke mid-phrase; the plates are the
+   authored moment on this page and need the room to act like it. */
 .site-panel-grid {
   display: grid;
-  gap: clamp(16px, 2.4vw, 30px);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: clamp(20px, 3vw, 44px) clamp(16px, 2.4vw, 34px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   list-style: none;
 }
 
-.site-panel[data-span="tall"] .site-panel-frame {
-  aspect-ratio: 3 / 4;
+.site-panel-figure {
+  display: grid;
+  gap: 0;
 }
 
-.site-panel[data-span="wide"] .site-panel-frame {
-  aspect-ratio: 4 / 5;
-}
-
+/* One aspect for all four, so they read as a set rather than four unrelated
+   crops. `object-fit: cover` handles the two portrait sources. */
 .site-panel-frame {
+  aspect-ratio: 4 / 3;
   border-radius: var(--site-radius);
   display: block;
   isolation: isolate;
@@ -4391,37 +4369,60 @@ button {
   width: 100%;
 }
 
+/* The scrim no longer carries text, so its only job is to seat each plate on
+   the brand ground. It deepens on hover rather than lifting — the old rule ran
+   the other way and weakened the wash exactly when the plate came forward. */
 .site-panel-glow {
-  background: linear-gradient(180deg, transparent 32%, color-mix(in srgb, var(--site-brand-deep) 88%, transparent) 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--site-brand-deep) 16%, transparent) 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--site-brand-deep) 46%, transparent) 100%
+  );
   inset: 0;
+  opacity: 0.9;
   position: absolute;
   transition: opacity 0.5s ease;
 }
 
-.site-panel-frame:hover .site-panel-glow {
-  opacity: 0.82;
+.site-panel-figure:hover .site-panel-glow {
+  opacity: 0.55;
 }
 
+/* Below the frame, on the brand ground: a fixed, testable colour pair. */
 .site-panel-caption {
-  bottom: 0;
+  border-top: 1px solid color-mix(in srgb, var(--site-on-brand) 26%, transparent);
   display: grid;
   gap: 6px;
-  padding: clamp(16px, 2vw, 26px);
-  position: absolute;
-  z-index: 1;
+  margin-top: 18px;
+  padding-top: 14px;
 }
 
 .site-panel-name {
+  align-items: center;
   color: var(--site-on-brand);
+  display: flex;
   font-size: var(--site-subhead-size);
   font-weight: var(--font-weight-bold);
+  gap: 10px;
   line-height: var(--site-subhead-line);
+}
+
+/* The only place these icons render now, so they are sized here rather than in
+   a base rule with one consumer. `flex: none` keeps them square when a long
+   attribute name wraps the row. */
+.site-panel-name .site-attribute-icon {
+  color: var(--site-brand-lit);
+  flex: none;
+  height: 20px;
+  width: 20px;
 }
 
 .site-panel-detail {
   color: var(--site-on-brand-muted);
-  font-size: var(--site-label-size);
-  line-height: var(--site-label-line);
+  font-size: var(--site-body-size);
+  line-height: var(--site-body-line);
+  max-width: 34ch;
 }
 
 /* --- Modalities: a list with a spine, not four identical cards --- */
@@ -4559,18 +4560,32 @@ button {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* Heading left, lead right, baselines aligned. Stacked and capped at 46ch it
+     left the right two-thirds of the band empty — roughly 350px of bare ground
+     above the plates. */
   .site-section[data-layout="stack"] .site-section-heading {
-    max-width: 46ch;
+    align-items: end;
+    column-gap: var(--space-6);
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    max-width: none;
     position: static;
   }
 
-  .site-panel-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .site-section[data-layout="stack"] .site-section-heading .site-lead {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    max-width: 46ch;
   }
 
-  /* Alternating lift. Four panels on one baseline would read as a filmstrip. */
-  .site-panel:nth-child(even) {
-    transform: translateY(clamp(20px, 3vw, 46px));
+  .site-panel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* A modest lift on the right column, no more. The captions sit below the
+     frames now, so a large offset never lets any two baselines line up and
+     reads as breakage rather than rhythm — it was 54px and had to come down. */
+  .site-panel:nth-child(even) .site-panel-figure {
+    transform: translateY(clamp(14px, 1.8vw, 28px));
   }
 
   .site-practice-inner {

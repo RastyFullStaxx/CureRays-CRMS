@@ -131,6 +131,28 @@ for (const [surface, label] of [['--color-bg', 'the page'], ['--color-card', 'a 
   );
 }
 
+// A brand section's ground may be darkened but never lightened.
+//
+// Bone body text on flat --site-brand measures 4.72:1. It clears 4.5:1, but with
+// so little headroom that washing the ground with even 6% --site-brand-lit drops
+// it to 4.36:1 and the section fails WCAG 1.4.3. That happened: a "lit bloom"
+// was added to the gradient for depth and the pair checks above did not catch
+// it, because a color-mix inside a gradient is not a token pair.
+{
+  const brandTone = globals.match(
+    /\.site-section\[data-tone="brand"\]\s*\{[\s\S]*?\n\}/,
+  );
+  assert.ok(brandTone, 'could not find the .site-section[data-tone="brand"] rule');
+  const background = brandTone[0].match(/background:[\s\S]*?;/);
+  assert.ok(background, '.site-section[data-tone="brand"] has no background declaration');
+  checked += 1;
+  assert.doesNotMatch(
+    background[0],
+    /--site-brand-lit/,
+    'a brand section ground must not be lightened: --site-brand-lit in the .site-section[data-tone="brand"] background pushes bone body text below 4.5:1. Build depth from --site-brand-deep instead.',
+  );
+}
+
 // No pure black or pure white anywhere in the brand system.
 for (const [selector, tokens] of themes) {
   for (const [name, value] of tokens) {

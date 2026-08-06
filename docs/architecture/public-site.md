@@ -217,9 +217,21 @@ The hero canvas is the one exception: its line caps are round. Vessels are drawn
 
 One rule that is easy to break: **`clip-path` never goes on an interactive element.** The `.clinical-focus` ring is drawn as an outside `box-shadow`, and a clip erases it. The telephone button gets its chamfer from a pseudo-element carrying the fill; `.site-button` is square rather than chamfered for exactly this reason.
 
-The four attribute chips carry pictograms from [`site-attribute-icon.tsx`](../../components/site/site-attribute-icon.tsx) — straight segments only, mitred joins, square caps. Each has to survive being read at 17px, which rules out interior detail: an abstract mark that needs its label to be understood is no better than the bullet it replaced. Sutures-struck-out was the honest metaphor for *Scar-Free* and had to be abandoned because three ticks and a slash collapse into a scribble at that size.
+The gallery captions carry pictograms from [`site-attribute-icon.tsx`](../../components/site/site-attribute-icon.tsx) — straight segments only, mitred joins, square caps. Each has to survive being read at 20px, which rules out interior detail: an abstract mark that needs its label to be understood is no better than the bullet it replaced. Sutures-struck-out was the honest metaphor for *Scar-Free* and had to be abandoned because three ticks and a slash collapse into a scribble at that size.
 
-Reduced motion still gets the finished bed: the host runs frames until it has grown, then draws that state once and never schedules another.
+## The attributes section
+
+Four plates on a brand ground, one per published treatment attribute. Three things about it are decisions, not defaults.
+
+**Captions sit below the frames, never over them.** They used to be laid over the image. The plates parallax as you scroll, so the pixels behind the text changed continuously — contrast was a different value at every scroll position, and sampling the rendered backdrop measured *Anti-Inflammatory* at 2.41:1 against a 3:1 requirement. No amount of scrim tuning fixes text on a moving photograph. Below the frame the pair is bone-on-brand: fixed, and covered by `scripts/contrast-check.mjs`.
+
+**A brand ground may be darkened, never lightened.** Bone body text on flat `--site-brand` measures 4.72:1 — it clears 4.5:1, but with so little headroom that a 6% wash of `--site-brand-lit` drops it to 4.36:1. Depth in the `data-tone="brand"` background therefore comes only from `--site-brand-deep` pools. This is enforced: `contrast-check.mjs` asserts the rule directly, because a `color-mix` inside a gradient is not a token pair and the existing pair checks cannot see it. A lit bloom was added for depth, shipped past the gate, and had to be caught by hand.
+
+**The four plates are graded to one tonal family.** As generated their mean luma spanned 35–172 and warmth 5–79 — four unrelated crops rather than a set, with the palest fighting the orange hardest. They are committed **already graded**, so a grading pass re-run against `public/site/` would double-apply; grade from an original if one is ever needed again. `beam` and `diffuse` also needed `sharp`'s `tint`, which applies chroma while preserving luminance — brightness alone left them neutral and split-toned respectively.
+
+Two consequences worth remembering: the frames are one shared **4:3** aspect so the set reads as a set (`object-fit: cover` handles the portrait sources), and the right column's lift is deliberately small. At 54px no two captions could ever align, which read as breakage rather than rhythm.
+
+Reduced motion still gets the finished hero bed: the host runs frames until it has grown, then draws that state once and never schedules another.
 
 ## Imagery
 
@@ -232,7 +244,9 @@ Reduced motion still gets the finished bed: the host runs frames until it has gr
 | `grain.jpg` | Terracotta and bone-white plaster meeting along an edge | Gallery — *Scar-Free* |
 | `isodose.jpg` | Concentric rings of light falling off into shadow | Gallery — *Anti-Inflammatory* |
 
-Each plate is matched to the attribute it illustrates rather than dropped in for decoration. Total weight is under 400 KB: `sharp` resizes and re-encodes to progressive mozjpeg at q82, and trims the letterbox bars the generator adds.
+Each plate is matched to the attribute it illustrates rather than dropped in for decoration. Total weight is under 400 KB: `sharp` resizes and re-encodes to progressive mozjpeg at q82, and trims the letterbox bars the generator adds. `isodose.jpg` is narrower than its source (614px, not 768px) — it carried black bands down both sides that were invisible in the old portrait crop and obvious once the frames became 4:3.
+
+All four are **committed already graded** to one tonal family; see the attributes section above before re-running any grading pass over them.
 
 **No people, generated or otherwise.** Synthetic "clinicians" and "patients" on a real clinic's site would misrepresent the practice as surely as stock models would. Every factual claim lives in the copy, which comes from what the clinic publishes; the pictures carry the idea, not evidence.
 

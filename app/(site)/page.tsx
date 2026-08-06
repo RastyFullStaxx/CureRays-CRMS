@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { AttributeIcon } from '@/components/site/site-attribute-icon';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { SiteGallery } from '@/components/site/site-gallery';
@@ -11,7 +10,6 @@ import {
   CONTACT,
   FOUNDER,
   PRACTICE_FACTS,
-  TREATMENT_ATTRIBUTES,
   TREATMENTS
 } from '@/lib/site-content';
 
@@ -52,20 +50,10 @@ export default function HomePage() {
             <p className="site-hero-support">{CLINIC.purpose}</p>
           </Reveal>
 
-          {/* Miller: four attributes, the clinic's own words for what treatment
-              feels like. They answer the question the headline provokes. */}
+          {/* The four treatment attributes used to be chipped here as well as
+              in the gallery below. Same four words twice in one scroll; they
+              live in the gallery now, where each also carries its sentence. */}
           <Reveal delay={0.28}>
-            <ul className="site-hero-attributes">
-              {TREATMENT_ATTRIBUTES.map((attribute) => (
-                <li key={attribute.name} className="site-hero-attribute">
-                  <AttributeIcon name={attribute.name} />
-                  {attribute.name}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-
-          <Reveal delay={0.34}>
             <div className="site-hero-actions">
               <a
                 className="site-button site-button-primary clinical-focus"
@@ -79,7 +67,7 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <Reveal delay={0.4}>
+          <Reveal delay={0.34}>
             <p className="site-hero-motto">{CLINIC.motto}</p>
           </Reveal>
         </div>
