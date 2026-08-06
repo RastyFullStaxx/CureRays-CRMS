@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type InputProps = InputHTMLAttributes<HTMLInputElement>;
 

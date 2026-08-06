@@ -33,6 +33,7 @@ Do not infer implementation status from a requirement, architecture document, us
 - [`architecture/workflow-and-automation.md`](architecture/workflow-and-automation.md): phases, steps, gates, ownership, and automation rules.
 - [`architecture/data-and-phi-boundaries.md`](architecture/data-and-phi-boundaries.md): data ownership, OPS/PHI separation, repositories, and safe DTO rules.
 - [`architecture/document-lifecycle.md`](architecture/document-lifecycle.md): templates, generated outputs, signatures, storage, eCW, and corrections.
+- [`architecture/public-site.md`](architecture/public-site.md): public clinic site, route-group split, brand palette, typography systems, and the shadcn/ui dependency decision.
 
 ### Design
 

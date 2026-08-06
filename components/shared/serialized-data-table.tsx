@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { DataTable, type DataTableFilter } from '@/components/shared/data-table';
 import { PrototypeActionButton } from '@/components/shared/prototype-action-button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { mapTone, type StatusTone } from '@/lib/status-utils';
 
 type SerializableCell = string | number | boolean | null | undefined | string[];

@@ -3,9 +3,11 @@ import {
   isSameOriginRequest,
   pilotSessionFromRequest,
 } from '@/lib/server/pilot-session';
+import { isSitePath } from '@/lib/site-routes';
 
 function isPublicPath(pathname: string): boolean {
   return (
+    isSitePath(pathname) ||
     pathname === '/login' ||
     pathname.startsWith('/api/auth/') ||
     pathname.startsWith('/_next/') ||

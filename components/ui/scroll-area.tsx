@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type ScrollAreaProps = HTMLAttributes<HTMLDivElement> & {
   axis?: 'x' | 'y' | 'both';

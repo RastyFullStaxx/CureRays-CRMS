@@ -1,4 +1,4 @@
-import { cn } from "@/lib/workflow";
+import { cn } from "@/lib/utils";
 import type { CarepathWorkflowPhase } from "@/lib/types";
 import { carepathPhaseLabels, orderedCarepathPhases } from "@/lib/workflow";
 

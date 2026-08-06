@@ -53,7 +53,11 @@ const adapter = read('lib/ui-typography.ts');
 
 assert.match(layout, /import \{ Inter \} from ["']next\/font\/google["']/, 'Root layout must load Inter through next/font');
 assert.match(layout, /variable:\s*["']--font-inter["']/, 'Inter must expose the global CSS variable');
-assert.match(loginPage, /Space_Grotesk/, 'Landing must use the approved Space Grotesk display face');
+assert.doesNotMatch(
+  loginPage,
+  /next\/font/,
+  'Login is an authenticated surface and inherits the Inter product scale; it must not load its own typeface',
+);
 assert.doesNotMatch(globals, /fonts\.googleapis|@import\s+url/, 'Global CSS must not load remote fonts');
 assert.doesNotMatch(globals, /Manrope/, 'Typography must use Inter exclusively');
 
@@ -84,9 +88,13 @@ for (const className of [
 }
 
 const fontFamilyLines = globals.split(/\r?\n/).filter((line) => line.includes('font-family:'));
+// Two type systems, and only two: Inter for the authenticated product, the
+// public-site pairing for app/(site)/**. Custom properties only descend, so the
+// app cannot inherit the site faces.
 assert.deepEqual(fontFamilyLines.map((line) => line.trim()), [
   'font-family: var(--font-ui);',
-  'font-family: var(--font-landing-display), var(--font-ui);',
+  'font-family: var(--font-site-text), var(--font-ui);',
+  'font-family: var(--font-site-display), var(--font-site-text);',
 ]);
 
 for (const line of globals.split(/\r?\n/)) {
@@ -94,7 +102,7 @@ for (const line of globals.split(/\r?\n/)) {
   if (fontSize) {
     assert.match(
       fontSize[1],
-      /^(?:var\(--type-(?:title|heading|body|label)-size\)(?: !important)?|16px|2\.7px|3\.2px)$/,
+      /^(?:var\(--(?:type-(?:title|heading|body|label)|site-(?:display|headline|subhead|lead|body|label))-size\)(?: !important)?|16px)$/,
       `Unsupported global font size: ${fontSize[1]}`,
     );
   }
@@ -103,7 +111,7 @@ for (const line of globals.split(/\r?\n/)) {
   if (lineHeight) {
     assert.match(
       lineHeight[1],
-      /^var\(--type-(?:title|heading|body|label)-line\)(?: !important)?$/,
+      /^var\(--(?:type-(?:title|heading|body|label)|site-(?:display|headline|subhead|lead|body|label))-line\)(?: !important)?$/,
       `Unsupported global line height: ${lineHeight[1]}`,
     );
   }
@@ -117,10 +125,16 @@ for (const line of globals.split(/\r?\n/)) {
     );
   }
 
-  assert.doesNotMatch(line, /letter-spacing:/, 'Local letter spacing is not allowed');
+  // Tracking is allowed only through the public-site display tokens: a 4.5rem
+  // serif headline needs optical correction that the product scale never does.
+  if (/letter-spacing:/.test(line)) {
+    assert.match(
+      line,
+      /letter-spacing:\s*var\(--site-(?:display|headline)-tracking\);/,
+      `Letter spacing is allowed only through the public-site tracking tokens: ${line.trim()}`,
+    );
+  }
 }
-
-assert.equal((globals.match(/font-size:\s*(?:2\.7|3\.2)px;/g) ?? []).length, 0, 'SVG coordinate-space font sizes were retired with the PHI boundary graph; no exceptions remain');
 
 assert.match(button, /type-button/, 'Buttons must use the shared 12px typography role');
 assert.doesNotMatch(button, /type-supporting/, 'Small buttons must not shrink their text');

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { RadiotherapyOrbitCanvas } from "@/components/landing/radiotherapy-orbit-canvas";
+import { RadiotherapyOrbitCanvas } from "@/components/login/radiotherapy-orbit-canvas";
 
 function subscribe() {
   return () => undefined;

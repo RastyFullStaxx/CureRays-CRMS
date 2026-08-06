@@ -612,6 +612,3 @@ export function formatLastUpdated(value: string) {
   }).format(new Date(value));
 }
 
-export function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 export type SettingsCategory = {
   title: string;

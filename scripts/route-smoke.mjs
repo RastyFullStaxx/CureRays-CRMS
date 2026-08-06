@@ -41,14 +41,14 @@ const secondaryRoutes = [
 ];
 
 const dynamicExamples = [
-  { route: "/patients/PHI-CR2401", file: "app/patients/[id]/page.tsx" },
-  { route: "/patients/PHI-CR2401/carepath", file: "app/patients/[id]/carepath/page.tsx" },
-  { route: "/patients/PHI-CR2401/documents", file: "app/patients/[id]/documents/page.tsx" }
+  { route: "/patients/PHI-CR2401", file: "app/(app)/patients/[id]/page.tsx" },
+  { route: "/patients/PHI-CR2401/carepath", file: "app/(app)/patients/[id]/carepath/page.tsx" },
+  { route: "/patients/PHI-CR2401/documents", file: "app/(app)/patients/[id]/documents/page.tsx" }
 ];
 
 function routeToPageFile(route) {
   const segments = route.split("/").filter(Boolean);
-  return join(root, "app", ...segments, "page.tsx");
+  return join(root, "app", "(app)", ...segments, "page.tsx");
 }
 
 const staticRoutes = [...sidebarRoutes, ...secondaryRoutes];

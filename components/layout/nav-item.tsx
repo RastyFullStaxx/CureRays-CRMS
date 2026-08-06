@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type NavItemProps = {
   href: string;

@@ -50,11 +50,11 @@ import type {
 import {
   carepathPhaseLabels,
   carepathProgress,
-  cn,
   formatDate,
   orderedCarepathPhases,
   responsiblePartyLabels,
 } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { patientRef } from '@/lib/hipaa';
 import { phaseTone, priorityTone, statusTone, statusToneClass } from '@/lib/status-utils';
 import { formatUiLabel } from '@/lib/ui-copy';

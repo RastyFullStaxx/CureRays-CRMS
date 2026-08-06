@@ -1,5 +1,5 @@
 import type { TextareaHTMLAttributes } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement>;
 

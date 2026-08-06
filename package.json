@@ -61,15 +61,19 @@
     "test:typography": "node scripts/typography-guardrails.mjs",
     "test:ui-copy": "node scripts/ui-copy-guardrails.mjs",
     "test:colors": "node scripts/color-system-guardrails.mjs",
+    "test:contrast": "node scripts/contrast-check.mjs",
     "test:docs": "node scripts/docs-link-check.mjs",
     "test:hipaa": "node scripts/hipaa-guardrails.mjs",
     "test:guardrails": "npm run test:phase0 && npm run test:simplification && npm run test:hipaa && npm run test:fraction-worksheet && npm run test:phase4 && npm run test:phase5 && npm run test:phase6 && npm run test:later-phases && npm run test:routes && npm run test:phase1 && npm run test:phase2 && npm run test:phase3",
     "test:full": "npm run verify && npm run build && npm run test:guardrails",
-    "verify": "npm run typecheck && npm run lint && npm run test:typography && npm run test:ui-copy && npm run test:colors"
+    "verify": "npm run typecheck && npm run lint && npm run test:typography && npm run test:ui-copy && npm run test:colors && npm run test:contrast"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@radix-ui/react-dialog": "^1.1.23",
     "@types/d3-force": "^3.0.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "d3-force": "^3.0.0",
     "docx": "^9.7.1",
     "docxtemplater": "^3.69.0",
@@ -82,6 +86,8 @@
     "react-dom": "^19.2.7",
     "recharts": "^3.8.1",
     "skillfish": "^1.0.38",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss-animate": "^1.0.7",
     "three": "^0.184.0"
   },
   "devDependencies": {

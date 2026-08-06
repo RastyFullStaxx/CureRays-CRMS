@@ -11,7 +11,8 @@ import { PrototypeActionButton } from '@/components/shared/prototype-action-butt
 import { StatGrid } from '@/components/shared/stat-grid';
 import { StatCard } from '@/components/shared/stat-card';
 import type { CarepathTask, ResponsibleParty, WorkflowItemStatus, WorkflowStep } from '@/lib/types';
-import { carepathPhaseLabels, cn, formatDate, responsiblePartyLabels } from '@/lib/workflow';
+import { carepathPhaseLabels, formatDate, responsiblePartyLabels } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { phaseTone, statusTone } from '@/lib/status-utils';
 import { formatUiLabel } from '@/lib/ui-copy';
 

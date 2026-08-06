@@ -6,6 +6,8 @@ This is the canonical operating entrypoint for agents working in this repository
 
 CureRays CRMS is a patient-course-centered clinical workflow system for CureRays Radiation Medicine, replacing a manual worksheet/Drive/Word workflow (the real templates live in `docs/2026_TEMPLATES`). Next.js 16 App Router + React 19 + TypeScript + Tailwind, with two PostgreSQL databases (OPS tokenized operational data, PHI patient data) behind Prisma. Work happens in a four-tab patient workspace (Overview, Prepare, Treatment, Record & Closeout) plus six global pages. Structured application state — never a file, folder, or document status — is the workflow source of truth.
 
+The repository serves **two surfaces**: a public patient-facing clinic site at `/` (`app/(site)/**`, responsive, static) and the authenticated CRMS behind `/login` (`app/(app)/**`, desktop-only, dynamic). Decision record: [docs/architecture/public-site.md](docs/architecture/public-site.md).
+
 ## Pilot North Star
 
 The current target is a **staff pilot (~3 months, synthetic/de-identified data only, no real PHI)** proving the app beats sheets+Drive. The core loop is:
@@ -32,7 +34,7 @@ The full pilot core loop works end-to-end and is verified in-browser. `docs/stat
 3. **P5 — Settings template management** (planned in the roadmap): list/upload/version carepath templates per protocol, map to requirements/field maps, active/draft gating of generation resolution.
 4. **Deferred production workstreams** (see roadmap) — real auth/IdP, immutable audit, eCW/Drive, clinical validation — only when moving past the no-PHI pilot.
 
-**Cut list — do not build these even if older docs mention them:** eCW/Drive adapters · IdP/MFA · immutable-audit infrastructure · deep analytics · imaging beyond evidence attach · PDF/PPTX generation · mobile layouts · live/WYSIWYG document editing (documents are generated from structured forms, permanently).
+**Cut list — do not build these even if older docs mention them:** eCW/Drive adapters · IdP/MFA · immutable-audit infrastructure · deep analytics · imaging beyond evidence attach · PDF/PPTX generation · **mobile layouts in the authenticated app** (the public site at `app/(site)/**` *is* responsive — do not delete its responsive CSS) · live/WYSIWYG document editing (documents are generated from structured forms, permanently).
 
 ## Reading Order
 
@@ -52,6 +54,7 @@ Each decision lives in exactly one place:
 - **Next-action selection, course-site model, correction semantics, evidence attachment, preauth dependency**: [docs/architecture/workflow-and-automation.md](docs/architecture/workflow-and-automation.md)
 - **Document generation profile** (docxtemplater/exceljs, tagged copies, output versions): [docs/architecture/document-lifecycle.md](docs/architecture/document-lifecycle.md)
 - **Route inventory and retirements**: [docs/product/navigation-and-pages.md](docs/product/navigation-and-pages.md)
+- **Public clinic site, route-group split, three-color brand palette, two typography systems, shadcn/ui dependency decision**: [docs/architecture/public-site.md](docs/architecture/public-site.md)
 - **Pilot gates and non-goals**: [docs/requirements/pilot-readiness.md](docs/requirements/pilot-readiness.md)
 
 ## Discipline and Skills
@@ -81,7 +84,13 @@ Each decision lives in exactly one place:
 Verified corrections — trust these over older prose:
 
 - Env vars are `OPS_DATABASE_URL` / `PHI_DATABASE_URL` (see `.env.example`), not `DATABASE_URL_OPS/PHI`.
-- `npm run verify` runs more than typecheck+lint (see Verification Policy above).
+- `npm run verify` runs more than typecheck+lint (see Verification Policy above) — it now also runs `test:contrast`.
+- **`/` is the public clinic home, not a redirect to `/login`.** Authenticated routes live under `app/(app)/`; `app/page.tsx` no longer exists.
+- **`cn()` lives in `lib/utils.ts`** (`twMerge(clsx(...))`), not `lib/workflow.ts`.
+- **There is no `--color-accent`.** The accent and every `--landing-color-*` token were retired with the three-color brand system. `--color-success/warning/error/info` never existed despite older AGENTS.md tables.
+- **`components/landing/` is now `components/login/`.** The `.landing-*` CSS block is gone; the login shell uses `.login-*`.
+- Guardrail scripts hardcode `app/(app)/...` paths. Moving a route means updating `route-smoke`, `hipaa-guardrails`, `phase1`, `phase3`, `phase6`, and `product-simplification-guardrails`.
+- `scripts/phase2-patient-registration.mjs`, `phase4-template-registry.mjs`, `phase5-document-lifecycle.mjs`, and `phase6-treatment-planning.mjs` **fail on `main` already** — pre-existing, unrelated to routing, and invisible because none is in `npm run verify`.
 - Read hydration from Postgres **is** wired (`lib/server/database-hydration.ts`) **and** write-through persistence is live (P0 done) — the store is durable, not memory-only.
 - The route table of record is [docs/product/navigation-and-pages.md](docs/product/navigation-and-pages.md), not AGENTS.md.
 - New deps in use: `docx`, `exceljs` (document generation). Recorded exception in [document-lifecycle.md](docs/architecture/document-lifecycle.md).

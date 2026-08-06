@@ -5,16 +5,6 @@ import { extname, join, relative } from 'node:path';
 const root = process.cwd();
 const sourceRoots = ['app', 'components', 'lib'];
 const sourceExtensions = new Set(['.ts', '.tsx', '.css']);
-const chartFiles = [
-  'components/analytics/analytics-command-client.tsx',
-  'components/dashboard/dashboard-telemetry-client.tsx',
-  'components/shared/chart-card.tsx',
-  'lib/services/analytics-telemetry-service.ts',
-  'lib/services/dashboard-telemetry-service.ts',
-];
-const accentArtworkFiles = new Set([
-  'components/landing/brand-wave-background.tsx',
-]);
 
 function walk(directory) {
   return readdirSync(directory)
@@ -72,23 +62,18 @@ for (const absolutePath of sourceRoots.flatMap((directory) => walk(join(root, di
     /\b(?:text|bg|border|ring|fill|stroke)-(?:white|black|slate|gray|zinc|neutral|stone|red|green|emerald|amber|yellow|orange|blue|indigo|violet|purple|pink|cyan|teal)(?:-\d{2,3})?\b/,
     `${path} must not use framework palette colors`,
   );
-  if (!accentArtworkFiles.has(path)) {
-    assert.doesNotMatch(
-      content,
-      /var\(--color-accent(?:-soft|-foreground)?\)/,
-      `${path} must reserve the accent token for approved brand artwork`,
-    );
-  }
-}
-
-for (const path of chartFiles) {
-  const content = read(path);
   assert.doesNotMatch(
     content,
-    /var\(--color-accent\)|var\(--color-info\)/,
-    `${path} must not use accent or informational colors for data`,
+    /var\(--color-accent(?:-soft|-foreground)?\)/,
+    `${path} must not reference the retired accent token`,
   );
 }
+
+assert.doesNotMatch(
+  globals,
+  /--color-accent/,
+  'The accent token was retired with the three-color brand system',
+);
 
 assert.match(statusUtils, /export function phaseTone\([^)]*\): StatusTone \{\s*return ['"]neutral['"];/s);
 for (const nonValencedStatus of ['ACTIVE', 'IN_PROGRESS', 'SCHEDULED', 'NOT_STARTED', 'NOT_APPLICABLE']) {

@@ -16,17 +16,17 @@ const prototypeActionExpectations = {
 };
 
 const redirectedRouteExpectations = {
-  "app/billing/page.tsx": "/patients",
-  "app/clinical-forms/page.tsx": "/patients",
-  "app/imaging/page.tsx": "/patients",
-  "app/treatment-delivery/page.tsx": "/patients",
-  "app/workflow/page.tsx": "/tasks",
-  "app/today/page.tsx": "/tasks"
+  "app/(app)/billing/page.tsx": "/patients",
+  "app/(app)/clinical-forms/page.tsx": "/patients",
+  "app/(app)/imaging/page.tsx": "/patients",
+  "app/(app)/treatment-delivery/page.tsx": "/patients",
+  "app/(app)/workflow/page.tsx": "/tasks",
+  "app/(app)/today/page.tsx": "/tasks"
 };
 
 const settingsRouteExpectations = {
-  "app/settings/templates/page.tsx": "@/app/templates/page",
-  "app/settings/users/page.tsx": "@/app/users-roles/page"
+  "app/(app)/settings/templates/page.tsx": "@/app/(app)/templates/page",
+  "app/(app)/settings/users/page.tsx": "@/app/(app)/users-roles/page"
 };
 
 function listSourceFiles(directory) {
@@ -62,7 +62,7 @@ function hasAttribute(node, name) {
 
 const files = sourceRoots.flatMap(listSourceFiles);
 
-for (const requiredFile of ["app/loading.tsx", "app/error.tsx"]) {
+for (const requiredFile of ["app/(app)/loading.tsx", "app/(app)/error.tsx"]) {
   assert.ok(existsSync(join(root, requiredFile)), `${requiredFile} must exist for prototype route states`);
 }
 
@@ -117,7 +117,7 @@ for (const label of ["Go to Today", "Schedule Date", "Open Linked Work"]) {
 }
 
 assert.equal(
-  readFileSync(join(root, "app/settings/page.tsx"), "utf8").includes("<button"),
+  readFileSync(join(root, "app/(app)/settings/page.tsx"), "utf8").includes("<button"),
   false,
   "Settings category rows must be static until settings detail routes are wired"
 );

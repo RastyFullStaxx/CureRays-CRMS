@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/toast';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { formatUiLabel } from '@/lib/ui-copy';
 import type {
   ClinicalFormResponse,

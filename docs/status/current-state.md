@@ -1,6 +1,6 @@
 # Current Implementation State
 
-- **Last evidence review:** 2026-07-13
+- **Last evidence review:** 2026-08-06
 - **Lifecycle stage:** Active development prototype
 - **Real PHI/ePHI use:** Prohibited
 - **Authority:** This document records implementation status; code and test evidence override prose when they disagree.
@@ -15,6 +15,10 @@ The four patient-workspace tabs are the correct long-term structure. The primary
 
 | Area | Current state | Evidence | Required next state |
 |---|---|---|---|
+| Public clinic site | Implemented (content complete, typeface pending) | `app/(site)/**` serves `/`, `/treatments`, `/conditions`, `/services`, `/about`, `/contact` from `lib/site-content.ts`, all copy drawn from CureRays' published material. Responsive 390→1920 with two breakpoints; verified at 375 and 1280 with no horizontal overflow, 48px calls to action, 44px drawer targets. Mobile drawer opens with focus trapped, scroll locked, and correct ARIA. `robots.ts` disallows every authenticated route; `MedicalClinic` structured data on `/contact`. No form anywhere — contact is `tel:`/`mailto:`/map links only | Clinic sign-off on copy; resolve the Fontshare licence question and commit the display/text faces (tokens currently fall back to Georgia/Inter); supply photography and an OG image |
+| Brand and design system | Reworked | Three non-true brand families (ink `#1A1D21`, bone `#F5F2ED`, brand `#1F5F5B`) replace the previous blue/orange; `--color-accent` and all `--landing-color-*` tokens deleted. Status tones retuned off-true. `scripts/contrast-check.mjs` runs in `npm run verify` and asserts 68 pairs across both themes — it caught four dark-mode borders below 3:1 during migration. Two pre-existing WCAG 1.4.11 failures fixed: pastel status borders (~1.6:1) and the 16%-alpha focus ring (~1.2:1) | Visual review on real hardware |
+| Route architecture | Reworked | `app/(site)/` public + `app/(app)/` authenticated route groups. Session hydration and the app shell moved out of the root layout, so anonymous visitors no longer trigger clinical-store hydration and the public site can prerender. `app/page.tsx` deleted; `/` is the clinic home | — |
+| shadcn/ui | Adopted (infrastructure + one component) | `components.json`, `cn()` in `lib/utils.ts` via `twMerge(clsx())`, Tailwind colour names bridged onto existing CSS custom properties in `tailwind.config.ts`. Exactly one vendored component (`sheet`, for the public mobile drawer), fully retokenized. Existing dialog/tabs/select kept — they were already accessible and better tested | — |
 | Patient-first navigation | Implemented for prototype | Primary navigation and legacy redirects exist | Validate with operational users |
 | Four-tab patient workspace | Implemented for prototype | Overview, Prepare, Treatment, Record & Closeout | Keep tabs stable; deepen workbenches |
 | Course gate and next action | Implemented from in-memory/domain state | Shared patient workspace derivation | Persist and test every gate source |

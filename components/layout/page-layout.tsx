@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Search } from 'lucide-react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import type { StatusTone } from '@/lib/status-utils';
 

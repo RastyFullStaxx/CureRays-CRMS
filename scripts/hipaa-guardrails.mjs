@@ -30,15 +30,15 @@ assert.equal(
 );
 
 const operationalPages = [
-  "app/page.tsx",
-  "app/dashboard/page.tsx",
-  "app/patients/page.tsx",
-  "app/records/page.tsx",
-  "app/upcoming/page.tsx",
-  "app/on-treatment/page.tsx",
-  "app/post/page.tsx",
-  "app/reports/page.tsx",
-  "app/analytics/page.tsx"
+  "app/(site)/page.tsx",
+  "app/(app)/dashboard/page.tsx",
+  "app/(app)/patients/page.tsx",
+  "app/(app)/records/page.tsx",
+  "app/(app)/upcoming/page.tsx",
+  "app/(app)/on-treatment/page.tsx",
+  "app/(app)/post/page.tsx",
+  "app/(app)/reports/page.tsx",
+  "app/(app)/analytics/page.tsx"
 ];
 
 for (const page of operationalPages) {

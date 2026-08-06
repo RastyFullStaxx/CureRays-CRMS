@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import type { BadgeVariant } from '@/lib/status-utils';
 
 type BadgeProps = {

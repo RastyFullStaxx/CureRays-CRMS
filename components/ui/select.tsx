@@ -1,5 +1,5 @@
 import type { SelectHTMLAttributes } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 

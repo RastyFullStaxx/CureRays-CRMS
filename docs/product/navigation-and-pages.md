@@ -2,6 +2,33 @@
 
 **Status:** Canonical product structure
 
+## Two Surfaces
+
+| Group | Routes | Audience | Auth |
+|---|---|---|---|
+| `app/(site)/**` | `/`, `/treatments`, `/conditions`, `/services`, `/about`, `/contact` | Patients and referrers | Public |
+| `app/login` | `/login` | Clinic staff | Public, sign-in only |
+| `app/(app)/**` | Everything below | Clinic staff | Session required |
+
+`/` is the public clinic home. It no longer redirects to `/login`; `proxy.ts` allows the public paths through `isSitePath()` from `lib/site-routes.ts`. `robots.ts` disallows every authenticated route.
+
+Decision record: [`../architecture/public-site.md`](../architecture/public-site.md).
+
+## Public Site Pages
+
+| Route | Responsibility |
+|---|---|
+| `/` | Clinic home: promise, treatment attributes, headline treatments, conditions, practice facts, founder, contact |
+| `/treatments` | Every modality with what it treats. Full page rather than a menu, because the list is irreducible |
+| `/conditions` | Conditions treated, as disclosures, each linked to its associated therapy |
+| `/services` | Screening, procedures, medical management, and research |
+| `/about` | Belief, purpose, promise, founder, specialty areas, recognition, programs |
+| `/contact` | Real telephone, email, address, and map links plus `MedicalClinic` structured data |
+
+The public site carries no form. Every contact affordance is a `tel:`, `mailto:`, or map link, because no email or booking provider is configured and a control that appears to submit but cannot is prohibited by `PRODUCT.md`.
+
+Five programs CureRays names publicly — Keep Cancer Away, Keep Arthritis Away, CureRays Institute, Clinical Outcomes, Join CureRays — are listed on `/about` but not linked. Stub routes would invent claims we have no copy for.
+
 ## Primary Navigation
 
 The Mac-style command bar exposes:

@@ -13,7 +13,7 @@ npm run build        # Production build (next build)
 npm run start        # Start production server
 npm run lint         # ESLint CLI (next/core-web-vitals + TypeScript)
 npm run typecheck    # TypeScript type checking (tsc --noEmit)
-npm run verify       # Fast prototype gate: typecheck + lint
+npm run verify       # Gate: typecheck + lint + typography/ui-copy/color/contrast guardrails
 npm run test:guardrails # Phase + HIPAA guardrail scripts
 npm run test:full    # Full suite: verify + build + all guardrails
 npm run test:hipaa   # HIPAA guardrails validation
@@ -26,7 +26,7 @@ npm run test:hipaa   # HIPAA guardrails validation
 - **Release-phase verification policy**: Run production builds, full guardrails, browser/responsive matrices, route sweeps, and full suites only after the user explicitly says the project is near release or has entered release preparation.
 - Keep testing proportional to the change. Prefer one targeted check that directly covers the edited behavior; do not spend more time or tokens on unrelated validation than on the feature itself.
 - No formal test framework is configured yet. Phase guardrail scripts in `scripts/` validate feature completeness for each phase.
-- `npm run verify` is intentionally lightweight for prototype feature work: it runs `typecheck + lint` plus the typography, ui-copy, and color guardrail scripts.
+- `npm run verify` is intentionally lightweight for prototype feature work: it runs `typecheck + lint` plus the typography, ui-copy, color, and contrast guardrail scripts.
 - `npm run test:guardrails` runs the phase scripts plus HIPAA boundaries. `npm run test:full` runs `verify + build + all guardrails`.
 - Mock data in `lib/mock-data.ts` should be validated against TypeScript types in `lib/types.ts`.
 - Persistence reality: the server hydrates the in-memory clinical store from PostgreSQL at boot when persistence mode is enabled (`lib/server/database-hydration.ts`); mutations are memory-only until roadmap milestone P0 lands. Memory-only mode remains the zero-setup default for local dev.
@@ -38,7 +38,8 @@ npm run test:hipaa   # HIPAA guardrails validation
 
 ## Code Style
 
-- Never mind mobile responsiveness for now. Leave it be and let's just focus on a desktop view and laptop views such as a macbook
+- **Responsive scope**: The authenticated app (`app/(app)/**`) and `app/login` target desktop and laptop only — never mind mobile there. The public clinic site (`app/(site)/**`) is responsive from 390 to 1920 and is the only surface where mobile layout work is in scope. Keep responsive CSS inside the `.site-*` block.
+- **Route groups**: `app/(site)/**` is public, static, and indexable; `app/(app)/**` is authenticated, dynamic, and desktop-only. Session hydration and the app shell live in `app/(app)/layout.tsx`, never in the root layout. Metadata routes (`robots.ts`, `sitemap.ts`) must sit at the app root — inside a route group they 404.
 - **Documentation entrypoint**: Start with `docs/README.md`. Treat `docs/status/current-state.md` as the only prose source for current implementation status and `docs/roadmap/implementation-roadmap.md` as the active gap-closure plan. Files under `docs/archive/` are historical and non-authoritative.
 - **Must-read UI rules**: Before designing UI or writing UI code, read `docs/design/ui-engineering.md`, `docs/design/typography.md`, and `docs/design/color-system.md`.
 - **ESLint**: ESLint CLI with `eslint-config-next/core-web-vitals` and TypeScript rules. Run `npm run lint` before committing.
@@ -86,6 +87,9 @@ Primary API routes: `/api/workflow` (+ `/api/workflow/steps/[stepId]`, `/api/wor
 | Clinical store | `lib/clinical-store.ts` | Clinical data state & mutations (881 lines) |
 | HIPAA utilities | `lib/hipaa.ts` | PHI redaction and safety utilities (166 lines) |
 | Workflow | `lib/workflow.ts` | Workflow helpers |
+| Class merge | `lib/utils.ts` | `cn()` — `twMerge(clsx(...))`. Not `lib/workflow.ts` |
+| Public routes | `lib/site-routes.ts` | Public path list, imported by `proxy.ts` and the site chrome |
+| Public copy | `lib/site-content.ts` | Every string on the public clinic site |
 | Template registry | `lib/template-registry.ts` | Template management |
 | Dashboard data | `lib/dashboard-data.ts` | Dashboard data generation |
 | Global page data | `lib/global-page-data.ts` | Cross-page data |
@@ -110,7 +114,8 @@ components/
 
 ### Rules
 
-1. **No component writes its own base UI** — always import from `components/ui/`
+0. **Apply the six UI/UX laws** — Jakob · Fitts · Miller · Hick · Proximity · Tesler. Bound to concrete rules in `docs/design/ui-engineering.md` → "Laws We Design By". Check every change against all six, not just the one that prompted it.
+1. **No component writes its own base UI** — always import from `components/ui/` (public-site pieces live in `components/site/`)
 2. **All colors via CSS tokens** — never hardcoded hex in component files
 3. **DataTable fills remaining height** via flex chain: `AppShell <main>` → `PageStack` → `DataTable` → scrollable body
 4. **FilterStrip lives inside DataTable's toolbar slot** — not a separate floating bar
@@ -176,21 +181,19 @@ Never hardcode hex values in components. Always reference tokens:
 
 | Token | Value | Usage |
 |---|---|---|
-| `--color-primary` | `#0033A0` | Brand blue, active states, primary buttons |
-| `--color-primary-dark` | `#002080` | Hover state for primary |
-| `--color-accent` | `#FF671F` | CureRays orange accent |
-| `--color-bg` | `#F7F8FA` | Page background |
-| `--color-card` | `#FFFFFF` | Card/surface background |
-| `--color-text` | `#0B1220` | Primary text |
-| `--color-text-muted` | `#667085` | Labels, captions, secondary text |
-| `--color-border` | `#DDE3EA` | Container borders |
-| `--color-border-soft` | `#EEF2F6` | Table dividers, subtle separators |
-| `--color-hover` | `rgba(0,0,0,0.04)` | Hover surface tint |
-| `--color-success` | `#22C55E` | Success states |
-| `--color-warning` | `#F59E0B` | Warning states |
-| `--color-error` | `#EF4444` | Error states |
-| `--color-info` | `#3B82F6` | Info states |
-| `--font-ui` | `Inter` | Every UI surface, control, chart, and label |
+| `--color-primary` | `#1F5F5B` | Muted brand hue: interaction, links, focus, primary buttons |
+| `--color-primary-dark` | `#164744` | Hover state for primary |
+| `--color-bg` | `#F5F2ED` | Bone page background (never pure white) |
+| `--color-card` | `#FDFCFA` | Card/surface background |
+| `--color-text` | `#1A1D21` | Ink primary text (never pure black) |
+| `--color-text-muted` | `#5F656B` | Labels, captions, secondary text |
+| `--color-border` | `#DDD8D0` | Container borders |
+| `--color-border-soft` | `#EBE7E1` | Table dividers, subtle separators |
+| `--color-hover` | `rgba(26,29,33,0.05)` | Hover surface tint |
+| `--status-{tone}-{solid,surface,border,text}` | see `globals.css` | The four functional status tones |
+| `--font-ui` | `Inter` | Every authenticated UI surface, control, chart, and label |
+| `--font-site-display` / `--font-site-text` | site pairing | Public site only, scoped to `.site-page` |
+| `--site-*-size` / `--site-*-line` | fluid `clamp()` | Public site type roles |
 | `--type-title-size` | `18px` | Page titles, patient identity, critical KPI values |
 | `--type-heading-size` | `14px` | Section, modal, and card headings |
 | `--type-body-size` | `13px` | Body, form values, and table cells |
@@ -210,8 +213,8 @@ Never hardcode hex values in components. Always reference tokens:
 ## Typography
 
 - Read and follow `docs/design/typography.md`.
-- Use Inter exclusively through the global `--font-ui` token.
-- Use only the 18px title, 14px heading, 13px body, and 12px supporting/control roles.
+- Two scoped systems: Inter and the `--type-*` roles for the authenticated app and login; the site pairing and `--site-*` roles for `app/(site)/**`. They never mix, and `globals.css` holds exactly three `font-family` declarations.
+- Use only the 18px title, 14px heading, 13px body, and 12px supporting/control roles in the app.
 - Buttons remain 12px/600 in every size variant.
 - Use 700 only for page titles, patient identity, and critical KPI values. Ordinary records and metadata must not be bold.
 - Do not add local font sizes, families, weights, line heights, tracking utilities, or text below 12px.

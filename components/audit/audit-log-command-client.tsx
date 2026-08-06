@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { formatUiLabel } from '@/lib/ui-copy';
 
 export type AuditLogRow = {

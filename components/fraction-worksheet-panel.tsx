@@ -43,7 +43,8 @@ import {
   parseEnergyKv,
   parseNumeric
 } from "@/lib/services/fraction-worksheet-service";
-import { cn, formatDate } from "@/lib/workflow";
+import { formatDate } from "@/lib/workflow";
+import { cn } from "@/lib/utils";
 
 type ApiResult = {
   data?: IgsrtWorkspace;

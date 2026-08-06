@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 type ModalProps = {
   open: boolean;

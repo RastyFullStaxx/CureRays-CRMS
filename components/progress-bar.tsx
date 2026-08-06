@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 import { statusToneToken, type StatusTone } from '@/lib/status-utils';
 
 export function ProgressBar({

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { roleLabels } from '@/lib/rbac';
 import type { ResponsibleParty } from '@/lib/types';
-import { cn } from '@/lib/workflow';
+import { cn } from '@/lib/utils';
 
 export type ShellIdentity = {
   displayName: string;

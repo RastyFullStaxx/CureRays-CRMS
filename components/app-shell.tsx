@@ -1,7 +1,4 @@
-'use client';
-
 import type { ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
 import {
   MacNavigation,
   type ShellIdentity
@@ -14,12 +11,6 @@ export function AppShell({
   children: ReactNode;
   identity: ShellIdentity | null;
 }) {
-  const pathname = usePathname();
-
-  if (pathname === '/' || pathname === '/login') {
-    return <>{children}</>;
-  }
-
   return (
     <div className="mac-desktop">
       {identity ? <MacNavigation identity={identity} /> : null}

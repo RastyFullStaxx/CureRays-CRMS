@@ -9,7 +9,7 @@ function read(relativePath) {
 }
 
 function routeFile(route) {
-  return join(root, "app", ...route.split("/").filter(Boolean), "page.tsx");
+  return join(root, "app", "(app)", ...route.split("/").filter(Boolean), "page.tsx");
 }
 
 function escapeRegExp(value) {
@@ -33,7 +33,7 @@ function sourceSection(source, start, end) {
 const appShell = read("components/app-shell.tsx");
 const macNavigation = read("components/mac-navigation.tsx");
 const loginPage = read("app/login/page.tsx");
-const loginCard = read("components/landing/login-card.tsx");
+const loginCard = read("components/login/login-card.tsx");
 const workspace = read("components/patients/patient-workspace.tsx");
 const dataTable = read("components/shared/data-table.tsx");
 const dashboardClient = read("components/dashboard/dashboard-telemetry-client.tsx");
@@ -46,7 +46,7 @@ const auditCommandClient = read("components/audit/audit-command-client.tsx");
 const patientRegistry = read("components/patients/patient-registry-client.tsx");
 const fractionWorksheet = read("components/fraction-worksheet-panel.tsx");
 const globals = read("app/globals.css");
-const rootPage = read("app/page.tsx");
+const rootPage = read("app/(site)/page.tsx");
 const envExample = read(".env.example");
 const macDesktopRule = cssRule(globals, ".mac-desktop");
 const macMainRule = cssRule(globals, ".mac-main");
@@ -98,10 +98,10 @@ assert.doesNotMatch(
 );
 
 const permanentAliases = [
-  ["app/workflow/igsrt/page.tsx", "/patients"],
-  ["app/workflow/templates/page.tsx", "/templates"],
-  ["app/reports/page.tsx", "/analytics"],
-  ["app/security-logs/page.tsx", "/audit-logs"],
+  ["app/(app)/workflow/igsrt/page.tsx", "/patients"],
+  ["app/(app)/workflow/templates/page.tsx", "/templates"],
+  ["app/(app)/reports/page.tsx", "/analytics"],
+  ["app/(app)/security-logs/page.tsx", "/audit-logs"],
 ];
 
 for (const [file, destination] of permanentAliases) {
@@ -165,7 +165,15 @@ for (const href of demotedHrefs) {
 
 assert.match(appShell, /MacNavigation/, "AppShell must render the Mac-style navigation");
 assert.doesNotMatch(appShell, /Sidebar/, "AppShell must not render the legacy sidebar");
-assert.match(appShell, /pathname === '\/login'/, "Login route must stay outside the authenticated Mac command shell");
+assert.doesNotMatch(appShell, /usePathname/, "Shell chrome must be decided by route group, not by pathname branching");
+assert.ok(
+  existsSync(join(root, "app/login/page.tsx")),
+  "Login route must stay outside the authenticated Mac command shell"
+);
+assert.ok(
+  !existsSync(join(root, "app/(app)/login")),
+  "Login route must not be inside the authenticated route group"
+);
 assert.match(appShell, /className="mac-main scrollbar-soft"/, "Authenticated shell main must use the shared styled scrollbar");
 assert.match(macDesktopRule, /(?:\{|;)\s*height:\s*100dvh;/s, "Mac desktop must own the exact viewport height");
 assert.match(macDesktopRule, /(?:\{|;)\s*overflow:\s*hidden;/s, "Mac desktop must contain page overflow");
@@ -187,28 +195,53 @@ assert.doesNotMatch(workspace, /clinical-floating-action/, "Patient workspace mu
 assert.match(workspace, /selectedCarepathStep/, "Patient Carepath must use a selected step as the working surface");
 assert.match(workspace, /Related Work Items/, "Patient Carepath must fold related work items into the selected step panel");
 assert.doesNotMatch(workspace, /clinical-label">Work Items/, "Patient Carepath must not render Work Items as a second competing full table");
-assert.match(rootPage, /redirect\(['"]\/login['"]\)/, "Root route must load the pilot login by default");
-assert.match(loginPage, /landing-page/, "Login route must expose the liquid-glass landing page");
+assert.doesNotMatch(rootPage, /redirect\(/, "The root route is the public clinic home and must not redirect into the app");
+// Login is sign-in only. The public marketing surface lives at app/(site)/**,
+// so the two can never drift into competing descriptions of the product.
+assert.match(loginPage, /login-page/, "Login must use the login shell, not the retired landing shell");
 assert.match(loginPage, /LoginCard/, "Login route must render the reusable login card");
-assert.doesNotMatch(loginPage, /className="landing-page dark"/, "Landing must use its fixed daylight palette");
-assert.doesNotMatch(loginPage, /Synthetic Data Pilot|Synthetic data/i, "Landing page must not expose removed pilot wording");
-assert.doesNotMatch(loginCard, /Synthetic Data Pilot|Synthetic data/i, "Landing sign-in must not expose removed pilot wording");
-assert.match(loginPage, /About CureRays/, "Landing must introduce CureRays Radiation Medicine");
-assert.match(loginPage, /href="#sign-in"/, "Landing header must provide a direct sign-in anchor");
-assert.match(loginPage, /sizes="/, "Landing editorial image must provide responsive sizes");
-assert.match(loginPage, /import \{ Space_Grotesk \} from ['"]next\/font\/google['"]/, "Landing must load its display face through next/font");
-assert.match(loginPage, /landingDisplay\.variable/, "Landing must scope the display font variable to the route");
-assert.match(globals, /\.landing-story-link\s*\{[^}]*min-height:\s*40px;/s, "Landing story link must keep a 40px touch target");
-assert.match(globals, /\.landing-password-toggle\s*\{[^}]*height:\s*40px;[^}]*width:\s*40px;/s, "Landing password toggle must keep a 40px touch target");
-assert.match(globals, /@media \(min-width: 1600px\)[\s\S]*?\.landing-page-frame\s*\{[^}]*max-width:\s*1920px;/, "Large landing viewports must use the 1920px editorial frame");
-assert.match(globals, /\.landing-hero-visual\s*\{[^}]*inset-inline-start:\s*calc\(50% - 50vw\);/s, "Large landing artwork must reach the viewport edge");
-assert.match(globals, /\.landing-hero\s*\{[^}]*min-height:\s*clamp\(584px, calc\(100dvh - 72px\), 1120px\);/s, "Desktop landing hero must follow available viewport height");
+assert.doesNotMatch(loginPage, /landing-/, "The landing shell was retired when the public site shipped");
+assert.doesNotMatch(loginPage, /Synthetic Data Pilot|Synthetic data/i, "Login must not expose removed pilot wording");
+assert.doesNotMatch(loginCard, /Synthetic Data Pilot|Synthetic data/i, "Login card must not expose removed pilot wording");
+assert.match(loginPage, /href="\/"/, "Login must offer a route back to the public site");
+assert.match(globals, /\.login-password-toggle\s*\{[^}]*height:\s*40px;[^}]*width:\s*40px;/s, "Login password toggle must keep a 40px touch target");
+
+// Public site invariants.
+const siteHeader = read("components/site/site-header.tsx");
+const siteNav = read("components/site/site-nav.tsx");
+const siteContactCard = read("components/site/site-contact-card.tsx");
+const siteRoutes = read("lib/site-routes.ts");
+const proxy = read("proxy.ts");
+
+assert.match(siteNav, /SITE_NAV_ROUTES/, "Public navigation must read the shared route list");
+assert.match(proxy, /isSitePath/, "Middleware must allow public routes through the shared route list");
+assert.match(siteHeader, /href="\/login"/, "Public site must offer a staff login entry point");
+assert.match(siteHeader, /site-button-primary/, "Public header must expose the phone call to action");
+assert.match(globals, /\.site-button\s*\{[^}]*min-height:\s*48px;/s, "Public calls to action must keep a 48px target");
+
+// Miller: five primary destinations, no more.
+assert.equal(
+  (siteRoutes.match(/\{ path: '/g) ?? []).length,
+  6,
+  "Public navigation must stay at five destinations plus Home",
+);
+
+// Contact is real contact information, never a form that cannot deliver.
+assert.doesNotMatch(siteContactCard, /<form|<input|<button/, "Public contact must not present a form it cannot durably submit");
+assert.match(siteContactCard, /tel:|CONTACT\.tollFreeHref/, "Public contact must expose a working telephone link");
+
+// The public site is the only responsive surface, and it stays at two breakpoints.
+assert.equal(
+  (globals.match(/@media \(min-width: (?:768|1160)px\)/g) ?? []).length,
+  2,
+  "The public site must hold to exactly two breakpoints",
+);
 assert.match(read("app/layout.tsx"), /curerays_theme_mode/, "Root layout must initialize the light-first Mac theme key");
 assert.match(envExample, /OPS_DATABASE_URL=.*localhost/, "OPS database example URL must target local PostgreSQL");
 assert.match(envExample, /PHI_DATABASE_URL=.*localhost/, "PHI database example URL must target local PostgreSQL");
 assert.match(globals, /\.dashboard-operations\s*\{[^}]*overflow-y: auto/, "Dashboard operations page must keep a vertical page scroll area");
 assert.match(globals, /\.mac-main > \*[\s\S]*mac-page-enter/, "Mac shell must provide a subtle page transition");
-assert.match(globals, /\.landing-login-card[\s\S]*backdrop-filter: blur\(28px\)/, "Landing login card must use liquid-glass blur");
+assert.match(globals, /\.login-card\s*\{[^}]*box-shadow: var\(--shadow-card\)/s, "Login card must use the shared card elevation");
 assert.match(globals, /\.dashboard-operations\s*\{[^}]*overflow-x: hidden/, "Dashboard operations page must avoid horizontal page scrolling");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-y: auto/, "Analytics chart pages must keep a vertical page scroll area");
 assert.match(globals, /\.analytics-command-body[\s\S]*overflow-x: hidden/, "Analytics chart pages must avoid horizontal page scrolling");
@@ -288,7 +321,7 @@ const redirectedRoutes = [
 ];
 
 for (const route of redirectedRoutes) {
-  const relativePath = join("app", ...route.split("/").filter(Boolean), "page.tsx");
+  const relativePath = join("app", "(app)", ...route.split("/").filter(Boolean), "page.tsx");
   const source = read(relativePath);
   assert.match(source, /from ['"]next\/navigation['"]/, `${route} must use Next redirect`);
   assert.match(source, /redirect\(/, `${route} must redirect to patient-first work`);
@@ -296,11 +329,11 @@ for (const route of redirectedRoutes) {
 
 const redirectedPatientSubroutes = [
   {
-    file: "app/patients/[id]/carepath/page.tsx",
+    file: "app/(app)/patients/[id]/carepath/page.tsx",
     target: "?tab=prepare",
   },
   {
-    file: "app/patients/[id]/documents/page.tsx",
+    file: "app/(app)/patients/[id]/documents/page.tsx",
     target: "?tab=record-closeout",
   },
 ];

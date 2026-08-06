@@ -27,7 +27,7 @@ function readPalette(element: Element) {
   const readToken = (token: string) => styles.getPropertyValue(token).trim() || styles.color;
 
   return {
-    accent: readToken("--color-accent"),
+    accent: readToken("--color-primary-soft"),
     primary: readToken("--color-primary"),
     textSoft: readToken("--color-text-soft")
   } satisfies Palette;
