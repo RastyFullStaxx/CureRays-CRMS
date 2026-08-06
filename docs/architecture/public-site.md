@@ -233,6 +233,30 @@ Two consequences worth remembering: the frames are one shared **4:3** aspect so 
 
 Reduced motion still gets the finished hero bed: the host runs frames until it has grown, then draws that state once and never schedules another.
 
+## The treatments figure
+
+The modality list is paired with a canvas that reconfigures as you move through it: [`modality-figure-renderers.ts`](../../components/site/modality-figure-renderers.ts) owns the formations and the paint, [`treatment-explorer.tsx`](../../components/site/treatment-explorer.tsx) owns selection and the frame loop. Pointing at a row or tabbing to it retargets a field of ~260 angular marks, and each eases to its new place on a per-mark stagger so the field turns over as a wave rather than translating as a block.
+
+**The formations are abstract geometry, and that is a requirement rather than a style choice.** Stratified, dispersed, nested rings, converging spokes: they read as *a different technique* without asserting anything about depth, dose, or penetration. Anything that implies a clinical profile — a depth axis, a falloff curve, a scale, a number — is a claim about the modality and needs the clinic's sign-off before it goes on a patient-facing page. A schematic depth treatment was considered and deliberately not built for this reason.
+
+Accessibility shaped three things:
+
+- The figure is `aria-hidden` and **nothing is available only through it**. The list carries every word; the canvas adds no information.
+- Selection is driven by `onMouseEnter` **and** `onFocus`, so a keyboard user tabbing the list drives it too — and the active row is marked in the list itself, since a keyboard user cannot see an `aria-hidden` canvas.
+- Reduced motion gets each formation *arrived at* rather than travelled to: the easing is run to completion off-screen and painted once. The frame loop never starts.
+
+Below the two-column breakpoint the panel is `display: none` rather than stacked. It is decorative, and a full-width canvas above a list of four links would be the loudest thing on a phone for no informational gain. Hiding it also parks the loop — an `IntersectionObserver` reports a `display: none` element as not intersecting.
+
+## Section anatomy
+
+`SiteSection` is a two-column grid at desktop: heading in (1,1), content in (1,2). Two consequences bite repeatedly.
+
+**Never pass a section-level link as a child.** A second child auto-places into **(2,1)** — the left column, in a new row, hundreds of pixels below the copy it belongs to and beside nothing. Both `#treatments` and `#conditions` shipped that way, with the CTA stranded ~370px under the lead. Use the **`action` prop**, which renders it under the lead where the eye returns after scanning the content.
+
+**A flex list in the content column will stretch.** As a grid item it fills its row's full height, and a wrapped flex container then spends that height on its lines (`align-content: stretch`) *and* its items (`align-items: stretch`). `.site-tag-list` rendered ~90px-tall boxes with each label stranded at the top; the fix is `start` on both, plus `align-self: start` on the list itself.
+
+The modality rail leads with **what each modality treats** (`appliesTo`), not only its abbreviation. Two of the four homepage entries are both "SRT", and a column of repeated initialisms reads as a duplication error while answering none of the question a patient arrives with. The conditions stack rather than joining with `·`, which strands the separator at a line end in a rail that narrow.
+
 ## Imagery
 
 `public/site/` holds four plates, all **generated with Google Gemini** and each reviewed before it was committed:

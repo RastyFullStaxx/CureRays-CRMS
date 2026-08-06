@@ -3547,7 +3547,15 @@ button {
 
 /* --- Tags --- */
 
+/* `align-content` and `align-items` are both load-bearing. As a grid item this
+   list stretches to its row's full height, and a wrapped flex container then
+   spends that height on its lines (align-content: stretch) and on its items
+   (align-items: stretch). The tags rendered as ~90px boxes with the label
+   stranded at the top. `start` on both keeps them the height of their text. */
 .site-tag-list {
+  align-content: start;
+  align-items: start;
+  align-self: start;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -3942,8 +3950,10 @@ button {
 /* --- Breakpoint 2: editorial two-column reading measure --- */
 
 @media (min-width: 1160px) {
+  /* 22rem set the headline in four lines at 1440. The extra 4rem buys a third
+     line without taking meaningful width from the content column. */
   .site-section-inner {
-    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
     gap: var(--space-6);
   }
 
@@ -4467,11 +4477,68 @@ button {
   transform: translateX(10px);
 }
 
+.site-section-action {
+  margin-top: var(--space-2);
+}
+
+/* --- Treatments: the list, paired with a figure that reconfigures --- */
+
+.site-explorer {
+  display: grid;
+  gap: clamp(24px, 3vw, 48px);
+}
+
+/* Hidden below the two-column breakpoint rather than stacked. It is decorative
+   — the list carries every word — and a full-width canvas above a list of four
+   links would be the loudest thing on a phone for no informational gain.
+   `display: none` also parks its frame loop: the IntersectionObserver reports
+   a hidden element as not intersecting. */
+.site-figure-panel {
+  display: none;
+}
+
+.site-modality-canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.site-figure-index {
+  bottom: 14px;
+  color: var(--site-fg-muted);
+  font-size: var(--site-label-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--site-label-line);
+  position: absolute;
+  right: 16px;
+}
+
+/* The selected row is marked in the list as well as in the figure: the figure
+   is aria-hidden, so on its own it would leave keyboard users with no visible
+   indication of which modality they are on. */
+.site-modality[data-active="true"] .site-modality-tag {
+  color: var(--site-brand-deep);
+}
+
+/* Conditions stack rather than joining with a separator: a wrapped " · " list
+   strands the bullet at the end of a line in a rail this narrow. */
+.site-modality-rail {
+  align-content: start;
+  display: grid;
+  gap: 3px;
+  grid-column: 1;
+}
+
 .site-modality-tag {
   color: var(--site-accent);
   font-size: var(--site-label-size);
   font-weight: var(--font-weight-semibold);
-  grid-column: 1;
+  line-height: var(--site-label-line);
+}
+
+.site-modality-applies {
+  color: var(--site-fg-muted);
+  font-size: var(--site-label-size);
   line-height: var(--site-label-line);
 }
 
@@ -4577,6 +4644,22 @@ button {
     max-width: 46ch;
   }
 
+  /* The figure takes a fixed share rather than a fraction: below about 380px
+     the formations stop being legible as distinct arrangements. */
+  .site-explorer {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) clamp(360px, 34%, 480px);
+  }
+
+  .site-figure-panel {
+    /* Sticky, so the figure stays in view while the list is scanned. */
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--site-rule);
+    display: block;
+    position: sticky;
+    top: calc(var(--height-header) + var(--space-3));
+  }
+
   .site-panel-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4593,11 +4676,13 @@ button {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   }
 
+  /* Wider than 7rem: the rail now carries the treated conditions under the
+     abbreviation, and "Dupuytren's contracture" needs the room. */
   .site-modality {
-    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
   }
 
-  .site-modality-tag {
+  .site-modality-rail {
     grid-column: 1;
   }
 

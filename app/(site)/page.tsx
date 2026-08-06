@@ -3,6 +3,7 @@ import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { SiteGallery } from '@/components/site/site-gallery';
 import { SiteHeroField } from '@/components/site/site-hero-field';
+import { TreatmentExplorer } from '@/components/site/treatment-explorer';
 import { Counter, Drift, Reveal } from '@/components/site/site-motion';
 import {
   CLINIC,
@@ -86,30 +87,18 @@ export default function HomePage() {
 
       <SiteSection
         id="treatments"
+        layout="stack"
         eyebrow="Treatments"
         heading="Radiation Medicine, Matched To The Condition"
         lead="From superficial skin therapy to image-guided treatment, each modality is chosen for what it treats best."
+        action={
+          <Link className="site-inline-link clinical-focus" href="/treatments">
+            All Treatments
+            <span aria-hidden="true">→</span>
+          </Link>
+        }
       >
-        <ol className="site-modality-list">
-          {TREATMENTS.slice(0, 4).map((treatment, index) => (
-            <Reveal as="li" key={treatment.slug} delay={index * 0.06}>
-              <Link href={`/treatments#${treatment.slug}`} className="site-modality clinical-focus">
-                <span className="site-modality-tag">{treatment.abbreviation}</span>
-                <span className="site-modality-body">
-                  <span className="site-subhead">{treatment.name}</span>
-                  <span className="site-body">{treatment.summary}</span>
-                </span>
-                <span className="site-modality-arrow" aria-hidden="true">
-                  →
-                </span>
-              </Link>
-            </Reveal>
-          ))}
-        </ol>
-        <Link className="site-inline-link clinical-focus" href="/treatments">
-          All Treatments
-          <span aria-hidden="true">→</span>
-        </Link>
+        <TreatmentExplorer treatments={TREATMENTS.slice(0, 4)} />
       </SiteSection>
 
       <SiteSection
@@ -118,6 +107,12 @@ export default function HomePage() {
         eyebrow="Conditions Treated"
         heading="More Than Cancer"
         lead="X-ray therapy treats a range of malignant and benign conditions across several specialties."
+        action={
+          <Link className="site-inline-link clinical-focus" href="/conditions">
+            Explore Conditions
+            <span aria-hidden="true">→</span>
+          </Link>
+        }
       >
         <ul className="site-tag-list">
           {CONDITIONS.map((condition) => (
@@ -126,10 +121,6 @@ export default function HomePage() {
             </li>
           ))}
         </ul>
-        <Link className="site-inline-link clinical-focus" href="/conditions">
-          Explore Conditions
-          <span aria-hidden="true">→</span>
-        </Link>
       </SiteSection>
 
       <section className="site-practice" aria-labelledby="practice-heading">
