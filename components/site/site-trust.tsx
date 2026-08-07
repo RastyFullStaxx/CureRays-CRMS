@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { SITE_ASSETS, TESTIMONIALS, type SiteImage } from '@/lib/site-assets';
+import { RATING, SITE_ASSETS, TESTIMONIALS, type SiteImage } from '@/lib/site-assets';
 
 /**
  * Slots for the practice's own photography and patient quotes.
@@ -48,9 +48,41 @@ export function ClinicPlate({ which }: { which: 'clinicExterior' | 'treatmentRoo
 }
 
 /**
- * Patient quotes. The homepage states a five-star rating; until this has
- * entries, that figure stands on its own with nothing behind it — which is the
- * weakest form the claim can take, and why filling this matters.
+ * The published rating, with its review count, platform and a link to check it.
+ *
+ * The stars are chevrons rather than five-pointed stars: a star is built from
+ * arcs and points that read as round at this size, and the site carries no
+ * circular edges. Partial fill is done with a clip on the last mark, so a 4.8
+ * shows as 4.8 rather than being rounded to five.
+ */
+export function RatingBadge() {
+  if (!RATING) return null;
+  const { score, outOf, count, platform, href } = RATING;
+  const filled = (score / outOf) * 5;
+
+  return (
+    <a className="site-rating clinical-focus" href={href} target="_blank" rel="noreferrer">
+      <span className="site-rating-score">{score.toFixed(1)}</span>
+      <span className="site-rating-marks" aria-hidden="true">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span
+            key={i}
+            className="site-rating-mark"
+            style={{ '--fill': `${Math.max(0, Math.min(1, filled - i)) * 100}%` } as React.CSSProperties}
+          />
+        ))}
+      </span>
+      <span className="site-rating-meta">
+        {score} out of {outOf} from {count.toLocaleString()} reviews on {platform}
+      </span>
+    </a>
+  );
+}
+
+/**
+ * Patient quotes. Until this has entries, the rating figure stands on its own
+ * with nothing behind it — which is the weakest form the claim can take, and
+ * why filling this matters.
  */
 export function Testimonials() {
   if (TESTIMONIALS.length === 0) return null;

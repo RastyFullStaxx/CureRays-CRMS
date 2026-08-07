@@ -133,10 +133,13 @@ for (const line of globals.split(/\r?\n/)) {
 
   // Tracking is allowed only through the public-site display tokens: a 4.5rem
   // serif headline needs optical correction that the product scale never does.
+  // The `-open` pair are the entry state of the tracking close-up on reveal;
+  // they are tokens too, which is the point — a literal em value in a keyframe
+  // would slip past a check that only ever looked at settled declarations.
   if (/letter-spacing:/.test(line)) {
     assert.match(
       line,
-      /letter-spacing:\s*var\(--site-(?:display|headline)-tracking\);/,
+      /letter-spacing:\s*var\(--site-(?:display|headline)-tracking(?:-open)?\);/,
       `Letter spacing is allowed only through the public-site tracking tokens: ${line.trim()}`,
     );
   }

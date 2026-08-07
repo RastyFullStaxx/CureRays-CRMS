@@ -3,6 +3,7 @@ import { Roboto } from 'next/font/google';
 import { SiteHeader } from '@/components/site/site-header';
 import { SiteFooter } from '@/components/site/site-footer';
 import { SiteStructuredData } from '@/components/site/site-structured-data';
+import { SiteSmoothScroll } from '@/components/site/site-smooth-scroll';
 
 /**
  * Public-site typeface. SIL OFL, and `next/font/google` self-hosts it at build
@@ -30,6 +31,7 @@ export default function SiteLayout({
   return (
     <div className={`site-page ${roboto.variable}`}>
       <SiteStructuredData />
+      <SiteSmoothScroll />
       <SiteHeader />
       <main id="site-main" className="site-main">
         {children}

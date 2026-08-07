@@ -5,7 +5,7 @@ import { SiteGallery } from '@/components/site/site-gallery';
 import { CohortField } from '@/components/site/cohort-field';
 import { PATIENT_INFORMATION_IS_PUBLISHABLE } from '@/lib/site-patient-information';
 import { ConditionMap } from '@/components/site/condition-map';
-import { FounderPortrait, Testimonials } from '@/components/site/site-trust';
+import { FounderPortrait, RatingBadge, Testimonials } from '@/components/site/site-trust';
 import { SiteHeroField } from '@/components/site/site-hero-field';
 import { TreatmentExplorer } from '@/components/site/treatment-explorer';
 import { Counter, Drift, Reveal } from '@/components/site/site-motion';
@@ -181,8 +181,10 @@ export default function HomePage() {
           </Reveal>
 
           {/* The 5-star figure above stands on nothing until the clinic supplies
-              quotes it has the right to republish. Renders nothing until then. */}
+              a real score and quotes it has the right to republish. Both render
+              nothing until then. */}
           <div className="site-cohort-reveal">
+            <RatingBadge />
             <Testimonials />
           </div>
         </div>

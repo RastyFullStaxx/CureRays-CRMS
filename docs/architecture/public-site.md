@@ -270,6 +270,27 @@ The conditions list is paired with a body map: selecting a condition marks the r
 >
 > Most entries come from the condition's own name — hand arthritis to the hands, Graves' eye disease to the head, gynecomastia to the chest. Two are eponymous and rest on clinical knowledge rather than the words themselves: **Ledderhose** and **Peyronie's**. Anything whose name does not state a site — Ossification, Fasciitis, Contracture, Select infections, Desmoid fibromatosis — is deliberately marked *"occurs at several sites"* rather than being assigned one. Do not assign them a region without clinical input.
 
+## The brand orange is two tokens, not one
+
+`--site-brand` is **#F05A28**, sampled from the CureRays mark itself. It measures **3.03:1 on bone** — enough for a rule, a stroke, a border or a canvas mark, and not enough to be text or to sit behind text.
+
+So the orange splits by job:
+
+| Token | Value | On bone | Job |
+|---|---|---|---|
+| `--site-brand` | `#F05A28` | 3.03:1 | Rules, strokes, borders, canvas marks. **Never text, never behind text.** |
+| `--site-brand-ink` | `#AD411D` | 5.31:1 | Brand-coloured text, and any fill carrying bone text — including the `data-tone="brand"` ground. |
+| `--site-brand-deep` | `#843216` | 7.7:1 | Deep gradient pools and hovers. |
+| `--site-brand-lit` | `#F0BC90` | — | Accent marks on brand grounds. |
+
+`--site-brand-ink` is the same hue at 72%, so the family reads as one colour. It sits at −28% rather than a rounder −25% because muted bone text on the latter measured **4.49:1** against a 4.5 requirement — `contrast-check.mjs` caught it, and the gate now asserts both bars: ink ≥ 4.5:1 as text, mark ≥ 3:1 as a mark.
+
+**Reaching for `--site-brand` because it looks more like the logo is the mistake to avoid.** Any use as a text colour or as a ground behind text fails contrast, and the checker will say so.
+
+### Navigation legibility
+
+The header carries no fill, so its links sit on whatever passes beneath — at the top of the homepage that is the hero field. They were `--color-text-muted` (#5F656B), which read as invisible over a busy ground and was reported twice. Destinations now take the full `--site-header-fg`: **15.15:1** on bone at the top, **5.30:1** over a brand section. Only the wordmark's second line stays muted.
+
 ## Discoverability baseline
 
 An audit found the site shipping with **no `<h1>` on five of six routes**, no Open Graph tags, no canonicals, and `MedicalClinic` structured data on `/contact` alone. All four are fixed and the fixes are structural rather than per page:

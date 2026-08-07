@@ -79,6 +79,7 @@
     "docxtemplater": "^3.69.0",
     "echarts": "^6.1.0",
     "exceljs": "^4.4.0",
+    "lenis": "^1.3.26",
     "lucide-react": "^0.468.0",
     "motion": "^13.0.0",
     "next": "^16.2.9",

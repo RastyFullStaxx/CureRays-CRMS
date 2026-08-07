@@ -53,3 +53,29 @@ export const SITE_ASSETS: {
  * without consent is a privacy problem as well as a licensing one.
  */
 export const TESTIMONIALS: readonly Testimonial[] = [];
+
+export type Rating = {
+  /** The published score, e.g. 4.8. */
+  readonly score: number;
+  /** The scale it is out of, so the number is never ambiguous. */
+  readonly outOf: number;
+  /** How many reviews it aggregates. A score without a count means little. */
+  readonly count: number;
+  /** Where it is published — "Google", "Yelp". Named, not implied. */
+  readonly platform: string;
+  /** Link to the reviews, so the claim is checkable. */
+  readonly href: string;
+};
+
+/**
+ * The practice's published rating.
+ *
+ * The site already states "5-Star Patient Satisfaction" as a bare figure with
+ * nothing behind it, which is the weakest form a rating claim can take. A score
+ * with a review count, a named platform and a link to check it is the strong
+ * form — and it is the single highest-value item on the trust list.
+ *
+ * Null until the clinic supplies real numbers. Never estimate a score, and
+ * never round one up.
+ */
+export const RATING: Rating | null = null;

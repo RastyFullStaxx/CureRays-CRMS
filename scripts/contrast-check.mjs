@@ -98,12 +98,16 @@ assert.deepEqual(failures, [], `Contrast failures:\n  ${failures.join('\n  ')}\n
 
 // --- Public-site brand palette (declared on .site-page) ---
 const site = tokenBlock('.site-page');
+// --site-brand is the orange from the CureRays mark. It is a *mark* colour: it
+// clears 3:1 on bone and nothing more, so it may be a rule, a stroke, a border
+// or a canvas mark, and it may never be text or sit behind text. Those jobs
+// belong to --site-brand-ink, and the pairs below hold that line.
 const sitePairs = [
-  ['--site-on-brand', '--site-brand', 4.5, 'text on a brand section'],
-  ['--site-on-brand-muted', '--site-brand', 4.5, 'muted text on a brand section'],
+  ['--site-on-brand', '--site-brand-ink', 4.5, 'text on a brand section'],
+  ['--site-on-brand-muted', '--site-brand-ink', 4.5, 'muted text on a brand section'],
   ['--site-on-brand', '--site-brand-deep', 4.5, 'text on the deep brand gradient stop'],
   ['--site-on-brand-muted', '--site-brand-deep', 4.5, 'muted text on the deep brand stop'],
-  ['--site-brand-lit', '--site-brand', 3, 'accent mark on a brand section'],
+  ['--site-brand-lit', '--site-brand-ink', 3, 'accent mark on a brand section'],
   ['--site-brand-lit', '--site-brand-deep', 3, 'accent mark on the deep brand stop'],
 ];
 
@@ -121,13 +125,21 @@ for (const [foreground, background, minimum, description] of sitePairs) {
   );
 }
 
-// The brand hue doubles as body-sized link and eyebrow text on the page surface.
+// On the page surfaces the ink shade carries body-sized links and eyebrows, and
+// the mark shade carries rules, strokes and borders. Two different bars.
 for (const [surface, label] of [['--color-bg', 'the page'], ['--color-card', 'a card']]) {
-  const ratio = contrast(site.get('--site-brand'), rootTokens.get(surface));
+  const inkRatio = contrast(site.get('--site-brand-ink'), rootTokens.get(surface));
   checked += 1;
   assert.ok(
-    ratio >= 4.5,
-    `.site-page brand text on ${label}: --site-brand on ${surface} = ${ratio.toFixed(2)}:1, needs 4.5:1`,
+    inkRatio >= 4.5,
+    `.site-page brand text on ${label}: --site-brand-ink on ${surface} = ${inkRatio.toFixed(2)}:1, needs 4.5:1`,
+  );
+
+  const markRatio = contrast(site.get('--site-brand'), rootTokens.get(surface));
+  checked += 1;
+  assert.ok(
+    markRatio >= 3,
+    `.site-page brand mark on ${label}: --site-brand on ${surface} = ${markRatio.toFixed(2)}:1, needs 3:1`,
   );
 }
 

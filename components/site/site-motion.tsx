@@ -21,7 +21,14 @@ import {
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
-/** Single shared entrance. One rise, one settle, never a per-section novelty. */
+/**
+ * Single shared entrance. One rise, one settle, never a per-section novelty.
+ *
+ * The `site-reveal-in` class is added once the element has arrived, which is
+ * what lets CSS run the headline tracking close-up. That stays in CSS rather
+ * than becoming an inline style so the tracking values remain tokens and the
+ * typography guardrail can still see every one of them.
+ */
 export function Reveal({
   children,
   delay = 0,
@@ -34,6 +41,7 @@ export function Reveal({
   as?: 'div' | 'section' | 'li' | 'span';
 }) {
   const reduced = useReducedMotion();
+  const [arrived, setArrived] = useState(false);
   const Component = motion[as];
 
   if (reduced) {
@@ -42,11 +50,12 @@ export function Reveal({
 
   return (
     <Component
-      className={className}
+      className={[className, arrived ? 'site-reveal-in' : null].filter(Boolean).join(' ') || undefined}
       initial={{ opacity: 0, y: 22, filter: 'blur(6px)' }}
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: '-12% 0px -8% 0px' }}
       transition={{ duration: 0.85, delay, ease: EASE_OUT }}
+      onViewportEnter={() => setArrived(true)}
     >
       {children}
     </Component>
