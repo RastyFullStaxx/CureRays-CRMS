@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
+import { sitePageMetadata } from '@/lib/site-metadata';
 import Link from 'next/link';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { CONDITIONS, SPECIALTY_AREAS, TREATMENTS } from '@/lib/site-content';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = sitePageMetadata({
   title: 'Conditions Treated',
   description:
-    'CureRays treats skin cancer, hand arthritis, keloids, Dupuytren’s contracture, Ledderhose disease, and other conditions with non-invasive x-ray therapy.'
-};
+    'CureRays treats skin cancer, hand arthritis, keloids, Dupuytren’s contracture, Ledderhose disease, and other conditions with non-invasive x-ray therapy.',
+  path: '/conditions'
+});
 
 /** Which treatments name this condition, so each entry answers "and then what?". */
 function treatmentsFor(condition: string) {
@@ -27,6 +29,7 @@ export default function ConditionsPage() {
       {/* Hick: the list opens as titles only, so scanning twelve conditions stays
           cheap and the visitor chooses before reading detail. */}
       <SiteSection
+        level="h1"
         id="conditions"
         eyebrow="Conditions Treated"
         heading="What CureRays Treats"

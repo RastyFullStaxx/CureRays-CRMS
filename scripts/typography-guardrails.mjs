@@ -91,10 +91,16 @@ const fontFamilyLines = globals.split(/\r?\n/).filter((line) => line.includes('f
 // Two type systems, and only two: Inter for the authenticated product, the
 // public-site pairing for app/(site)/**. Custom properties only descend, so the
 // app cannot inherit the site faces.
+// `inherit` names no face, so it does not open a third system — it closes a
+// hole. A <button> takes the user agent's own font unless told otherwise, and
+// the condition tags are buttons; without this one line a browser default leaks
+// into the site's type. Keep the list exhaustive: a declaration naming an
+// actual family belongs to one of the two systems above or it does not ship.
 assert.deepEqual(fontFamilyLines.map((line) => line.trim()), [
   'font-family: var(--font-ui);',
   'font-family: var(--font-site-text), var(--font-ui);',
   'font-family: var(--font-site-display), var(--font-site-text);',
+  'font-family: inherit;',
 ]);
 
 for (const line of globals.split(/\r?\n/)) {

@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
+import { sitePageMetadata } from '@/lib/site-metadata';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { TREATMENTS } from '@/lib/site-content';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = sitePageMetadata({
   title: 'Treatments',
   description:
-    'Superficial Radiation Therapy, low-dose therapy for arthritis, DEEP-SRT for Dupuytren’s contracture, and image-guided radiation therapy at CureRays Radiation Medicine.'
-};
+    'Superficial Radiation Therapy, low-dose therapy for arthritis, DEEP-SRT for Dupuytren’s contracture, and image-guided radiation therapy at CureRays Radiation Medicine.',
+  path: '/treatments'
+});
 
 export default function TreatmentsPage() {
   return (
@@ -15,6 +17,7 @@ export default function TreatmentsPage() {
       {/* Tesler: the modality list is irreducible complexity, so it gets a full
           page rather than being buried in a navigation menu. */}
       <SiteSection
+        level="h1"
         id="treatments"
         eyebrow="Treatments"
         heading="Every Modality, And What It Treats"

@@ -6,7 +6,7 @@
 
 | Group | Routes | Audience | Auth |
 |---|---|---|---|
-| `app/(site)/**` | `/`, `/treatments`, `/conditions`, `/services`, `/about`, `/contact` | Patients and referrers | Public |
+| `app/(site)/**` | `/`, `/treatments`, `/conditions`, `/services`, `/patient-information`, `/about`, `/contact` | Patients and referrers | Public |
 | `app/login` | `/login` | Clinic staff | Public, sign-in only |
 | `app/(app)/**` | Everything below | Clinic staff | Session required |
 
@@ -22,6 +22,7 @@ Decision record: [`../architecture/public-site.md`](../architecture/public-site.
 | `/treatments` | Every modality with what it treats. Full page rather than a menu, because the list is irreducible |
 | `/conditions` | Conditions treated, as disclosures, each linked to its associated therapy |
 | `/services` | Screening, procedures, medical management, and research |
+| `/patient-information` | **Draft.** The questions patients ask before booking. Renders only answers the clinic has published; `noindex` and absent from nav and sitemap until every section can answer at least one. See [content gaps](public-site-content-gaps.md) |
 | `/about` | Belief, purpose, promise, founder, specialty areas, recognition, programs |
 | `/contact` | Real telephone, email, address, and map links plus `MedicalClinic` structured data |
 

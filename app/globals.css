@@ -3475,8 +3475,10 @@ button {
 
 /* --- Sections --- */
 
+/* The upper bound was 104px top and bottom. Across six sections that is over a
+   thousand pixels of nothing on a page carrying 400 words. */
 .site-section {
-  padding: clamp(48px, 7vw, 104px) var(--site-gutter);
+  padding: clamp(44px, 6vw, 84px) var(--site-gutter);
 }
 
 .site-section[data-tone="muted"] {
@@ -4245,19 +4247,40 @@ button {
 
 /* Keeps the reading column clean without flattening the field. The right side
    is left alone so the contours stay legible where they matter. */
+/* Mobile first, and the two cases are genuinely different rather than one being
+   a scaled version of the other.
+
+   On a phone the copy spans the full width, so a horizontal gradient cannot
+   clear a reading column — there isn't one. The bed ran straight through the
+   kicker and the lead. Here the veil is vertical: opaque behind the text block,
+   opening upward so the field still reads above it. The horizontal treatment
+   returns at the two-column breakpoint, where there is a left column to
+   protect. */
 .site-hero-veil {
-  background:
-    linear-gradient(
-      96deg,
-      var(--color-bg) 0%,
-      color-mix(in srgb, var(--color-bg) 82%, transparent) 26%,
-      color-mix(in srgb, var(--color-bg) 22%, transparent) 48%,
-      transparent 66%
-    ),
-    linear-gradient(0deg, var(--color-bg) 0%, transparent 20%);
+  background: linear-gradient(
+    0deg,
+    var(--color-bg) 0%,
+    color-mix(in srgb, var(--color-bg) 92%, transparent) 46%,
+    color-mix(in srgb, var(--color-bg) 55%, transparent) 68%,
+    transparent 92%
+  );
   inset: 0;
   pointer-events: none;
   position: absolute;
+}
+
+@media (min-width: 768px) {
+  .site-hero-veil {
+    background:
+      linear-gradient(
+        96deg,
+        var(--color-bg) 0%,
+        color-mix(in srgb, var(--color-bg) 82%, transparent) 26%,
+        color-mix(in srgb, var(--color-bg) 22%, transparent) 48%,
+        transparent 66%
+      ),
+      linear-gradient(0deg, var(--color-bg) 0%, transparent 20%);
+  }
 }
 
 /* Tighter than the base rhythm: seven children at 18px read as a list rather
@@ -4357,9 +4380,11 @@ button {
 }
 
 /* One aspect for all four, so they read as a set rather than four unrelated
-   crops. `object-fit: cover` handles the two portrait sources. */
+   crops. `object-fit: cover` handles the two portrait sources. 16:10 rather
+   than 4:3 — this section cost 28px of scroll per word of content, a quarter of
+   the homepage for four names and four sentences. */
 .site-panel-frame {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   border-radius: var(--site-radius);
   display: block;
   isolation: isolate;
@@ -4488,13 +4513,17 @@ button {
   gap: clamp(24px, 3vw, 48px);
 }
 
-/* Hidden below the two-column breakpoint rather than stacked. It is decorative
-   — the list carries every word — and a full-width canvas above a list of four
-   links would be the loudest thing on a phone for no informational gain.
-   `display: none` also parks its frame loop: the IntersectionObserver reports
-   a hidden element as not intersecting. */
+/* Shown on every viewport. It was hidden below the two-column breakpoint on the
+   argument that it is decorative — but that left phone visitors, who are the
+   majority, with a stripped version of the page. It is sticky here too, so it
+   stays in view while the list is scrolled and the scroll position drives it. */
 .site-figure-panel {
-  display: none;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--site-rule);
+  display: block;
+  order: -1;
+  position: sticky;
+  top: calc(var(--height-header) + 12px);
 }
 
 .site-modality-canvas {
@@ -4567,7 +4596,7 @@ button {
 /* --- Practice figures --- */
 
 .site-practice {
-  padding: clamp(48px, 7vw, 104px) var(--site-gutter);
+  padding: clamp(44px, 6vw, 84px) var(--site-gutter);
 }
 
 .site-practice-inner {
@@ -4583,18 +4612,215 @@ button {
   justify-items: start;
 }
 
+/* --- Trust slots. Styled now so a supplied asset lands into a finished design
+       rather than needing layout work at the moment it arrives. --- */
+
+.site-portrait {
+  margin-bottom: 16px;
+  max-width: 240px;
+}
+
+.site-portrait-image {
+  border: 1px solid var(--site-rule);
+  border-radius: var(--site-radius);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.site-clinic-plate {
+  display: grid;
+  gap: 10px;
+}
+
+.site-clinic-plate-image {
+  border-radius: var(--site-radius);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.site-quote-list {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 30px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  list-style: none;
+  margin-top: var(--space-3);
+}
+
+.site-quote {
+  border-top: 1px solid var(--site-rule);
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.site-quote-body {
+  color: var(--site-fg);
+  font-size: var(--site-lead-size);
+  line-height: var(--site-lead-line);
+}
+
+.site-quote-attribution {
+  color: var(--site-fg-muted);
+  display: grid;
+  font-size: var(--site-label-size);
+  gap: 2px;
+  line-height: var(--site-label-line);
+}
+
+.site-quote-source {
+  color: var(--site-fg-muted);
+  opacity: 0.75;
+}
+
+/* --- Patient information: question and answer --- */
+
+.site-answer-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+
+.site-answer-list {
+  display: grid;
+  gap: 0;
+}
+
+.site-answer {
+  border-top: 1px solid var(--site-rule);
+  display: grid;
+  gap: 8px;
+  padding: clamp(16px, 2vw, 26px) 0;
+}
+
+.site-answer dd {
+  max-width: var(--site-measure);
+}
+
+/* --- Condition map: where each condition is treated --- */
+
+.site-condition-map {
+  display: grid;
+  gap: clamp(24px, 3vw, 48px);
+}
+
+/* A tag that drives the figure, not a link. It keeps the tag's own shape so the
+   row still reads as a list of conditions rather than a row of controls. */
+.site-tag-button {
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.site-tag-button:hover,
+.site-tag-button[data-active="true"] {
+  border-color: var(--site-brand);
+  color: var(--site-brand-deep);
+}
+
+.site-body-figure {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.site-body-svg {
+  height: clamp(300px, 38vw, 480px);
+  width: auto;
+}
+
+/* Colour is the only thing that transitions. The lit state also used to thicken
+   the stroke, which meant animating an SVG geometry property for a change the
+   colour shift was already carrying — not worth re-rasterising the figure for. */
+.site-body-outline polyline {
+  fill: none;
+  stroke: var(--site-fg-muted);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 1.8;
+  transition: stroke 0.35s ease;
+}
+
+/* Skin is the whole surface, so it is marked on the outline itself rather than
+   as a region; "multiple sites" lifts the whole figure the same way. */
+.site-body-outline[data-skin="true"] polyline,
+.site-body-outline[data-multiple="true"] polyline {
+  stroke: var(--site-brand);
+}
+
+.site-body-mark polygon {
+  fill: color-mix(in srgb, var(--site-brand) 26%, transparent);
+  stroke: var(--site-brand);
+  stroke-width: 1.4;
+}
+
+.site-body-caption {
+  color: var(--site-fg-muted);
+  font-size: var(--site-label-size);
+  line-height: var(--site-label-line);
+  max-width: 34ch;
+  min-height: 3em;
+  text-align: center;
+}
+
+.site-body-caption-name {
+  color: var(--site-fg);
+  display: block;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* --- Cohort field: the published figures, drawn --- */
+
+/* The stretch has to go on the `Reveal` wrapper, because that is the grid item
+   — not the figure inside it. A canvas has no intrinsic width, so under any
+   fit-content sizing the field collapses to a fraction of its track. */
+.site-cohort-reveal {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  width: 100%;
+}
+
+.site-cohort {
+  display: grid;
+  gap: 10px;
+  margin-top: var(--space-2);
+  width: 100%;
+}
+
+.site-cohort-canvas {
+  border-top: 1px solid var(--site-rule);
+  display: block;
+  height: clamp(150px, 17vw, 210px);
+  padding-top: 14px;
+  width: 100%;
+}
+
+.site-cohort-caption {
+  color: var(--site-fg-muted);
+  font-size: var(--site-label-size);
+  line-height: var(--site-label-line);
+  max-width: 40ch;
+}
+
+/* Two up. As a four-row list with a fixed 7rem value column this had two
+   structural faults: "1,500+" overflowed the track into its own label, and
+   "5-Star" wrapped to "5-" / "Star". Stacking the value over the label removes
+   the shared track entirely, so no figure can be clipped by another's width. */
 .site-figure-stack {
   display: grid;
-  gap: 2px;
+  gap: clamp(18px, 2.4vw, 34px) clamp(20px, 3vw, 44px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
 }
 
 .site-figure {
-  align-items: baseline;
   border-top: 1px solid var(--site-rule);
   display: grid;
-  gap: clamp(8px, 2vw, 24px);
-  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
-  padding: clamp(14px, 1.8vw, 22px) 0;
+  gap: 6px;
+  padding-top: clamp(12px, 1.4vw, 18px);
 }
 
 .site-figure-value {
@@ -4603,6 +4829,8 @@ button {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--site-headline-tracking);
   line-height: var(--site-headline-line);
+  /* "5-Star" must never break at its hyphen. */
+  white-space: nowrap;
 }
 
 .site-figure-label {
@@ -4651,12 +4879,10 @@ button {
     grid-template-columns: minmax(0, 1fr) clamp(360px, 34%, 480px);
   }
 
+  /* Square and back beside the list once there are two columns. */
   .site-figure-panel {
-    /* Sticky, so the figure stays in view while the list is scanned. */
     aspect-ratio: 1 / 1;
-    border: 1px solid var(--site-rule);
-    display: block;
-    position: sticky;
+    order: 0;
     top: calc(var(--height-header) + var(--space-3));
   }
 
@@ -4674,6 +4900,32 @@ button {
   .site-practice-inner {
     align-items: start;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  /* Explicitly two up. `auto-fit` fitted three across this column and left the
+     fourth figure alone on its own row with a gap beside it. */
+  .site-figure-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Tags in a narrow column so they stack into a tall list, and the figure
+     takes the rest. Reversed, the tags wrapped into three rows and left roughly
+     400px of empty ground under them beside a small drawing. */
+  .site-condition-map {
+    align-items: start;
+    grid-template-columns: clamp(240px, 30%, 320px) minmax(0, 1fr);
+  }
+
+  /* Aligned to the start of its column, not centred in it: centring left a
+     visible gap between the tag list and the drawing. */
+  .site-body-figure {
+    justify-items: start;
+    position: sticky;
+    top: calc(var(--height-header) + var(--space-3));
+  }
+
+  .site-body-caption {
+    text-align: left;
   }
 
   /* Wider than 7rem: the rail now carries the treated conditions under the

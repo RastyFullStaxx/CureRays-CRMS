@@ -23,10 +23,46 @@ import type { Treatment } from '@/lib/site-content';
  */
 export function TreatmentExplorer({ treatments }: { treatments: readonly Treatment[] }) {
   const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLOListElement>(null);
+
+  // Touch devices have no hover, so without this the figure would sit on its
+  // first formation forever on a phone — which is where most visitors are.
+  // There, the row nearest the middle of the viewport drives it instead.
+  // Pointer devices are left alone: a scroll-driven override would fight the
+  // hover the visitor is actively performing.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    if (window.matchMedia('(hover: hover)').matches) return;
+
+    const rows = Array.from(list.querySelectorAll('li'));
+    const pick = () => {
+      const middle = window.innerHeight / 2;
+      let best = 0;
+      let bestDistance = Infinity;
+      rows.forEach((row, index) => {
+        const rect = row.getBoundingClientRect();
+        const distance = Math.abs(rect.top + rect.height / 2 - middle);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = index;
+        }
+      });
+      setActive(best);
+    };
+
+    pick();
+    window.addEventListener('scroll', pick, { passive: true });
+    window.addEventListener('resize', pick, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', pick);
+      window.removeEventListener('resize', pick);
+    };
+  }, []);
 
   return (
     <div className="site-explorer">
-      <ol className="site-modality-list">
+      <ol className="site-modality-list" ref={listRef}>
         {treatments.map((treatment, index) => (
           <Reveal as="li" key={treatment.slug} delay={index * 0.06}>
             <Link

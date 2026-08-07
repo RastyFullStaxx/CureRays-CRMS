@@ -1,19 +1,22 @@
 import type { Metadata } from 'next';
+import { sitePageMetadata } from '@/lib/site-metadata';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteStatRow } from '@/components/site/site-stat-row';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { AWARDS, CLINIC, FOUNDER, PROGRAMS, SPECIALTY_AREAS } from '@/lib/site-content';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = sitePageMetadata({
   title: 'About',
   description:
-    'CureRays Radiation Medicine was founded by Dr. Clayton B. Hess, MD MPH, a board-certified radiation oncologist, to expand access to non-invasive x-ray therapy.'
-};
+    'CureRays Radiation Medicine was founded by Dr. Clayton B. Hess, MD MPH, a board-certified radiation oncologist, to expand access to non-invasive x-ray therapy.',
+  path: '/about'
+});
 
 export default function AboutPage() {
   return (
     <>
       <SiteSection
+        level="h1"
         id="belief"
         eyebrow="About CureRays"
         heading="Why The Practice Exists"

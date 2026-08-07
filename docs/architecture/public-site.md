@@ -237,7 +237,22 @@ Reduced motion still gets the finished hero bed: the host runs frames until it h
 
 The modality list is paired with a canvas that reconfigures as you move through it: [`modality-figure-renderers.ts`](../../components/site/modality-figure-renderers.ts) owns the formations and the paint, [`treatment-explorer.tsx`](../../components/site/treatment-explorer.tsx) owns selection and the frame loop. Pointing at a row or tabbing to it retargets a field of ~260 angular marks, and each eases to its new place on a per-mark stagger so the field turns over as a wave rather than translating as a block.
 
-**The formations are abstract geometry, and that is a requirement rather than a style choice.** Stratified, dispersed, nested rings, converging spokes: they read as *a different technique* without asserting anything about depth, dose, or penetration. Anything that implies a clinical profile — a depth axis, a falloff curve, a scale, a number — is a claim about the modality and needs the clinic's sign-off before it goes on a patient-facing page. A schematic depth treatment was considered and deliberately not built for this reason.
+**Each formation illustrates that modality's own published description, and nothing beyond it.** A purely abstract version was built first and rejected: claim-free, but with no relationship to the copy beside it, so it read as decoration.
+
+| Modality | Published wording | Deposit |
+|---|---|---|
+| SRT | "treat skin cancer at the surface" | tight, just under the surface |
+| LDRT | "very low doses… over a short series" | sparse, spread, in session clusters |
+| SRT for keloids | "follows keloid removal… causes scars to return" | a thin line on the surface itself |
+| DEEP-SRT™ | "conditions that sit below the skin surface" | concentrated well below the surface |
+
+The beam above the surface is **constant** across all four — it is always x-rays from a source — so the eye reads only the deposit as changing, which is exactly what the copy varies. The surface rule is the one datum everything is measured against: "at the surface" and "below the surface" mean nothing without it, so it is drawn solid while the rest of the stage stays faint.
+
+> ### ⚠ Needs clinical sign-off before launch
+>
+> This is schematic, and it makes a **relative visual statement about delivery**. It illustrates published copy rather than inventing a claim, but a clinical owner has to agree the illustration is faithful before it goes in front of patients.
+>
+> There are deliberately **no numbers, no scale and no falloff curve** — those would be clinical data rather than an illustration of copy. Do not add them. If sign-off is withheld, the fallback is the abstract formation set, recoverable from this file's history.
 
 Accessibility shaped three things:
 
@@ -246,6 +261,42 @@ Accessibility shaped three things:
 - Reduced motion gets each formation *arrived at* rather than travelled to: the easing is run to completion off-screen and painted once. The frame loop never starts.
 
 Below the two-column breakpoint the panel is `display: none` rather than stacked. It is decorative, and a full-width canvas above a list of four links would be the loudest thing on a phone for no informational gain. Hiding it also parks the loop — an `IntersectionObserver` reports a `display: none` element as not intersecting.
+
+## The condition map
+
+The conditions list is paired with a body map: selecting a condition marks the region it affects and names it in text. It answers the question a patient actually arrives with — *where is this treated?* — and needs no photography to do it. The figure is straight segments only, `aria-hidden`, and the region is stated in the caption, so nothing is available only by pointing at a drawing. The tags are buttons rather than links; `<button>` takes the user agent's font unless told otherwise, which is why `font-family: inherit` is a legitimate fourth entry in the typography guardrail's whitelist.
+
+> ### ⚠ Site mapping needs clinical sign-off
+>
+> Most entries come from the condition's own name — hand arthritis to the hands, Graves' eye disease to the head, gynecomastia to the chest. Two are eponymous and rest on clinical knowledge rather than the words themselves: **Ledderhose** and **Peyronie's**. Anything whose name does not state a site — Ossification, Fasciitis, Contracture, Select infections, Desmoid fibromatosis — is deliberately marked *"occurs at several sites"* rather than being assigned one. Do not assign them a region without clinical input.
+
+## Discoverability baseline
+
+An audit found the site shipping with **no `<h1>` on five of six routes**, no Open Graph tags, no canonicals, and `MedicalClinic` structured data on `/contact` alone. All four are fixed and the fixes are structural rather than per page:
+
+- `SiteSection` takes a `level` prop. Sections default to `h2`; the first section on a page is that page's `h1`. Every sub-page led with a section, which is why none of them had one.
+- `sitePageMetadata()` in [`lib/site-metadata.ts`](../../lib/site-metadata.ts) gives each route its own canonical and social card. Without `metadataBase` in the root layout, Next emits relative `og:url`, which crawlers ignore.
+- `SiteStructuredData` renders the clinic entity on **every** page from the site layout. Its JSON escapes `<` — every value is a compile-time constant today, but `</script>` inside a string would otherwise close the tag early.
+
+**Content gating.** A route may carry `draft: true` in [`lib/site-routes.ts`](../../lib/site-routes.ts). Drafts stay reachable but are excluded from `SITE_NAV_ROUTES` and from `SITE_INDEXABLE_ROUTES`, which the sitemap consumes. `/patient-information` additionally sets `robots: noindex` until every section can answer a question, and renders only answers marked published. **An unanswered question is better than an invented one** — see [content gaps](../product/public-site-content-gaps.md).
+
+**Trust slots.** [`lib/site-assets.ts`](../../lib/site-assets.ts) holds the practice's photography and patient quotes. Every slot is `null` or empty and every consumer returns `null` while it stays that way — no grey boxes, no "coming soon", no stock stand-in a visitor could mistake for the real clinic. The CSS is written now so a supplied asset lands into a finished design.
+
+## On clinical photography
+
+The CRMS tracks clinical photographs — a *Clinical Photos / Skin evidence* counter, an `Attach Image` action, dermoscopy and required-photograph checklists. **None of it can appear on this site.**
+
+A clinical photograph of a patient is PHI. Marketing use of PHI requires written authorization from the individual under HIPAA §164.508, and this repo's standing rule is that PHI never reaches a client bundle. That makes it a legal gate rather than an editorial preference, and it holds even for images that look de-identified.
+
+What can be used, if the clinic supplies it: licensed stock clinical imagery, or patient photographs accompanied by a signed release. Until then the site's visuals are generated from the clinic's own published content — the hero bed, the treatments figure, this map, and the cohort field — which is why none of them depend on assets the clinic does not have.
+
+## The practice figures
+
+The proof block's visual is made of its own numbers rather than decorating them: [`cohort-field.tsx`](../../components/site/cohort-field.tsx) draws **1,500 marks, one per patient served**, with the most recent 300 picked out — the same two figures the adjacent stats state, and nothing invented. It reveals once on entering view and then **stops its loop**; there is nothing left to animate, and a 1,500-stroke frame repeating behind static content is pure waste.
+
+The figures themselves are stacked value-over-label in a 2×2. As a four-row list with a fixed `7rem` value column they had two structural faults: `1,500+` overflowed the track into its own label, and `5-Star` wrapped to `5-` / `Star`. Stacking removes the shared track, so no figure can be clipped by another's width; `white-space: nowrap` on the value covers the hyphen. `auto-fit` is not enough here — it fitted three across and stranded the fourth alone on a row.
+
+**A canvas has no intrinsic width**, so it collapses under any fit-content sizing. `.site-practice-copy` sets `justify-items: start`, which did exactly that. The `justify-self: stretch` has to go on the `Reveal` wrapper, because *that* is the grid item — not the figure inside it.
 
 ## Section anatomy
 

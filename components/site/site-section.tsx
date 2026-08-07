@@ -21,7 +21,8 @@ export function SiteSection({
   children,
   className,
   tone = 'default',
-  layout = 'split'
+  layout = 'split',
+  level = 'h2'
 }: {
   id?: string;
   eyebrow?: string;
@@ -34,8 +35,16 @@ export function SiteSection({
   tone?: 'default' | 'muted' | 'brand';
   /** `stack` drops the desktop two-column split so wide content gets the row. */
   layout?: 'split' | 'stack';
+  /**
+   * Heading level. Sections default to `h2`, but the first section on a page is
+   * that page's `h1` — every sub-page shipped without one because they all lead
+   * with a section, and a document with no `h1` costs both screen-reader
+   * navigation and search ranking.
+   */
+  level?: 'h1' | 'h2';
 }) {
   const headingId = id ? `${id}-heading` : undefined;
+  const Heading = level;
 
   return (
     <section
@@ -48,9 +57,9 @@ export function SiteSection({
       <div className="site-section-inner">
         <div className="site-section-heading">
           {eyebrow ? <p className="site-eyebrow">{eyebrow}</p> : null}
-          <h2 id={headingId} className="site-headline">
+          <Heading id={headingId} className="site-headline">
             {heading}
-          </h2>
+          </Heading>
           {lead ? <p className="site-lead">{lead}</p> : null}
           {action ? <div className="site-section-action">{action}</div> : null}
         </div>

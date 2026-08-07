@@ -1,46 +1,20 @@
 import type { Metadata } from 'next';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
-import { CLINIC, CONTACT, SOCIAL } from '@/lib/site-content';
+import { sitePageMetadata } from '@/lib/site-metadata';
+import { CONTACT, SOCIAL } from '@/lib/site-content';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = sitePageMetadata({
   title: 'Contact',
-  description: `Contact CureRays Radiation Medicine at ${CONTACT.tollFreeLabel} or ${CONTACT.email}. ${CONTACT.street}, ${CONTACT.city}, ${CONTACT.state} ${CONTACT.postalCode}.`
-};
-
-/**
- * Structured data lets search engines surface the clinic's real phone number and
- * address. It restates only what this page already shows.
- */
-const clinicJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'MedicalClinic',
-  name: CLINIC.name,
-  slogan: CLINIC.tagline,
-  telephone: CONTACT.tollFreeDigits,
-  faxNumber: CONTACT.faxLabel,
-  email: CONTACT.email,
-  medicalSpecialty: 'RadiationOncology',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: CONTACT.street,
-    addressLocality: CONTACT.city,
-    addressRegion: CONTACT.state,
-    postalCode: CONTACT.postalCode,
-    addressCountry: 'US'
-  },
-  sameAs: SOCIAL.map((social) => social.href)
-};
+  description: `Contact CureRays Radiation Medicine at ${CONTACT.tollFreeLabel} or ${CONTACT.email}. ${CONTACT.street}, ${CONTACT.city}, ${CONTACT.state} ${CONTACT.postalCode}.`,
+  path: '/contact'
+});
 
 export default function ContactPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(clinicJsonLd) }}
-      />
-
       <SiteSection
+        level="h1"
         id="contact"
         eyebrow="Contact"
         heading="Schedule A Consultation"

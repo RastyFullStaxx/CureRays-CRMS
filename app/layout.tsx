@@ -9,15 +9,45 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+/**
+ * Absolute base for canonical URLs and social cards. Without it Next emits
+ * relative og:url/og:image, which every crawler and social scraper ignores.
+ * Overridable so preview deployments do not claim the production host.
+ */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.curerays.com";
+
+const description =
+  "CureRays Radiation Medicine provides non-invasive x-ray therapy for skin cancer, arthritis, keloids, and other conditions in Grass Valley, California.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "CureRays Radiation Medicine",
     template: "%s · CureRays",
   },
-  description:
-    "CureRays Radiation Medicine provides non-invasive x-ray therapy for skin cancer, arthritis, keloids, and other conditions in Grass Valley, California.",
+  description,
   icons: {
     icon: "/System_Logo.svg",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "CureRays Radiation Medicine",
+    locale: "en_US",
+    title: "CureRays Radiation Medicine",
+    description,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CureRays Radiation Medicine",
+    description,
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

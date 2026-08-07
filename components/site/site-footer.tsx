@@ -20,6 +20,17 @@ export function SiteFooter() {
           <a className="site-contact-link clinical-focus" href={CONTACT.emailHref}>
             {CONTACT.email}
           </a>
+          {/* The address was on every page but the directions were not, so a
+              visitor ready to visit had to go back to /contact to find them. */}
+          <a
+            className="site-footer-link clinical-focus"
+            href={CONTACT.mapHref}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open In Maps
+            <span aria-hidden="true"> →</span>
+          </a>
         </div>
 
         <nav className="site-footer-nav" aria-label="Footer">

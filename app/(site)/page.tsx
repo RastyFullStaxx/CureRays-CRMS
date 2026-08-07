@@ -2,12 +2,15 @@ import Link from 'next/link';
 import { SiteSection } from '@/components/site/site-section';
 import { SiteContactCard } from '@/components/site/site-contact-card';
 import { SiteGallery } from '@/components/site/site-gallery';
+import { CohortField } from '@/components/site/cohort-field';
+import { PATIENT_INFORMATION_IS_PUBLISHABLE } from '@/lib/site-patient-information';
+import { ConditionMap } from '@/components/site/condition-map';
+import { FounderPortrait, Testimonials } from '@/components/site/site-trust';
 import { SiteHeroField } from '@/components/site/site-hero-field';
 import { TreatmentExplorer } from '@/components/site/treatment-explorer';
 import { Counter, Drift, Reveal } from '@/components/site/site-motion';
 import {
   CLINIC,
-  CONDITIONS,
   CONTACT,
   FOUNDER,
   PRACTICE_FACTS,
@@ -62,8 +65,16 @@ export default function HomePage() {
               >
                 Schedule A Consultation
               </a>
-              <Link className="site-button site-button-ghost clinical-focus" href="/treatments">
-                See How CureRays Works
+              {/* Points at the answers once the clinic has written them, and at
+                  the modality list until then — so the second CTA is never a
+                  link to a page of unanswered questions. */}
+              <Link
+                className="site-button site-button-ghost clinical-focus"
+                href={PATIENT_INFORMATION_IS_PUBLISHABLE ? '/patient-information' : '/treatments'}
+              >
+                {PATIENT_INFORMATION_IS_PUBLISHABLE
+                  ? 'What To Expect'
+                  : 'See How CureRays Works'}
               </Link>
             </div>
           </Reveal>
@@ -86,6 +97,22 @@ export default function HomePage() {
       </SiteSection>
 
       <SiteSection
+        id="conditions"
+        tone="muted"
+        eyebrow="Conditions Treated"
+        heading="More Than Cancer"
+        lead="X-ray therapy treats a range of malignant and benign conditions across several specialties."
+        action={
+          <Link className="site-inline-link clinical-focus" href="/conditions">
+            Explore Conditions
+            <span aria-hidden="true">→</span>
+          </Link>
+        }
+      >
+        <ConditionMap />
+      </SiteSection>
+
+      <SiteSection
         id="treatments"
         layout="stack"
         eyebrow="Treatments"
@@ -99,28 +126,6 @@ export default function HomePage() {
         }
       >
         <TreatmentExplorer treatments={TREATMENTS.slice(0, 4)} />
-      </SiteSection>
-
-      <SiteSection
-        id="conditions"
-        tone="muted"
-        eyebrow="Conditions Treated"
-        heading="More Than Cancer"
-        lead="X-ray therapy treats a range of malignant and benign conditions across several specialties."
-        action={
-          <Link className="site-inline-link clinical-focus" href="/conditions">
-            Explore Conditions
-            <span aria-hidden="true">→</span>
-          </Link>
-        }
-      >
-        <ul className="site-tag-list">
-          {CONDITIONS.map((condition) => (
-            <li key={condition} className="site-tag">
-              {condition}
-            </li>
-          ))}
-        </ul>
       </SiteSection>
 
       <section className="site-practice" aria-labelledby="practice-heading">
@@ -137,6 +142,8 @@ export default function HomePage() {
 
             <Reveal delay={0.16}>
               <div className="site-founder">
+                {/* Renders nothing until the clinic supplies a portrait. */}
+                <FounderPortrait />
                 <p className="site-founder-name">{FOUNDER.name}</p>
                 <p className="site-body">
                   {FOUNDER.role} · {FOUNDER.credential} with {FOUNDER.experience}.
@@ -164,6 +171,20 @@ export default function HomePage() {
               ))}
             </dl>
           </Drift>
+
+          {/* The section's proof is its figures, so the visual is made of them:
+              1,500 marks, one per patient served. Full width beneath both
+              columns — the figures end well short of the copy, and anything
+              narrower left a dead quadrant under them. */}
+          <Reveal delay={0.24} className="site-cohort-reveal">
+            <CohortField />
+          </Reveal>
+
+          {/* The 5-star figure above stands on nothing until the clinic supplies
+              quotes it has the right to republish. Renders nothing until then. */}
+          <div className="site-cohort-reveal">
+            <Testimonials />
+          </div>
         </div>
       </section>
 
